@@ -12,6 +12,7 @@ const chatRoutes = require('./routes/chat');
 const invitationsRoutes = require('./routes/invitations');
 const uploadRoutes = require('./routes/upload');
 const imagesRoutes = require('./routes/images');
+const maintenanceRoutes = require('./routes/maintenance');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -49,6 +50,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/invitations', invitationsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/images', imagesRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 const PORT = process.env.PORT || 3000;
 

@@ -166,4 +166,23 @@ class ChatService {
       throw Exception('Failed to create conversation: $e');
     }
   }
+
+  // Get recent conversations for dashboard (last 3)
+  Future<List<Conversation>> getRecentConversations(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_apiUrl/conversations/user/$userId?limit=3'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Conversation.fromMap(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching recent conversations: $e');
+      return [];
+    }
+  }
 }

@@ -6,6 +6,27 @@ import 'package:immolink/core/config/db_config.dart';
 class MaintenanceService {
   final String _apiUrl = DbConfig.apiUrl;
 
+  // Get recent maintenance requests for dashboard (last 5)
+  Future<List<MaintenanceRequest>> getRecentMaintenanceRequests(String landlordId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_apiUrl/maintenance/recent/$landlordId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => MaintenanceRequest.fromMap(json)).toList();
+      } else {
+        throw Exception('Failed to load recent maintenance requests');
+      }
+    } catch (e) {
+      print('Network error in getRecentMaintenanceRequests: $e');
+      return []; // Return empty list when offline
+    }
+  }
+
+  // Get all maintenance requests for a tenant
   Future<List<MaintenanceRequest>> getMaintenanceRequestsByTenant(String tenantId) async {
     try {
       final response = await http.get(
@@ -25,25 +46,7 @@ class MaintenanceService {
     }
   }
 
-  Future<List<MaintenanceRequest>> getMaintenanceRequestsByProperty(String propertyId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_apiUrl/maintenance/property/$propertyId'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => MaintenanceRequest.fromMap(json)).toList();
-      } else {
-        throw Exception('Failed to load maintenance requests');
-      }
-    } catch (e) {
-      print('Network error in getMaintenanceRequestsByProperty: $e');
-      return []; // Return empty list when offline
-    }
-  }
-
+  // Get all maintenance requests for a landlord
   Future<List<MaintenanceRequest>> getMaintenanceRequestsByLandlord(String landlordId) async {
     try {
       final response = await http.get(
@@ -63,35 +66,7 @@ class MaintenanceService {
     }
   }
 
-  Future<MaintenanceRequest> getMaintenanceRequestById(String id) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_apiUrl/maintenance/$id'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return MaintenanceRequest.fromMap(data);
-      } else {
-        throw Exception('Failed to load maintenance request');
-      }
-    } catch (e) {
-      print('Network error in getMaintenanceRequestById: $e');
-      // Return a placeholder maintenance request when offline
-      return MaintenanceRequest(
-        id: 'offline-$id',
-        propertyId: '',
-        tenantId: '',
-        category: 'Unknown',
-        priority: 'Medium',
-        description: 'Unable to load request details while offline',
-        status: 'Unknown',
-        dateCreated: DateTime.now(),
-      );
-    }
-  }
-
+  // Create a new maintenance request
   Future<MaintenanceRequest> createMaintenanceRequest(MaintenanceRequest request) async {
     try {
       final response = await http.post(
@@ -108,15 +83,76 @@ class MaintenanceService {
       }
     } catch (e) {
       print('Network error in createMaintenanceRequest: $e');
-      // Return the request with a temporary ID to simulate creation
-      return request.copyWith(
-        id: 'offline-${DateTime.now().millisecondsSinceEpoch}',
-        status: 'Pending',
-        dateCreated: DateTime.now(),
-      );
+      rethrow;
     }
   }
 
+  // Update maintenance request status
+  Future<MaintenanceRequest> updateMaintenanceRequestStatus(String id, String status, {String? notes, String? authorId}) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_apiUrl/maintenance/$id/status'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'status': status,
+          'notes': notes,
+          'authorId': authorId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return MaintenanceRequest.fromMap(data);
+      } else {
+        throw Exception('Failed to update maintenance request');
+      }
+    } catch (e) {
+      print('Network error in updateMaintenanceRequestStatus: $e');
+      rethrow;
+    }
+  }
+
+  // Get a specific maintenance request
+  Future<MaintenanceRequest> getMaintenanceRequestById(String id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_apiUrl/maintenance/$id'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return MaintenanceRequest.fromMap(data);
+      } else {
+        throw Exception('Failed to load maintenance request');
+      }
+    } catch (e) {
+      print('Network error in getMaintenanceRequestById: $e');
+      rethrow;
+    }
+  }
+
+  // Get maintenance requests by property
+  Future<List<MaintenanceRequest>> getMaintenanceRequestsByProperty(String propertyId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_apiUrl/maintenance/property/$propertyId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => MaintenanceRequest.fromMap(json)).toList();
+      } else {
+        throw Exception('Failed to load maintenance requests');
+      }
+    } catch (e) {
+      print('Network error in getMaintenanceRequestsByProperty: $e');
+      return []; // Return empty list when offline
+    }
+  }
+
+  // Update maintenance request (full update)
   Future<MaintenanceRequest> updateMaintenanceRequest(MaintenanceRequest request) async {
     try {
       final response = await http.put(
@@ -133,28 +169,7 @@ class MaintenanceService {
       }
     } catch (e) {
       print('Network error in updateMaintenanceRequest: $e');
-      // Return the updated request to simulate successful update
-      return request.copyWith(
-        status: request.status,
-      );
-    }
-  }
-
-  Future<void> deleteMaintenanceRequest(String id) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('$_apiUrl/maintenance/$id'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to delete maintenance request');
-      }
-    } catch (e) {
-      print('Network error in deleteMaintenanceRequest: $e');
-      // In offline mode, we just log the error but don't throw
-      // This allows the UI to proceed as if the delete was successful
+      rethrow;
     }
   }
 }
-

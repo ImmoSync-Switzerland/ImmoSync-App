@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/property/domain/models/property.dart';
+import 'package:immolink/features/home/domain/services/dashboard_service.dart';
+import 'package:immolink/features/chat/domain/models/conversation.dart';
+import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
 
@@ -20,7 +23,12 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
-
+  
+  // Dashboard data
+  final DashboardService _dashboardService = DashboardService();
+  List<Conversation> _recentMessages = [];
+  List<MaintenanceRequest> _recentMaintenanceRequests = [];
+  bool _isLoadingDashboardData = false;
   @override
   void initState() {
     super.initState();
@@ -35,6 +43,38 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) return;
+
+    setState(() {
+      _isLoadingDashboardData = true;
+    });
+
+    try {
+      final dashboardData = await _dashboardService.getDashboardData(
+        currentUser.id,
+        landlordId: currentUser.id,
+      );
+
+      if (mounted) {
+        setState(() {
+          _recentMessages = dashboardData.recentMessages;
+          _recentMaintenanceRequests = dashboardData.recentMaintenanceRequests;
+          _isLoadingDashboardData = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading dashboard data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingDashboardData = false;
+        });
+      }
+    }
   }
 
   @override
@@ -1055,14 +1095,32 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   letterSpacing: -0.5,
                 ),
               ),
-            ],
-          ),
+            ],          ),
           const SizedBox(height: 24),
-          _buildMessageItem('John Doe', 'Maintenance request for Unit 301', '2h ago', Icons.build_outlined, AppColors.warning),
-          const SizedBox(height: 16),
-          _buildMessageItem('Jane Smith', 'Rent payment confirmation', '5h ago', Icons.payment, AppColors.success),
-          const SizedBox(height: 16),
-          _buildMessageItem('Mike Johnson', 'Question about lease renewal', '1d ago', Icons.help_outline, AppColors.primaryAccent),
+          if (_isLoadingDashboardData)
+            const Center(child: CircularProgressIndicator())
+          else if (_recentMessages.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                'No recent messages',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            )
+          else
+            ..._recentMessages.map((conversation) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildMessageItem(
+                conversation.otherParticipantName ?? 'Unknown User',
+                conversation.lastMessage,
+                _getTimeAgo(conversation.lastMessageTime),
+                Icons.chat_bubble_outline,
+                AppColors.primaryAccent,
+              ),
+            )).toList(),
         ],
       ),
     );
@@ -1225,14 +1283,32 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   letterSpacing: -0.5,
                 ),
               ),
-            ],
-          ),
+            ],          ),
           const SizedBox(height: 24),
-          _buildMaintenanceCard('Heating System', 'Apartment 4A', 'High Priority', AppColors.error, Icons.thermostat_outlined),
-          const SizedBox(height: 16),
-          _buildMaintenanceCard('Plumbing Issue', 'Unit 2B', 'Medium Priority', AppColors.warning, Icons.plumbing_outlined),
-          const SizedBox(height: 16),
-          _buildMaintenanceCard('Light Fixture', 'Unit 1C', 'Low Priority', AppColors.success, Icons.lightbulb_outlined),
+          if (_isLoadingDashboardData)
+            const Center(child: CircularProgressIndicator())
+          else if (_recentMaintenanceRequests.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                'No recent maintenance requests',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            )
+          else
+            ..._recentMaintenanceRequests.map((request) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildMaintenanceCard(
+                request.title,
+                request.location,
+                request.priorityDisplayText,
+                _getPriorityColor(request.priority),
+                _getCategoryIcon(request.category),
+              ),
+            )).toList(),
         ],
       ),
     );
@@ -1488,6 +1564,21 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     }
   }
 
+  String _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
   void _showFilterDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
@@ -1539,6 +1630,41 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         ],
       ),
     );
+  }
+
+  Color _getPriorityColor(String priority) {
+    switch (priority) {
+      case 'urgent':
+      case 'high':
+        return AppColors.error;
+      case 'medium':
+        return AppColors.warning;
+      case 'low':
+        return AppColors.success;
+      default:
+        return AppColors.warning;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'heating':
+        return Icons.thermostat_outlined;
+      case 'plumbing':
+        return Icons.plumbing_outlined;
+      case 'electrical':
+        return Icons.electrical_services_outlined;
+      case 'appliances':
+        return Icons.home_repair_service_outlined;
+      case 'structural':
+        return Icons.foundation_outlined;
+      case 'cleaning':
+        return Icons.cleaning_services_outlined;
+      case 'pest_control':
+        return Icons.bug_report_outlined;
+      default:
+        return Icons.build_outlined;
+    }
   }
 }
 

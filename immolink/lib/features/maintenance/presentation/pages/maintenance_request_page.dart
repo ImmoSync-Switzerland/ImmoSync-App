@@ -278,7 +278,6 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
       ),
     );
   }
-
   void _submitMaintenanceRequest(String tenantId) async {
     if (_selectedPropertyId == null) return;
 
@@ -286,11 +285,14 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
       id: '', // Will be assigned by the database
       propertyId: _selectedPropertyId!,
       tenantId: tenantId,
+      landlordId: '', // Will be populated by backend based on property
+      title: _selectedCategory ?? 'Maintenance Request',
       description: _descriptionController.text,
+      category: _selectedCategory?.toLowerCase() ?? 'other',
+      priority: _selectedPriority?.toLowerCase() ?? 'medium',
       status: 'pending',
-      dateCreated: DateTime.now(),
-      priority: _selectedPriority?.toLowerCase(),
-      category: _selectedCategory,
+      location: 'Not specified', // Could be enhanced with a location field
+      requestedDate: DateTime.now(),
     );
 
     try {
