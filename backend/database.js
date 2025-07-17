@@ -10,13 +10,19 @@ const connectDB = async () => {
   }
 
   try {
-    client = new MongoClient(dbUri);
+    // Add connection timeout to prevent hanging
+    const options = {
+      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      connectTimeoutMS: 5000
+    };
+    
+    client = new MongoClient(dbUri, options);
     await client.connect();
     db = client.db(dbName);
     console.log('Connected to MongoDB');
     return db;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error.message);
     throw error;
   }
 };
