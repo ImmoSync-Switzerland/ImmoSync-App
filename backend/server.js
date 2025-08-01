@@ -15,6 +15,7 @@ const uploadRoutes = require('./routes/upload');
 const imagesRoutes = require('./routes/images');
 const maintenanceRoutes = require('./routes/maintenance');
 const emailRoutes = require('./routes/email');
+const notificationRoutes = require('./routes/notifications');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -55,6 +56,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/images', imagesRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 3000;
 
