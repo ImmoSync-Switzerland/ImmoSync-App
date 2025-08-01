@@ -1302,11 +1302,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ..._recentMaintenanceRequests.map((request) => Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _buildMaintenanceCard(
-                request.title,
-                request.location,
-                request.priorityDisplayText,
-                _getPriorityColor(request.priority),
-                _getCategoryIcon(request.category),
+                request,
+                context,
               ),
             )).toList(),
         ],
@@ -1314,109 +1311,117 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildMaintenanceCard(String issue, String location, String priority, Color priorityColor, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            priorityColor.withValues(alpha: 0.02),
+  Widget _buildMaintenanceCard(MaintenanceRequest request, BuildContext context) {
+    Color priorityColor = _getPriorityColor(request.priority);
+    IconData icon = _getCategoryIcon(request.category);
+    
+    return GestureDetector(
+      onTap: () {
+        context.push('/maintenance/${request.id}');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceCards,
+              priorityColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: priorityColor.withValues(alpha: 0.15),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowColor,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: priorityColor.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  priorityColor.withValues(alpha: 0.2),
-                  priorityColor.withValues(alpha: 0.1),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: priorityColor.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-            child: Icon(icon, color: priorityColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  issue,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 14,
-                      color: AppColors.textTertiary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      location,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textTertiary,
-                        letterSpacing: -0.1,
-                      ),
-                    ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    priorityColor.withValues(alpha: 0.2),
+                    priorityColor.withValues(alpha: 0.1),
                   ],
                 ),
-              ],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: priorityColor.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, color: priorityColor, size: 20),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: priorityColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: priorityColor.withValues(alpha: 0.2),
-                width: 1,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    request.title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: AppColors.textTertiary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        request.location,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textTertiary,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            child: Text(
-              priority.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: priorityColor,
-                letterSpacing: 0.5,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: priorityColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: priorityColor.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                request.priorityDisplayText.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: priorityColor,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

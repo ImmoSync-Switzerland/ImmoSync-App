@@ -127,7 +127,7 @@ router.post('/', async (req, res) => {
 router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body;
+    const { status, notes, authorId } = req.body;
     
     const updateData = { status, updatedAt: new Date() };
     
@@ -135,23 +135,35 @@ router.patch('/:id/status', async (req, res) => {
       updateData.completedDate = new Date();
     }
     
-    if (notes) {
-      updateData.$push = {
-        notes: {
-          author: new ObjectId(req.body.authorId), // Should come from auth middleware
-          content: notes,
-          timestamp: new Date()
-        }
-      };
-    }
-    
     const db = getDB();
-    const result = await db.collection('maintenanceRequests')
-      .findOneAndUpdate(
-        { _id: new ObjectId(id) },
-        { $set: updateData },
-        { returnDocument: 'after' }
-      );
+    let result;
+    
+    if (notes && authorId) {
+      // If there are notes, we need to do both $set and $push operations
+      result = await db.collection('maintenanceRequests')
+        .findOneAndUpdate(
+          { _id: new ObjectId(id) },
+          {
+            $set: updateData,
+            $push: {
+              notes: {
+                author: new ObjectId(authorId),
+                content: notes,
+                timestamp: new Date()
+              }
+            }
+          },
+          { returnDocument: 'after' }
+        );
+    } else {
+      // If no notes, just update the status
+      result = await db.collection('maintenanceRequests')
+        .findOneAndUpdate(
+          { _id: new ObjectId(id) },
+          { $set: updateData },
+          { returnDocument: 'after' }
+        );
+    }
     
     if (!result.value) {
       return res.status(404).json({ message: 'Maintenance request not found' });

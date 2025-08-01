@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:intl/intl.dart';
@@ -277,7 +278,7 @@ class MaintenanceManagementPage extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            _showMaintenanceRequestDetails(context, request);
+            context.push('/maintenance/${request.id}');
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
