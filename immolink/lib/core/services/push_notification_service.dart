@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class PushNotificationService {
   static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -145,9 +145,15 @@ class PushNotificationService {
     switch (type) {
       case 'payment_reminder':
         // Navigate to payment page
+        if (id != null) {
+          // TODO: Navigate to payment with id
+        }
         break;
       case 'maintenance_request':
         // Navigate to maintenance page
+        if (id != null) {
+          // TODO: Navigate to maintenance request with id
+        }
         break;
       case 'message':
         // Navigate to chat page
@@ -228,7 +234,7 @@ class PushNotificationService {
       id,
       title,
       body,
-      scheduledDate,
+      tz.TZDateTime.from(scheduledDate, tz.local),
       platformChannelSpecifics,
       payload: payload,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
