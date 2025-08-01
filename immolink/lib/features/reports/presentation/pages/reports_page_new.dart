@@ -151,7 +151,7 @@ class ReportsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFinancialSummary(properties, payments),
+        _buildFinancialSummary(properties, payments, ref),
         const SizedBox(height: 24),
         _buildOccupancySection(properties),
       ],
@@ -164,14 +164,14 @@ class ReportsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPaymentSummary(payments),
+        _buildPaymentSummary(payments, ref),
         const SizedBox(height: 24),
-        _buildPaymentHistory(payments),
+        _buildPaymentHistory(payments, ref),
       ],
     );
   }
 
-  Widget _buildFinancialSummary(AsyncValue properties, AsyncValue payments) {
+  Widget _buildFinancialSummary(AsyncValue properties, AsyncValue payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -366,7 +366,7 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentSummary(AsyncValue<List<dynamic>> payments) {
+  Widget _buildPaymentSummary(AsyncValue<List<dynamic>> payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -466,7 +466,7 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentHistory(AsyncValue<List<dynamic>> payments) {
+  Widget _buildPaymentHistory(AsyncValue<List<dynamic>> payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

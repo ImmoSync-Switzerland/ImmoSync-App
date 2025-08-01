@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../../core/theme/app_colors.dart';
@@ -272,8 +271,6 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
@@ -363,8 +360,8 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: _is2FAEnabled 
-                    ? AppColors.success.withOpacity(0.1)
-                    : AppColors.warning.withOpacity(0.1),
+                    ? AppColors.success.withValues(alpha: 0.1)
+                    : AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -409,7 +406,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
   Widget _buildErrorCard() {
     return Card(
-      color: AppColors.error.withOpacity(0.1),
+      color: AppColors.error.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -430,7 +427,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
   Widget _buildSuccessCard() {
     return Card(
-      color: AppColors.success.withOpacity(0.1),
+      color: AppColors.success.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class HelpCenterPage extends ConsumerWidget {
@@ -10,8 +8,6 @@ class HelpCenterPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
@@ -70,8 +66,8 @@ class HelpCenterPage extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent.withOpacity(0.1),
-              AppColors.accentLight.withOpacity(0.1),
+              AppColors.primaryAccent.withValues(alpha: 0.1),
+              AppColors.accentLight.withValues(alpha: 0.1),
             ],
           ),
         ),
@@ -172,7 +168,7 @@ class HelpCenterPage extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primaryAccent.withOpacity(0.1),
+          color: AppColors.primaryAccent.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppColors.primaryAccent),
@@ -305,7 +301,7 @@ class HelpCenterPage extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.accentLight.withOpacity(0.2),
+          color: AppColors.accentLight.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppColors.primaryAccent),

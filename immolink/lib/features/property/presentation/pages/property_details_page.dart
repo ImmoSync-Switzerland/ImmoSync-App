@@ -56,7 +56,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context, property),
+                  _buildHeader(context, property, ref),
                   const SizedBox(height: 16),
                   _buildStats(context, property),
                   const SizedBox(height: 24),
@@ -91,7 +91,7 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, Property property) {
+  Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(

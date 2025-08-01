@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -48,8 +47,6 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
@@ -106,8 +103,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent.withOpacity(0.1),
-              AppColors.accentLight.withOpacity(0.1),
+              AppColors.primaryAccent.withValues(alpha: 0.1),
+              AppColors.accentLight.withValues(alpha: 0.1),
             ],
           ),
         ),
@@ -255,7 +252,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBackground.withOpacity(0.5),
+                  color: AppColors.primaryBackground.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
