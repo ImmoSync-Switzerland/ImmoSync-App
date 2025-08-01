@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immolink/features/auth/presentation/providers/register_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -52,15 +53,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
     final isSmallScreen = screenSize.width < 600;
 
     return Scaffold(
+      backgroundColor: AppColors.primaryBackground,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).primaryColor.withAlpha(204),
-              Theme.of(context).colorScheme.secondary.withAlpha(230),
+              Color(0xFFFFFFFF), // Pure white
+              Color(0xFFF0F4FF), // Very light blue
+              Color(0xFFE0EAFF), // Light blue
+              Color(0xFFD1E0FF), // Soft blue
             ],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: SafeArea(
@@ -69,7 +74,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: isSmallScreen ? 24.0 : screenSize.width * 0.1,
-                  vertical: 24.0,
+                  vertical: 32.0,
                 ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 600),
@@ -97,7 +102,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         child: Column(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
               onPressed: () => context.pop(),
             ),
             const SizedBox(height: 16),
@@ -106,15 +111,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Color(0xFF1E293B), // Dark slate
+                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Join ImmoLink today',
               style: TextStyle(
-                color: Colors.white70,
+                color: Color(0xFF64748B), // Slate gray
                 fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -130,16 +137,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.all(isSmallScreen ? 24.0 : 32.0),
+          padding: EdgeInsets.all(isSmallScreen ? 32.0 : 40.0),
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(38),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white30),
+            color: Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(26),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.8),
+                blurRadius: 24,
+                offset: const Offset(0, -8),
+                spreadRadius: 0,
               ),
             ],
           ),
