@@ -60,7 +60,7 @@ class MobileDatabaseService implements IDatabaseService {
     
     try {
       final coll = _db!.collection(collection);
-      return await coll.updateOne(filter, ModifierBuilder().set(update));
+      return await coll.updateOne(filter, {'\$set': update});
     } catch (e) {
       throw DatabaseException('Update failed: $e');
     }
