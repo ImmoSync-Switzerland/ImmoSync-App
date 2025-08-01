@@ -4,6 +4,7 @@ import 'package:immolink/features/auth/presentation/providers/auth_provider.dart
 import 'package:immolink/features/payment/domain/models/payment.dart';
 import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class PaymentHistoryPage extends ConsumerWidget {
   const PaymentHistoryPage({super.key});
