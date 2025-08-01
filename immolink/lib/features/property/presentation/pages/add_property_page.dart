@@ -9,6 +9,7 @@ import 'package:immolink/features/auth/presentation/providers/auth_provider.dart
 import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class AddPropertyPage extends ConsumerStatefulWidget {
   final Property? propertyToEdit;
@@ -247,7 +248,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       children: [
         _buildTextField(
           controller: _rentController,
-          label: 'Monthly Rent (CHF)',
+          label: 'Monthly Rent (${ref.read(currencyProvider.notifier).getSymbol()})',
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           validator: (value) {

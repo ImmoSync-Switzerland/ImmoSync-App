@@ -7,6 +7,7 @@ import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class PropertyListPage extends ConsumerStatefulWidget {
   const PropertyListPage({super.key});
@@ -333,7 +334,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'CHF ${property.rentAmount.toStringAsFixed(0)}',
+                          ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,

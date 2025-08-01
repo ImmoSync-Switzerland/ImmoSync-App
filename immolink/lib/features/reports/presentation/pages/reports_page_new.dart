@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
@@ -210,7 +211,7 @@ class ReportsPage extends ConsumerWidget {
           _buildFinancialMetric(
             icon: Icons.attach_money,
             title: 'Total Income',
-            value: 'CHF 0.00',
+            value: ref.read(currencyProvider.notifier).formatAmount(0.00),
             color: Colors.green,
             iconColor: Colors.green,
           ),
@@ -218,7 +219,7 @@ class ReportsPage extends ConsumerWidget {
           _buildFinancialMetric(
             icon: Icons.money_off,
             title: 'Outstanding Payments',
-            value: 'CHF 0.00',
+            value: ref.read(currencyProvider.notifier).formatAmount(0.00),
             color: Colors.red,
             iconColor: Colors.red,
           ),
@@ -425,7 +426,7 @@ class ReportsPage extends ConsumerWidget {
                   _buildFinancialMetric(
                     icon: Icons.attach_money,
                     title: 'Total Payments',
-                    value: 'CHF ${totalPayments.toStringAsFixed(2)}',
+                    value: ref.read(currencyProvider.notifier).formatAmount(totalPayments),
                     color: Colors.blue,
                     iconColor: Colors.blue,
                   ),
@@ -433,7 +434,7 @@ class ReportsPage extends ConsumerWidget {
                   _buildFinancialMetric(
                     icon: Icons.check_circle,
                     title: 'Completed Payments',
-                    value: 'CHF ${completedPayments.toStringAsFixed(2)}',
+                    value: ref.read(currencyProvider.notifier).formatAmount(completedPayments),
                     color: Colors.green,
                     iconColor: Colors.green,
                   ),
@@ -441,7 +442,7 @@ class ReportsPage extends ConsumerWidget {
                   _buildFinancialMetric(
                     icon: Icons.hourglass_empty,
                     title: 'Pending Payments',
-                    value: 'CHF ${pendingPayments.toStringAsFixed(2)}',
+                    value: ref.read(currencyProvider.notifier).formatAmount(pendingPayments),
                     color: Colors.orange,
                     iconColor: Colors.orange,
                   ),
@@ -574,7 +575,7 @@ class ReportsPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'CHF ${payment.amount.toStringAsFixed(2)}',
+                                ref.read(currencyProvider.notifier).formatAmount(payment.amount),
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 16,

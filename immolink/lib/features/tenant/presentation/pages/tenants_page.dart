@@ -8,6 +8,7 @@ import '../../../chat/domain/models/contact_user.dart';
 import '../../../chat/presentation/providers/contact_providers.dart';
 import '../../../property/domain/models/property.dart';
 import '../../../property/presentation/providers/property_providers.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class TenantsPage extends ConsumerStatefulWidget {
   const TenantsPage({super.key});
@@ -541,7 +542,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                             ),
                           ),
                           Text(
-                            'CHF ${property.rentAmount.toStringAsFixed(0)}',
+                            ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -1109,7 +1110,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             ),
           ),
           Text(
-            'CHF ${property.rentAmount.toStringAsFixed(0)}',
+            ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.success,

@@ -10,6 +10,7 @@ import 'package:immolink/features/chat/domain/models/conversation.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -426,10 +427,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           ),
           const SizedBox(height: 28),
           Row(
-            children: [              Expanded(
+            children: [
+              Expanded(
                 child: _buildFinancialCard(
                   AppLocalizations.of(context)!.monthlyRevenue,
-                  'CHF ${totalRevenue.toStringAsFixed(0)}',
+                  ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
                   Icons.trending_up_outlined,
                   AppColors.success,
                 ),
@@ -438,7 +440,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               Expanded(
                 child: _buildFinancialCard(
                   AppLocalizations.of(context)!.outstanding,
-                  'CHF ${outstanding.toStringAsFixed(0)}',
+                  ref.read(currencyProvider.notifier).formatAmount(outstanding),
                   Icons.warning_outlined,
                   AppColors.warning,
                 ),
@@ -987,7 +989,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         color: AppColors.success,
                       ),
                       Text(
-                        'CHF ${property.rentAmount.toStringAsFixed(0)}/month',
+                        '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
