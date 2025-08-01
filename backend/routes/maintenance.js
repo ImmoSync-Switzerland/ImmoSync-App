@@ -9,6 +9,11 @@ router.get('/landlord/:landlordId', async (req, res) => {
     const { landlordId } = req.params;
     const { status, priority, limit = 10 } = req.query;
     
+    // Validate ObjectId format
+    if (!ObjectId.isValid(landlordId)) {
+      return res.status(400).json({ message: 'Invalid landlord ID format' });
+    }
+    
     let query = { landlordId: new ObjectId(landlordId) };
     
     if (status) {
@@ -94,6 +99,17 @@ router.post('/', async (req, res) => {
       urgencyLevel
     } = req.body;
     
+    // Validate ObjectId formats
+    if (!ObjectId.isValid(propertyId)) {
+      return res.status(400).json({ message: 'Invalid property ID format' });
+    }
+    if (!ObjectId.isValid(tenantId)) {
+      return res.status(400).json({ message: 'Invalid tenant ID format' });
+    }
+    if (!ObjectId.isValid(landlordId)) {
+      return res.status(400).json({ message: 'Invalid landlord ID format' });
+    }
+    
     const newRequest = {
       propertyId: new ObjectId(propertyId),
       tenantId: new ObjectId(tenantId),
@@ -128,6 +144,16 @@ router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes, authorId } = req.body;
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid maintenance request ID format' });
+    }
+    
+    // Validate authorId if provided
+    if (authorId && !ObjectId.isValid(authorId)) {
+      return res.status(400).json({ message: 'Invalid author ID format' });
+    }
     
     const updateData = { status, updatedAt: new Date() };
     
@@ -165,11 +191,11 @@ router.patch('/:id/status', async (req, res) => {
         );
     }
     
-    if (!result.value) {
+    if (!result) {
       return res.status(404).json({ message: 'Maintenance request not found' });
     }
     
-    res.json(result.value);
+    res.json(result);
   } catch (error) {
     console.error('Error updating maintenance request:', error);
     res.status(500).json({ message: 'Error updating maintenance request', error: error.message });
@@ -180,6 +206,11 @@ router.patch('/:id/status', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid maintenance request ID format' });
+    }
     
     const db = getDB();
     const request = await db.collection('maintenanceRequests')

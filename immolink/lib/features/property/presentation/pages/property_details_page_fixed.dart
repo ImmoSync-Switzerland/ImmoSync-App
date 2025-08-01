@@ -6,12 +6,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:flutter/foundation.dart';
 import 'package:immolink/features/property/presentation/widgets/invite_tenant_dialog.dart';
 import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class PropertyDetailsPage extends ConsumerWidget {
   final String propertyId;
@@ -32,7 +32,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context, property),
+                  _buildHeader(context, property, ref),
                   const SizedBox(height: 16),
                   _buildStats(context, property),
                   const SizedBox(height: 24),
@@ -67,7 +67,7 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, Property property) {
+  Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -113,7 +113,7 @@ class PropertyDetailsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'CHF ${property.rentAmount.toStringAsFixed(0)}/month',
+            '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColors.primaryAccent,
                   fontWeight: FontWeight.bold,
@@ -242,7 +242,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withOpacity(0.1),
+                  color: AppColors.primaryAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -356,10 +356,10 @@ class PropertyDetailsPage extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryAccent.withOpacity(0.1),
+                color: AppColors.primaryAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryAccent.withOpacity(0.3),
+                  color: AppColors.primaryAccent.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -472,7 +472,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
-                      'CHF ${property.rentAmount.toStringAsFixed(0)}',
+                      ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -488,7 +488,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
-                      'CHF ${property.outstandingPayments.toStringAsFixed(0)}',
+                      ref.read(currencyProvider.notifier).formatAmount(property.outstandingPayments),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: property.outstandingPayments > 0
@@ -516,7 +516,7 @@ class PropertyDetailsPage extends ConsumerWidget {
         Container(
           margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(20),
           ),
           child: IconButton(

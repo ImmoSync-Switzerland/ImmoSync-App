@@ -11,6 +11,7 @@ import '../../../../core/providers/navigation_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../property/presentation/providers/property_providers.dart';
 import '../../../property/domain/models/property.dart';
+import '../../../../core/providers/currency_provider.dart';
 
 class CategoryTab {
   final String label;
@@ -357,7 +358,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard> {
       children: [
         _buildStatusItem('Rent Status', 'Paid', AppColors.success),
         const SizedBox(width: AppSpacing.lg),
-        _buildStatusItem('Rent Amount', 'CHF ${property.rentAmount.toStringAsFixed(0)}', AppColors.primaryAccent),
+        _buildStatusItem('Rent Amount', ref.read(currencyProvider.notifier).formatAmount(property.rentAmount), AppColors.primaryAccent),
       ],
     );
   }

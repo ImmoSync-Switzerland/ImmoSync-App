@@ -20,6 +20,12 @@ import 'package:immolink/features/property/presentation/pages/property_list_page
 import 'package:immolink/features/reports/presentation/pages/reports_page.dart';
 import 'package:immolink/features/settings/presentation/pages/settings_page.dart';
 import 'package:immolink/features/settings/presentation/pages/change_password_page.dart';
+import 'package:immolink/features/settings/presentation/pages/two_factor_auth_page.dart';
+import 'package:immolink/features/settings/presentation/pages/privacy_settings_page.dart';
+import 'package:immolink/features/settings/presentation/pages/help_center_page.dart';
+import 'package:immolink/features/settings/presentation/pages/contact_support_page.dart';
+import 'package:immolink/features/settings/presentation/pages/terms_of_service_page.dart';
+import 'package:immolink/features/settings/presentation/pages/privacy_policy_page.dart';
 import 'package:immolink/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:immolink/features/profile/presentation/pages/profile_page.dart';
 import 'package:immolink/features/search/presentation/pages/search_page.dart';
@@ -108,10 +114,65 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         builder: (context, state) => const SettingsPage(),
       ),
+      // Settings sub-routes
+      GoRoute(
+        path: '/two-factor-auth',
+        builder: (context, state) => const TwoFactorAuthPage(),
+      ),
+      GoRoute(
+        path: '/privacy-settings',
+        builder: (context, state) => const PrivacySettingsPage(),
+      ),
+      GoRoute(
+        path: '/help-center',
+        builder: (context, state) => const HelpCenterPage(),
+      ),
+      GoRoute(
+        path: '/contact-support',
+        builder: (context, state) => const ContactSupportPage(),
+      ),
+      GoRoute(
+        path: '/terms-of-service',
+        builder: (context, state) => const TermsOfServicePage(),
+      ),
+      GoRoute(
+        path: '/privacy-policy',
+        builder: (context, state) => const PrivacyPolicyPage(),
+      ),
       // Change Password route
       GoRoute(
         path: '/change-password',
         builder: (context, state) => const ChangePasswordPage(),
+      ),
+      // Two-Factor Authentication route
+      GoRoute(
+        path: '/two-factor-auth',
+        builder: (context, state) => const TwoFactorAuthPage(),
+      ),
+      // Privacy Settings route
+      GoRoute(
+        path: '/privacy-settings',
+        builder: (context, state) => const PrivacySettingsPage(),
+      ),
+      // Help Center route
+      GoRoute(
+        path: '/help-center',
+        builder: (context, state) => const HelpCenterPage(),
+      ),
+      // Contact Support route
+      GoRoute(
+        path: '/contact-support',
+        builder: (context, state) => const ContactSupportPage(),
+      ),
+      // Terms of Service route
+      GoRoute(
+        path: '/terms-of-service',
+        builder: (context, state) => const TermsOfServicePage(),
+      ),
+      // Privacy Policy route
+      GoRoute(
+        path: '/privacy-policy',
+        builder: (context, state) => const PrivacyPolicyPage(),
       ),
       // Edit Profile route
       GoRoute(

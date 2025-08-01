@@ -266,9 +266,7 @@ class SettingsPage extends ConsumerWidget {
               'Disabled',
               Icons.security,
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Two-Factor Authentication will be available soon')),
-                );
+                context.push('/two-factor-auth');
               },
             ),
             Divider(color: AppColors.dividerSeparator),
@@ -278,9 +276,7 @@ class SettingsPage extends ConsumerWidget {
               '',
               Icons.privacy_tip,
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Privacy settings will be available soon')),
-                );
+                context.push('/privacy-settings');
               },
             ),
           ],
@@ -381,9 +377,7 @@ class SettingsPage extends ConsumerWidget {
               '',
               Icons.help,
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Help Center will be available soon')),
-                );
+                context.push('/help-center');
               },
             ),
             Divider(color: AppColors.dividerSeparator),
@@ -393,9 +387,7 @@ class SettingsPage extends ConsumerWidget {
               '',
               Icons.support_agent,
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Contact Support will be available soon')),
-                );
+                context.push('/contact-support');
               },
             ),
             Divider(color: AppColors.dividerSeparator),
@@ -405,9 +397,7 @@ class SettingsPage extends ConsumerWidget {
               '',
               Icons.description,
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Terms of Service will be available soon')),
-                );
+                context.push('/terms-of-service');
               },
             ),
             Divider(color: AppColors.dividerSeparator),
@@ -417,9 +407,7 @@ class SettingsPage extends ConsumerWidget {
               '',
               Icons.policy,
               () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Privacy Policy will be available soon')),
-                );
+                context.push('/privacy-policy');
               },
             ),
           ],

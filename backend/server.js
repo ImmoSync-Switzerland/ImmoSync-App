@@ -4,6 +4,7 @@ const path = require('path');
 const { connectDB } = require('./database');
 const app = express();
 const authRoutes = require('./routes/auth');
+const auth2faRoutes = require('./routes/auth-2fa');
 const propertyRoutes = require('./routes/properties');
 const usersRouter = require('./routes/users');
 const contactsRoutes = require('./routes/contacts');
@@ -13,6 +14,8 @@ const invitationsRoutes = require('./routes/invitations');
 const uploadRoutes = require('./routes/upload');
 const imagesRoutes = require('./routes/images');
 const maintenanceRoutes = require('./routes/maintenance');
+const emailRoutes = require('./routes/email');
+const notificationRoutes = require('./routes/notifications');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -37,6 +40,7 @@ app.get('/api/health', (req, res) => {
 
 // Mount auth routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth/2fa', auth2faRoutes);
 
 // Mount routes
 app.use('/api/properties', propertyRoutes);
@@ -51,6 +55,8 @@ app.use('/api/invitations', invitationsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/images', imagesRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 3000;
 
