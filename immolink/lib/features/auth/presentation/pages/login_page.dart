@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -55,22 +56,24 @@ class _LoginPageState extends ConsumerState<LoginPage>
     });
 
     return Scaffold(
+      backgroundColor: AppColors.primaryBackground,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).primaryColor.withAlpha(204),
-              Theme.of(context).colorScheme.secondary.withAlpha(230),
+              AppColors.primaryAccent,
+              AppColors.luxuryGold,
             ],
+            stops: [0.0, 1.0],
           ),
         ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -79,6 +82,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       _buildLogo(),
                       const SizedBox(height: 48),
                       _buildLoginCard(),
+                      const SizedBox(height: 24),
+                      _buildRegisterLink(),
                     ],
                   ),
                 ),
@@ -144,39 +149,46 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(38),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white30),
+        color: AppColors.surfaceCards,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: AppColors.luxuryGold.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(26),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: AppColors.shadowColor,
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.luxuryGold.withValues(alpha: 0.1),
+            blurRadius: 40,
+            offset: const Offset(0, 16),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(40.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Welcome Back',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+                color: AppColors.textPrimary,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Sign in to continue',
+            Text(
+              'Sign in to your account',
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.textSecondary,
                 fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             _buildTextField(
               controller: _emailController,
               icon: Icons.email_outlined,
@@ -193,7 +205,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _buildForgotPassword(),
             const SizedBox(height: 32),
             if (authState.isLoading)
-              const Center(child: CircularProgressIndicator(color: Colors.white))
+              Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryAccent,
+                  strokeWidth: 3,
+                ),
+              )
             else
               _buildLoginButton(),
             const SizedBox(height: 24),
@@ -216,7 +233,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return TextFormField(
       controller: controller,
       obscureText: isPassword && !_isPasswordVisible,
-      style: const TextStyle(color: Colors.black87),
+      style: TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+      ),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'This field is required';
@@ -227,12 +248,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
         return null;
       },
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.grey.shade600),
+        prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                   _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textSecondary,
+                  size: 20,
                 ),
                 onPressed: () {
                   setState(() {
@@ -242,25 +264,38 @@ class _LoginPageState extends ConsumerState<LoginPage>
               )
             : null,
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey.shade600),
-        hintStyle: TextStyle(color: Colors.grey.shade500),
+        labelStyle: TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        hintStyle: TextStyle(
+          color: AppColors.textPlaceholder,
+          fontSize: 14,
+        ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.9),
+        fillColor: AppColors.primaryBackground,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.borderLight, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primaryAccent, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.error, width: 2),
+        ),
+        errorStyle: TextStyle(
+          color: AppColors.error,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -281,18 +316,21 @@ class _LoginPageState extends ConsumerState<LoginPage>
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Theme.of(context).primaryColor,
+          backgroundColor: AppColors.primaryAccent,
+          foregroundColor: AppColors.textOnAccent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
+          shadowColor: AppColors.primaryAccent.withValues(alpha: 0.3),
         ),
-        child: const Text(
-          'Login',
+        child: Text(
+          'Sign In',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+            color: AppColors.textOnAccent,
           ),
         ),
       ),
@@ -304,26 +342,39 @@ class _LoginPageState extends ConsumerState<LoginPage>
       alignment: Alignment.centerRight,
       child: TextButton(
         onPressed: () {},
-        child: const Text(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(
           'Forgot Password?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(
+            color: AppColors.primaryAccent,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildDivider() {
-    return const Row(
+    return Row(
       children: [
-        Expanded(child: Divider(color: Colors.white30)),
+        Expanded(child: Divider(color: AppColors.borderLight, thickness: 1)),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'Or continue with',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
-        Expanded(child: Divider(color: Colors.white30)),
+        Expanded(child: Divider(color: AppColors.borderLight, thickness: 1)),
       ],
     );
   }
@@ -353,12 +404,24 @@ class _LoginPageState extends ConsumerState<LoginPage>
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white30),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceSecondary,
+        border: Border.all(color: AppColors.borderLight, width: 1.5),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: IconButton(
         onPressed: onPressed,
-        icon: FaIcon(icon, color: Colors.white),
+        icon: FaIcon(
+          icon,
+          color: AppColors.textSecondary,
+          size: 20,
+        ),
       ),
     );
   }
@@ -367,17 +430,27 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           'Don\'t have an account?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         TextButton(
           onPressed: () => context.push('/register'),
-          child: const Text(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
             'Register',
             style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+              color: AppColors.primaryAccent,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

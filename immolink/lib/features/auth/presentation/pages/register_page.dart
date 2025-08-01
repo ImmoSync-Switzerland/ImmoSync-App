@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immolink/features/auth/presentation/providers/register_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -52,15 +53,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
     final isSmallScreen = screenSize.width < 600;
 
     return Scaffold(
+      backgroundColor: AppColors.primaryBackground,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).primaryColor.withAlpha(204),
-              Theme.of(context).colorScheme.secondary.withAlpha(230),
+              AppColors.primaryAccent,
+              AppColors.luxuryGold,
             ],
+            stops: [0.0, 1.0],
           ),
         ),
         child: SafeArea(
@@ -69,7 +72,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: isSmallScreen ? 24.0 : screenSize.width * 0.1,
-                  vertical: 24.0,
+                  vertical: 32.0,
                 ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 600),
@@ -97,24 +100,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         child: Column(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back, color: AppColors.textOnAccent),
               onPressed: () => context.pop(),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Create Account',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.textOnAccent,
+                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Join ImmoLink today',
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.textOnAccent.withValues(alpha: 0.8),
                 fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -130,16 +135,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.all(isSmallScreen ? 24.0 : 32.0),
+          padding: EdgeInsets.all(isSmallScreen ? 32.0 : 40.0),
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(38),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white30),
+            color: AppColors.surfaceCards,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: AppColors.luxuryGold.withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(26),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+                color: AppColors.shadowColor,
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: AppColors.luxuryGold.withValues(alpha: 0.1),
+                blurRadius: 40,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
