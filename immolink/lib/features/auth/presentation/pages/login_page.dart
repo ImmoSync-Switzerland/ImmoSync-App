@@ -63,10 +63,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent,
-              AppColors.luxuryGold,
+              Color(0xFFFFFFFF), // Pure white
+              Color(0xFFF0F4FF), // Very light blue
+              Color(0xFFE0EAFF), // Light blue
+              Color(0xFFD1E0FF), // Soft blue
             ],
-            stops: [0.0, 1.0],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: SafeArea(
@@ -82,8 +84,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       _buildLogo(),
                       const SizedBox(height: 48),
                       _buildLoginCard(),
-                      const SizedBox(height: 24),
-                      _buildRegisterLink(),
                     ],
                   ),
                 ),
@@ -109,16 +109,16 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(26),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.home_work,
                 size: 40,
-                color: Theme.of(context).primaryColor,
+                color: Color(0xFF2563EB), // Royal blue
               ),
             ),
             const SizedBox(height: 16),
@@ -127,14 +127,16 @@ class _LoginPageState extends ConsumerState<LoginPage>
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Color(0xFF1E293B), // Dark slate
+                letterSpacing: -1,
               ),
             ),
             const Text(
               'Your Property Management Solution',
               style: TextStyle(
-                color: Colors.white70,
+                color: Color(0xFF64748B), // Slate gray
                 fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -149,19 +151,24 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: Colors.white.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.luxuryGold.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 32,
+            offset: const Offset(0, 16),
+            spreadRadius: 0,
           ),
           BoxShadow(
-            color: AppColors.luxuryGold.withValues(alpha: 0.1),
-            blurRadius: 40,
-            offset: const Offset(0, 16),
+            color: Colors.white.withValues(alpha: 0.8),
+            blurRadius: 24,
+            offset: const Offset(0, -8),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -302,9 +309,27 @@ class _LoginPageState extends ConsumerState<LoginPage>
   }
 
   Widget _buildLoginButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
       height: 56,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF2563EB), // Royal blue
+            Color(0xFF1D4ED8), // Deeper blue
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
@@ -316,21 +341,21 @@ class _LoginPageState extends ConsumerState<LoginPage>
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryAccent,
-          foregroundColor: AppColors.textOnAccent,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
-          shadowColor: AppColors.primaryAccent.withValues(alpha: 0.3),
         ),
-        child: Text(
+        child: const Text(
           'Sign In',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
-            color: AppColors.textOnAccent,
+            color: Colors.white,
           ),
         ),
       ),
@@ -404,13 +429,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: AppColors.surfaceSecondary,
-        border: Border.all(color: AppColors.borderLight, width: 1.5),
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade200, width: 1.5),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -419,7 +444,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         onPressed: onPressed,
         icon: FaIcon(
           icon,
-          color: AppColors.textSecondary,
+          color: Colors.grey.shade700,
           size: 20,
         ),
       ),

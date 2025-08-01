@@ -60,10 +60,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent,
-              AppColors.luxuryGold,
+              Color(0xFFFFFFFF), // Pure white
+              Color(0xFFF0F4FF), // Very light blue
+              Color(0xFFE0EAFF), // Light blue
+              Color(0xFFD1E0FF), // Soft blue
             ],
-            stops: [0.0, 1.0],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: SafeArea(
@@ -100,24 +102,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
         child: Column(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back, color: AppColors.textOnAccent),
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
               onPressed: () => context.pop(),
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Create Account',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textOnAccent,
+                color: Color(0xFF1E293B), // Dark slate
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Join ImmoLink today',
               style: TextStyle(
-                color: AppColors.textOnAccent.withValues(alpha: 0.8),
+                color: Color(0xFF64748B), // Slate gray
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -137,19 +139,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
           width: double.infinity,
           padding: EdgeInsets.all(isSmallScreen ? 32.0 : 40.0),
           decoration: BoxDecoration(
-            color: AppColors.surfaceCards,
+            color: Colors.white.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: AppColors.luxuryGold.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.shadowColor,
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
+                spreadRadius: 0,
               ),
               BoxShadow(
-                color: AppColors.luxuryGold.withValues(alpha: 0.1),
-                blurRadius: 40,
-                offset: const Offset(0, 16),
+                color: Colors.white.withValues(alpha: 0.8),
+                blurRadius: 24,
+                offset: const Offset(0, -8),
+                spreadRadius: 0,
               ),
             ],
           ),
