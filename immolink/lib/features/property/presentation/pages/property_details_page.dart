@@ -636,12 +636,15 @@ class PropertyDetailsPage extends ConsumerWidget {
   }
 
   Widget _buildAppBar(Property property, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+    final isLandlord = currentUser?.role == 'landlord';
+    
     return SliverAppBar(
       expandedHeight: 300,
       pinned: true,
       backgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.white),
-      actions: [
+      actions: isLandlord ? [
         Container(
           margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
@@ -655,7 +658,7 @@ class PropertyDetailsPage extends ConsumerWidget {
             },
           ),
         ),
-      ],      flexibleSpace: FlexibleSpaceBar(
+      ] : null,      flexibleSpace: FlexibleSpaceBar(
         background: property.imageUrls.isNotEmpty
             ? PageView.builder(
                 itemCount: property.imageUrls.length,

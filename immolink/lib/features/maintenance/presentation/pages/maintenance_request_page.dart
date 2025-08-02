@@ -5,6 +5,7 @@ import 'package:immolink/features/auth/presentation/providers/auth_provider.dart
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class MaintenanceRequestPage extends ConsumerStatefulWidget {
   final String? propertyId;
@@ -17,7 +18,9 @@ class MaintenanceRequestPage extends ConsumerStatefulWidget {
 
 class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage> {
   final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _locationController = TextEditingController();
   String? _selectedPropertyId;
   String? _selectedCategory;
   String? _selectedPriority;
@@ -49,132 +52,231 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
 
   @override
   void dispose() {
+    _titleController.dispose();
     _descriptionController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = ref.watch(currentUserProvider);
-    final userProperties = ref.watch(tenantPropertiesProvider);
+    final properties = ref.watch(tenantPropertiesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report Maintenance Issue'),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade700, Colors.blue.shade900],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      backgroundColor: AppColors.primaryBackground,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: AppColors.primaryAccent,
+            foregroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Maintenance Request',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primaryAccent,
+                      AppColors.primaryAccent.withValues(alpha: 0.8),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade50, Colors.white],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: userProperties.when(
-            data: (properties) {
-              // If no properties are available
-              if (properties.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'You have no properties to report maintenance for.',
-                    style: TextStyle(fontSize: 18),
+          SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Header Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                );
-              }
-
-              // If propertyId was not provided or is invalid, use the first property
-              if (_selectedPropertyId == null || 
-                  !properties.any((p) => p.id == _selectedPropertyId)) {
-                _selectedPropertyId = properties.first.id;
-              }
-
-              return Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.build_circle,
+                              color: AppColors.primaryAccent,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Submit Request',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  'Describe your maintenance issue',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Property',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<String>(
-                              value: _selectedPropertyId,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                              items: properties.map((property) {
-                                return DropdownMenuItem<String>(
-                                  value: property.id,
-                                  child: Text(property.address.street),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedPropertyId = value;
-                                });
-                              },
-                            ),
-                          ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Form Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Property Selection
+                        const Text(
+                          'Property',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Issue Details',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        const SizedBox(height: 8),
+                        properties.when(
+                          data: (propertyList) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.borderLight),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedPropertyId,
+                                hint: const Text('Select a property'),
+                                isExpanded: true,
+                                items: propertyList.map((property) {
+                                  return DropdownMenuItem<String>(
+                                    value: property.id,
+                                    child: Text('${property.address.street}, ${property.address.city}'),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedPropertyId = value;
+                                  });
+                                },
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<String>(
+                          ),
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (error, stack) => Text('Error loading properties: $error'),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Title Field
+                        const Text(
+                          'Title',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _titleController,
+                          decoration: InputDecoration(
+                            hintText: 'Brief title for the issue',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.borderLight),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.borderLight),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryAccent, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.surfaceSecondary,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a title';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Category Selection
+                        const Text(
+                          'Category',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.borderLight),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
                               value: _selectedCategory,
-                              decoration: InputDecoration(
-                                labelText: 'Category',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
+                              isExpanded: true,
                               items: _categories.map((category) {
                                 return DropdownMenuItem<String>(
                                   value: category,
@@ -187,133 +289,251 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                                 });
                               },
                             ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<String>(
-                              value: _selectedPriority,
-                              decoration: InputDecoration(
-                                labelText: 'Priority',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              items: _priorities.map((priority) {
-                                return DropdownMenuItem<String>(
-                                  value: priority,
-                                  child: Text(priority),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Priority Selection
+                        const Text(
+                          'Priority',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: _priorities.map((priority) {
+                            final isSelected = _selectedPriority == priority;
+                            Color chipColor;
+                            switch (priority) {
+                              case 'Emergency':
+                                chipColor = Colors.red;
+                                break;
+                              case 'High':
+                                chipColor = Colors.orange;
+                                break;
+                              case 'Medium':
+                                chipColor = Colors.blue;
+                                break;
+                              case 'Low':
+                                chipColor = Colors.green;
+                                break;
+                              default:
+                                chipColor = AppColors.primaryAccent;
+                            }
+                            
+                            return FilterChip(
+                              label: Text(priority),
+                              selected: isSelected,
+                              onSelected: (selected) {
                                 setState(() {
-                                  _selectedPriority = value;
+                                  _selectedPriority = priority;
                                 });
                               },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _descriptionController,
-                              decoration: InputDecoration(
-                                labelText: 'Description',
-                                hintText: 'Please describe the issue in detail',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                              backgroundColor: Colors.grey[100],
+                              selectedColor: chipColor.withValues(alpha: 0.2),
+                              checkmarkColor: chipColor,
+                              labelStyle: TextStyle(
+                                color: isSelected ? chipColor : AppColors.textSecondary,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                               ),
-                              maxLines: 5,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a description';
-                                }
-                                return null;
-                              },
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Location Field
+                        const Text(
+                          'Location in Property',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _locationController,
+                          decoration: InputDecoration(
+                            hintText: 'e.g., Kitchen, Bathroom, Living Room',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.borderLight),
                             ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Implement image upload
-                              },
-                              icon: const Icon(Icons.photo_camera),
-                              label: const Text('Add Photos'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey.shade200,
-                                foregroundColor: Colors.black87,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.borderLight),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryAccent, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.surfaceSecondary,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please specify the location';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Description Field
+                        const Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 5,
+                          decoration: InputDecoration(
+                            hintText: 'Describe the maintenance issue in detail...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.borderLight),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.borderLight),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryAccent, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.surfaceSecondary,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please provide a description';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Submit Button
+                        Container(
+                          width: double.infinity,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                AppColors.primaryAccent,
+                                AppColors.primaryAccent.withValues(alpha: 0.8),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _submitRequest,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                          ],
+                            child: const Text(
+                              'Submit Request',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _submitMaintenanceRequest(currentUser!.id);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade700,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Submit Request',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
-              child: Text('Error loading properties: $error'),
+              ]),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
-  void _submitMaintenanceRequest(String tenantId) async {
-    if (_selectedPropertyId == null) return;
 
-    final maintenanceRequest = MaintenanceRequest(
-      id: '', // Will be assigned by the database
+  Future<void> _submitRequest() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedPropertyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a property')),
+      );
+      return;
+    }
+
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not found')),
+      );
+      return;
+    }
+
+    // Get property to find landlord
+    final properties = await ref.read(tenantPropertiesProvider.future);
+    final selectedProperty = properties.firstWhere((p) => p.id == _selectedPropertyId);
+
+    final request = MaintenanceRequest(
+      id: '', // Will be set by the backend
       propertyId: _selectedPropertyId!,
-      tenantId: tenantId,
-      landlordId: '', // Will be populated by backend based on property
-      title: _selectedCategory ?? 'Maintenance Request',
+      tenantId: currentUser.id,
+      landlordId: selectedProperty.landlordId,
+      title: _titleController.text,
       description: _descriptionController.text,
-      category: _selectedCategory?.toLowerCase() ?? 'other',
-      priority: _selectedPriority?.toLowerCase() ?? 'medium',
+      category: _selectedCategory!,
+      priority: _selectedPriority!,
       status: 'pending',
-      location: 'Not specified', // Could be enhanced with a location field
+      location: _locationController.text,
       requestedDate: DateTime.now(),
     );
 
     try {
-      ref.read(maintenanceServiceProvider).createMaintenanceRequest(maintenanceRequest);
+      await ref.read(maintenanceRequestNotifierProvider.notifier).createMaintenanceRequest(request);
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Maintenance request submitted successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      context.pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Maintenance request submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.pop();
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to submit request: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error submitting request: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
-

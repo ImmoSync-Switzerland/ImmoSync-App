@@ -88,6 +88,26 @@ class ChatService {
     }
   }
 
+  Future<String> findOrCreateConversation({
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_apiUrl/conversations/find-or-create'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'currentUserId': currentUserId,
+        'otherUserId': otherUserId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['_id'];
+    }
+    throw Exception('Failed to find or create conversation: ${response.body}');
+  }
+
   Future<String> createConversation({
     required String propertyId,
     required String landlordId,

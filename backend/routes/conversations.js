@@ -59,6 +59,158 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+// Consolidate conversations between the same participants
+router.post('/consolidate', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    console.log('Starting conversation consolidation...');
+    
+    // Find all conversations
+    const allConversations = await db.collection('conversations').find({}).toArray();
+    
+    // Group conversations by participant pairs
+    const participantGroups = {};
+    
+    allConversations.forEach(conv => {
+      const sortedParticipants = conv.participants.sort().join(',');
+      
+      if (!participantGroups[sortedParticipants]) {
+        participantGroups[sortedParticipants] = [];
+      }
+      participantGroups[sortedParticipants].push(conv);
+    });
+    
+    let consolidatedCount = 0;
+    
+    // Process each group of conversations
+    for (const [participantKey, conversations] of Object.entries(participantGroups)) {
+      if (conversations.length > 1) {
+        console.log(`Found ${conversations.length} conversations for participants: ${participantKey}`);
+        
+        // Sort by creation date to keep the oldest one
+        conversations.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        
+        const keepConversation = conversations[0];
+        const duplicateConversations = conversations.slice(1);
+        
+        // Consolidate messages from duplicate conversations
+        for (const dupConv of duplicateConversations) {
+          // Move all messages from duplicate conversation to the main one
+          await db.collection('messages').updateMany(
+            { conversationId: dupConv._id.toString() },
+            { $set: { conversationId: keepConversation._id.toString() } }
+          );
+          
+          // Delete the duplicate conversation
+          await db.collection('conversations').deleteOne({ _id: dupConv._id });
+          consolidatedCount++;
+        }
+        
+        // Update the kept conversation with the latest message info
+        const latestMessage = await db.collection('messages')
+          .findOne(
+            { conversationId: keepConversation._id.toString() },
+            { sort: { timestamp: -1 } }
+          );
+        
+        if (latestMessage) {
+          await db.collection('conversations').updateOne(
+            { _id: keepConversation._id },
+            {
+              $set: {
+                lastMessage: latestMessage.content,
+                lastMessageTime: latestMessage.timestamp,
+                updatedAt: new Date()
+              }
+            }
+          );
+        }
+      }
+    }
+    
+    console.log(`Consolidated ${consolidatedCount} duplicate conversations`);
+    res.json({ 
+      message: `Successfully consolidated ${consolidatedCount} duplicate conversations`,
+      consolidatedCount 
+    });
+    
+  } catch (error) {
+    console.error('Error consolidating conversations:', error);
+    res.status(500).json({ message: 'Error consolidating conversations' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Get or create a conversation between two users
+router.post('/find-or-create', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { currentUserId, otherUserId } = req.body;
+    
+    if (!currentUserId || !otherUserId) {
+      return res.status(400).json({ message: 'Both currentUserId and otherUserId are required' });
+    }
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(currentUserId) || !ObjectId.isValid(otherUserId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    // Sort participant IDs to ensure consistent ordering
+    const participants = [currentUserId, otherUserId].sort();
+    
+    // Find existing conversation between these two users
+    let conversation = await db.collection('conversations')
+      .findOne({
+        participants: { $all: participants, $size: 2 }
+      });
+    
+    if (!conversation) {
+      // Create new conversation if none exists
+      const newConversation = {
+        participants: participants,
+        lastMessage: '',
+        lastMessageTime: new Date(),
+        unreadCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const result = await db.collection('conversations').insertOne(newConversation);
+      conversation = { _id: result.insertedId, ...newConversation };
+    }
+    
+    // Get other participant details
+    const otherParticipant = await db.collection('users')
+      .findOne({ _id: new ObjectId(otherUserId) });
+    
+    const response = {
+      ...conversation,
+      otherParticipantId: otherUserId,
+      otherParticipantName: otherParticipant ? otherParticipant.fullName : 'Unknown User',
+      otherParticipantEmail: otherParticipant ? otherParticipant.email : '',
+      otherParticipantRole: otherParticipant ? otherParticipant.role : 'unknown',
+    };
+    
+    res.json(response);
+    
+  } catch (error) {
+    console.error('Error finding or creating conversation:', error);
+    res.status(500).json({ message: 'Error finding or creating conversation' });
+  } finally {
+    await client.close();
+  }
+});
+
 // Create a new conversation
 router.post('/', async (req, res) => {
   const client = new MongoClient(dbUri);
