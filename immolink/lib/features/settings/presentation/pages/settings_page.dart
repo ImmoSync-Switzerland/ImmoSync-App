@@ -164,7 +164,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ),
               child: Text(
-                'Edit Profile',
+                l10n.editProfile,
                 style: TextStyle(color: AppColors.primaryAccent),
               ),
             ),
@@ -197,7 +197,7 @@ class SettingsPage extends ConsumerWidget {
             _buildSettingItem(
               context,
               l10n.language,
-              getLanguageName(settings.language),
+              _getLanguageDisplayName(settings.language, l10n),
               Icons.language,
               () {
                 _showLanguageSelectionDialog(context, ref, l10n);
@@ -242,7 +242,7 @@ class SettingsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Security',
+              l10n.security,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -252,7 +252,7 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildSettingItem(
               context,
-              'Change Password',
+              l10n.changePassword,
               '',
               Icons.lock,
               () {
@@ -262,8 +262,8 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             _buildSettingItem(
               context,
-              'Two-Factor Authentication',
-              'Disabled',
+              l10n.twoFactorAuth,
+              l10n.disabled,
               Icons.security,
               () {
                 context.push('/two-factor-auth');
@@ -272,7 +272,7 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             _buildSettingItem(
               context,
-              'Privacy Settings',
+              l10n.privacySettings,
               '',
               Icons.privacy_tip,
               () {
@@ -298,7 +298,7 @@ class SettingsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Notifications',
+              l10n.notifications,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -307,39 +307,39 @@ class SettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Email Notifications', style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text('Receive updates via email', style: TextStyle(color: AppColors.textSecondary)),
+              title: Text(l10n.emailNotifications, style: TextStyle(color: AppColors.textPrimary)),
+              subtitle: Text(l10n.receiveUpdatesEmail, style: TextStyle(color: AppColors.textSecondary)),
               value: settings.emailNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updateEmailNotifications(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Email notifications ${value ? 'enabled' : 'disabled'}')),
+                  SnackBar(content: Text('${l10n.emailNotifications} ${value ? 'enabled' : 'disabled'}')),
                 );
               },
               secondary: Icon(Icons.email, color: AppColors.primaryAccent),
             ),
             Divider(color: AppColors.dividerSeparator),
             SwitchListTile(
-              title: Text('Push Notifications', style: TextStyle(color: AppColors.textPrimary)),
+              title: Text(l10n.pushNotifications, style: TextStyle(color: AppColors.textPrimary)),
               subtitle: Text('Receive updates on your device', style: TextStyle(color: AppColors.textSecondary)),
               value: settings.pushNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePushNotifications(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Push notifications ${value ? 'enabled' : 'disabled'}')),
+                  SnackBar(content: Text('${l10n.pushNotifications} ${value ? 'enabled' : 'disabled'}')),
                 );
               },
               secondary: Icon(Icons.notifications, color: AppColors.primaryAccent),
             ),
             Divider(color: AppColors.dividerSeparator),
             SwitchListTile(
-              title: Text('Payment Reminders', style: TextStyle(color: AppColors.textPrimary)),
+              title: Text(l10n.paymentReminders, style: TextStyle(color: AppColors.textPrimary)),
               subtitle: Text('Get reminded about upcoming payments', style: TextStyle(color: AppColors.textSecondary)),
               value: settings.paymentReminders,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePaymentReminders(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Payment reminders ${value ? 'enabled' : 'disabled'}')),
+                  SnackBar(content: Text('${l10n.paymentReminders} ${value ? 'enabled' : 'disabled'}')),
                 );
               },
               secondary: Icon(Icons.payment, color: AppColors.primaryAccent),
@@ -363,7 +363,7 @@ class SettingsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Support',
+              l10n.about,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -373,7 +373,7 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildSettingItem(
               context,
-              'Help Center',
+              l10n.helpCenter,
               '',
               Icons.help,
               () {
@@ -383,7 +383,7 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             _buildSettingItem(
               context,
-              'Contact Support',
+              l10n.contactSupport,
               '',
               Icons.support_agent,
               () {
@@ -393,7 +393,7 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             _buildSettingItem(
               context,
-              'Terms of Service',
+              l10n.termsOfService,
               '',
               Icons.description,
               () {
@@ -403,7 +403,7 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             _buildSettingItem(
               context,
-              'Privacy Policy',
+              l10n.privacyPolicy,
               '',
               Icons.policy,
               () {
@@ -430,7 +430,7 @@ class SettingsPage extends ConsumerWidget {
         ),
       ),
       child: Text(
-        'Log Out',
+        l10n.logout,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -466,6 +466,21 @@ class SettingsPage extends ConsumerWidget {
         return l10n.system;
       default:
         return l10n.light;
+    }
+  }
+
+  String _getLanguageDisplayName(String languageCode, AppLocalizations l10n) {
+    switch (languageCode) {
+      case 'en':
+        return l10n.english;
+      case 'de':
+        return l10n.german;
+      case 'fr':
+        return l10n.french;
+      case 'it':
+        return l10n.italian;
+      default:
+        return l10n.english;
     }
   }
   void _showLanguageSelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {

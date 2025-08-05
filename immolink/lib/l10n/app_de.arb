@@ -189,5 +189,8 @@
   "getDirections": "Route anzeigen",
   "location": "Standort",
   "locationNotAvailable": "Standort nicht verfügbar",
-  "addressDisplayOnly": "Adresse nur zur Referenz angezeigt"
+  "addressDisplayOnly": "Adresse nur zur Referenz angezeigt",
+  "twoFactorAuth": "Zwei-Faktor-Authentifizierung",
+  "helpCenter": "Hilfe-Center", 
+  "contactSupport": "Support kontaktieren"
 }

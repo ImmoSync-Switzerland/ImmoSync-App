@@ -190,5 +190,8 @@
   "getDirections": "Get Directions",
   "location": "Location",
   "locationNotAvailable": "Location not available",
-  "addressDisplayOnly": "Address shown for reference only"
+  "addressDisplayOnly": "Address shown for reference only",
+  "twoFactorAuth": "Two-Factor Authentication", 
+  "helpCenter": "Help Center",
+  "contactSupport": "Contact Support"
 }

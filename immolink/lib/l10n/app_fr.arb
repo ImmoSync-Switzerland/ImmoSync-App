@@ -189,5 +189,8 @@
   "getDirections": "Obtenir l'itinéraire",
   "location": "Emplacement",
   "locationNotAvailable": "Emplacement non disponible",
-  "addressDisplayOnly": "Adresse affichée à titre de référence uniquement"
+  "addressDisplayOnly": "Adresse affichée à titre de référence uniquement",
+  "twoFactorAuth": "Authentification à deux facteurs",
+  "helpCenter": "Centre d'aide",
+  "contactSupport": "Contacter le support"
 }
