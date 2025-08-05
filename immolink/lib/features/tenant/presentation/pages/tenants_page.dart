@@ -52,7 +52,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(),
       body: AnimatedBuilder(
         animation: _animationController,
@@ -67,8 +67,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 ref.invalidate(landlordPropertiesProvider);
                 await Future.delayed(const Duration(milliseconds: 500));
               },
-                color: AppColors.primaryAccent,
-                backgroundColor: AppColors.primaryBackground,
+                color: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 child: Column(
                   children: [
                     _buildHeader(),

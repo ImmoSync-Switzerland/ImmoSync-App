@@ -62,7 +62,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -71,7 +71,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               data: (messages) => _buildMessagesList(messages, currentUser?.id ?? ''),
               loading: () => const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                  valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
                 ),
               ),
               error: (error, stack) => Center(
