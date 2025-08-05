@@ -28,7 +28,7 @@ import 'package:immolink/features/settings/presentation/pages/terms_of_service_p
 import 'package:immolink/features/settings/presentation/pages/privacy_policy_page.dart';
 import 'package:immolink/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:immolink/features/profile/presentation/pages/profile_page.dart';
-import 'package:immolink/features/search/presentation/pages/search_page.dart';
+import 'package:immolink/features/search/presentation/pages/tenant_search_page.dart';
 import 'package:immolink/features/tenant/presentation/pages/tenants_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -187,7 +187,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Search route
       GoRoute(
         path: '/search',
-        builder: (context, state) => const SearchPage(),
+        builder: (context, state) => const TenantSearchPage(),
+      ),
+      // Tenant Search route
+      GoRoute(
+        path: '/tenant-search',
+        builder: (context, state) => const TenantSearchPage(),
       ),
       // Reports route
       GoRoute(

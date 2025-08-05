@@ -9,17 +9,17 @@ import 'package:immolink/features/chat/presentation/providers/conversations_prov
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 
-class SearchPage extends ConsumerStatefulWidget {
-  const SearchPage({super.key});
+class TenantSearchPage extends ConsumerStatefulWidget {
+  const TenantSearchPage({super.key});
 
   @override
-  ConsumerState<SearchPage> createState() => _SearchPageState();
+  ConsumerState<TenantSearchPage> createState() => _TenantSearchPageState();
 }
 
-class _SearchPageState extends ConsumerState<SearchPage> {
+class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedFilter = 'all'; // all, properties, tenants, messages
+  String _selectedFilter = 'all'; // all, properties, landlords, messages
 
   @override
   void initState() {
@@ -60,7 +60,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       body: Column(
         children: [
           _buildSearchHeader(l10n),
-          _buildFilterTabs(l10n),
+          _buildFilterTabs(l10n, isLandlord),
           Expanded(
             child: _buildSearchResults(l10n, propertiesAsync, conversationsAsync, isLandlord),
           ),
@@ -94,7 +94,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               controller: _searchController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: l10n.searchPropertiesTenantsMessages,
+                hintText: 'Search properties, landlords, messages...',
                 hintStyle: TextStyle(
                   color: AppColors.textTertiary,
                   fontSize: 16,
@@ -134,7 +134,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     );
   }
 
-  Widget _buildFilterTabs(AppLocalizations l10n) {
+  Widget _buildFilterTabs(AppLocalizations l10n, bool isLandlord) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
@@ -148,7 +148,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   const SizedBox(width: 8),
                   _buildFilterChip('properties', l10n.properties, Icons.home_work_outlined),
                   const SizedBox(width: 8),
-                  _buildFilterChip('tenants', l10n.tenants, Icons.people_outline),
+                  _buildFilterChip('landlords', isLandlord ? l10n.tenants : 'Landlords', Icons.people_outline),
                   const SizedBox(width: 8),
                   _buildFilterChip('messages', l10n.messages, Icons.chat_bubble_outline),
                 ],
@@ -303,7 +303,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     }
 
     // Filter landlords/tenants (based on conversation participants)
-    if (_selectedFilter == 'all' || _selectedFilter == 'tenants') {
+    if (_selectedFilter == 'all' || _selectedFilter == 'landlords') {
       for (final conversation in conversations) {
         // For tenants: show landlords, For landlords: show tenants
         final targetRole = isLandlord ? 'tenant' : 'landlord';
@@ -322,13 +322,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         }
       }
     }
-
-    return results;
-  }
-  }
-
-    // TODO: Add tenant search when tenant data is available
-    // TODO: Add message search when message data is available
 
     return results;
   }
@@ -428,26 +421,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       ),
     );
   }
-          ),
-        ),
-        subtitle: Text(
-          result.subtitle,
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
-        ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: AppColors.textTertiary,
-        ),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
 
   Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
@@ -461,7 +434,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            l10n.searchToFindResults,
+            'Start typing to search',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -470,7 +443,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.searchHint,
+            'Search for properties, landlords, or messages',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textTertiary,
@@ -494,7 +467,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            l10n.noResultsFound,
+            'No results found',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -503,7 +476,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.tryDifferentSearch,
+            'Try different keywords or check your spelling',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textTertiary,
@@ -517,7 +490,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 }
 
 class SearchResult {
-  final String type; // 'property', 'tenant', 'message'
+  final String type; // 'property', 'tenant', 'landlord', 'conversation'
   final String title;
   final String subtitle;
   final dynamic data;
