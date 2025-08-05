@@ -192,5 +192,9 @@
   "addressDisplayOnly": "Indirizzo mostrato solo per riferimento",
   "twoFactorAuth": "Autenticazione a due fattori",
   "helpCenter": "Centro assistenza",
-  "contactSupport": "Contatta il supporto"
+  "contactSupport": "Contatta il supporto",
+  "enabled": "abilitato",
+  "disabled": "disabilitato",
+  "pushNotificationSubtitle": "Ricevi aggiornamenti sul tuo dispositivo",
+  "paymentReminderSubtitle": "Ricevi promemoria sui pagamenti in arrivo"
 }

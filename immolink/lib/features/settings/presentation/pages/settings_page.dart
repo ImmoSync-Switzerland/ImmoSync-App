@@ -313,7 +313,7 @@ class SettingsPage extends ConsumerWidget {
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updateEmailNotifications(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${l10n.emailNotifications} ${value ? 'enabled' : 'disabled'}')),
+                  SnackBar(content: Text('${l10n.emailNotifications} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
               secondary: Icon(Icons.email, color: AppColors.primaryAccent),
@@ -321,12 +321,12 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             SwitchListTile(
               title: Text(l10n.pushNotifications, style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text('Receive updates on your device', style: TextStyle(color: AppColors.textSecondary)),
+              subtitle: Text(l10n.pushNotificationSubtitle, style: TextStyle(color: AppColors.textSecondary)),
               value: settings.pushNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePushNotifications(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${l10n.pushNotifications} ${value ? 'enabled' : 'disabled'}')),
+                  SnackBar(content: Text('${l10n.pushNotifications} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
               secondary: Icon(Icons.notifications, color: AppColors.primaryAccent),
@@ -334,12 +334,12 @@ class SettingsPage extends ConsumerWidget {
             Divider(color: AppColors.dividerSeparator),
             SwitchListTile(
               title: Text(l10n.paymentReminders, style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text('Get reminded about upcoming payments', style: TextStyle(color: AppColors.textSecondary)),
+              subtitle: Text(l10n.paymentReminderSubtitle, style: TextStyle(color: AppColors.textSecondary)),
               value: settings.paymentReminders,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePaymentReminders(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${l10n.paymentReminders} ${value ? 'enabled' : 'disabled'}')),
+                  SnackBar(content: Text('${l10n.paymentReminders} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
               secondary: Icon(Icons.payment, color: AppColors.primaryAccent),

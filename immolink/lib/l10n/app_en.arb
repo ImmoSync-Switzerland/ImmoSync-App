@@ -193,5 +193,9 @@
   "addressDisplayOnly": "Address shown for reference only",
   "twoFactorAuth": "Two-Factor Authentication", 
   "helpCenter": "Help Center",
-  "contactSupport": "Contact Support"
+  "contactSupport": "Contact Support",
+  "enabled": "enabled",
+  "disabled": "disabled",
+  "pushNotificationSubtitle": "Receive updates on your device",
+  "paymentReminderSubtitle": "Get reminded about upcoming payments"
 }
