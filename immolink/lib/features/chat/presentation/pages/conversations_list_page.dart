@@ -387,4 +387,5 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         },
       ),
     );
+  }
 }
