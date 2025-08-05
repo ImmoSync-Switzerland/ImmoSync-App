@@ -59,13 +59,13 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildPreferencesSection(context, ref, settings, l10n),
             const SizedBox(height: 24),
-            _buildSecuritySection(context),
+            _buildSecuritySection(context, l10n),
             const SizedBox(height: 24),
-            _buildNotificationsSection(context, ref, settings),
+            _buildNotificationsSection(context, ref, settings, l10n),
             const SizedBox(height: 24),
-            _buildSupportSection(context),
+            _buildSupportSection(context, l10n),
             const SizedBox(height: 24),
-            _buildLogoutButton(context, ref),
+            _buildLogoutButton(context, ref, l10n),
           ],
         ),
       ),
@@ -185,7 +185,8 @@ class SettingsPage extends ConsumerWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [            Text(
+          children: [
+            Text(
               l10n.preferences,
               style: TextStyle(
                 fontSize: 18,
@@ -229,7 +230,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSecuritySection(BuildContext context) {
+  Widget _buildSecuritySection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -285,7 +286,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationsSection(BuildContext context, WidgetRef ref, AppSettings settings) {
+  Widget _buildNotificationsSection(BuildContext context, WidgetRef ref, AppSettings settings, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -350,7 +351,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSupportSection(BuildContext context) {
+  Widget _buildSupportSection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -416,7 +417,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, WidgetRef ref) {
+  Widget _buildLogoutButton(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     return ElevatedButton(
       onPressed: () {
         ref.read(authProvider.notifier).logout();
