@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
 import '../widgets/property_card.dart';
@@ -11,12 +12,13 @@ class PropertyMatchingPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final userRole = ref.watch(userRoleProvider);
     final properties = ref.watch(propertiesProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(userRole == 'landlord' ? 'My Tenants' : 'My Landlords'),
+        title: Text(userRole == 'landlord' ? l10n.myTenants : l10n.myLandlords),
       ),
       body: properties.when(
         data: (props) => ListView.builder(

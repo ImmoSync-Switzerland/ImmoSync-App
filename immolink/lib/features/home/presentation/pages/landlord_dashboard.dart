@@ -180,12 +180,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   PreferredSizeWidget _buildAppBar(String name) {
+    final l10n = AppLocalizations.of(context)!;
     return AppBar(
       backgroundColor: AppColors.primaryBackground,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       title: Text(
-        'Dashboard',
+        l10n.dashboard,
         style: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 18,

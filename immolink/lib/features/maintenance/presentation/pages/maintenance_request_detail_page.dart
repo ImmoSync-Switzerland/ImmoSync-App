@@ -25,7 +25,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
-        title: Text('Maintenance Request Details'),
+        title: Text(l10n.maintenanceRequestDetails),
         backgroundColor: AppColors.surfaceCards,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,

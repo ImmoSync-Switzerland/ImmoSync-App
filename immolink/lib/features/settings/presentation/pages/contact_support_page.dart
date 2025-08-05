@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -22,7 +23,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
 
   final List<String> _categories = [
     'General',
-    'Account & Settings',
+    'Account & Settings', 
     'Property Management',
     'Payments & Billing',
     'Technical Issues',
@@ -47,13 +48,14 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
         title: Text(
-          'Contact Support',
+          l10n.contactSupport,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
@@ -76,20 +78,20 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            _buildHeaderCard(),
+            _buildHeaderCard(l10n),
             const SizedBox(height: 24),
-            _buildQuickContactSection(context),
+            _buildQuickContactSection(context, l10n),
             const SizedBox(height: 24),
-            _buildSupportForm(),
+            _buildSupportForm(l10n),
             const SizedBox(height: 24),
-            _buildSupportInfoCard(),
+            _buildSupportInfoCard(l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeaderCard(AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -121,7 +123,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'We\'re Here to Help',
+                  l10n.weAreHereToHelp,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -132,7 +134,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Our support team is ready to assist you with any questions or issues you may have. Choose how you\'d like to get in touch.',
+              l10n.supportTeamDescription,
               style: TextStyle(
                 fontSize: 16,
                 color: AppColors.textSecondary,
@@ -145,7 +147,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildQuickContactSection(BuildContext context) {
+  Widget _buildQuickContactSection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -158,7 +160,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Quick Contact',
+              l10n.quickContact,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -170,26 +172,26 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               children: [
                 Expanded(
                   child: _buildQuickContactButton(
-                    'Email Us',
+                    l10n.emailUs,
                     Icons.email,
-                    () => _launchEmail(),
+                    () => _launchEmail(l10n),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildQuickContactButton(
-                    'Call Us',
+                    l10n.callUs,
                     Icons.phone,
-                    () => _launchPhone(),
+                    () => _launchPhone(l10n),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             _buildQuickContactButton(
-              'Live Chat',
+              l10n.liveChat,
               Icons.chat,
-              () => _showLiveChatDialog(context),
+              () => _showLiveChatDialog(context, l10n),
               fullWidth: true,
             ),
           ],
@@ -214,7 +216,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildSupportForm() {
+  Widget _buildSupportForm(AppLocalizations l10n) {
     final currentUser = ref.watch(currentUserProvider);
 
     return Card(
@@ -231,7 +233,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Submit a Support Request',
+                l10n.submitSupportRequest,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -240,7 +242,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Fill out the form below and we\'ll get back to you as soon as possible.',
+                l10n.supportFormDescription,
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -259,16 +261,16 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Account Information',
+                      l10n.accountInformation,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('Name: ${currentUser?.fullName ?? 'Not available'}', style: TextStyle(color: AppColors.textSecondary)),
-                    Text('Email: ${currentUser?.email ?? 'Not available'}', style: TextStyle(color: AppColors.textSecondary)),
-                    Text('Role: ${currentUser?.role ?? 'Not available'}', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('${l10n.name}: ${currentUser?.fullName ?? l10n.notAvailable}', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('${l10n.email}: ${currentUser?.email ?? l10n.notAvailable}', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('${l10n.role}: ${currentUser?.role ?? l10n.notAvailable}', style: TextStyle(color: AppColors.textSecondary)),
                   ],
                 ),
               ),
@@ -278,16 +280,16 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
                 decoration: InputDecoration(
-                  labelText: 'Category',
+                  labelText: l10n.category,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: AppColors.primaryAccent),
                   ),
                 ),
-                items: _categories.map((category) => DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
+                items: _getLocalizedCategories(l10n).map((category) => DropdownMenuItem(
+                  value: category.key,
+                  child: Text(category.value),
                 )).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -301,27 +303,27 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               DropdownButtonFormField<String>(
                 value: _selectedPriority,
                 decoration: InputDecoration(
-                  labelText: 'Priority',
+                  labelText: l10n.priority,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: AppColors.primaryAccent),
                   ),
                 ),
-                items: _priorities.map((priority) => DropdownMenuItem(
-                  value: priority,
+                items: _getLocalizedPriorities(l10n).map((priority) => DropdownMenuItem(
+                  value: priority.key,
                   child: Row(
                     children: [
                       Container(
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: _getPriorityColor(priority),
+                          color: _getPriorityColor(priority.key),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(priority),
+                      Text(priority.value),
                     ],
                   ),
                 )).toList(),
@@ -337,8 +339,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               TextFormField(
                 controller: _subjectController,
                 decoration: InputDecoration(
-                  labelText: 'Subject',
-                  hintText: 'Brief description of your issue',
+                  labelText: l10n.subject,
+                  hintText: l10n.subjectHint,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -347,7 +349,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a subject';
+                    return l10n.pleaseEnterSubject;
                   }
                   return null;
                 },
@@ -359,8 +361,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 controller: _messageController,
                 maxLines: 6,
                 decoration: InputDecoration(
-                  labelText: 'Describe your issue',
-                  hintText: 'Please provide as much detail as possible to help us assist you better',
+                  labelText: l10n.describeYourIssue,
+                  hintText: l10n.issueDescriptionHint,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -370,10 +372,10 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please describe your issue';
+                    return l10n.pleaseDescribeIssue;
                   }
                   if (value.trim().length < 10) {
-                    return 'Please provide more details (at least 10 characters)';
+                    return l10n.provideMoreDetails;
                   }
                   return null;
                 },
@@ -384,7 +386,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitSupportRequest,
+                  onPressed: _isSubmitting ? null : () => _submitSupportRequest(l10n),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryAccent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -402,7 +404,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                           ),
                         )
                       : Text(
-                          'Submit Request',
+                          l10n.submitRequest,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -418,7 +420,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildSupportInfoCard() {
+  Widget _buildSupportInfoCard(AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -431,7 +433,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Support Information',
+              l10n.supportInformation,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -439,10 +441,10 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(Icons.schedule, 'Response Time', 'Usually within 24 hours'),
-            _buildInfoRow(Icons.language, 'Languages', 'English, German, French, Italian'),
-            _buildInfoRow(Icons.support, 'Support Hours', 'Monday-Friday, 9:00-18:00 CET'),
-            _buildInfoRow(Icons.emergency, 'Emergency', 'For urgent issues, call +41 800 123 456'),
+            _buildInfoRow(Icons.schedule, l10n.responseTime, l10n.responseTimeInfo),
+            _buildInfoRow(Icons.language, l10n.languages, l10n.languagesSupported),
+            _buildInfoRow(Icons.support, l10n.supportHours, l10n.supportHoursInfo),
+            _buildInfoRow(Icons.emergency, l10n.emergency, l10n.emergencyInfo),
           ],
         ),
       ),
@@ -497,7 +499,29 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     }
   }
 
-  Future<void> _launchEmail() async {
+  List<MapEntry<String, String>> _getLocalizedCategories(AppLocalizations l10n) {
+    return [
+      MapEntry('General', l10n.general),
+      MapEntry('Account & Settings', l10n.accountAndSettings),
+      MapEntry('Property Management', l10n.propertyManagement),
+      MapEntry('Payments & Billing', l10n.paymentsBilling),
+      MapEntry('Technical Issues', l10n.technicalIssues),
+      MapEntry('Security Concerns', l10n.securityConcerns),
+      MapEntry('Feature Request', l10n.featureRequest),
+      MapEntry('Bug Report', l10n.bugReport),
+    ];
+  }
+
+  List<MapEntry<String, String>> _getLocalizedPriorities(AppLocalizations l10n) {
+    return [
+      MapEntry('Low', l10n.low),
+      MapEntry('Medium', l10n.medium),
+      MapEntry('High', l10n.high),
+      MapEntry('Urgent', l10n.urgent),
+    ];
+  }
+
+  Future<void> _launchEmail(AppLocalizations l10n) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'support@immolink.com',
@@ -509,13 +533,13 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open email app')),
+          SnackBar(content: Text(l10n.couldNotOpenEmail)),
         );
       }
     }
   }
 
-  Future<void> _launchPhone() async {
+  Future<void> _launchPhone(AppLocalizations l10n) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: '+41800123456');
     
     if (await canLaunchUrl(phoneUri)) {
@@ -523,31 +547,31 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open phone app')),
+          SnackBar(content: Text(l10n.couldNotOpenPhone)),
         );
       }
     }
   }
 
-  void _showLiveChatDialog(BuildContext context) {
+  void _showLiveChatDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Live Chat', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.liveChatTitle, style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.chat, size: 48, color: AppColors.primaryAccent),
             const SizedBox(height: 16),
             Text(
-              'Live chat is currently available during business hours (Monday-Friday, 9:00-18:00 CET).',
+              l10n.liveChatAvailable,
               style: TextStyle(color: AppColors.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
-              'For immediate assistance outside business hours, please use the support form or send us an email.',
+              l10n.liveChatOutsideHours,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               textAlign: TextAlign.center,
             ),
@@ -556,24 +580,24 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(l10n.close, style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Live chat feature will be available soon')),
+                SnackBar(content: Text(l10n.liveChatSoon)),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryAccent),
-            child: Text('Start Chat', style: TextStyle(color: AppColors.textOnAccent)),
+            child: Text(l10n.startChat, style: TextStyle(color: AppColors.textOnAccent)),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _submitSupportRequest() async {
+  Future<void> _submitSupportRequest(AppLocalizations l10n) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -601,7 +625,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Support request submitted successfully! We\'ll get back to you soon.'),
+          content: Text(l10n.supportRequestSubmitted),
           backgroundColor: AppColors.success,
         ),
       );

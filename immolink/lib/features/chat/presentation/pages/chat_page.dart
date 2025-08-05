@@ -572,7 +572,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   const SizedBox(height: 16),
                   ListTile(
                     leading: Icon(Icons.block, color: AppColors.error),
-                    title: const Text('Block User'),
+                    title: Text(AppLocalizations.of(context)!.blockUser),
                     onTap: () {
                       Navigator.pop(context);
                       // TODO: Implement block user
@@ -580,7 +580,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   ),
                   ListTile(
                     leading: Icon(Icons.report, color: AppColors.warning),
-                    title: const Text('Report Conversation'),
+                    title: Text(AppLocalizations.of(context)!.reportConversation),
                     onTap: () {
                       Navigator.pop(context);
                       // TODO: Implement report
@@ -588,7 +588,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   ),
                   ListTile(
                     leading: Icon(Icons.delete, color: AppColors.error),
-                    title: const Text('Delete Conversation'),
+                    title: Text(AppLocalizations.of(context)!.deleteConversation),
                     onTap: () {
                       Navigator.pop(context);
                       // TODO: Implement delete conversation

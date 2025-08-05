@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class HelpCenterPage extends ConsumerWidget {
@@ -8,13 +9,14 @@ class HelpCenterPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
         title: Text(
-          'Help Center',
+          l10n.helpCenter,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
@@ -37,22 +39,22 @@ class HelpCenterPage extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            _buildWelcomeCard(),
+            _buildWelcomeCard(l10n),
             const SizedBox(height: 24),
-            _buildQuickLinksSection(context),
+            _buildQuickLinksSection(context, l10n),
             const SizedBox(height: 24),
-            _buildFAQSection(context),
+            _buildFAQSection(context, l10n),
             const SizedBox(height: 24),
-            _buildGuidesSection(context),
+            _buildGuidesSection(context, l10n),
             const SizedBox(height: 24),
-            _buildContactSection(context),
+            _buildContactSection(context, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildWelcomeCard() {
+  Widget _buildWelcomeCard(AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -84,7 +86,7 @@ class HelpCenterPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Welcome to Help Center',
+                  l10n.welcomeToHelpCenter,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -95,7 +97,7 @@ class HelpCenterPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Find answers to common questions, learn how to use ImmoLink features, and get support when you need it.',
+              l10n.helpCenterDescription,
               style: TextStyle(
                 fontSize: 16,
                 color: AppColors.textSecondary,
@@ -108,7 +110,7 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickLinksSection(BuildContext context) {
+  Widget _buildQuickLinksSection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -121,7 +123,7 @@ class HelpCenterPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Quick Links',
+              l10n.quickLinks,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -131,31 +133,31 @@ class HelpCenterPage extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildQuickLinkItem(
               context,
-              'Getting Started',
-              'Learn the basics of using ImmoLink',
+              l10n.gettingStarted,
+              l10n.gettingStartedDescription,
               Icons.play_circle_outline,
-              () => _showGettingStartedDialog(context),
+              () => _showGettingStartedDialog(context, l10n),
             ),
             _buildQuickLinkItem(
               context,
-              'Account & Settings',
-              'Manage your account and privacy settings',
+              l10n.accountSettings,
+              l10n.accountSettingsDescription,
               Icons.settings,
               () => context.push('/settings'),
             ),
             _buildQuickLinkItem(
               context,
-              'Property Management',
-              'How to add and manage properties',
+              l10n.propertyManagement,
+              l10n.propertyManagementDescription,
               Icons.home,
-              () => _showPropertyManagementDialog(context),
+              () => _showPropertyManagementDialog(context, l10n),
             ),
             _buildQuickLinkItem(
               context,
-              'Payments & Billing',
-              'Understanding payments and billing',
+              l10n.paymentsBilling,
+              l10n.paymentsBillingDescription,
               Icons.payment,
-              () => _showPaymentsDialog(context),
+              () => _showPaymentsDialog(context, l10n),
             ),
           ],
         ),
@@ -180,7 +182,7 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFAQSection(BuildContext context) {
+  Widget _buildFAQSection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -193,7 +195,7 @@ class HelpCenterPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Frequently Asked Questions',
+              l10n.frequentlyAskedQuestions,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -202,24 +204,24 @@ class HelpCenterPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildFAQItem(
-              'How do I add a new property?',
-              'Go to the Properties tab and tap the "+" button. Fill in the property details, add photos, and save.',
+              l10n.howToAddProperty,
+              l10n.howToAddPropertyAnswer,
             ),
             _buildFAQItem(
-              'How do I invite a tenant?',
-              'Open a property and tap "Invite Tenant". Enter their email address and they will receive an invitation.',
+              l10n.howToInviteTenant,
+              l10n.howToInviteTenantAnswer,
             ),
             _buildFAQItem(
-              'How do I change my currency?',
-              'Go to Settings > Preferences > Currency and select your preferred currency.',
+              l10n.howToChangeCurrency,
+              l10n.howToChangeCurrencyAnswer,
             ),
             _buildFAQItem(
-              'How do I enable two-factor authentication?',
-              'Go to Settings > Security > Two-Factor Authentication and follow the setup instructions.',
+              l10n.howToEnable2FA,
+              l10n.howToEnable2FAAnswer,
             ),
             _buildFAQItem(
-              'How do I export my data?',
-              'Go to Settings > Privacy Settings > Data Management > Export My Data.',
+              l10n.howToExportData,
+              l10n.howToExportDataAnswer,
             ),
           ],
         ),
@@ -251,7 +253,7 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildGuidesSection(BuildContext context) {
+  Widget _buildGuidesSection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -264,7 +266,7 @@ class HelpCenterPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'User Guides',
+              l10n.userGuides,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -273,22 +275,22 @@ class HelpCenterPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildGuideItem(
-              'Landlord Guide',
-              'Complete guide for landlords',
+              l10n.landlordGuide,
+              l10n.landlordGuideDescription,
               Icons.business,
-              () => _showLandlordGuideDialog(context),
+              () => _showLandlordGuideDialog(context, l10n),
             ),
             _buildGuideItem(
-              'Tenant Guide',
-              'Complete guide for tenants',
+              l10n.tenantGuide,
+              l10n.tenantGuideDescription,
               Icons.person,
-              () => _showTenantGuideDialog(context),
+              () => _showTenantGuideDialog(context, l10n),
             ),
             _buildGuideItem(
-              'Security Best Practices',
-              'Keep your account secure',
+              l10n.securityBestPractices,
+              l10n.securityBestPracticesDescription,
               Icons.security,
-              () => _showSecurityGuideDialog(context),
+              () => _showSecurityGuideDialog(context, l10n),
             ),
           ],
         ),
@@ -313,7 +315,7 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContactSection(BuildContext context) {
+  Widget _buildContactSection(BuildContext context, AppLocalizations l10n) {
     return Card(
       elevation: 4,
       color: AppColors.surfaceCards,
@@ -326,7 +328,7 @@ class HelpCenterPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Need More Help?',
+              l10n.needMoreHelp,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -335,7 +337,7 @@ class HelpCenterPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Can\'t find what you\'re looking for? Our support team is here to help.',
+              l10n.needMoreHelpDescription,
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
@@ -348,7 +350,7 @@ class HelpCenterPage extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => context.push('/contact-support'),
                     icon: Icon(Icons.support_agent, color: AppColors.textOnAccent),
-                    label: Text('Contact Support', style: TextStyle(color: AppColors.textOnAccent)),
+                    label: Text(l10n.contactSupport, style: TextStyle(color: AppColors.textOnAccent)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryAccent,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -366,20 +368,20 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  void _showGettingStartedDialog(BuildContext context) {
+  void _showGettingStartedDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Getting Started', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.gettingStarted, style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Welcome to ImmoLink! Here\'s how to get started:', style: TextStyle(color: AppColors.textPrimary)),
+              Text(l10n.gettingStartedWelcome, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 16),
-              ...['1. Complete your profile', '2. Add your first property', '3. Invite tenants or connect with landlords', '4. Start managing your properties'].map(
+              ...[l10n.gettingStartedStep1, l10n.gettingStartedStep2, l10n.gettingStartedStep3, l10n.gettingStartedStep4].map(
                 (step) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(step, style: TextStyle(color: AppColors.textSecondary)),
@@ -391,27 +393,27 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Got it', style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.gotIt, style: TextStyle(color: AppColors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showPropertyManagementDialog(BuildContext context) {
+  void _showPropertyManagementDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Property Management', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.propertyManagement, style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Managing properties in ImmoLink:', style: TextStyle(color: AppColors.textPrimary)),
+              Text(l10n.propertyManagementGuide, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 16),
-              ...['• Add property details and photos', '• Set rental prices and terms', '• Invite tenants to view or rent', '• Track maintenance requests', '• Monitor payment status'].map(
+              ...[l10n.propertyManagementTip1, l10n.propertyManagementTip2, l10n.propertyManagementTip3, l10n.propertyManagementTip4, l10n.propertyManagementTip5].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(tip, style: TextStyle(color: AppColors.textSecondary)),
@@ -423,27 +425,27 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Got it', style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.gotIt, style: TextStyle(color: AppColors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showPaymentsDialog(BuildContext context) {
+  void _showPaymentsDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Payments & Billing', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.paymentsBilling, style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Understanding payments in ImmoLink:', style: TextStyle(color: AppColors.textPrimary)),
+              Text(l10n.paymentsGuide, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 16),
-              ...['• View payment history and status', '• Set up automatic payment reminders', '• Track outstanding payments', '• Generate payment reports', '• Export payment data'].map(
+              ...[l10n.paymentsTip1, l10n.paymentsTip2, l10n.paymentsTip3, l10n.paymentsTip4, l10n.paymentsTip5].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(tip, style: TextStyle(color: AppColors.textSecondary)),
@@ -455,27 +457,27 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Got it', style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.gotIt, style: TextStyle(color: AppColors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showLandlordGuideDialog(BuildContext context) {
+  void _showLandlordGuideDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Landlord Guide', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.landlordGuide, style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Complete guide for landlords:', style: TextStyle(color: AppColors.textPrimary)),
+              Text(l10n.landlordGuideContent, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 16),
-              ...['• Property portfolio management', '• Tenant screening and onboarding', '• Rent collection and tracking', '• Maintenance request handling', '• Financial reporting and analytics', '• Legal compliance and documentation'].map(
+              ...[l10n.landlordTip1, l10n.landlordTip2, l10n.landlordTip3, l10n.landlordTip4, l10n.landlordTip5, l10n.landlordTip6].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(tip, style: TextStyle(color: AppColors.textSecondary)),
@@ -487,27 +489,27 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Got it', style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.gotIt, style: TextStyle(color: AppColors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showTenantGuideDialog(BuildContext context) {
+  void _showTenantGuideDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Tenant Guide', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.tenantGuide, style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Complete guide for tenants:', style: TextStyle(color: AppColors.textPrimary)),
+              Text(l10n.tenantGuideContent, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 16),
-              ...['• Property search and viewing', '• Rental application process', '• Lease agreements and documentation', '• Rent payment and history', '• Maintenance request submission', '• Communication with landlords'].map(
+              ...[l10n.tenantTip1, l10n.tenantTip2, l10n.tenantTip3, l10n.tenantTip4, l10n.tenantTip5, l10n.tenantTip6].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(tip, style: TextStyle(color: AppColors.textSecondary)),
@@ -519,27 +521,27 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Got it', style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.gotIt, style: TextStyle(color: AppColors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showSecurityGuideDialog(BuildContext context) {
+  void _showSecurityGuideDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCards,
-        title: Text('Security Best Practices', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.securityBestPractices, style: TextStyle(color: AppColors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Keep your account secure:', style: TextStyle(color: AppColors.textPrimary)),
+              Text(l10n.securityGuideContent, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 16),
-              ...['• Use a strong, unique password', '• Enable two-factor authentication', '• Review privacy settings regularly', '• Be cautious with shared information', '• Report suspicious activity immediately', '• Keep the app updated'].map(
+              ...[l10n.securityTip1, l10n.securityTip2, l10n.securityTip3, l10n.securityTip4, l10n.securityTip5, l10n.securityTip6].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(tip, style: TextStyle(color: AppColors.textSecondary)),
@@ -551,7 +553,7 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Got it', style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.gotIt, style: TextStyle(color: AppColors.primaryAccent)),
           ),
         ],
       ),
