@@ -13,8 +13,8 @@ class CommonBottomNav extends ConsumerWidget {
     final selectedIndex = ref.watch(routeAwareNavigationProvider);
     
     // Update navigation index based on current route
-    final currentRoute = GoRouterState.of(context).uri.path;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentRoute = GoRouterState.of(context).uri.path;
       ref.read(routeAwareNavigationProvider.notifier).updateFromRoute(currentRoute);
     });
     
