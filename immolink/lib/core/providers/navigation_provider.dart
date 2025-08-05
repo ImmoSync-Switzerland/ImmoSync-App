@@ -29,10 +29,17 @@ final routeAwareNavigationProvider = StateNotifierProvider<RouteAwareNavigationN
 
 class RouteAwareNavigationNotifier extends StateNotifier<int> {
   final Ref ref;
+  bool _isManualNavigation = false;
 
   RouteAwareNavigationNotifier(this.ref) : super(0);
 
   void updateFromRoute(String route) {
+    // Don't update from route if we just performed a manual navigation
+    if (_isManualNavigation) {
+      _isManualNavigation = false;
+      return;
+    }
+    
     final newIndex = getNavigationIndexFromRoute(route);
     if (state != newIndex) {
       state = newIndex;
@@ -40,6 +47,7 @@ class RouteAwareNavigationNotifier extends StateNotifier<int> {
   }
 
   void setIndex(int index) {
+    _isManualNavigation = true;
     state = index;
   }
 }
