@@ -139,7 +139,7 @@ class PropertyDetailsPage extends ConsumerWidget {
           Text(
             '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primaryAccent,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
           ),

@@ -24,19 +24,19 @@ class CommonBottomNav extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.primaryBackground,
-            AppColors.luxuryGradientStart,
+            Theme.of(context).scaffoldBackgroundColor,
+            Theme.of(context).colorScheme.surface,
           ],
         ),
         border: Border(
           top: BorderSide(
-            color: AppColors.borderLight,
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: Theme.of(context).shadowColor,
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -70,22 +70,23 @@ class CommonBottomNav extends ConsumerWidget {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        selectedItemColor: AppColors.primaryAccent,
-        unselectedItemColor: AppColors.textTertiary,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: [
-          _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex),
-          _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex),
-          _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex),
-          _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex),
-          _buildBottomNavItem(Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex),
+          _buildBottomNavItem(context, Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex),
+          _buildBottomNavItem(context, Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex),
+          _buildBottomNavItem(context, Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex),
+          _buildBottomNavItem(context, Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex),
+          _buildBottomNavItem(context, Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex),
         ],
       ),
     );
   }
 
   BottomNavigationBarItem _buildBottomNavItem(
+    BuildContext context,
     IconData icon, 
     IconData activeIcon, 
     String label, 
@@ -101,19 +102,21 @@ class CommonBottomNav extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent.withValues(alpha: 0.1),
-              AppColors.primaryAccent.withValues(alpha: 0.05),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
             ],
           ) : null,
           borderRadius: BorderRadius.circular(12),
           border: isSelected ? Border.all(
-            color: AppColors.primaryAccent.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
             width: 1,
           ) : null,
         ),
         child: Icon(
           isSelected ? activeIcon : icon,
-          color: isSelected ? AppColors.primaryAccent : AppColors.textTertiary,
+          color: isSelected 
+            ? Theme.of(context).colorScheme.primary 
+            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         ),
       ),
       label: label,

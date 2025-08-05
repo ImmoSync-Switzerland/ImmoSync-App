@@ -56,19 +56,18 @@ class _LoginPageState extends ConsumerState<LoginPage>
     });
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFFFFFFF), // Pure white
-              Color(0xFFF0F4FF), // Very light blue
-              Color(0xFFE0EAFF), // Light blue
-              Color(0xFFD1E0FF), // Soft blue
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.background,
             ],
-            stops: [0.0, 0.3, 0.7, 1.0],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: SafeArea(
@@ -179,9 +178,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           children: [
             Text(
               'Welcome Back',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 28,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
               ),
@@ -189,9 +186,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             const SizedBox(height: 8),
             Text(
               'Sign in to your account',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 16,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
             ),

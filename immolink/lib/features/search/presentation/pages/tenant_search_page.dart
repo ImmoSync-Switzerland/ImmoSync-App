@@ -50,11 +50,11 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     final conversationsAsync = ref.watch(conversationsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.search),
-        backgroundColor: AppColors.surfaceCards,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
       ),
       body: Column(
