@@ -12,6 +12,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
 import '../../../../core/providers/currency_provider.dart';
+import '../../../../core/widgets/common_bottom_nav.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -21,7 +22,6 @@ class LandlordDashboard extends ConsumerStatefulWidget {
 }
 
 class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with TickerProviderStateMixin {
-  int _selectedIndex = 0;
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
@@ -174,7 +174,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: const CommonBottomNav(),
       floatingActionButton: _buildFAB(),
     );
   }
@@ -1452,103 +1452,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.primaryBackground,
-            AppColors.luxuryGradientStart,
-          ],
-        ),
-        border: Border(
-          top: BorderSide(
-            color: AppColors.borderLight,
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColorMedium,
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _selectedIndex,        onTap: (index) {
-          HapticFeedback.lightImpact();
-          setState(() {
-            _selectedIndex = index;
-          });
-          
-          // Navigate to different routes based on index
-          switch (index) {
-            case 0:
-              // Already on dashboard - no navigation needed
-              break;
-            case 1:
-              context.push('/properties');
-              break;
-            case 2:
-              context.push('/conversations');
-              break;
-            case 3:
-              context.push('/reports');
-              break;
-            case 4:
-              context.push('/profile');
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: AppColors.primaryAccent,
-        unselectedItemColor: AppColors.textTertiary,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,        items: [
-          _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, AppLocalizations.of(context)!.dashboard, 0),
-          _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, AppLocalizations.of(context)!.properties, 1),
-          _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, AppLocalizations.of(context)!.messages, 2),
-          _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, AppLocalizations.of(context)!.reports, 3),
-          _buildBottomNavItem(Icons.person_outline, Icons.person, AppLocalizations.of(context)!.profile, 4),
-        ],
-      ),
-    );
-  }
-
-  BottomNavigationBarItem _buildBottomNavItem(IconData icon, IconData activeIcon, String label, int index) {
-    final isSelected = _selectedIndex == index;
-    return BottomNavigationBarItem(
-      icon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          gradient: isSelected ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primaryAccent.withValues(alpha: 0.1),
-              AppColors.primaryAccent.withValues(alpha: 0.05),
-            ],
-          ) : null,
-          borderRadius: BorderRadius.circular(12),
-          border: isSelected ? Border.all(
-            color: AppColors.primaryAccent.withValues(alpha: 0.2),
-            width: 1,
-          ) : null,
-        ),
-        child: Icon(
-          isSelected ? activeIcon : icon,
-          color: isSelected ? AppColors.primaryAccent : AppColors.textTertiary,
-        ),
-      ),
-      label: label,
-    );
-  }
-
   Widget _buildFAB() {
     return Container(
       decoration: BoxDecoration(
@@ -1579,7 +1482,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         child: Icon(
           Icons.add,
           color: AppColors.textOnAccent,
-          size: 28,        ),
+          size: 28,
+        ),
       ),
     );
   }
@@ -1588,7 +1492,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     final l10n = AppLocalizations.of(context)!;
     switch (status.toLowerCase()) {
       case 'rented':
-        return l10n.rented.toUpperCase();      case 'available':
+        return l10n.rented.toUpperCase();
+      case 'available':
         return l10n.available.toUpperCase();
       default:
         return status.toUpperCase();
