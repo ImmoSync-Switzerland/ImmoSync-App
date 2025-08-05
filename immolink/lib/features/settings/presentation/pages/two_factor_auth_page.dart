@@ -48,7 +48,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3000/api/auth/2fa/status/${currentUser.id}'),
+        Uri.parse('https://backend.immosync.ch/api/auth/2fa/status/${currentUser.id}'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -89,7 +89,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/auth/2fa/setup-2fa'),
+        Uri.parse('https://backend.immosync.ch/api/auth/2fa/setup-2fa'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,
@@ -139,7 +139,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/auth/2fa/verify-2fa-setup'),
+        Uri.parse('https://backend.immosync.ch/api/auth/2fa/verify-2fa-setup'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,
@@ -186,7 +186,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/auth/2fa/disable'),
+        Uri.parse('https://backend.immosync.ch/api/auth/2fa/disable'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,
@@ -235,7 +235,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/auth/2fa/disable'),
+        Uri.parse('https://backend.immosync.ch/api/auth/2fa/disable'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,

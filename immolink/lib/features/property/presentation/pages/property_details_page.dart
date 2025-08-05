@@ -30,14 +30,14 @@ class PropertyDetailsPage extends ConsumerWidget {
     
     // If it looks like a MongoDB ObjectId (24 hex characters), construct MongoDB image URL
     if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-      final mongoUrl = 'http://localhost:3000/api/images/$imageIdOrPath';
+      final mongoUrl = 'https://backend.immosync.ch/api/images/$imageIdOrPath';
       print('Image looks like MongoDB ID, using: $mongoUrl');
       return mongoUrl;
     }
     
     // Fallback: if it's a local file, construct backend URL
     final filename = imageIdOrPath.split('/').last.split('\\').last;
-    final fallbackUrl = 'http://localhost:3000/uploads/$filename';
+    final fallbackUrl = 'https://backend.immosync.ch/uploads/$filename';
     print('Image fallback URL: $fallbackUrl');
     return fallbackUrl;
   }

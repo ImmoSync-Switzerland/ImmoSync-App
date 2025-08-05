@@ -71,7 +71,7 @@ class _MongoImageState extends State<MongoImage> {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     final response = await http.get(
-      Uri.parse('http://localhost:3000/api/images/base64/${widget.imageId}?v=$cacheBuster'),
+      Uri.parse('https://backend.immosync.ch/api/images/base64/${widget.imageId}?v=$cacheBuster'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -92,7 +92,7 @@ class _MongoImageState extends State<MongoImage> {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     final response = await http.get(
-      Uri.parse('http://localhost:3000/api/images/${widget.imageId}?v=$cacheBuster'),
+      Uri.parse('https://backend.immosync.ch/api/images/${widget.imageId}?v=$cacheBuster'),
     );
 
     print('Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
