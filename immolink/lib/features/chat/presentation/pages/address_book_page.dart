@@ -6,6 +6,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/models/contact_user.dart';
 import '../providers/contact_providers.dart';
+import '../providers/chat_service_provider.dart';
 
 class AddressBookPage extends ConsumerStatefulWidget {
   const AddressBookPage({super.key});
@@ -449,7 +450,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Starting conversation...',
+                    'Finding conversation...',
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 14,
@@ -463,15 +464,25 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         },
       );
       
-      // Simulate conversation creation
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // Get current user
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser?.id == null) {
+        throw Exception('User not authenticated');
+      }
+      
+      // Find or create conversation to preserve chat history
+      final chatService = ref.read(chatServiceProvider);
+      final conversationId = await chatService.findOrCreateConversation(
+        currentUserId: currentUser!.id,
+        otherUserId: contact.id,
+      );
       
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
         
-        // Navigate to chat page
-        context.push('/chat/new?otherUserId=${contact.id}&otherUserName=${contact.fullName}');
+        // Navigate to the existing or newly created conversation
+        context.push('/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}');
       }
     } catch (e) {
       // Close loading dialog if open
