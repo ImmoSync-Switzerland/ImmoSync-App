@@ -9,6 +9,7 @@ import 'package:immolink/features/home/domain/services/dashboard_service.dart';
 import 'package:immolink/features/chat/domain/models/conversation.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
 import '../../../../core/providers/currency_provider.dart';
 
@@ -1338,7 +1339,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   Widget _buildMaintenanceCard(MaintenanceRequest request, BuildContext context) {
     Color priorityColor = _getPriorityColor(request.priority);
-    IconData icon = _getCategoryIcon(request.category);
+    IconData icon = CategoryUtils.getCategoryIcon(request.category);
     
     return GestureDetector(
       onTap: () {
@@ -1673,27 +1674,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         return AppColors.success;
       default:
         return AppColors.warning;
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'heating':
-        return Icons.thermostat_outlined;
-      case 'plumbing':
-        return Icons.plumbing_outlined;
-      case 'electrical':
-        return Icons.electrical_services_outlined;
-      case 'appliances':
-        return Icons.home_repair_service_outlined;
-      case 'structural':
-        return Icons.foundation_outlined;
-      case 'cleaning':
-        return Icons.cleaning_services_outlined;
-      case 'pest_control':
-        return Icons.bug_report_outlined;
-      default:
-        return Icons.build_outlined;
     }
   }
 }

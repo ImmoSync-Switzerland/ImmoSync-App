@@ -284,9 +284,15 @@ router.post('/:id/notes', async (req, res) => {
   try {
     const { id } = req.params;
     const { content, authorId } = req.body;
+    const db = getDB();
     
-    const updatedRequest = await MaintenanceRequest.findByIdAndUpdate(
-      id,
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid maintenance request ID format' });
+    }
+    
+    const result = await db.collection('maintenanceRequests').updateOne(
+      { _id: new ObjectId(id) },
       {
         $push: {
           notes: {
@@ -295,13 +301,16 @@ router.post('/:id/notes', async (req, res) => {
             timestamp: new Date()
           }
         }
-      },
-      { new: true }
-    ).populate('notes.author', 'fullName');
+      }
+    );
     
-    if (!updatedRequest) {
+    if (result.matchedCount === 0) {
       return res.status(404).json({ message: 'Maintenance request not found' });
     }
+    
+    // Fetch and return the updated request
+    const updatedRequest = await db.collection('maintenanceRequests')
+      .findOne({ _id: new ObjectId(id) });
     
     res.json(updatedRequest);
   } catch (error) {

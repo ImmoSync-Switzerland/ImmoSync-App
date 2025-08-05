@@ -172,4 +172,28 @@ class MaintenanceService {
       rethrow;
     }
   }
+
+  // Add a note to maintenance request
+  Future<MaintenanceRequest> addNoteToMaintenanceRequest(String requestId, String content, String authorId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/maintenance/$requestId/notes'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'content': content,
+          'authorId': authorId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return MaintenanceRequest.fromMap(data);
+      } else {
+        throw Exception('Failed to add note to maintenance request');
+      }
+    } catch (e) {
+      print('Network error in addNoteToMaintenanceRequest: $e');
+      rethrow;
+    }
+  }
 }

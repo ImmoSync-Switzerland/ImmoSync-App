@@ -39,6 +39,40 @@ router.get('/landlord/:landlordId', async (req, res) => {
   }
 });
 
+// Get properties for a specific tenant
+router.get('/tenant/:tenantId', async (req, res) => {
+  const client = new MongoClient(dbUri);
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+
+    console.log('Querying properties for tenantId:', req.params.tenantId);
+
+    // Validate tenantId format
+    if (!ObjectId.isValid(req.params.tenantId)) {
+      return res.status(400).json({ message: 'Invalid tenant ID format' });
+    }
+
+    // Find properties where this tenant is assigned
+    const properties = await db.collection('properties')
+      .find({
+        tenantIds: { $in: [req.params.tenantId] }
+      })
+      .toArray();
+
+    console.log('Found properties for tenant:', properties.length);
+    console.log('Properties details:', JSON.stringify(properties, null, 2));
+
+    res.json({ properties });
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ message: 'Error fetching tenant properties' });
+  } finally {
+    await client.close();
+  }
+});
+
 router.get('/:propertyId', async (req, res) => {
   const client = new MongoClient(dbUri);
 

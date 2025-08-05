@@ -237,7 +237,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           border: Border.all(color: AppColors.borderLight, width: 1),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.08),
+              color: AppColors.shadowColor.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -277,15 +277,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primaryAccent.withOpacity(0.1),
-                AppColors.luxuryGold.withOpacity(0.05),
+                AppColors.primaryAccent.withValues(alpha: 0.1),
+                AppColors.luxuryGold.withValues(alpha: 0.05),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.borderLight, width: 1),
             boxShadow: [
               BoxShadow(
-                color: AppColors.shadowColor.withOpacity(0.12),
+                color: AppColors.shadowColor.withValues(alpha: 0.12),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -301,7 +301,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryAccent.withOpacity(0.1),
+                        color: AppColors.primaryAccent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -392,7 +392,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           border: Border.all(color: AppColors.borderLight, width: 1),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.08),
+              color: AppColors.shadowColor.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -506,7 +506,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           border: Border.all(color: AppColors.borderLight, width: 1),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.08),
+              color: AppColors.shadowColor.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -517,7 +517,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -564,7 +564,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               border: Border.all(color: AppColors.borderLight, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.shadowColor.withOpacity(0.08),
+                  color: AppColors.shadowColor.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),

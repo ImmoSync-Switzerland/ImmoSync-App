@@ -6,6 +6,7 @@ import 'package:immolink/features/maintenance/domain/models/maintenance_request.
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/category_utils.dart';
 
 class MaintenanceManagementPage extends ConsumerWidget {
   const MaintenanceManagementPage({super.key});
@@ -290,13 +291,45 @@ class MaintenanceManagementPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        request.category ?? l10n.maintenanceRequests,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              CategoryUtils.getCategoryIcon(request.category),
+                              size: 16,
+                              color: CategoryUtils.getCategoryColor(request.category),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  request.title ?? request.category ?? l10n.maintenanceRequests,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  request.category,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: CategoryUtils.getCategoryColor(request.category),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Container(

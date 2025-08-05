@@ -7,6 +7,7 @@ import 'package:immolink/features/maintenance/domain/models/maintenance_request.
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/category_utils.dart';
 
 class MaintenanceRequestDetailPage extends ConsumerWidget {
   final String requestId;
@@ -91,18 +92,18 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  _getCategoryColor(request.category).withValues(alpha: 0.1),
-                  _getCategoryColor(request.category).withValues(alpha: 0.05),
+                  CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.1),
+                  CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: _getCategoryColor(request.category).withValues(alpha: 0.2),
+                color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.2),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: _getCategoryColor(request.category).withValues(alpha: 0.1),
+                  color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -118,23 +119,23 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _getCategoryColor(request.category).withValues(alpha: 0.15),
+                          color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: _getCategoryColor(request.category).withValues(alpha: 0.3),
+                            color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.3),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: _getCategoryColor(request.category).withValues(alpha: 0.2),
+                              color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: Icon(
-                          _getCategoryIcon(request.category),
-                          color: _getCategoryColor(request.category),
+                          CategoryUtils.getCategoryIcon(request.category),
+                          color: CategoryUtils.getCategoryColor(request.category),
                           size: 32,
                         ),
                       ),
@@ -481,7 +482,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Icons.category_outlined,
                 'Category',
                 request.categoryDisplayText,
-                _getCategoryColor(request.category),
+                CategoryUtils.getCategoryColor(request.category),
               ),
             ),
             const SizedBox(width: 12),
@@ -781,13 +782,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           height: 48,
           child: OutlinedButton(
             onPressed: () {
-              // TODO: Implement add note functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Add note functionality coming soon'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              _showAddNoteDialog(context, ref, requestId);
             },
             style: OutlinedButton.styleFrom(
               side: BorderSide(
@@ -868,52 +863,6 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'plumbing':
-        return Colors.blue;
-      case 'electrical':
-        return Colors.orange;
-      case 'heating':
-        return Colors.red;
-      case 'cooling':
-        return Colors.cyan;
-      case 'appliances':
-        return Colors.purple;
-      case 'structural':
-        return Colors.brown;
-      case 'cleaning':
-        return Colors.green;
-      case 'pest_control':
-        return Colors.amber;
-      default:
-        return AppColors.textTertiary;
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'plumbing':
-        return Icons.plumbing;
-      case 'electrical':
-        return Icons.electrical_services;
-      case 'heating':
-        return Icons.thermostat;
-      case 'cooling':
-        return Icons.ac_unit;
-      case 'appliances':
-        return Icons.kitchen;
-      case 'structural':
-        return Icons.construction;
-      case 'cleaning':
-        return Icons.cleaning_services;
-      case 'pest_control':
-        return Icons.bug_report;
-      default:
-        return Icons.build;
-    }
-  }
-
   void _updateStatus(BuildContext context, WidgetRef ref, String requestId, String newStatus) async {
     try {
       // Show loading indicator
@@ -961,6 +910,185 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update status: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId) {
+    final TextEditingController noteController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surfaceCards,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Add Note',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.textSecondary.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: TextField(
+                  controller: noteController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your note here...',
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                  ),
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (noteController.text.trim().isNotEmpty) {
+                  await _addNote(context, ref, requestId, noteController.text.trim());
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: const Text(
+                'Add Note',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId, String noteContent) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceCards,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Adding note...',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final maintenanceService = ref.read(maintenanceServiceProvider);
+      final currentUser = ref.read(currentUserProvider);
+      
+      if (currentUser?.id == null) {
+        throw Exception('User not authenticated');
+      }
+
+      await maintenanceService.addNoteToMaintenanceRequest(
+        requestId,
+        noteContent,
+        currentUser!.id,
+      );
+
+      // Refresh the maintenance request data
+      ref.invalidate(maintenanceRequestProvider(requestId));
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Note added successfully'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add note: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
