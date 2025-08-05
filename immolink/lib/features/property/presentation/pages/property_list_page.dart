@@ -24,7 +24,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     super.initState();
     // Set navigation index to Properties (1) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationIndexProvider.notifier).state = 1;
+      ref.read(routeAwareNavigationProvider.notifier).setIndex(1);
       
       // Check if there's a search query in the URL
       final uri = Uri.parse(ModalRoute.of(context)?.settings.name ?? '');

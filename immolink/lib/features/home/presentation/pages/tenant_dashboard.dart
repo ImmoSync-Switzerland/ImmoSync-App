@@ -27,7 +27,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     super.initState();
     // Set navigation index to Dashboard (0) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationIndexProvider.notifier).state = 0;
+      ref.read(routeAwareNavigationProvider.notifier).setIndex(0);
       // Refresh data when returning to dashboard
       ref.invalidate(tenantPropertiesProvider);
     });

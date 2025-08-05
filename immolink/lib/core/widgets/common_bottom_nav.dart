@@ -10,7 +10,13 @@ class CommonBottomNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedIndex = ref.watch(navigationIndexProvider);
+    final selectedIndex = ref.watch(routeAwareNavigationProvider);
+    
+    // Update navigation index based on current route
+    final currentRoute = GoRouterState.of(context).uri.path;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(routeAwareNavigationProvider.notifier).updateFromRoute(currentRoute);
+    });
     
     return Container(
       decoration: BoxDecoration(
@@ -40,7 +46,7 @@ class CommonBottomNav extends ConsumerWidget {
         currentIndex: selectedIndex,
         onTap: (index) {
           HapticFeedback.lightImpact();
-          ref.read(navigationIndexProvider.notifier).state = index;
+          ref.read(routeAwareNavigationProvider.notifier).setIndex(index);
           
           // Navigate to the appropriate pages
           switch (index) {

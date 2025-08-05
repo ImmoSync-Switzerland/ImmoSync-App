@@ -26,7 +26,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     super.initState();
     // Set navigation index to Messages (2) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationIndexProvider.notifier).state = 2;
+      ref.read(routeAwareNavigationProvider.notifier).setIndex(2);
     });
   }
 

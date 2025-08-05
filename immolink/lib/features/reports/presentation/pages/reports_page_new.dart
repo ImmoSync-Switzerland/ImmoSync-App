@@ -20,7 +20,7 @@ class ReportsPage extends ConsumerWidget {
 
     // Set navigation index to Reports (3) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationIndexProvider.notifier).state = 3;
+      ref.read(routeAwareNavigationProvider.notifier).setIndex(3);
     });
 
     return Scaffold(

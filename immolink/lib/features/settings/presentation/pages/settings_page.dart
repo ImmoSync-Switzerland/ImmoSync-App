@@ -19,7 +19,7 @@ class SettingsPage extends ConsumerWidget {
     
     // Set navigation index to Profile (4) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationIndexProvider.notifier).state = 4;
+      ref.read(routeAwareNavigationProvider.notifier).setIndex(4);
     });
     
     return Scaffold(
