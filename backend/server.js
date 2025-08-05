@@ -2,6 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { connectDB } = require('./database');
+const admin = require('firebase-admin');
+
+// Initialize Firebase Admin SDK
+// For development/testing, using default Firebase project
+// In production, you would use a service account key file
+try {
+  admin.initializeApp();
+  console.log('Firebase Admin initialized successfully');
+} catch (error) {
+  console.warn('Firebase Admin initialization failed:', error.message);
+  console.warn('Social login features will not work without proper Firebase configuration');
+}
+
 const app = express();
 const authRoutes = require('./routes/auth');
 const auth2faRoutes = require('./routes/auth-2fa');

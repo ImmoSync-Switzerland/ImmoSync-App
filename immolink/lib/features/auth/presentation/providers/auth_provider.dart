@@ -94,24 +94,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       final userData = await _authService.loginUser(email: email, password: password);
-
-      final prefs = await SharedPreferences.getInstance();
-      await Future.wait([
-        prefs.setString('userId', userData['userId']),
-        prefs.setString('authToken', userData['token']),
-        prefs.setString('email', userData['email']),
-        prefs.setString('userRole', userData['role']),
-        prefs.setString('fullName', userData['fullName'])
-      ]);
-
-      ref.read(userRoleProvider.notifier).setUserRole(userData['role']);
-      await ref.read(currentUserProvider.notifier).setUser(userData['userId']);
-
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: true,
-        userId: userData['userId']
-      );
+      await _handleSuccessfulLogin(userData);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -132,6 +115,56 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  Future<void> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final userData = await _authService.signInWithGoogle();
+      await _handleSuccessfulLogin(userData);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        isAuthenticated: false
+      );
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final userData = await _authService.signInWithApple();
+      await _handleSuccessfulLogin(userData);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        isAuthenticated: false
+      );
+    }
+  }
+
+  Future<void> _handleSuccessfulLogin(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await Future.wait([
+      prefs.setString('userId', userData['userId']),
+      prefs.setString('authToken', userData['token']),
+      prefs.setString('email', userData['email']),
+      prefs.setString('userRole', userData['role']),
+      prefs.setString('fullName', userData['fullName'])
+    ]);
+
+    ref.read(userRoleProvider.notifier).setUserRole(userData['role']);
+    await ref.read(currentUserProvider.notifier).setUser(userData['userId']);
+
+    state = state.copyWith(
+      isLoading: false,
+      isAuthenticated: true,
+      userId: userData['userId']
+    );
   }
 }
 

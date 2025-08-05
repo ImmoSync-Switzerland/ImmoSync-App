@@ -52,6 +52,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
     ref.listen<AuthState>(authProvider, (previous, current) {
       if (current.isAuthenticated) {
         context.go('/home');  // Navigate when authenticated
+      } else if (current.error != null) {
+        // Show error message for social login failures
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(current.error!),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
       }
     });
 
@@ -410,12 +419,16 @@ class _LoginPageState extends ConsumerState<LoginPage>
       children: [
         _buildSocialButton(
           icon: FontAwesomeIcons.google,
-          onPressed: () {},
+          onPressed: () async {
+            await ref.read(authProvider.notifier).signInWithGoogle();
+          },
         ),
         const SizedBox(width: 16),
         _buildSocialButton(
           icon: FontAwesomeIcons.apple,
-          onPressed: () {},
+          onPressed: () async {
+            await ref.read(authProvider.notifier).signInWithApple();
+          },
         ),
       ],
     );
