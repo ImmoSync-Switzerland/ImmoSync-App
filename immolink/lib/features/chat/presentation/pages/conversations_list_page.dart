@@ -34,10 +34,14 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }  @override
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final conversationsAsync = ref.watch(conversationsProvider);return Scaffold(
+    final conversationsAsync = ref.watch(conversationsProvider);
+    
+    return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBackground,
@@ -275,7 +279,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     String currentUserId,
   ) {
     final currentUser = ref.watch(currentUserProvider);
-    final isLandlord = currentUser?.role == 'landlord';    final otherUserName = conversation.getOtherParticipantDisplayName(
+    final isLandlord = currentUser?.role == 'landlord';
+    
+    final otherUserName = conversation.getOtherParticipantDisplayName(
       currentUserId, 
       isLandlord: isLandlord,
     );
@@ -379,7 +385,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           Icons.arrow_forward_ios,
           color: AppColors.primaryAccent,
           size: 16,
-        ),        onTap: () {
+        ),
+        onTap: () {
           HapticFeedback.lightImpact();
           context.push(
             '/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}',
@@ -387,4 +394,5 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         },
       ),
     );
+  }
 }
