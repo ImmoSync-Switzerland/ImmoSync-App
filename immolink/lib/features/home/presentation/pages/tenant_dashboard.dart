@@ -98,8 +98,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         ref.invalidate(tenantPropertiesProvider);
                         await Future.delayed(const Duration(seconds: 1));
                       },
-                      color: AppColors.primaryAccent,
-                      backgroundColor: Colors.white,
+                      color: Theme.of(context).colorScheme.primary,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(20),
@@ -129,13 +129,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             );
           },
           loading: () => Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFF8F9FA),
-                  Color(0xFFFFFFFF),
+                  Theme.of(context).colorScheme.surface,
+                  Theme.of(context).colorScheme.background,
                 ],
               ),
             ),
@@ -146,15 +146,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.grey.withValues(alpha: 0.2),
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Theme.of(context).shadowColor,
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -167,16 +167,14 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                           width: 32,
                           height: 32,
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                            valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
                             strokeWidth: 3,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'Loading your dashboard...',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 16,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -191,13 +189,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             print('Tenant Dashboard Error: $error');
             print('Stack trace: $stackTrace');
             return Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFF8F9FA),
-                    Color(0xFFFFFFFF),
+                    Theme.of(context).colorScheme.surface,
+                    Theme.of(context).colorScheme.background,
                   ],
                 ),
               ),
@@ -206,15 +204,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   margin: const EdgeInsets.all(20),
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.2),
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: Theme.of(context).shadowColor,
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
@@ -226,27 +224,22 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.1),
+                          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                        child: Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'Error loading dashboard',
-                        style: TextStyle(
-                          fontSize: 18,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         error.toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
@@ -302,26 +295,21 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            Theme.of(context).colorScheme.surface,
+            Theme.of(context).colorScheme.background,
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: Theme.of(context).shadowColor,
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -337,19 +325,19 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.15),
-                      AppColors.primaryAccent.withValues(alpha: 0.05),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   Icons.waving_hand_rounded,
-                  color: AppColors.primaryAccent,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 28,
                 ),
               ),
@@ -399,19 +387,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           const SizedBox(height: 20),
           Text(
             '${_getGreeting()},',
-            style: TextStyle(
-              fontSize: 16,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w400,
-              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             userName,
-            style: TextStyle(
-              fontSize: 28,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
               height: 1.2,
             ),
           ),
@@ -470,26 +454,21 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              AppColors.surfaceCards,
-              AppColors.luxuryGradientStart,
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.background,
             ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.borderLight,
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor,
+              color: Theme.of(context).shadowColor,
               blurRadius: 20,
               offset: const Offset(0, 8),
               spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.9),
-              blurRadius: 1,
-              offset: const Offset(0, 1),
             ),
           ],
         ),
@@ -497,9 +476,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           enabled: false, // Disable text input, only use tap
           decoration: InputDecoration(
             hintText: 'Search properties, maintenance, messages...',
-            hintStyle: TextStyle(
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
-              fontSize: 15,
+            hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               fontWeight: FontWeight.w400,
               letterSpacing: -0.1,
             ),
@@ -512,15 +490,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.15),
-                      AppColors.primaryAccent.withValues(alpha: 0.05),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.search_rounded,
-                  color: AppColors.primaryAccent,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 18,
                 ),
               ),
@@ -534,8 +512,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.1),
-                      AppColors.primaryAccent.withValues(alpha: 0.05),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(8),

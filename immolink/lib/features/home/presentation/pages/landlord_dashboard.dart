@@ -107,8 +107,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       HapticFeedback.lightImpact();
                       await Future.delayed(const Duration(seconds: 1));
                     },
-                    color: AppColors.primaryAccent,
-                    backgroundColor: AppColors.primaryBackground,
+                    color: Theme.of(context).colorScheme.primary,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(20),
@@ -142,7 +142,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               width: 32,
               height: 32,
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
                 strokeWidth: 2.5,
               ),
             ),
@@ -151,23 +151,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
                 const SizedBox(height: 16),
                 Text(
                   'Something went wrong',
-                  style: TextStyle(
-                    fontSize: 18,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Please try again later',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textTertiary,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -181,14 +176,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   PreferredSizeWidget _buildAppBar(String name) {
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: Theme.of(context).brightness == Brightness.dark 
+        ? SystemUiOverlayStyle.light 
+        : SystemUiOverlayStyle.dark,
       title: Text(
         'Dashboard',
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 18,
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
           fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
         ),
@@ -196,7 +191,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       centerTitle: true,
       actions: [
         IconButton(
-          icon: Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 24),
+          icon: Icon(Icons.notifications_outlined, 
+            color: Theme.of(context).colorScheme.onSurface, size: 24),
           onPressed: () => HapticFeedback.lightImpact(),
         ),
       ],
