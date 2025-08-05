@@ -318,5 +318,11 @@
   "close": "Close",
   "startChat": "Start Chat",
   "liveChatSoon": "Live chat feature will be available soon",
-  "supportRequestSubmitted": "Support request submitted successfully! We'll get back to you soon."
+  "supportRequestSubmitted": "Support request submitted successfully! We'll get back to you soon.",
+  "myTenants": "My Tenants",
+  "myLandlords": "My Landlords",
+  "maintenanceRequestDetails": "Maintenance Request Details",
+  "blockUser": "Block User", 
+  "reportConversation": "Report Conversation",
+  "deleteConversation": "Delete Conversation"
 }

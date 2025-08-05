@@ -317,5 +317,11 @@
   "close": "Schließen",
   "startChat": "Chat starten",
   "liveChatSoon": "Live-Chat-Funktion wird bald verfügbar sein",
-  "supportRequestSubmitted": "Support-Anfrage erfolgreich gesendet! Wir melden uns bald bei Ihnen."
+  "supportRequestSubmitted": "Support-Anfrage erfolgreich gesendet! Wir melden uns bald bei Ihnen.",
+  "myTenants": "Meine Mieter",
+  "myLandlords": "Meine Vermieter",
+  "maintenanceRequestDetails": "Details der Wartungsanfrage",
+  "blockUser": "Benutzer blockieren",
+  "reportConversation": "Unterhaltung melden",
+  "deleteConversation": "Unterhaltung löschen"
 }

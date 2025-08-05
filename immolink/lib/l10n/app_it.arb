@@ -317,5 +317,11 @@
   "close": "Chiudi",
   "startChat": "Inizia chat",
   "liveChatSoon": "La funzionalità di chat dal vivo sarà presto disponibile",
-  "supportRequestSubmitted": "Richiesta di supporto inviata con successo! Ti risponderemo presto."
+  "supportRequestSubmitted": "Richiesta di supporto inviata con successo! Ti risponderemo presto.",
+  "myTenants": "I miei inquilini",
+  "myLandlords": "I miei proprietari", 
+  "maintenanceRequestDetails": "Dettagli richiesta di manutenzione",
+  "blockUser": "Blocca utente",
+  "reportConversation": "Segnala conversazione",
+  "deleteConversation": "Elimina conversazione"
 }
