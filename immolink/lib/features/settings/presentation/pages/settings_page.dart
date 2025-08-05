@@ -23,20 +23,10 @@ class SettingsPage extends ConsumerWidget {
     });
     
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
-        elevation: 0,
-        title: Text(
-          l10n.settings,
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(l10n.settings),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {
             // Navigate back to dashboard instead of popping
             context.go('/home');
@@ -49,7 +39,10 @@ class SettingsPage extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.primaryBackground, AppColors.surfaceCards],
+            colors: [
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.surface,
+            ],
           ),
         ),
         child: ListView(
@@ -73,12 +66,10 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref, user, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Card(
-      elevation: 4,
-      color: AppColors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -86,24 +77,20 @@ class SettingsPage extends ConsumerWidget {
           children: [
             Text(
               l10n.profile,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.2),
+                  backgroundColor: colorScheme.primary.withValues(alpha: 0.2),
                   child: Text(
                     user?.fullName.substring(0, 1) ?? 'U',
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primaryAccent,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ),
@@ -114,19 +101,15 @@ class SettingsPage extends ConsumerWidget {
                     children: [
                       Text(
                         user?.fullName ?? 'User',
-                        style: TextStyle(
+                        style: theme.textTheme.bodyLarge?.copyWith(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         user?.email ?? 'email@example.com',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.textSecondary,
-                        ),
+                        style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 4),
                       Container(
@@ -135,7 +118,7 @@ class SettingsPage extends ConsumerWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.accentLight,
+                          color: colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -143,7 +126,7 @@ class SettingsPage extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryAccent,
+                            color: colorScheme.primary,
                           ),
                         ),
                       ),
@@ -157,16 +140,7 @@ class SettingsPage extends ConsumerWidget {
               onPressed: () {
                 context.push('/edit-profile');
               },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.primaryAccent),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Edit Profile',
-                style: TextStyle(color: AppColors.primaryAccent),
-              ),
+              child: const Text('Edit Profile'),
             ),
           ],
         ),
@@ -175,23 +149,17 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildPreferencesSection(BuildContext context, WidgetRef ref, AppSettings settings, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    
     return Card(
-      elevation: 4,
-      color: AppColors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [            Text(
+          children: [
+            Text(
               l10n.preferences,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
             _buildSettingItem(
@@ -203,7 +171,7 @@ class SettingsPage extends ConsumerWidget {
                 _showLanguageSelectionDialog(context, ref, l10n);
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               l10n.theme,
@@ -213,7 +181,7 @@ class SettingsPage extends ConsumerWidget {
                 _showThemeSelectionDialog(context, ref, l10n);
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               l10n.currency,
@@ -230,12 +198,9 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildSecuritySection(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Card(
-      elevation: 4,
-      color: AppColors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -243,11 +208,7 @@ class SettingsPage extends ConsumerWidget {
           children: [
             Text(
               'Security',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
             _buildSettingItem(
@@ -259,7 +220,7 @@ class SettingsPage extends ConsumerWidget {
                 context.push('/change-password');
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               'Two-Factor Authentication',
@@ -269,7 +230,7 @@ class SettingsPage extends ConsumerWidget {
                 context.push('/two-factor-auth');
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               'Privacy Settings',
@@ -286,12 +247,9 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildNotificationsSection(BuildContext context, WidgetRef ref, AppSettings settings) {
+    final theme = Theme.of(context);
+    
     return Card(
-      elevation: 4,
-      color: AppColors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -299,16 +257,12 @@ class SettingsPage extends ConsumerWidget {
           children: [
             Text(
               'Notifications',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Email Notifications', style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text('Receive updates via email', style: TextStyle(color: AppColors.textSecondary)),
+              title: Text('Email Notifications', style: theme.textTheme.bodyLarge),
+              subtitle: Text('Receive updates via email', style: theme.textTheme.bodyMedium),
               value: settings.emailNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updateEmailNotifications(value);
@@ -316,12 +270,12 @@ class SettingsPage extends ConsumerWidget {
                   SnackBar(content: Text('Email notifications ${value ? 'enabled' : 'disabled'}')),
                 );
               },
-              secondary: Icon(Icons.email, color: AppColors.primaryAccent),
+              secondary: const Icon(Icons.email),
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             SwitchListTile(
-              title: Text('Push Notifications', style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text('Receive updates on your device', style: TextStyle(color: AppColors.textSecondary)),
+              title: Text('Push Notifications', style: theme.textTheme.bodyLarge),
+              subtitle: Text('Receive updates on your device', style: theme.textTheme.bodyMedium),
               value: settings.pushNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePushNotifications(value);
@@ -329,12 +283,12 @@ class SettingsPage extends ConsumerWidget {
                   SnackBar(content: Text('Push notifications ${value ? 'enabled' : 'disabled'}')),
                 );
               },
-              secondary: Icon(Icons.notifications, color: AppColors.primaryAccent),
+              secondary: const Icon(Icons.notifications),
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             SwitchListTile(
-              title: Text('Payment Reminders', style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text('Get reminded about upcoming payments', style: TextStyle(color: AppColors.textSecondary)),
+              title: Text('Payment Reminders', style: theme.textTheme.bodyLarge),
+              subtitle: Text('Get reminded about upcoming payments', style: theme.textTheme.bodyMedium),
               value: settings.paymentReminders,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePaymentReminders(value);
@@ -342,7 +296,7 @@ class SettingsPage extends ConsumerWidget {
                   SnackBar(content: Text('Payment reminders ${value ? 'enabled' : 'disabled'}')),
                 );
               },
-              secondary: Icon(Icons.payment, color: AppColors.primaryAccent),
+              secondary: const Icon(Icons.payment),
             ),
           ],
         ),
@@ -351,12 +305,9 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildSupportSection(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Card(
-      elevation: 4,
-      color: AppColors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -364,11 +315,7 @@ class SettingsPage extends ConsumerWidget {
           children: [
             Text(
               'Support',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: theme.textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
             _buildSettingItem(
@@ -380,7 +327,7 @@ class SettingsPage extends ConsumerWidget {
                 context.push('/help-center');
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               'Contact Support',
@@ -390,7 +337,7 @@ class SettingsPage extends ConsumerWidget {
                 context.push('/contact-support');
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               'Terms of Service',
@@ -400,7 +347,7 @@ class SettingsPage extends ConsumerWidget {
                 context.push('/terms-of-service');
               },
             ),
-            Divider(color: AppColors.dividerSeparator),
+            const Divider(),
             _buildSettingItem(
               context,
               'Privacy Policy',
@@ -417,6 +364,8 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildLogoutButton(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    
     return ElevatedButton(
       onPressed: () {
         ref.read(authProvider.notifier).logout();
@@ -424,17 +373,14 @@ class SettingsPage extends ConsumerWidget {
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.error,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
       ),
       child: Text(
         'Log Out',
-        style: TextStyle(
-          fontSize: 16,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: Colors.white,
           fontWeight: FontWeight.bold,
-          color: AppColors.textOnAccent,
         ),
       ),
     );
@@ -447,11 +393,13 @@ class SettingsPage extends ConsumerWidget {
     IconData icon,
     VoidCallback onTap,
   ) {
+    final theme = Theme.of(context);
+    
     return ListTile(
-      leading: Icon(icon, color: AppColors.primaryAccent),
-      title: Text(title, style: TextStyle(color: AppColors.textPrimary)),
-      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: AppColors.textSecondary)) : null,
-      trailing: Icon(Icons.chevron_right, color: AppColors.textTertiary),
+      leading: Icon(icon),
+      title: Text(title, style: theme.textTheme.bodyLarge),
+      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: theme.textTheme.bodyMedium) : null,
+      trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );
   }
@@ -476,16 +424,16 @@ class SettingsPage extends ConsumerWidget {
       l10n.italian: 'it'
     };
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    final theme = Theme.of(context);
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.selectLanguage, style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.selectLanguage, style: theme.textTheme.headlineMedium),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: languages.entries.map((entry) => ListTile(
-            title: Text(entry.key, style: TextStyle(color: AppColors.textPrimary)),
+            title: Text(entry.key, style: theme.textTheme.bodyLarge),
             onTap: () async {
               await settingsNotifier.updateLanguage(entry.value);
               if (context.mounted) {
@@ -500,7 +448,7 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
@@ -512,20 +460,19 @@ class SettingsPage extends ConsumerWidget {
       l10n.system: 'system'
     };
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    final theme = Theme.of(context);
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.selectTheme, style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.selectTheme, style: theme.textTheme.headlineMedium),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: themes.entries.map((entry) => ListTile(
-            title: Text(entry.key, style: TextStyle(color: AppColors.textPrimary)),
+            title: Text(entry.key, style: theme.textTheme.bodyLarge),
             trailing: Icon(
               entry.value == 'light' ? Icons.light_mode :
               entry.value == 'dark' ? Icons.dark_mode : Icons.brightness_auto,
-              color: AppColors.primaryAccent,
             ),
             onTap: () async {
               await settingsNotifier.updateTheme(entry.value);
@@ -541,7 +488,7 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
@@ -550,16 +497,16 @@ class SettingsPage extends ConsumerWidget {
   void _showCurrencySelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final currencies = ['CHF', 'EUR', 'USD', 'GBP'];
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    final theme = Theme.of(context);
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.selectCurrency, style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(l10n.selectCurrency, style: theme.textTheme.headlineMedium),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: currencies.map((currency) => ListTile(
-            title: Text(currency, style: TextStyle(color: AppColors.textPrimary)),
+            title: Text(currency, style: theme.textTheme.bodyLarge),
             onTap: () async {
               await settingsNotifier.updateCurrency(currency);
               if (context.mounted) {
@@ -574,7 +521,7 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
