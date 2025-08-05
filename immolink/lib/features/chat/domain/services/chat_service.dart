@@ -152,7 +152,7 @@ class ChatService {
     if (response.statusCode != 201) {
       throw Exception('Failed to send invitation');
     }
-  }  // Create a new conversation
+  }  // Create a new conversation (now uses find-or-create to preserve history)
   Future<String> createNewConversation({
     required String otherUserId,
     required String initialMessage,
@@ -162,6 +162,28 @@ class ChatService {
       // Use provided currentUserId or fallback to a temp ID
       final actualCurrentUserId = currentUserId ?? 'current-user-id';
       
+      // First try to find existing conversation to preserve history
+      try {
+        final existingConversationId = await findOrCreateConversation(
+          currentUserId: actualCurrentUserId,
+          otherUserId: otherUserId,
+        );
+        
+        // If we found an existing conversation, send the initial message to it
+        await sendMessage(
+          conversationId: existingConversationId,
+          senderId: actualCurrentUserId,
+          receiverId: otherUserId,
+          content: initialMessage,
+        );
+        
+        return existingConversationId;
+      } catch (e) {
+        // If find-or-create fails, fall back to creating a new conversation
+        print('Find-or-create failed, creating new conversation: $e');
+      }
+      
+      // Fallback: create a completely new conversation
       final response = await http.post(
         Uri.parse('$_apiUrl/conversations'),
         headers: {'Content-Type': 'application/json'},

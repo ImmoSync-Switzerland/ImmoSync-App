@@ -58,19 +58,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               context.go('/home');
             }
           },
-        ),actions: [
+        ),
+        actions: [
           IconButton(
             icon: Icon(Icons.contacts_outlined, color: AppColors.primaryAccent),
             onPressed: () {
               HapticFeedback.lightImpact();
               context.push('/address-book');
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.add_comment_outlined, color: AppColors.primaryAccent),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              _showNewConversationDialog();
             },
           ),
         ],
@@ -393,103 +387,4 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         },
       ),
     );
-  }
-
-  void _showNewConversationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surfaceCards,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            'New Conversation',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Select a property to start a conversation:',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // TODO: Add property selection list here
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBackground,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.borderLight,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: AppColors.primaryAccent,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Property selection will be implemented with database integration',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: Implement create conversation logic
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('New conversation feature coming soon!'),
-                    backgroundColor: AppColors.primaryAccent,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('Create'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }
