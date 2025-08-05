@@ -71,4 +71,15 @@ class AppTypography {
     fontWeight: FontWeight.w500, // Medium
     color: AppColors.textSecondary,
   );
+
+  // Dark theme text styles
+  static TextStyle get darkHeading1 => heading1.copyWith(color: AppColors.darkTextPrimary);
+  static TextStyle get darkHeading2 => heading2.copyWith(color: AppColors.darkTextPrimary);
+  static TextStyle get darkSubhead => subhead.copyWith(color: AppColors.darkTextPrimary);
+  static TextStyle get darkBody => body.copyWith(color: AppColors.darkTextPrimary);
+  static TextStyle get darkCaption => caption.copyWith(color: AppColors.darkTextSecondary);
+  static TextStyle get darkBodySecondary => bodySecondary.copyWith(color: AppColors.darkTextSecondary);
+  static TextStyle get darkCaptionPrimary => captionPrimary.copyWith(color: AppColors.darkTextPrimary);
+  static TextStyle get darkTabActive => tabActive.copyWith(color: AppColors.primaryAccent);
+  static TextStyle get darkTabInactive => tabInactive.copyWith(color: AppColors.darkTextSecondary);
 }

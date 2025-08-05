@@ -57,4 +57,54 @@ class AppColors {
   static const Color gradientEnd = Color(0xFFF8FAFC); // Light end
   static const Color luxuryGradientStart = Color(0xFFFFFBEB); // Warm white
   static const Color luxuryGradientEnd = Color(0xFFFFFFFF); // Pure white
+
+  // Dark Theme Colors - Premium Dark Design System
+  // Dark Backgrounds
+  static const Color darkPrimaryBackground = Color(0xFF0F0F0F); // Rich deep black
+  static const Color darkSurfaceCards = Color(0xFF1A1A1A); // Elevated dark cards
+  static const Color darkSurfaceSecondary = Color(0xFF262626); // Secondary surfaces
+  static const Color darkDividerSeparator = Color(0xFF333333); // Dark separators
+
+  // Dark Text Colors - High contrast for premium feel
+  static const Color darkTextPrimary = Color(0xFFE5E5E5); // Bright white text
+  static const Color darkTextSecondary = Color(0xFFB3B3B3); // Medium gray text
+  static const Color darkTextTertiary = Color(0xFF808080); // Light gray text
+  static const Color darkTextPlaceholder = Color(0xFF595959); // Placeholder text
+  static const Color darkTextOnAccent = Color(0xFFFFFFFF); // White on accent
+  static const Color darkTextOnGold = Color(0xFF1E293B); // Dark on gold
+
+  // Dark Accent Variants
+  static const Color darkAccentLight = Color(0xFF1E3A8A); // Dark blue wash
+  static const Color darkGoldLight = Color(0xFF2D2006); // Dark gold wash
+
+  // Dark Status Light Variants
+  static const Color darkSuccessLight = Color(0xFF064E3B); // Dark emerald
+  static const Color darkWarningLight = Color(0xFF451A03); // Dark amber
+  static const Color darkErrorLight = Color(0xFF450A0A); // Dark red
+  static const Color darkInfoLight = Color(0xFF0C4A6E); // Dark sky
+
+  // Dark Effects & Shadows
+  static const Color darkShadowColor = Color(0x20000000); // Enhanced shadow
+  static const Color darkShadowColorMedium = Color(0x30000000); // Medium shadow
+  static const Color darkShadowColorStrong = Color(0x40000000); // Strong shadow
+  static const Color darkGlassBackground = Color(0xE61A1A1A); // Dark glass effect
+  static const Color darkOverlayBackground = Color(0x85000000); // Dark overlay
+  static const Color darkOverlayWhite = Color(0x30FFFFFF); // Light overlay on dark
+
+  // Dark Borders
+  static const Color darkBorderLight = Color(0xFF404040); // Light border
+  static const Color darkBorderMedium = Color(0xFF525252); // Medium border
+  static const Color darkBorderAccent = Color(0xFF3B82F6); // Accent border (same)
+
+  // Dark Chat Specific
+  static const Color darkChatBackground = Color(0xFF111111); // Dark chat bg
+  static const Color darkChatBubbleUser = Color(0xFF2563EB); // User message blue (same)
+  static const Color darkChatBubbleOther = Color(0xFF1A1A1A); // Other message dark
+  static const Color darkChatInputBackground = Color(0xFF1A1A1A); // Dark input background
+
+  // Dark Gradients
+  static const Color darkGradientStart = Color(0xFF0F0F0F); // Dark start
+  static const Color darkGradientEnd = Color(0xFF1A1A1A); // Dark end
+  static const Color darkLuxuryGradientStart = Color(0xFF1A1A1A); // Warm dark
+  static const Color darkLuxuryGradientEnd = Color(0xFF0F0F0F); // Deep dark
 }
