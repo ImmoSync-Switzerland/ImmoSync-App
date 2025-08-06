@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { triggerNotification } = require('./notifications');
 
 // Get invitations for a user
 router.get('/user/:userId', async (req, res) => {
@@ -113,6 +114,29 @@ router.post('/', async (req, res) => {
     
     await db.collection('messages').insertOne(initialMessage);
     
+    // Trigger notification to tenant about property invitation
+    try {
+      const property = await db.collection('properties').findOne({ _id: new ObjectId(propertyId) });
+      const propertyAddress = property ? `${property.address.street}, ${property.address.city}` : 'a property';
+      
+      await triggerNotification(
+        tenantId,
+        'property_invitation',
+        'Property Invitation',
+        `You have been invited to rent a property at ${propertyAddress}`,
+        {
+          propertyId: propertyId,
+          landlordId: landlordId,
+          invitationId: result.insertedId.toString(),
+          conversationId: conversationResult.insertedId.toString(),
+          propertyAddress: propertyAddress
+        }
+      );
+    } catch (notifError) {
+      console.error('Error sending invitation notification:', notifError);
+      // Don't fail the request if notification fails
+    }
+    
     console.log(`Created invitation ${result.insertedId} for tenant ${tenantId}`);
     res.status(201).json({ 
       invitationId: result.insertedId,
@@ -189,6 +213,28 @@ router.put('/:invitationId/accept', async (req, res) => {
           }
         }
       );
+    }
+    
+    // Trigger notification to landlord about invitation acceptance
+    try {
+      const property = await db.collection('properties').findOne({ _id: new ObjectId(invitation.value.propertyId) });
+      const propertyAddress = property ? `${property.address.street}, ${property.address.city}` : 'your property';
+      
+      await triggerNotification(
+        invitation.value.landlordId,
+        'invitation_accepted',
+        'Invitation Accepted',
+        `Your tenant has accepted the invitation for ${propertyAddress}`,
+        {
+          propertyId: invitation.value.propertyId,
+          tenantId: invitation.value.tenantId,
+          invitationId: invitationId,
+          propertyAddress: propertyAddress
+        }
+      );
+    } catch (notifError) {
+      console.error('Error sending invitation acceptance notification:', notifError);
+      // Don't fail the request if notification fails
     }
     
     console.log(`Invitation ${invitationId} accepted`);

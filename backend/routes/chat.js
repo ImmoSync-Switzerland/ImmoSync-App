@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { triggerNotification } = require('./notifications');
 
 // Get messages for a conversation
 router.get('/:conversationId/messages', async (req, res) => {
@@ -66,6 +67,25 @@ router.post('/:conversationId/messages', async (req, res) => {
         }
       }
     );
+    
+    // Trigger notification to receiver about new message
+    try {
+      await triggerNotification(
+        receiverId,
+        'new_message',
+        'New Message',
+        content.length > 50 ? content.substring(0, 50) + '...' : content,
+        {
+          conversationId: conversationId,
+          senderId: senderId,
+          messageId: messageResult.insertedId.toString(),
+          messageType: messageType
+        }
+      );
+    } catch (notifError) {
+      console.error('Error sending new message notification:', notifError);
+      // Don't fail the request if notification fails
+    }
     
     res.status(201).json({ 
       messageId: messageResult.insertedId,

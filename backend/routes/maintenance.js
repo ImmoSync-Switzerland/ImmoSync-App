@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getDB } = require('../database');
 const { ObjectId } = require('mongodb');
+const { triggerNotification } = require('./notifications');
 
 // Get all maintenance requests for a landlord
 router.get('/landlord/:landlordId', async (req, res) => {
@@ -132,6 +133,29 @@ router.post('/', async (req, res) => {
     const savedRequest = await db.collection('maintenanceRequests')
       .findOne({ _id: result.insertedId });
     
+    // Trigger notification to landlord about new maintenance request
+    try {
+      const property = await db.collection('properties').findOne({ _id: new ObjectId(propertyId) });
+      const propertyAddress = property ? `${property.address.street}, ${property.address.city}` : 'your property';
+      
+      await triggerNotification(
+        landlordId.toString(),
+        'maintenance_request_created',
+        'New Maintenance Request',
+        `A new maintenance request has been submitted for ${propertyAddress}`,
+        {
+          propertyId: propertyId,
+          requestId: result.insertedId.toString(),
+          priority: priority || 'medium',
+          category: category,
+          tenantId: tenantId.toString()
+        }
+      );
+    } catch (notifError) {
+      console.error('Error sending maintenance request notification:', notifError);
+      // Don't fail the request if notification fails
+    }
+    
     res.status(201).json(savedRequest);
   } catch (error) {
     console.error('Error creating maintenance request:', error);
@@ -193,6 +217,28 @@ router.patch('/:id/status', async (req, res) => {
     
     if (!result) {
       return res.status(404).json({ message: 'Maintenance request not found' });
+    }
+    
+    // Trigger notification to tenant about status update
+    try {
+      const property = await db.collection('properties').findOne({ _id: result.propertyId });
+      const propertyAddress = property ? `${property.address.street}, ${property.address.city}` : 'your property';
+      
+      await triggerNotification(
+        result.tenantId.toString(),
+        'maintenance_request_updated',
+        'Maintenance Request Update',
+        `Your maintenance request for ${propertyAddress} is now ${status}`,
+        {
+          propertyId: result.propertyId.toString(),
+          requestId: result._id.toString(),
+          status: status,
+          propertyAddress: propertyAddress
+        }
+      );
+    } catch (notifError) {
+      console.error('Error sending maintenance status update notification:', notifError);
+      // Don't fail the request if notification fails
     }
     
     res.json(result);

@@ -434,4 +434,339 @@ router.post('/send-maintenance-notifications', async (req, res) => {
   }
 });
 
+// Test all notification types - comprehensive endpoint for testing
+router.post('/test-all-notifications', async (req, res) => {
+  try {
+    const { userId, testUserToken } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        error: 'User ID is required for testing'
+      });
+    }
+
+    // Register test user token if provided
+    if (testUserToken) {
+      if (!userTokens.has(userId)) {
+        userTokens.set(userId, []);
+      }
+      const tokens = userTokens.get(userId);
+      if (!tokens.includes(testUserToken)) {
+        tokens.push(testUserToken);
+      }
+    }
+
+    const testResults = [];
+    
+    // Define all notification event types
+    const notificationTypes = [
+      {
+        type: 'maintenance_request_created',
+        title: 'New Maintenance Request',
+        body: 'A new maintenance request has been submitted for your property at 123 Main St',
+        data: { propertyId: 'test-property-1', requestId: 'test-request-1', priority: 'high' }
+      },
+      {
+        type: 'maintenance_request_updated',
+        title: 'Maintenance Request Update',
+        body: 'Your maintenance request status has been updated to: In Progress',
+        data: { propertyId: 'test-property-1', requestId: 'test-request-1', status: 'in_progress' }
+      },
+      {
+        type: 'new_message',
+        title: 'New Message',
+        body: 'You have a new message from your landlord',
+        data: { conversationId: 'test-conversation-1', senderId: 'test-landlord-1' }
+      },
+      {
+        type: 'payment_reminder',
+        title: 'Payment Reminder',
+        body: 'Your rent payment of $1,200 is due in 3 days',
+        data: { propertyId: 'test-property-1', amount: '$1,200', dueDate: '2024-02-01' }
+      },
+      {
+        type: 'payment_overdue',
+        title: 'Payment Overdue',
+        body: 'Your rent payment is now overdue. Please pay immediately.',
+        data: { propertyId: 'test-property-1', amount: '$1,200', daysPastDue: 5 }
+      },
+      {
+        type: 'property_invitation',
+        title: 'Property Invitation',
+        body: 'You have been invited to rent a property at 456 Oak Avenue',
+        data: { propertyId: 'test-property-2', landlordId: 'test-landlord-1', invitationId: 'test-invite-1' }
+      },
+      {
+        type: 'invitation_accepted',
+        title: 'Invitation Accepted',
+        body: 'Your tenant has accepted the invitation for 456 Oak Avenue',
+        data: { propertyId: 'test-property-2', tenantId: 'test-tenant-1', invitationId: 'test-invite-1' }
+      },
+      {
+        type: 'property_update',
+        title: 'Property Update',
+        body: 'Important updates have been made to your property listing',
+        data: { propertyId: 'test-property-1', updateType: 'rent_change' }
+      },
+      {
+        type: 'auth_2fa_enabled',
+        title: 'Security Alert',
+        body: 'Two-factor authentication has been enabled for your account',
+        data: { securityEvent: 'enable_2fa' }
+      },
+      {
+        type: 'auth_password_changed',
+        title: 'Security Alert',
+        body: 'Your password has been successfully changed',
+        data: { securityEvent: 'password_change' }
+      },
+      {
+        type: 'auth_suspicious_login',
+        title: 'Security Alert',
+        body: 'Suspicious login attempt detected on your account',
+        data: { securityEvent: 'suspicious_login', location: 'Unknown Location' }
+      },
+      {
+        type: 'document_uploaded',
+        title: 'Document Uploaded',
+        body: 'A new document has been uploaded for your property',
+        data: { propertyId: 'test-property-1', documentType: 'lease_agreement' }
+      },
+      {
+        type: 'inspection_scheduled',
+        title: 'Inspection Scheduled',
+        body: 'A property inspection has been scheduled for next Tuesday at 2 PM',
+        data: { propertyId: 'test-property-1', scheduledDate: '2024-02-06T14:00:00Z' }
+      },
+      {
+        type: 'lease_expiry_warning',
+        title: 'Lease Expiring Soon',
+        body: 'Your lease will expire in 30 days. Please contact your landlord.',
+        data: { propertyId: 'test-property-1', expiryDate: '2024-03-01', daysRemaining: 30 }
+      }
+    ];
+
+    // Send each notification type
+    for (const notif of notificationTypes) {
+      try {
+        const tokens = userTokens.get(userId);
+        if (tokens && tokens.length > 0) {
+          const result = await PushNotificationService.sendToMultipleTokens(
+            tokens, 
+            notif.title, 
+            notif.body, 
+            {
+              type: notif.type,
+              timestamp: new Date().toISOString(),
+              testMode: true,
+              ...notif.data
+            }
+          );
+          testResults.push({
+            type: notif.type,
+            success: true,
+            title: notif.title,
+            body: notif.body,
+            result: result
+          });
+        } else {
+          testResults.push({
+            type: notif.type,
+            success: false,
+            error: 'No FCM tokens found for user'
+          });
+        }
+
+        // Small delay between notifications to avoid overwhelming
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (error) {
+        testResults.push({
+          type: notif.type,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+
+    const successCount = testResults.filter(r => r.success).length;
+    const totalCount = notificationTypes.length;
+
+    res.json({
+      success: true,
+      message: `Test completed: ${successCount}/${totalCount} notifications sent successfully`,
+      testSummary: {
+        totalTypes: totalCount,
+        successful: successCount,
+        failed: totalCount - successCount,
+        userId: userId,
+        tokensRegistered: userTokens.get(userId)?.length || 0
+      },
+      detailedResults: testResults
+    });
+
+  } catch (error) {
+    console.error('Error testing notifications:', error);
+    res.status(500).json({
+      error: 'Failed to test notifications',
+      details: error.message
+    });
+  }
+});
+
+// Helper function to trigger notifications from other services
+const triggerNotification = async (userId, type, title, body, data = {}) => {
+  try {
+    const tokens = userTokens.get(userId);
+    const settings = notificationSettings.get(userId) || { pushNotifications: true };
+    
+    if (!tokens || tokens.length === 0) {
+      console.log(`No FCM tokens found for user ${userId}`);
+      return { success: false, error: 'No tokens' };
+    }
+    
+    if (!settings.pushNotifications) {
+      console.log(`Push notifications disabled for user ${userId}`);
+      return { success: false, error: 'Notifications disabled' };
+    }
+
+    const notificationData = {
+      type,
+      timestamp: new Date().toISOString(),
+      ...data
+    };
+
+    const result = await PushNotificationService.sendToMultipleTokens(tokens, title, body, notificationData);
+    console.log(`Notification sent to user ${userId}: ${title}`);
+    return { success: true, result };
+    
+  } catch (error) {
+    console.error(`Error sending notification to user ${userId}:`, error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get available notification types - documentation endpoint
+router.get('/types', (req, res) => {
+  try {
+    const notificationTypes = [
+      {
+        type: 'maintenance_request_created',
+        description: 'Triggered when a new maintenance request is submitted',
+        audience: 'landlord',
+        data: ['propertyId', 'requestId', 'priority', 'category', 'tenantId']
+      },
+      {
+        type: 'maintenance_request_updated',
+        description: 'Triggered when maintenance request status is updated',
+        audience: 'tenant',
+        data: ['propertyId', 'requestId', 'status', 'propertyAddress']
+      },
+      {
+        type: 'new_message',
+        description: 'Triggered when a new chat message is received',
+        audience: 'recipient',
+        data: ['conversationId', 'senderId', 'messageId', 'messageType']
+      },
+      {
+        type: 'payment_reminder',
+        description: 'Triggered for rent payment reminders',
+        audience: 'tenant',
+        data: ['propertyId', 'amount', 'dueDate']
+      },
+      {
+        type: 'payment_overdue',
+        description: 'Triggered when rent payment is overdue',
+        audience: 'tenant',
+        data: ['propertyId', 'amount', 'daysPastDue']
+      },
+      {
+        type: 'property_invitation',
+        description: 'Triggered when tenant is invited to rent a property',
+        audience: 'tenant',
+        data: ['propertyId', 'landlordId', 'invitationId', 'conversationId', 'propertyAddress']
+      },
+      {
+        type: 'invitation_accepted',
+        description: 'Triggered when tenant accepts property invitation',
+        audience: 'landlord',
+        data: ['propertyId', 'tenantId', 'invitationId', 'propertyAddress']
+      },
+      {
+        type: 'property_update',
+        description: 'Triggered when property information is updated',
+        audience: 'tenant',
+        data: ['propertyId', 'updateType']
+      },
+      {
+        type: 'auth_2fa_enabled',
+        description: 'Triggered when 2FA is enabled for account',
+        audience: 'user',
+        data: ['securityEvent']
+      },
+      {
+        type: 'auth_password_changed',
+        description: 'Triggered when user password is changed',
+        audience: 'user',
+        data: ['securityEvent']
+      },
+      {
+        type: 'auth_suspicious_login',
+        description: 'Triggered when suspicious login is detected',
+        audience: 'user',
+        data: ['securityEvent', 'location']
+      },
+      {
+        type: 'document_uploaded',
+        description: 'Triggered when a document is uploaded for property',
+        audience: 'tenant',
+        data: ['propertyId', 'documentType']
+      },
+      {
+        type: 'inspection_scheduled',
+        description: 'Triggered when property inspection is scheduled',
+        audience: 'tenant',
+        data: ['propertyId', 'scheduledDate']
+      },
+      {
+        type: 'lease_expiry_warning',
+        description: 'Triggered when lease is approaching expiry',
+        audience: 'tenant',
+        data: ['propertyId', 'expiryDate', 'daysRemaining']
+      }
+    ];
+
+    res.json({
+      success: true,
+      totalTypes: notificationTypes.length,
+      types: notificationTypes,
+      testEndpoint: '/api/notifications/test-all-notifications',
+      documentation: {
+        description: 'ImmoSync App Notification System',
+        features: [
+          'Push notifications for all major app events',
+          'Comprehensive test endpoint for all notification types',
+          'Automatic notification triggers integrated with app events',
+          'Mock notification service for development',
+          'Support for user notification preferences'
+        ],
+        usage: {
+          testAllNotifications: 'POST /api/notifications/test-all-notifications with {userId, testUserToken}',
+          registerToken: 'POST /api/notifications/register-token with {userId, token}',
+          updateSettings: 'POST /api/notifications/update-settings with notification preferences'
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting notification types:', error);
+    res.status(500).json({
+      error: 'Failed to get notification types',
+      details: error.message
+    });
+  }
+});
+
+// Export the trigger function for use in other modules
 module.exports = router;
+module.exports.triggerNotification = triggerNotification;

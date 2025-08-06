@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { triggerNotification } = require('./notifications');
 
 // Mock SMS service - in production, integrate with services like Twilio, AWS SNS, etc.
 class SMSService {
@@ -113,6 +114,23 @@ router.post('/verify-2fa-setup', async (req, res) => {
 
     // Clean up verification code
     verificationCodes.delete(`${userId}_setup`);
+
+    // Trigger notification about 2FA being enabled
+    try {
+      await triggerNotification(
+        userId,
+        'auth_2fa_enabled',
+        'Security Alert',
+        'Two-factor authentication has been enabled for your account',
+        {
+          securityEvent: 'enable_2fa',
+          phoneNumber: storedData.phoneNumber.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')
+        }
+      );
+    } catch (notifError) {
+      console.error('Error sending 2FA enabled notification:', notifError);
+      // Don't fail the request if notification fails
+    }
 
     res.json({
       success: true,
