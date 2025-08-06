@@ -13,6 +13,7 @@ import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/currency_provider.dart';
 
 class PropertyDetailsPage extends ConsumerWidget {
@@ -93,7 +94,7 @@ class PropertyDetailsPage extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
