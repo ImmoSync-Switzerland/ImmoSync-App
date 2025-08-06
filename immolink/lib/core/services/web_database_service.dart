@@ -12,17 +12,20 @@ class WebDatabaseService implements IDatabaseService {
   Future<void> connect() async {
     try {
       print('Connecting to API at: $apiBaseUrl');
+      print('Full health check URL: $apiBaseUrl/health');
       
       final response = await http.get(
         Uri.parse('$apiBaseUrl/health'),
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'User-Agent': 'ImmoLink-Flutter-App/1.0.0',
         },
-      );
+      ).timeout(Duration(seconds: 10));
       
       print('Health check response status: ${response.statusCode}');
       print('Response body: ${response.body}');
+      print('Response headers: ${response.headers}');
     
       if (response.statusCode != 200) {
         throw DatabaseException(
