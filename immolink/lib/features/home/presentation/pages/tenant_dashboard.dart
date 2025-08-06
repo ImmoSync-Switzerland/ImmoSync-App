@@ -122,7 +122,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             _buildQuickActions(),
                             const SizedBox(height: 24),
                             _buildRecentActivity(),
-                            const SizedBox(height: 30),
+                            const SizedBox(height: 100), // Increased padding for bottom nav
                           ],
                         ),
                       ),

@@ -128,7 +128,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           _buildRecentMessages(),
                           const SizedBox(height: 24),
                           _buildMaintenanceRequests(),
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 100), // Increased padding for bottom nav + FAB
                         ],
                       ),
                     ),
