@@ -9,6 +9,8 @@ import '../../../../core/providers/navigation_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../property/presentation/providers/property_providers.dart';
 import '../../../property/domain/models/property.dart';
+import '../providers/activity_provider.dart';
+import '../../domain/models/activity.dart';
 
 class TenantDashboard extends ConsumerStatefulWidget {
   const TenantDashboard({super.key});
@@ -1065,73 +1067,229 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               ),
             ),
             const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.textSecondary.withValues(alpha: 0.1),
-                    AppColors.textSecondary.withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.textSecondary.withValues(alpha: 0.15),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.textSecondary.withValues(alpha: 0.15),
-                          AppColors.textSecondary.withValues(alpha: 0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.textSecondary.withValues(alpha: 0.2),
-                        width: 1,
+            Consumer(
+              builder: (context, ref, child) {
+                final activitiesAsync = ref.watch(recentActivitiesProvider);
+                
+                return activitiesAsync.when(
+                  data: (activities) {
+                    if (activities.isEmpty) {
+                      return _buildEmptyActivityState();
+                    }
+                    
+                    return Column(
+                      children: activities.take(3).map((activity) => 
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildActivityItem(activity),
+                        )
+                      ).toList(),
+                    );
+                  },
+                  loading: () => Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                        strokeWidth: 2,
                       ),
                     ),
-                    child: Icon(
-                      Icons.history_rounded,
-                      size: 32,
-                      color: AppColors.textSecondary,
-                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Recent Activity',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Your recent activities will appear here',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+                  error: (error, stack) => _buildEmptyActivityState(),
+                );
+              },
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildEmptyActivityState() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.textSecondary.withValues(alpha: 0.1),
+            AppColors.textSecondary.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.textSecondary.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.textSecondary.withValues(alpha: 0.15),
+                  AppColors.textSecondary.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.textSecondary.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              Icons.history_rounded,
+              size: 32,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Recent Activity',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your recent activities will appear here',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem(Activity activity) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.surfaceCards,
+            _getActivityColor(activity.type).withValues(alpha: 0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _getActivityColor(activity.type).withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _getActivityColor(activity.type).withValues(alpha: 0.2),
+                  _getActivityColor(activity.type).withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              _getActivityIcon(activity.type),
+              color: _getActivityColor(activity.type),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  activity.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            activity.timeAgo,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getActivityColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'payment':
+        return AppColors.success;
+      case 'maintenance':
+        return AppColors.warning;
+      case 'message':
+        return AppColors.info;
+      case 'service':
+        return AppColors.primaryAccent;
+      case 'property':
+        return AppColors.luxuryGold;
+      default:
+        return AppColors.textSecondary;
+    }
+  }
+
+  IconData _getActivityIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'payment':
+        return Icons.payment_rounded;
+      case 'maintenance':
+        return Icons.build_rounded;
+      case 'message':
+        return Icons.chat_bubble_rounded;
+      case 'service':
+        return Icons.room_service_rounded;
+      case 'property':
+        return Icons.home_rounded;
+      default:
+        return Icons.notifications_rounded;
+    }
   }
 }
