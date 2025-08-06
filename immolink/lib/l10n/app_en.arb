@@ -102,6 +102,8 @@
   "rooms": "Rooms",
   "noPropertiesFound": "No properties found",
   "addFirstProperty": "Add your first property to get started",
+  "noPropertiesAssigned": "No properties assigned",
+  "contactLandlordForAccess": "Contact your landlord to get access to your property",
   "somethingWentWrong": "Something went wrong",
   "retry": "Retry",
   "messages": "Messages",
