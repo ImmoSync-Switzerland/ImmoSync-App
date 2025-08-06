@@ -551,7 +551,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   Widget _buildQuickAccess() {
     return Container(
-      padding: const EdgeInsets.all(28.0),
+      padding: const EdgeInsets.all(20.0), // Reduced from 28.0 for better mobile fit
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -561,7 +561,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             AppColors.luxuryGradientStart,
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20), // Reduced from 24
         border: Border.all(
           color: AppColors.borderLight,
           width: 1,
@@ -569,8 +569,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         boxShadow: [
           BoxShadow(
             color: AppColors.shadowColorMedium,
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            blurRadius: 20, // Reduced from 24
+            offset: const Offset(0, 8), // Reduced from 12
             spreadRadius: 0,
           ),
           BoxShadow(
@@ -587,7 +587,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10), // Reduced from 12
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -597,7 +597,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       AppColors.primaryAccent.withValues(alpha: 0.1),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14), // Reduced from 16
                   border: Border.all(
                     color: AppColors.primaryAccent.withValues(alpha: 0.3),
                     width: 1,
@@ -606,93 +606,203 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 child: Icon(
                   Icons.flash_on_outlined,
                   color: AppColors.primaryAccent,
-                  size: 24,
+                  size: 22, // Reduced from 24
                 ),
               ),
-              const SizedBox(width: 18),              Text(
-                AppLocalizations.of(context)!.quickActions,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          Row(
-            children: [
-              Expanded(                child: _buildQuickAccessButton(
-                  AppLocalizations.of(context)!.addProperty,
-                  Icons.add_home_outlined,
-                  AppColors.primaryAccent,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/add-property');
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(                child: _buildQuickAccessButton(
-                  AppLocalizations.of(context)!.messages,
-                  Icons.chat_bubble_outline,
-                  AppColors.success,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/conversations');
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(                child: _buildQuickAccessButton(
-                  AppLocalizations.of(context)!.reports,
-                  Icons.analytics_outlined,
-                  AppColors.warning,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/reports');
-                  },
+              const SizedBox(width: 16), // Reduced from 18
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context)!.quickActions,
+                  style: TextStyle(
+                    fontSize: 18, // Reduced from 20
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(                child: _buildQuickAccessButton(
-                  AppLocalizations.of(context)!.maintenance,
-                  Icons.build_circle_outlined,
-                  AppColors.error,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/maintenance/manage');
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(                child: _buildQuickAccessButton(
-                  AppLocalizations.of(context)!.tenants,
-                  Icons.people_outline,
-                  AppColors.luxuryGold,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/tenants');
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(                child: _buildQuickAccessButton(
-                  AppLocalizations.of(context)!.settings,
-                  Icons.settings_outlined,
-                  AppColors.textSecondary,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/settings');
-                  },
-                ),
-              ),
-            ],
+          const SizedBox(height: 20), // Reduced from 28
+          // Use a more compact grid layout for mobile
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 400) {
+                // Mobile layout - 2 columns
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.addProperty,
+                            Icons.add_home_outlined,
+                            AppColors.primaryAccent,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/add-property');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.messages,
+                            Icons.chat_bubble_outline,
+                            AppColors.success,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/conversations');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.reports,
+                            Icons.analytics_outlined,
+                            AppColors.warning,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/reports');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.maintenance,
+                            Icons.build_circle_outlined,
+                            AppColors.error,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/maintenance/manage');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.tenants,
+                            Icons.people_outline,
+                            AppColors.luxuryGold,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/tenants');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            'Services',
+                            Icons.room_service_outlined,
+                            AppColors.info,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/landlord/services');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              } else {
+                // Tablet/desktop layout - 3 columns
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.addProperty,
+                            Icons.add_home_outlined,
+                            AppColors.primaryAccent,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/add-property');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.messages,
+                            Icons.chat_bubble_outline,
+                            AppColors.success,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/conversations');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.reports,
+                            Icons.analytics_outlined,
+                            AppColors.warning,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/reports');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.maintenance,
+                            Icons.build_circle_outlined,
+                            AppColors.error,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/maintenance/manage');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.tenants,
+                            Icons.people_outline,
+                            AppColors.luxuryGold,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/tenants');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            'Services',
+                            Icons.room_service_outlined,
+                            AppColors.info,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/landlord/services');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }
+            },
           ),
         ],
       ),
@@ -703,7 +813,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(16), // Reduced from 22
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -713,7 +823,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               iconColor.withValues(alpha: 0.02),
             ],
           ),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16), // Reduced from 18
           border: Border.all(
             color: iconColor.withValues(alpha: 0.15),
             width: 1,
@@ -721,18 +831,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           boxShadow: [
             BoxShadow(
               color: iconColor.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 8, // Reduced from 12
+              offset: const Offset(0, 2), // Reduced from 4
             ),
           ],
         ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12), // Reduced from 14
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12), // Reduced from 14
                 border: Border.all(
                   color: iconColor.withValues(alpha: 0.2),
                   width: 1,
@@ -740,15 +850,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
               child: Icon(
                 icon, 
-                size: 26, 
+                size: 22, // Reduced from 26
                 color: iconColor,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12), // Reduced from 14
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12, // Reduced from 13
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.1,

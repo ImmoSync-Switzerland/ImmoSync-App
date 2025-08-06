@@ -8,6 +8,7 @@ import '../providers/property_providers.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/currency_provider.dart';
+import '../../../auth/presentation/providers/user_role_provider.dart';
 
 class PropertyListPage extends ConsumerStatefulWidget {
   const PropertyListPage({super.key});
@@ -49,7 +50,10 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final propertiesAsync = ref.watch(landlordPropertiesProvider);
+    final userRole = ref.watch(userRoleProvider);
+    final propertiesAsync = userRole == 'tenant' 
+        ? ref.watch(tenantPropertiesProvider)
+        : ref.watch(landlordPropertiesProvider);
       return Scaffold(
       backgroundColor: background,
       appBar: _buildAppBar(l10n),
@@ -72,7 +76,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ],
         ),
       ),
-      floatingActionButton: _buildFAB(),
+      // Only show FAB for landlords
+      floatingActionButton: userRole == 'landlord' ? _buildFAB() : null,
     );
   }
   PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
@@ -134,16 +139,21 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             ),
           ),
           const SizedBox(height: 16),
-          // Status filter
-          Row(
-            children: [              _buildFilterChip(l10n.all, 'all'),
-              const SizedBox(width: 8),
-              _buildFilterChip(l10n.available, 'available'),
-              const SizedBox(width: 8),
-              _buildFilterChip(l10n.rented, 'rented'),
-              const SizedBox(width: 8),
-              _buildFilterChip(l10n.maintenance, 'maintenance'),
-            ],
+          // Status filter with scrollable behavior
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(_capitalizeFilter(l10n.all), 'all'),
+                const SizedBox(width: 8),
+                _buildFilterChip(_capitalizeFilter(l10n.available), 'available'),
+                const SizedBox(width: 8),
+                _buildFilterChip(_capitalizeFilter(l10n.rented), 'rented'),
+                const SizedBox(width: 8),
+                _buildFilterChip(_capitalizeFilter(l10n.maintenance), 'maintenance'),
+                const SizedBox(width: 8), // Extra padding at the end
+              ],
+            ),
           ),
         ],
       ),
@@ -400,6 +410,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildEmptyState(AppLocalizations l10n) {
+    final userRole = ref.watch(userRoleProvider);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -410,7 +422,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             color: textCaption.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),          Text(
-            l10n.noPropertiesFound,
+            userRole == 'tenant' ? l10n.noPropertiesAssigned : l10n.noPropertiesFound,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -418,28 +430,32 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             ),
           ),
           const SizedBox(height: 8),          Text(
-            l10n.addFirstProperty,
+            userRole == 'tenant' 
+                ? l10n.contactLandlordForAccess 
+                : l10n.addFirstProperty,
             style: TextStyle(
               fontSize: 14,
               color: textCaption,
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              HapticFeedback.mediumImpact();
-              context.push('/add-property');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: accent,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          // Only show add property button for landlords
+          if (userRole == 'landlord')
+            ElevatedButton(
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                context.push('/add-property');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
+              child: Text(l10n.addProperty),
             ),
-            child: Text(l10n.addProperty),
-          ),
         ],
       ),
     );
@@ -514,6 +530,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       default:
         return status.toUpperCase();
     }
+  }
+
+  String _capitalizeFilter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 }
 

@@ -13,6 +13,7 @@ import 'package:immolink/features/maintenance/presentation/pages/maintenance_req
 import 'package:immolink/features/maintenance/presentation/pages/maintenance_request_detail_page.dart';
 import 'package:immolink/features/payment/presentation/pages/make_payment_page.dart';
 import 'package:immolink/features/payment/presentation/pages/payment_history_page.dart';
+import 'package:immolink/features/payment/presentation/pages/auto_payment_setup_page.dart';
 import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/property/presentation/pages/add_property_page.dart';
 import 'package:immolink/features/property/presentation/pages/property_details_page.dart';
@@ -30,6 +31,8 @@ import 'package:immolink/features/profile/presentation/pages/edit_profile_page.d
 import 'package:immolink/features/profile/presentation/pages/profile_page.dart';
 import 'package:immolink/features/search/presentation/pages/tenant_search_page.dart';
 import 'package:immolink/features/tenant/presentation/pages/tenants_page.dart';
+import 'package:immolink/features/tenant/presentation/pages/tenant_services_booking_page.dart';
+import 'package:immolink/features/landlord/presentation/pages/landlord_services_setup_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -108,6 +111,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => MakePaymentPage(
           propertyId: state.uri.queryParameters['propertyId'],
         ),
+      ),
+      // Auto payment setup route
+      GoRoute(
+        path: '/payments/auto-setup',
+        builder: (context, state) => const AutoPaymentSetupPage(),
+      ),
+      // Tenant services booking route
+      GoRoute(
+        path: '/tenant/services',
+        builder: (context, state) => const TenantServicesBookingPage(),
+      ),
+      // Landlord services setup route
+      GoRoute(
+        path: '/landlord/services',
+        builder: (context, state) => const LandlordServicesSetupPage(),
       ),
       // Settings route
       GoRoute(

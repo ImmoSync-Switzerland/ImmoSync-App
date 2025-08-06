@@ -902,9 +902,31 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           children: [
             Expanded(
               child: _buildActionCard(
-                'Payments',
-                Icons.credit_card_rounded,
+                'Auto Payment',
+                Icons.payment_rounded,
                 AppColors.success,
+                () => context.push('/payments/auto-setup'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildActionCard(
+                'Book Services',
+                Icons.room_service_rounded,
+                AppColors.info,
+                () => context.push('/tenant/services'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                'Payment History',
+                Icons.history_rounded,
+                AppColors.textSecondary,
                 () => context.push('/payments/history'),
               ),
             ),
