@@ -1,37 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import '../../../chat/presentation/providers/invitation_provider.dart';
 import '../../../chat/domain/models/invitation.dart';
-import '../../../../core/theme/app_colors.dart';
 
 class InvitationCard extends ConsumerWidget {
   final Invitation invitation;
+  final bool isLandlord;
 
-  const InvitationCard({required this.invitation, super.key});
+  const InvitationCard({
+    required this.invitation, 
+    required this.isLandlord,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final statusColor = _getStatusColor(invitation.status);
+    final isExpired = invitation.expiresAt != null && 
+                     DateTime.now().isAfter(invitation.expiresAt!);
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primaryAccent.withValues(alpha: 0.3),
-          width: 1,
-        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -43,182 +47,233 @@ class InvitationCard extends ConsumerWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryAccent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                   ),
                   child: Icon(
-                    Icons.home_outlined,
-                    color: AppColors.primaryAccent,
+                    Icons.mail_outline,
+                    color: statusColor,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Property Invitation',
+                        isLandlord 
+                          ? 'Invitation Sent' 
+                          : 'Property Invitation',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                          letterSpacing: -0.2,
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
-                        'From ${invitation.landlordName ?? "Landlord"}',
+                        isLandlord 
+                          ? 'To ${invitation.tenantName ?? "Unknown Tenant"} • ${invitation.propertyAddress ?? "Property"}'
+                          : 'From ${invitation.landlordName ?? "Landlord"}',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          color: const Color(0xFF64748B),
+                          letterSpacing: -0.1,
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getStatusColor().withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _getStatusColor().withValues(alpha: 0.3),
+                      color: statusColor.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
                   child: Text(
-                    invitation.status.toUpperCase(),
+                    _getStatusText(invitation.status).toUpperCase(),
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: _getStatusColor(),
+                      color: statusColor,
                       letterSpacing: 0.5,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            
+            // Property details
             if (invitation.propertyAddress != null) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      invitation.propertyAddress!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.home_outlined,
+                      color: const Color(0xFF64748B),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            invitation.propertyAddress!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A),
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                          if (invitation.propertyRent != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Rent: \$${invitation.propertyRent!.toStringAsFixed(0)}/month',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (invitation.propertyRent != null) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.euro_outlined,
-                    size: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '€${invitation.propertyRent!.toStringAsFixed(0)}/month',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (invitation.message.isNotEmpty) ...[
-              Text(
-                invitation.message,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  fontStyle: FontStyle.italic,
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
             ],
-            if (invitation.isPending) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _respondToInvitation(context, ref, 'declined'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error.withValues(alpha: 0.1),
-                        foregroundColor: AppColors.error,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: AppColors.error.withValues(alpha: 0.3),
-                            width: 1,
+
+            // Message
+            if (invitation.message.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          color: const Color(0xFF64748B),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Message',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64748B),
+                            letterSpacing: 0.5,
                           ),
                         ),
-                      ),
-                      child: const Text('Decline'),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _respondToInvitation(context, ref, 'accepted'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                    const SizedBox(height: 8),
+                    Text(
+                      invitation.message,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: const Color(0xFF0F172A),
+                        letterSpacing: -0.1,
+                        height: 1.4,
                       ),
-                      child: const Text('Accept'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ] else ...[
-              Row(
-                children: [
-                  Icon(
-                    _getStatusIcon(),
-                    size: 16,
-                    color: _getStatusColor(),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _getStatusText(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getStatusColor(),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
+              const SizedBox(height: 16),
+            ],
+
+            // Date and actions
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
                     _getDateText(),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textTertiary,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
+                ),
+                if (!isLandlord && invitation.status == 'pending' && !isExpired) ...[
+                  _buildActionButton(
+                    'Decline',
+                    const Color(0xFFEF4444),
+                    () => _respondToInvitation(context, ref, 'declined'),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildActionButton(
+                    'Accept',
+                    const Color(0xFF10B981),
+                    () => _respondToInvitation(context, ref, 'accepted'),
+                  ),
                 ],
+              ],
+            ),
+
+            // Expiration warning
+            if (isExpired) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_outlined,
+                      color: const Color(0xFFF59E0B),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'This invitation has expired',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: const Color(0xFFF59E0B),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -227,39 +282,56 @@ class InvitationCard extends ConsumerWidget {
     );
   }
 
-  Color _getStatusColor() {
-    switch (invitation.status) {
+  Widget _buildActionButton(String label, Color color, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onPressed();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: color,
+            letterSpacing: -0.1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
       case 'accepted':
-        return AppColors.success;
+        return const Color(0xFF10B981); // Green
       case 'declined':
-        return AppColors.error;
+        return const Color(0xFFEF4444); // Red
       case 'pending':
       default:
-        return AppColors.warning;
+        return const Color(0xFFF59E0B); // Orange
     }
   }
 
-  IconData _getStatusIcon() {
-    switch (invitation.status) {
-      case 'accepted':
-        return Icons.check_circle_outline;
-      case 'declined':
-        return Icons.cancel_outlined;
-      case 'pending':
-      default:
-        return Icons.schedule_outlined;
-    }
-  }
-
-  String _getStatusText() {
-    switch (invitation.status) {
+  String _getStatusText(String status) {
+    switch (status) {
       case 'accepted':
         return 'Accepted';
       case 'declined':
         return 'Declined';
       case 'pending':
       default:
-        return 'Pending response';
+        return 'Pending';
     }
   }
 
@@ -276,13 +348,13 @@ class InvitationCard extends ConsumerWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'today';
-    } else if (difference.inDays == 1) {
-      return 'yesterday';
+    
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays}d ago';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
@@ -302,8 +374,8 @@ class InvitationCard extends ConsumerWidget {
                 : 'Invitation declined.',
             ),
             backgroundColor: response == 'accepted' 
-              ? AppColors.success 
-              : AppColors.warning,
+              ? const Color(0xFF10B981)
+              : const Color(0xFFF59E0B),
           ),
         );
       }
@@ -312,7 +384,7 @@ class InvitationCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to respond to invitation: $error'),
-            backgroundColor: AppColors.error,
+            backgroundColor: const Color(0xFFEF4444),
           ),
         );
       }

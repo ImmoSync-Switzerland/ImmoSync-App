@@ -13,6 +13,7 @@ import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../../../core/widgets/mongo_image.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -457,24 +458,20 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ],
           ),
           const SizedBox(height: 28),
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: _buildFinancialCard(
-                  AppLocalizations.of(context)!.monthlyRevenue,
-                  ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
-                  Icons.trending_up_outlined,
-                  AppColors.success,
-                ),
+              _buildFinancialCard(
+                AppLocalizations.of(context)!.monthlyRevenue,
+                ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
+                Icons.trending_up_outlined,
+                AppColors.success,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildFinancialCard(
-                  AppLocalizations.of(context)!.outstanding,
-                  ref.read(currencyProvider.notifier).formatAmount(outstanding),
-                  Icons.warning_outlined,
-                  AppColors.warning,
-                ),
+              const SizedBox(height: 16),
+              _buildFinancialCard(
+                AppLocalizations.of(context)!.outstanding,
+                ref.read(currencyProvider.notifier).formatAmount(outstanding),
+                Icons.warning_outlined,
+                AppColors.warning,
               ),
             ],
           ),
@@ -1062,27 +1059,26 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    statusColor.withValues(alpha: 0.2),
-                    statusColor.withValues(alpha: 0.1),
-                  ],
-                ),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: statusColor.withValues(alpha: 0.2),
                   width: 1,
                 ),
+                color: property.imageUrls.isEmpty 
+                  ? statusColor.withValues(alpha: 0.1)
+                  : null,
               ),
-              child: Icon(
-                Icons.home_outlined,
-                color: statusColor,
-                size: 24,
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: property.imageUrls.isNotEmpty 
+                ? _buildPropertyImage(property.imageUrls.first)
+                : Icon(
+                    Icons.home_outlined,
+                    color: statusColor,
+                    size: 24,
+                  ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1134,7 +1130,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   color: statusColor.withValues(alpha: 0.2),
                   width: 1,
                 ),
-              ),              child: Text(
+              ),              
+              child: Text(
                 _getLocalizedStatus(property.status),
                 style: TextStyle(
                   fontSize: 11,
@@ -1709,6 +1706,67 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         return AppColors.success;
       default:
         return AppColors.warning;
+    }
+  }
+
+  Widget _buildPropertyImage(String imageIdOrPath) {
+    // Check if it's a MongoDB ObjectId (24 hex characters)
+    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+      return MongoImage(
+        imageId: imageIdOrPath,
+        fit: BoxFit.cover,
+        width: 60,
+        height: 60,
+        loadingWidget: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: Container(
+          color: Colors.grey[200],
+          child: const Icon(
+            Icons.home_outlined,
+            color: Colors.grey,
+            size: 24,
+          ),
+        ),
+      );
+    } else {
+      // Regular network image
+      return Image.network(
+        imageIdOrPath,
+        fit: BoxFit.cover,
+        width: 60,
+        height: 60,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey[300],
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[200],
+            child: const Icon(
+              Icons.home_outlined,
+              color: Colors.grey,
+              size: 24,
+            ),
+          );
+        },
+      );
     }
   }
 }

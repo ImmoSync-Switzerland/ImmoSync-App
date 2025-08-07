@@ -5,7 +5,7 @@ import 'package:immolink/features/auth/presentation/pages/login_page.dart';
 import 'package:immolink/features/auth/presentation/pages/register_page.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/chat/presentation/pages/chat_page.dart';
-import 'package:immolink/features/chat/presentation/pages/conversations_list_page.dart';
+import 'package:immolink/features/chat/presentation/pages/conversations_tabbed_page.dart';
 import 'package:immolink/features/chat/presentation/pages/address_book_page.dart';
 import 'package:immolink/features/home/presentation/pages/home_page.dart';
 import 'package:immolink/features/maintenance/presentation/pages/maintenance_management_page.dart';
@@ -78,7 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/conversations',
-        builder: (context, state) => const ConversationsListPage(),
+        builder: (context, state) => const ConversationsTabbedPage(),
       ),
       GoRoute(
         path: '/address-book',
