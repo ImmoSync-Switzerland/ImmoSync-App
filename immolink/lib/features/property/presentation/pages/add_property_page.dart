@@ -140,7 +140,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                           _buildImagesCard(),
                           const SizedBox(height: 40),
                           _buildSubmitButton(),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
@@ -382,16 +382,17 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         ),
         if (selectedImages.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Container(
+          SizedBox(
             height: 100,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: selectedImages.length,
+              padding: const EdgeInsets.only(right: 16),
               itemBuilder: (context, index) {
                 final imagePath = selectedImages[index];
                 return Container(
                   width: 100,
-                  margin: EdgeInsets.only(right: index < selectedImages.length - 1 ? 8 : 0),
+                  margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: divider),
@@ -408,12 +409,14 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                         child: GestureDetector(
                           onTap: () => _removeImage(index),
                           child: Container(
+                            width: 24,
+                            height: 24,
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: error.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.close,
                               size: 16,
                               color: Colors.white,
@@ -529,25 +532,29 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
-        onPressed: _submitForm,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: accent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(27),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56, // Minimum touch target height
+        child: ElevatedButton(
+          onPressed: _submitForm,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: accent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),        child: Text(
-          widget.propertyToEdit != null ? 'Update Property' : 'Create Property',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.2,
+          child: Text(
+            widget.propertyToEdit != null ? 'Update Property' : 'Create Property',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
+            ),
           ),
         ),
       ),
