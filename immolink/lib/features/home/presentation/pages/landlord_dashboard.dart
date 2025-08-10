@@ -1435,11 +1435,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           const SizedBox(height: 24),
           if (_isLoadingDashboardData)
             const Center(child: CircularProgressIndicator())
-          else if (_recentMaintenanceRequests.isEmpty)
+          else if (_recentMaintenanceRequests.where((request) => request.status != 'completed').isEmpty)
             Container(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'No recent maintenance requests',
+                'No pending maintenance requests',
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -1447,7 +1447,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
             )
           else
-            ..._recentMaintenanceRequests.map((request) => Padding(
+            ..._recentMaintenanceRequests
+                .where((request) => request.status != 'completed')
+                .map((request) => Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _buildMaintenanceCard(
                 request,
