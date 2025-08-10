@@ -22,6 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
+  bool _isShowingErrorDialog = false;
 
   @override
   void initState() {
@@ -50,8 +51,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget build(BuildContext context) {
     // Listen to auth state changes
     ref.listen<AuthState>(authProvider, (previous, current) {
+      print('Auth state changed: isAuth=${current.isAuthenticated}, error=${current.error}, loading=${current.isLoading}');
       if (current.isAuthenticated) {
         context.go('/home');  // Navigate when authenticated
+      } else if (current.error != null && !current.isLoading && !_isShowingErrorDialog) {
+        // Show error popup when login fails
+        print('Showing error dialog: ${current.error}');
+        _isShowingErrorDialog = true;
+        _showErrorDialog(context, current.error!);
       }
     });
 
@@ -481,6 +488,110 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
       ],
     );
+  }
+
+  void _showErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFFFFF),
+                  Color(0xFFFEF2F2),
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Icon(
+                    Icons.error_outline,
+                    color: Color(0xFFDC2626),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Login Failed',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _formatErrorMessage(error),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF64748B),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _isShowingErrorDialog = false;
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Try Again',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatErrorMessage(String error) {
+    // Clean up common error messages to be more user-friendly
+    if (error.contains('Invalid credentials') || error.contains('401')) {
+      return 'Invalid email or password. Please check your credentials and try again.';
+    } else if (error.contains('Network') || error.contains('connection')) {
+      return 'Network error. Please check your internet connection and try again.';
+    } else if (error.contains('timeout')) {
+      return 'Request timed out. Please try again.';
+    } else {
+      return 'Login failed. Please try again.';
+    }
   }
 
   @override

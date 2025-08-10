@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
 import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/core/widgets/common_bottom_nav.dart';
-import 'package:immolink/core/providers/currency_provider.dart';
 import 'package:intl/intl.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {
@@ -61,7 +61,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.go('/dashboard'),
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -197,7 +197,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         ],
       ),
       child: Row(
-        children: _periods.map((period) {
+        children: _periods.map<Widget>((period) {
           final isSelected = period == _selectedPeriod;
           return Expanded(
             child: GestureDetector(
@@ -371,25 +371,34 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   
                   return Column(
                     children: [
-                      _buildFinancialMetric(
-                        'Monthly Revenue',
-                        _formatCurrency(totalRevenue),
-                        Icons.trending_up,
-                        const Color(0xFF10B981),
+                      Container(
+                        width: double.infinity,
+                        child: _buildFinancialMetric(
+                          'Monthly Revenue',
+                          _formatCurrency(totalRevenue),
+                          Icons.trending_up,
+                          const Color(0xFF10B981),
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      _buildFinancialMetric(
-                        'Collected',
-                        _formatCurrency(completedPayments),
-                        Icons.check_circle_outline,
-                        const Color(0xFF3B82F6),
+                      Container(
+                        width: double.infinity,
+                        child: _buildFinancialMetric(
+                          'Collected',
+                          _formatCurrency(completedPayments),
+                          Icons.check_circle_outline,
+                          const Color(0xFF3B82F6),
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      _buildFinancialMetric(
-                        'Outstanding',
-                        _formatCurrency(pendingPayments),
-                        Icons.hourglass_empty,
-                        const Color(0xFFF59E0B),
+                      Container(
+                        width: double.infinity,
+                        child: _buildFinancialMetric(
+                          'Outstanding',
+                          _formatCurrency(pendingPayments),
+                          Icons.hourglass_empty,
+                          const Color(0xFFF59E0B),
+                        ),
                       ),
                     ],
                   );
@@ -407,13 +416,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   }
 
   String _formatCurrency(double amount) {
-    final currency = ref.read(currencyProvider);
-    return ref.read(currencyProvider.notifier).formatAmount(amount);
+    return NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
   }
 
   Widget _buildFinancialMetric(String title, String value, IconData icon, Color color) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
@@ -424,7 +431,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             padding: const EdgeInsets.all(12),
@@ -443,7 +449,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               color: const Color(0xFF0F172A),
               letterSpacing: -0.5,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
@@ -525,25 +530,34 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               
               return Column(
                 children: [
-                  _buildFinancialMetric(
-                    'Total Properties',
-                    totalProperties.toString(),
-                    Icons.home_outlined,
-                    const Color(0xFF3B82F6),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Total Properties',
+                      totalProperties.toString(),
+                      Icons.home_outlined,
+                      const Color(0xFF3B82F6),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    'Occupied',
-                    rentedProperties.toString(),
-                    Icons.check_circle_outline,
-                    const Color(0xFF10B981),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Occupied',
+                      rentedProperties.toString(),
+                      Icons.check_circle_outline,
+                      const Color(0xFF10B981),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    'Available',
-                    availableProperties.toString(),
-                    Icons.radio_button_unchecked,
-                    const Color(0xFF64748B),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Available',
+                      availableProperties.toString(),
+                      Icons.radio_button_unchecked,
+                      const Color(0xFF64748B),
+                    ),
                   ),
                 ],
               );
@@ -620,25 +634,34 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               
               return Column(
                 children: [
-                  _buildFinancialMetric(
-                    'Total Requests',
-                    totalRequests.toString(),
-                    Icons.list_alt_outlined,
-                    const Color(0xFF64748B),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Total Requests',
+                      totalRequests.toString(),
+                      Icons.list_alt_outlined,
+                      const Color(0xFF64748B),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    'Pending',
-                    pendingRequests.toString(),
-                    Icons.hourglass_empty,
-                    const Color(0xFFF59E0B),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Pending',
+                      pendingRequests.toString(),
+                      Icons.hourglass_empty,
+                      const Color(0xFFF59E0B),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    'Completed',
-                    completedRequests.toString(),
-                    Icons.check_circle_outline,
-                    const Color(0xFF10B981),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Completed',
+                      completedRequests.toString(),
+                      Icons.check_circle_outline,
+                      const Color(0xFF10B981),
+                    ),
                   ),
                 ],
               );
@@ -801,25 +824,34 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
               return Column(
                 children: [
-                  _buildFinancialMetric(
-                    'Total Paid',
-                    _formatCurrency(totalPaid),
-                    Icons.check_circle_outline,
-                    const Color(0xFF10B981),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Total Paid',
+                      _formatCurrency(totalPaid),
+                      Icons.check_circle_outline,
+                      const Color(0xFF10B981),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    'Pending',
-                    _formatCurrency(pendingAmount),
-                    Icons.hourglass_empty,
-                    const Color(0xFFF59E0B),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Pending',
+                      _formatCurrency(pendingAmount),
+                      Icons.hourglass_empty,
+                      const Color(0xFFF59E0B),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    'Total Payments',
-                    totalPayments.toString(),
-                    Icons.receipt_long_outlined,
-                    const Color(0xFF3B82F6),
+                  Container(
+                    width: double.infinity,
+                    child: _buildFinancialMetric(
+                      'Total Payments',
+                      totalPayments.toString(),
+                      Icons.receipt_long_outlined,
+                      const Color(0xFF3B82F6),
+                    ),
                   ),
                 ],
               );
@@ -975,7 +1007,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            request.status.toUpperCase(),
+                            _formatStatusText(request.status),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -1071,7 +1103,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               }
 
               return Column(
-                children: paymentsList.take(5).map((payment) {
+                children: paymentsList.take(5).map<Widget>((payment) {
                   final statusColor = payment.status == 'completed' 
                     ? const Color(0xFF10B981) 
                     : const Color(0xFFF59E0B);
@@ -1134,7 +1166,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            payment.status.toUpperCase(),
+                            _formatStatusText(payment.status),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -1180,5 +1212,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       default:
         return Icons.help_outline;
     }
+  }
+
+  String _formatStatusText(String status) {
+    // Convert underscores to spaces and capitalize properly
+    return status
+        .toLowerCase()
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
+        .join(' ');
   }
 }

@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/navigation_provider.dart';
+import '../../../../core/providers/currency_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../property/presentation/providers/property_providers.dart';
 import '../../../property/domain/models/property.dart';
@@ -79,10 +81,32 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     return l10n.goodEvening;
   }
 
+  String _formatCurrency(double amount, String currency) {
+    final format = NumberFormat.currency(
+      symbol: _getCurrencySymbol(currency),
+      decimalDigits: 0,
+    );
+    return format.format(amount);
+  }
+
+  String _getCurrencySymbol(String currency) {
+    switch (currency.toUpperCase()) {
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'CHF':
+        return 'CHF ';
+      default:
+        return '\$';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
     final propertiesAsync = ref.watch(tenantPropertiesProvider);
+    final currency = ref.watch(currencyProvider);
     
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -128,7 +152,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             _buildSearchBar(),
                             const SizedBox(height: 24),
                             if (properties.isNotEmpty) 
-                              _buildPropertyCard(properties.first)
+                              _buildPropertyCard(properties.first, currency)
                             else
                               _buildNoPropertyCard(),
                             const SizedBox(height: 24),
@@ -456,16 +480,18 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Your rental space awaits',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: const Color(0xFF3B82F6),
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
+                Expanded(
+                  child: Text(
+                    'Your rental space awaits',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: const Color(0xFF3B82F6),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
                 ),
               ],
             ),
@@ -547,7 +573,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     );
   }
 
-  Widget _buildPropertyCard(Property property) {
+  Widget _buildPropertyCard(Property property, String currency) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -703,7 +729,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              '\$${property.rentAmount.toStringAsFixed(0)}',
+                              _formatCurrency(property.rentAmount, currency),
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w800,
