@@ -27,6 +27,26 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
 
+  // Helper method for responsive font sizes
+  double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) {
+      return baseFontSize * 0.85; // Smaller phones
+    } else if (screenWidth < 400) {
+      return baseFontSize * 0.9;  // Medium phones
+    }
+    return baseFontSize; // Tablets and larger
+  }
+
+  // Helper method for responsive spacing
+  double _getResponsiveSpacing(BuildContext context, double baseSpacing) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) {
+      return baseSpacing * 0.75; // Reduce spacing on very small screens
+    }
+    return baseSpacing;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -421,7 +441,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     Text(
                       userName,
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: _getResponsiveFontSize(context, 32),
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF0F172A),
                         letterSpacing: -0.8,
@@ -1174,7 +1194,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],

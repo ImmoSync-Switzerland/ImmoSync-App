@@ -8,6 +8,7 @@ import 'package:immolink/features/payment/presentation/providers/payment_provide
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/core/widgets/common_bottom_nav.dart';
+import 'package:immolink/core/providers/currency_provider.dart';
 import 'package:intl/intl.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {
@@ -23,6 +24,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   late Animation<double> _fadeAnimation;
   String _selectedPeriod = 'This Month';
   final List<String> _periods = ['This Week', 'This Month', 'This Quarter', 'This Year'];
+
+  // Helper method for responsive font sizes
+  double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) {
+      return baseFontSize * 0.85; // Smaller phones
+    } else if (screenWidth < 400) {
+      return baseFontSize * 0.9;  // Medium phones
+    }
+    return baseFontSize; // Tablets and larger
+  }
 
   @override
   void initState() {
@@ -61,7 +73,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: IconButton(
-          onPressed: () => context.go('/dashboard'),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -78,7 +96,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         title: Text(
           'Analytics & Reports',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: _getResponsiveFontSize(context, 22),
             fontWeight: FontWeight.w800,
             color: const Color(0xFF0F172A),
             letterSpacing: -0.6,
@@ -416,7 +434,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   }
 
   String _formatCurrency(double amount) {
-    return NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
+    final currency = ref.read(currencyProvider);
+    String symbol;
+    switch (currency.toUpperCase()) {
+      case 'USD':
+        symbol = '\$';
+        break;
+      case 'EUR':
+        symbol = '€';
+        break;
+      case 'CHF':
+        symbol = 'CHF ';
+        break;
+      default:
+        symbol = '\$';
+    }
+    return NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(amount);
   }
 
   Widget _buildFinancialMetric(String title, String value, IconData icon, Color color) {

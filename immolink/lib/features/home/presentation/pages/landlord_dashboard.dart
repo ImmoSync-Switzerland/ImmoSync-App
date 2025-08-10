@@ -32,6 +32,26 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   List<Conversation> _recentMessages = [];
   List<MaintenanceRequest> _recentMaintenanceRequests = [];
   bool _isLoadingDashboardData = false;
+
+  // Helper method for responsive font sizes
+  double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) {
+      return baseFontSize * 0.85; // Smaller phones
+    } else if (screenWidth < 400) {
+      return baseFontSize * 0.9;  // Medium phones
+    }
+    return baseFontSize; // Tablets and larger
+  }
+
+  // Helper method for responsive padding
+  EdgeInsets _getResponsivePadding(BuildContext context, EdgeInsets basePadding) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) {
+      return EdgeInsets.all(basePadding.top * 0.75); // Reduce padding on very small screens
+    }
+    return basePadding;
+  }
   @override
   void initState() {
     super.initState();
@@ -279,7 +299,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Text(
                       name,
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: _getResponsiveFontSize(context, 32),
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF0F172A),
                         letterSpacing: -0.8,
@@ -449,7 +469,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               Text(
                 'Financial Overview',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF0F172A),
                   letterSpacing: -0.6,
@@ -537,11 +557,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             Text(
               amount,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: _getResponsiveFontSize(context, 28),
                 fontWeight: FontWeight.w800,
                 color: const Color(0xFF0F172A),
                 letterSpacing: -0.8,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
             const SizedBox(height: 8),
             Text(
@@ -602,7 +624,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 child: Text(
                   AppLocalizations.of(context)!.quickActions,
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: _getResponsiveFontSize(context, 22),
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF0F172A),
                     letterSpacing: -0.6,
@@ -867,7 +889,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],
