@@ -13,6 +13,7 @@ import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../../../core/widgets/mongo_image.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -91,9 +92,21 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     final currentUser = ref.watch(currentUserProvider);
     
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppBar(currentUser?.fullName ?? 'Property Manager'),
-      body: SafeArea(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFFF8FAFC), // Sehr helles Grau
+              const Color(0xFFF1F5F9), // Leicht dunkleres Grau
+            ],
+          ),
+        ),
+        child: SafeArea(
         child: propertiesAsync.when(
           data: (properties) => AnimatedBuilder(
             animation: _animationController,
@@ -173,6 +186,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ),
           ),
         ),
+        ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
       floatingActionButton: _buildFAB(),
@@ -180,157 +194,195 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   PreferredSizeWidget _buildAppBar(String name) {
-    final l10n = AppLocalizations.of(context)!;
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: const Color(0xFFF8FAFC),
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
-      title: Text(
-        l10n.dashboard,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.3,
-        ),
-      ),
       centerTitle: true,
       actions: [
-        IconButton(
-          icon: Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 24),
-          onPressed: () => HapticFeedback.lightImpact(),
+        Container(
+          margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: Icon(Icons.notifications_outlined, color: const Color(0xFF64748B), size: 22),
+            onPressed: () => HapticFeedback.lightImpact(),
+          ),
         ),
       ],
     );
   }
   Widget _buildWelcomeSection(String name) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.goodMorning,
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.textTertiary,
-            fontWeight: FontWeight.w400,
-            letterSpacing: -0.2,
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          name,
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.8,
-            height: 1.1,
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.managePropertiesAndTenants,
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.textTertiary,
-            fontWeight: FontWeight.w400,
-            letterSpacing: -0.2,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.waving_hand_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.goodMorning,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                        letterSpacing: -0.8,
+                        height: 1.1,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.trending_up_rounded,
+                  color: const Color(0xFF3B82F6),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  l10n.managePropertiesAndTenants,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: const Color(0xFF3B82F6),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
   Widget _buildSearchBar() {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
-          ],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 20,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
             spreadRadius: 0,
           ),
         ],
       ),
-      child: TextField(        onTap: () {
+      child: TextField(
+        onTap: () {
           HapticFeedback.lightImpact();
           context.push('/search');
         },
         decoration: InputDecoration(
           hintText: l10n.searchPropertiesTenantsMessages,
           hintStyle: TextStyle(
-            color: AppColors.textTertiary,
+            color: const Color(0xFF64748B),
             fontSize: 15,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             letterSpacing: -0.1,
           ),
           prefixIcon: Container(
-            padding: const EdgeInsets.all(8),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.primaryAccent.withValues(alpha: 0.15),
-                    AppColors.primaryAccent.withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.search_outlined, 
-                color: AppColors.primaryAccent, 
-                size: 18,
-              ),
+            padding: const EdgeInsets.all(12),
+            child: Icon(
+              Icons.search_outlined, 
+              color: const Color(0xFF64748B),
+              size: 20,
             ),
           ),
-          suffixIcon: GestureDetector(            onTap: () {
-              HapticFeedback.lightImpact();
-              _showFilterDialog(context);
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.textTertiary.withValues(alpha: 0.1),
-                      AppColors.textTertiary.withValues(alpha: 0.05),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.filter_list_outlined,
-                  color: AppColors.textTertiary,
-                  size: 18,
-                ),
+          suffixIcon: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _showFilterDialog(context);
+              },
+              icon: Icon(
+                Icons.filter_list_outlined,
+                color: const Color(0xFF64748B),
+                size: 18,
               ),
             ),
           ),
@@ -338,7 +390,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: const Color(0xFF0F172A),
           fontSize: 15,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.1,
@@ -357,32 +409,21 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         .fold(0.0, (sum, p) => sum + (p.outstandingPayments));
 
     return Container(
-      padding: const EdgeInsets.all(28.0),
+      padding: const EdgeInsets.all(32.0),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.accentLight.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 24,
-            offset: const Offset(0, 12),
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
             spreadRadius: 0,
           ),
         ],
@@ -393,59 +434,44 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.luxuryGold.withValues(alpha: 0.2),
-                      AppColors.luxuryGold.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.luxuryGold.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
+                  color: const Color(0xFF3B82F6),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: AppColors.luxuryGold,
-                  size: 26,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 18),
+              const SizedBox(width: 20),
               Text(
                 'Financial Overview',
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                  letterSpacing: -0.6,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 28),
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: _buildFinancialCard(
-                  AppLocalizations.of(context)!.monthlyRevenue,
-                  ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
-                  Icons.trending_up_outlined,
-                  AppColors.success,
-                ),
+              _buildFinancialCard(
+                AppLocalizations.of(context)!.monthlyRevenue,
+                ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
+                Icons.trending_up_outlined,
+                AppColors.success,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildFinancialCard(
-                  AppLocalizations.of(context)!.outstanding,
-                  ref.read(currencyProvider.notifier).formatAmount(outstanding),
-                  Icons.warning_outlined,
-                  AppColors.warning,
-                ),
+              const SizedBox(height: 16),
+              _buildFinancialCard(
+                AppLocalizations.of(context)!.outstanding,
+                ref.read(currencyProvider.notifier).formatAmount(outstanding),
+                Icons.warning_outlined,
+                AppColors.warning,
               ),
             ],
           ),
@@ -463,30 +489,17 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       child: Container(
         padding: const EdgeInsets.all(24.0),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceCards,
-              color.withValues(alpha: 0.03),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: color.withValues(alpha: 0.15),
+            color: const Color(0xFFE2E8F0),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor,
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.9),
-              blurRadius: 1,
-              offset: const Offset(0, 1),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
               spreadRadius: 0,
             ),
           ],
@@ -498,28 +511,25 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        color.withValues(alpha: 0.2),
-                        color.withValues(alpha: 0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: color.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
+                    color: title.toLowerCase().contains('outstanding') 
+                        ? const Color(0xFFFEF3C7) // Gelb Background
+                        : const Color(0xFFDCFCE7), // Grün Background
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, size: 22, color: color),
+                  child: Icon(
+                    icon, 
+                    size: 20, 
+                    color: title.toLowerCase().contains('outstanding') 
+                        ? const Color(0xFFF59E0B) // Warnung Orange
+                        : const Color(0xFF10B981), // Erfolg Grün
+                  ),
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  size: 14,
-                  color: AppColors.textTertiary,
+                  size: 16,
+                  color: const Color(0xFF64748B),
                 ),
               ],
             ),
@@ -527,10 +537,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             Text(
               amount,
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-                letterSpacing: -0.5,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A),
+                letterSpacing: -0.8,
               ),
             ),
             const SizedBox(height: 8),
@@ -539,8 +549,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textTertiary,
-                letterSpacing: 0.5,
+                color: const Color(0xFF64748B),
+                letterSpacing: 0.8,
               ),
             ),
           ],
@@ -551,32 +561,21 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   Widget _buildQuickAccess() {
     return Container(
-      padding: const EdgeInsets.all(20.0), // Reduced from 28.0 for better mobile fit
+      padding: const EdgeInsets.all(32.0),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20), // Reduced from 24
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
-            blurRadius: 20, // Reduced from 24
-            offset: const Offset(0, 8), // Reduced from 12
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
             spreadRadius: 0,
           ),
         ],
@@ -587,43 +586,32 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10), // Reduced from 12
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.2),
-                      AppColors.primaryAccent.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(14), // Reduced from 16
-                  border: Border.all(
-                    color: AppColors.primaryAccent.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
+                  color: const Color(0xFF3B82F6),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.flash_on_outlined,
-                  color: AppColors.primaryAccent,
-                  size: 22, // Reduced from 24
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 16), // Reduced from 18
+              const SizedBox(width: 20),
               Expanded(
                 child: Text(
                   AppLocalizations.of(context)!.quickActions,
                   style: TextStyle(
-                    fontSize: 18, // Reduced from 20
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: -0.6,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20), // Reduced from 28
+          const SizedBox(height: 28),
           // Use a more compact grid layout for mobile
           LayoutBuilder(
             builder: (context, constraints) {
@@ -813,55 +801,70 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(16), // Reduced from 22
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
+              iconColor.withValues(alpha: 0.15),
               iconColor.withValues(alpha: 0.08),
-              iconColor.withValues(alpha: 0.02),
             ],
           ),
-          borderRadius: BorderRadius.circular(16), // Reduced from 18
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: iconColor.withValues(alpha: 0.15),
+            color: iconColor.withValues(alpha: 0.2),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withValues(alpha: 0.1),
-              blurRadius: 8, // Reduced from 12
-              offset: const Offset(0, 2), // Reduced from 4
+              color: iconColor.withValues(alpha: 0.15),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
             ),
           ],
         ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(12), // Reduced from 14
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12), // Reduced from 14
+                color: Colors.white.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: iconColor.withValues(alpha: 0.2),
+                  color: Colors.white.withValues(alpha: 0.6),
                   width: 1,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                    spreadRadius: 0,
+                  ),
+                ],
               ),
               child: Icon(
                 icon, 
-                size: 22, // Reduced from 26
+                size: 24,
                 color: iconColor,
               ),
             ),
-            const SizedBox(height: 12), // Reduced from 14
+            const SizedBox(height: 16),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12, // Reduced from 13
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-                letterSpacing: -0.1,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF0F172A),
+                letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -1056,27 +1059,26 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    statusColor.withValues(alpha: 0.2),
-                    statusColor.withValues(alpha: 0.1),
-                  ],
-                ),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: statusColor.withValues(alpha: 0.2),
                   width: 1,
                 ),
+                color: property.imageUrls.isEmpty 
+                  ? statusColor.withValues(alpha: 0.1)
+                  : null,
               ),
-              child: Icon(
-                Icons.home_outlined,
-                color: statusColor,
-                size: 24,
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: property.imageUrls.isNotEmpty 
+                ? _buildPropertyImage(property.imageUrls.first)
+                : Icon(
+                    Icons.home_outlined,
+                    color: statusColor,
+                    size: 24,
+                  ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1091,6 +1093,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       color: AppColors.textPrimary,
                       letterSpacing: -0.2,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1100,13 +1104,16 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         size: 16,
                         color: AppColors.success,
                       ),
-                      Text(
-                        '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.success,
-                          letterSpacing: -0.1,
+                      Expanded(
+                        child: Text(
+                          '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.success,
+                            letterSpacing: -0.1,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -1123,7 +1130,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   color: statusColor.withValues(alpha: 0.2),
                   width: 1,
                 ),
-              ),              child: Text(
+              ),              
+              child: Text(
                 _getLocalizedStatus(property.status),
                 style: TextStyle(
                   fontSize: 11,
@@ -1209,7 +1217,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   letterSpacing: -0.5,
                 ),
               ),
-            ],          ),
+            ],
+          ),
           const SizedBox(height: 24),
           if (_isLoadingDashboardData)
             const Center(child: CircularProgressIndicator())
@@ -1300,6 +1309,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                             color: AppColors.textPrimary,
                             letterSpacing: -0.2,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
@@ -1420,7 +1430,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   letterSpacing: -0.5,
                 ),
               ),
-            ],          ),
+            ],
+          ),
           const SizedBox(height: 24),
           if (_isLoadingDashboardData)
             const Center(child: CircularProgressIndicator())
@@ -1514,6 +1525,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       color: AppColors.textPrimary,
                       letterSpacing: -0.2,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1524,12 +1537,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         color: AppColors.textTertiary,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        request.location,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textTertiary,
-                          letterSpacing: -0.1,
+                      Expanded(
+                        child: Text(
+                          request.location,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textTertiary,
+                            letterSpacing: -0.1,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -1566,20 +1582,20 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   Widget _buildFAB() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primaryAccent,
-            AppColors.primaryAccent.withValues(alpha: 0.8),
-          ],
-        ),
+        color: const Color(0xFF3B82F6),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryAccent.withValues(alpha: 0.3),
-            blurRadius: 16,
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+            blurRadius: 20,
             offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -1591,8 +1607,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         backgroundColor: Colors.transparent,
         elevation: 0,
         child: Icon(
-          Icons.add,
-          color: AppColors.textOnAccent,
+          Icons.add_rounded,
+          color: Colors.white,
           size: 28,
         ),
       ),
@@ -1690,6 +1706,67 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         return AppColors.success;
       default:
         return AppColors.warning;
+    }
+  }
+
+  Widget _buildPropertyImage(String imageIdOrPath) {
+    // Check if it's a MongoDB ObjectId (24 hex characters)
+    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+      return MongoImage(
+        imageId: imageIdOrPath,
+        fit: BoxFit.cover,
+        width: 60,
+        height: 60,
+        loadingWidget: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: Container(
+          color: Colors.grey[200],
+          child: const Icon(
+            Icons.home_outlined,
+            color: Colors.grey,
+            size: 24,
+          ),
+        ),
+      );
+    } else {
+      // Regular network image
+      return Image.network(
+        imageIdOrPath,
+        fit: BoxFit.cover,
+        width: 60,
+        height: 60,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey[300],
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[200],
+            child: const Icon(
+              Icons.home_outlined,
+              color: Colors.grey,
+              size: 24,
+            ),
+          );
+        },
+      );
     }
   }
 }

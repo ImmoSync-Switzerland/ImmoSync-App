@@ -13,11 +13,14 @@ router.get('/user/:userId', async (req, res) => {
     
     const userId = req.params.userId;
     
-    // Find invitations for this user
+    // Find invitations for this user - both as tenant and landlord
     const invitations = await db.collection('invitations')
       .find({ 
-        tenantId: userId,
-        status: { $in: ['pending', 'accepted'] }
+        $or: [
+          { tenantId: userId },     // Invitations received as tenant
+          { landlordId: userId }    // Invitations sent as landlord
+        ],
+        status: { $in: ['pending', 'accepted', 'declined'] }
       })
       .sort({ createdAt: -1 })
       .toArray();
@@ -31,17 +34,22 @@ router.get('/user/:userId', async (req, res) => {
         const landlord = await db.collection('users')
           .findOne({ _id: new ObjectId(invitation.landlordId) });
         
+        const tenant = await db.collection('users')
+          .findOne({ _id: new ObjectId(invitation.tenantId) });
+        
         return {
           ...invitation,
           propertyAddress: property ? `${property.address.street}, ${property.address.city}` : 'Unknown Property',
           propertyRent: property ? property.rentAmount : 0,
           landlordName: landlord ? landlord.fullName : 'Unknown Landlord',
           landlordEmail: landlord ? landlord.email : '',
+          tenantName: tenant ? tenant.fullName : 'Unknown Tenant',
+          tenantEmail: tenant ? tenant.email : '',
         };
       })
     );
     
-    console.log(`Found ${populatedInvitations.length} invitations for user ${userId}`);
+    console.log(`Found ${populatedInvitations.length} invitations for user ${userId} (as tenant and landlord)`);
     res.json(populatedInvitations);
     
   } catch (error) {

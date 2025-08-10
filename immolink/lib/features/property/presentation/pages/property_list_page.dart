@@ -9,6 +9,7 @@ import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../auth/presentation/providers/user_role_provider.dart';
+import '../../../../core/widgets/mongo_image.dart';
 
 class PropertyListPage extends ConsumerStatefulWidget {
   const PropertyListPage({super.key});
@@ -113,28 +114,70 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // Search bar
+          // Search bar with modern design matching dashboard
           Container(
             decoration: BoxDecoration(
-              color: surface,
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ],
             ),
             child: TextField(
-              onChanged: (value) => setState(() => _searchQuery = value),              decoration: InputDecoration(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
                 hintText: l10n.searchProperties,
                 hintStyle: TextStyle(
-                  color: textCaption,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF64748B),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.1,
                 ),
-                prefixIcon: Icon(Icons.search_outlined, color: textCaption, size: 20),
+                prefixIcon: Container(
+                  padding: const EdgeInsets.all(12),
+                  child: Icon(
+                    Icons.search_outlined, 
+                    color: const Color(0xFF64748B),
+                    size: 20,
+                  ),
+                ),
+                suffixIcon: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _showFilterDialog(context, l10n);
+                    },
+                    icon: Icon(
+                      Icons.filter_list_outlined,
+                      color: const Color(0xFF64748B),
+                      size: 18,
+                    ),
+                  ),
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               ),
-              style: const TextStyle(
-                color: textPrimary,
-                fontSize: 16,
+              style: TextStyle(
+                color: const Color(0xFF0F172A),
+                fontSize: 15,
                 fontWeight: FontWeight.w500,
+                letterSpacing: -0.1,
               ),
             ),
           ),
@@ -168,17 +211,42 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         setState(() => _statusFilter = value);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? accent : surface,
-          borderRadius: BorderRadius.circular(20),
+          gradient: isSelected 
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  accent,
+                  accent.withValues(alpha: 0.8),
+                ],
+              )
+            : null,
+          color: isSelected ? null : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? accent : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected 
+                ? accent.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.04),
+              blurRadius: isSelected ? 12 : 6,
+              offset: Offset(0, isSelected ? 6 : 2),
+              spreadRadius: 0,
+            ),
+          ],
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : textSecondary,
+            color: isSelected ? Colors.white : const Color(0xFF64748B),
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
           ),
         ),
       ),
@@ -240,168 +308,177 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         context.push('/property/${property.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(28.0),
         decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              statusColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: statusColor.withValues(alpha: 0.15),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with image and basic info
             Row(
               children: [
                 Container(
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      'https://picsum.photos/300/200?random=${property.id}',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.home_outlined, color: textCaption, size: 32),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.2),
+                      width: 1,
                     ),
+                    color: property.imageUrls.isEmpty 
+                      ? statusColor.withValues(alpha: 0.1)
+                      : null,
                   ),
+                  clipBehavior: Clip.antiAlias,
+                  child: property.imageUrls.isNotEmpty 
+                    ? _buildPropertyImage(property.imageUrls.first)
+                    : Icon(
+                        Icons.home_outlined,
+                        color: statusColor,
+                        size: 32,
+                      ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         property.address.street,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: textPrimary,
-                          letterSpacing: -0.2,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                          letterSpacing: -0.3,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${property.address.city}, ${property.address.postalCode}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: textSecondary,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 16,
+                            color: const Color(0xFF64748B),
                           ),
-                          child: Text(
-                            _getLocalizedStatus(property.status, l10n),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: statusColor,
-                              letterSpacing: 0.2,
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '${property.address.city}, ${property.address.postalCode}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: const Color(0xFF64748B),
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: -0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    _getLocalizedStatus(property.status, l10n),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            // Property details in modern card layout
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: surface,
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [                        Text(
-                          l10n.monthlyRent,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textCaption,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: textPrimary,
-                          ),
-                        ),
-                      ],
+                    child: _buildDetailColumn(
+                      icon: Icons.attach_money,
+                      label: l10n.monthlyRent,
+                      value: ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
+                      iconColor: success,
+                      isPrice: true,
                     ),
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [                        Text(
-                          l10n.size,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textCaption,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${property.details.size.toStringAsFixed(0)} m²',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: const Color(0xFFE2E8F0),
                   ),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [                        Text(
-                          l10n.rooms,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textCaption,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${property.details.rooms}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: textSecondary,
-                          ),
-                        ),
-                      ],
+                    child: _buildDetailColumn(
+                      icon: Icons.square_foot,
+                      label: l10n.size,
+                      value: '${property.details.size.toStringAsFixed(0)} m²',
+                      iconColor: accent,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: const Color(0xFFE2E8F0),
+                  ),
+                  Expanded(
+                    child: _buildDetailColumn(
+                      icon: Icons.meeting_room,
+                      label: l10n.rooms,
+                      value: '${property.details.rooms}',
+                      iconColor: warning,
                     ),
                   ),
                 ],
@@ -410,6 +487,53 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailColumn({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color iconColor,
+    bool isPrice = false,
+  }) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon, 
+            size: 16, 
+            color: iconColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isPrice ? 16 : 15,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF0F172A),
+            letterSpacing: -0.2,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF64748B),
+            letterSpacing: 0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
@@ -539,6 +663,119 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   String _capitalizeFilter(String text) {
     if (text.isEmpty) return text;
     return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  void _showFilterDialog(BuildContext context, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.filterProperties),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.all_inclusive, color: accent),
+              title: Text(l10n.all),
+              onTap: () {
+                Navigator.of(context).pop();
+                setState(() => _statusFilter = 'all');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.check_circle, color: success),
+              title: Text(l10n.available),
+              onTap: () {
+                Navigator.of(context).pop();
+                setState(() => _statusFilter = 'available');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.home, color: accent),
+              title: Text(l10n.rented),
+              onTap: () {
+                Navigator.of(context).pop();
+                setState(() => _statusFilter = 'rented');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.build, color: warning),
+              title: Text(l10n.maintenance),
+              onTap: () {
+                Navigator.of(context).pop();
+                setState(() => _statusFilter = 'maintenance');
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyImage(String imageIdOrPath) {
+    // Check if it's a MongoDB ObjectId (24 hex characters)
+    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+      return MongoImage(
+        imageId: imageIdOrPath,
+        fit: BoxFit.cover,
+        width: 80,
+        height: 80,
+        loadingWidget: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: Container(
+          color: Colors.grey[200],
+          child: const Icon(
+            Icons.home_outlined,
+            color: Colors.grey,
+            size: 32,
+          ),
+        ),
+      );
+    } else {
+      // Regular network image
+      return Image.network(
+        imageIdOrPath,
+        fit: BoxFit.cover,
+        width: 80,
+        height: 80,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey[300],
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[200],
+            child: const Icon(
+              Icons.home_outlined,
+              color: Colors.grey,
+              size: 32,
+            ),
+          );
+        },
+      );
+    }
   }
 }
 

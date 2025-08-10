@@ -13,6 +13,8 @@ class Invitation {
   final double? propertyRent;
   final String? landlordName;
   final String? landlordEmail;
+  final String? tenantName;
+  final String? tenantEmail;
 
   Invitation({
     required this.id,
@@ -29,6 +31,8 @@ class Invitation {
     this.propertyRent,
     this.landlordName,
     this.landlordEmail,
+    this.tenantName,
+    this.tenantEmail,
   });
 
   factory Invitation.fromMap(Map<String, dynamic> map) {
@@ -55,6 +59,8 @@ class Invitation {
       propertyRent: map['propertyRent']?.toDouble(),
       landlordName: map['landlordName'],
       landlordEmail: map['landlordEmail'],
+      tenantName: map['tenantName'],
+      tenantEmail: map['tenantEmail'],
     );
   }
 
@@ -74,6 +80,8 @@ class Invitation {
       'propertyRent': propertyRent,
       'landlordName': landlordName,
       'landlordEmail': landlordEmail,
+      'tenantName': tenantName,
+      'tenantEmail': tenantEmail,
     };
   }
 
