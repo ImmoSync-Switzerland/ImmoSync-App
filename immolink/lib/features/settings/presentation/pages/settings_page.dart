@@ -4,9 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/navigation_provider.dart';
-import '../../../../core/providers/locale_provider.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -15,6 +14,7 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
     final settings = ref.watch(settingsProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
     
     // Set navigation index to Profile (4) when this page is loaded
@@ -23,20 +23,21 @@ class SettingsPage extends ConsumerWidget {
     });
     
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           l10n.settings,
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
+            inherit: true,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () {
             // Navigate back to dashboard instead of popping
             context.go('/home');
@@ -49,7 +50,7 @@ class SettingsPage extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.primaryBackground, AppColors.surfaceCards],
+            colors: [colors.primaryBackground, colors.surfaceCards],
           ),
         ),
         child: ListView(
@@ -59,11 +60,11 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildPreferencesSection(context, ref, settings, l10n),
             const SizedBox(height: 24),
-            _buildSecuritySection(context, l10n),
+            _buildSecuritySection(context, ref, l10n),
             const SizedBox(height: 24),
             _buildNotificationsSection(context, ref, settings, l10n),
             const SizedBox(height: 24),
-            _buildSupportSection(context, l10n),
+            _buildSupportSection(context, ref, l10n),
             const SizedBox(height: 24),
             _buildLogoutButton(context, ref, l10n),
           ],
@@ -73,9 +74,10 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref, user, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -89,7 +91,8 @@ class SettingsPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
+                inherit: true,
               ),
             ),
             const SizedBox(height: 16),
@@ -97,13 +100,14 @@ class SettingsPage extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.2),
+                  backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
                   child: Text(
                     user?.fullName.substring(0, 1) ?? 'U',
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primaryAccent,
+                      color: colors.primaryAccent,
+                      inherit: true,
                     ),
                   ),
                 ),
@@ -117,7 +121,8 @@ class SettingsPage extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
+                          inherit: true,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -125,7 +130,8 @@ class SettingsPage extends ConsumerWidget {
                         user?.email ?? 'email@example.com',
                         style: TextStyle(
                           fontSize: 16,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
+                          inherit: true,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -135,7 +141,7 @@ class SettingsPage extends ConsumerWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.accentLight,
+                          color: colors.accentLight,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -143,7 +149,8 @@ class SettingsPage extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryAccent,
+                            color: colors.primaryAccent,
+                            inherit: true,
                           ),
                         ),
                       ),
@@ -158,14 +165,14 @@ class SettingsPage extends ConsumerWidget {
                 context.push('/edit-profile');
               },
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.primaryAccent),
+                side: BorderSide(color: colors.primaryAccent),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: Text(
                 l10n.editProfile,
-                style: TextStyle(color: AppColors.primaryAccent),
+                style: TextStyle(color: colors.primaryAccent, inherit: true),
               ),
             ),
           ],
@@ -175,9 +182,10 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildPreferencesSection(BuildContext context, WidgetRef ref, AppSettings settings, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -191,7 +199,8 @@ class SettingsPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
+                inherit: true,
               ),
             ),
             const SizedBox(height: 16),
@@ -203,8 +212,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 _showLanguageSelectionDialog(context, ref, l10n);
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.theme,
@@ -213,8 +223,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 _showThemeSelectionDialog(context, ref, l10n);
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.currency,
@@ -223,6 +234,7 @@ class SettingsPage extends ConsumerWidget {
               () {
                 _showCurrencySelectionDialog(context, ref, l10n);
               },
+              ref,
             ),
           ],
         ),
@@ -230,10 +242,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSecuritySection(BuildContext context, AppLocalizations l10n) {
+  Widget _buildSecuritySection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -247,7 +260,8 @@ class SettingsPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
+                inherit: true,
               ),
             ),
             const SizedBox(height: 16),
@@ -259,8 +273,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/change-password');
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.twoFactorAuth,
@@ -269,8 +284,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/two-factor-auth');
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.privacySettings,
@@ -279,6 +295,7 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/privacy-settings');
               },
+              ref,
             ),
           ],
         ),
@@ -287,9 +304,10 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildNotificationsSection(BuildContext context, WidgetRef ref, AppSettings settings, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -303,13 +321,14 @@ class SettingsPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
+                inherit: true,
               ),
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text(l10n.emailNotifications, style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text(l10n.receiveUpdatesEmail, style: TextStyle(color: AppColors.textSecondary)),
+              title: Text(l10n.emailNotifications, style: TextStyle(color: colors.textPrimary, inherit: true)),
+              subtitle: Text(l10n.receiveUpdatesEmail, style: TextStyle(color: colors.textSecondary, inherit: true)),
               value: settings.emailNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updateEmailNotifications(value);
@@ -317,12 +336,12 @@ class SettingsPage extends ConsumerWidget {
                   SnackBar(content: Text('${l10n.emailNotifications} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
-              secondary: Icon(Icons.email, color: AppColors.primaryAccent),
+              secondary: Icon(Icons.email, color: colors.primaryAccent),
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text(l10n.pushNotifications, style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text(l10n.pushNotificationSubtitle, style: TextStyle(color: AppColors.textSecondary)),
+              title: Text(l10n.pushNotifications, style: TextStyle(color: colors.textPrimary, inherit: true)),
+              subtitle: Text(l10n.pushNotificationSubtitle, style: TextStyle(color: colors.textSecondary, inherit: true)),
               value: settings.pushNotifications,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePushNotifications(value);
@@ -330,12 +349,12 @@ class SettingsPage extends ConsumerWidget {
                   SnackBar(content: Text('${l10n.pushNotifications} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
-              secondary: Icon(Icons.notifications, color: AppColors.primaryAccent),
+              secondary: Icon(Icons.notifications, color: colors.primaryAccent),
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text(l10n.paymentReminders, style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text(l10n.paymentReminderSubtitle, style: TextStyle(color: AppColors.textSecondary)),
+              title: Text(l10n.paymentReminders, style: TextStyle(color: colors.textPrimary, inherit: true)),
+              subtitle: Text(l10n.paymentReminderSubtitle, style: TextStyle(color: colors.textSecondary, inherit: true)),
               value: settings.paymentReminders,
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updatePaymentReminders(value);
@@ -343,7 +362,7 @@ class SettingsPage extends ConsumerWidget {
                   SnackBar(content: Text('${l10n.paymentReminders} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
-              secondary: Icon(Icons.payment, color: AppColors.primaryAccent),
+              secondary: Icon(Icons.payment, color: colors.primaryAccent),
             ),
           ],
         ),
@@ -351,10 +370,11 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSupportSection(BuildContext context, AppLocalizations l10n) {
+  Widget _buildSupportSection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -368,7 +388,8 @@ class SettingsPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
+                inherit: true,
               ),
             ),
             const SizedBox(height: 16),
@@ -380,8 +401,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/help-center');
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.contactSupport,
@@ -390,8 +412,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/contact-support');
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.termsOfService,
@@ -400,8 +423,9 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/terms-of-service');
               },
+              ref,
             ),
-            Divider(color: AppColors.dividerSeparator),
+            Divider(color: colors.dividerSeparator),
             _buildSettingItem(
               context,
               l10n.privacyPolicy,
@@ -410,6 +434,7 @@ class SettingsPage extends ConsumerWidget {
               () {
                 context.push('/privacy-policy');
               },
+              ref,
             ),
           ],
         ),
@@ -418,13 +443,14 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildLogoutButton(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return ElevatedButton(
       onPressed: () {
         ref.read(authProvider.notifier).logout();
         context.go('/login');
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.error,
+        backgroundColor: colors.error,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -435,7 +461,8 @@ class SettingsPage extends ConsumerWidget {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: AppColors.textOnAccent,
+          color: colors.textOnAccent,
+          inherit: true,
         ),
       ),
     );
@@ -447,12 +474,14 @@ class SettingsPage extends ConsumerWidget {
     String subtitle,
     IconData icon,
     VoidCallback onTap,
+    WidgetRef ref,
   ) {
+    final colors = ref.watch(dynamicColorsProvider);
     return ListTile(
-      leading: Icon(icon, color: AppColors.primaryAccent),
-      title: Text(title, style: TextStyle(color: AppColors.textPrimary)),
-      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: AppColors.textSecondary)) : null,
-      trailing: Icon(Icons.chevron_right, color: AppColors.textTertiary),
+      leading: Icon(icon, color: colors.primaryAccent),
+      title: Text(title, style: TextStyle(color: colors.textPrimary, inherit: true)),
+      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: colors.textSecondary, inherit: true)) : null,
+      trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
       onTap: onTap,
     );
   }
@@ -485,6 +514,7 @@ class SettingsPage extends ConsumerWidget {
     }
   }
   void _showLanguageSelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     final languages = {
       l10n.english: 'en', 
       l10n.german: 'de', 
@@ -496,12 +526,12 @@ class SettingsPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.selectLanguage, style: TextStyle(color: AppColors.textPrimary)),
+        backgroundColor: colors.surfaceCards,
+        title: Text(l10n.selectLanguage, style: TextStyle(color: colors.textPrimary, inherit: true)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: languages.entries.map((entry) => ListTile(
-            title: Text(entry.key, style: TextStyle(color: AppColors.textPrimary)),
+            title: Text(entry.key, style: TextStyle(color: colors.textPrimary, inherit: true)),
             onTap: () async {
               await settingsNotifier.updateLanguage(entry.value);
               if (context.mounted) {
@@ -516,12 +546,13 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.cancel, style: TextStyle(color: colors.primaryAccent, inherit: true)),
           ),
         ],
       ),
     );
   }  void _showThemeSelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     final themes = {
       l10n.light: 'light', 
       l10n.dark: 'dark', 
@@ -532,16 +563,16 @@ class SettingsPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.selectTheme, style: TextStyle(color: AppColors.textPrimary)),
+        backgroundColor: colors.surfaceCards,
+        title: Text(l10n.selectTheme, style: TextStyle(color: colors.textPrimary, inherit: true)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: themes.entries.map((entry) => ListTile(
-            title: Text(entry.key, style: TextStyle(color: AppColors.textPrimary)),
+            title: Text(entry.key, style: TextStyle(color: colors.textPrimary, inherit: true)),
             trailing: Icon(
               entry.value == 'light' ? Icons.light_mode :
               entry.value == 'dark' ? Icons.dark_mode : Icons.brightness_auto,
-              color: AppColors.primaryAccent,
+              color: colors.primaryAccent,
             ),
             onTap: () async {
               await settingsNotifier.updateTheme(entry.value);
@@ -557,25 +588,26 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.cancel, style: TextStyle(color: colors.primaryAccent, inherit: true)),
           ),
         ],
       ),
     );
   }
   void _showCurrencySelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     final currencies = ['CHF', 'EUR', 'USD', 'GBP'];
     final settingsNotifier = ref.read(settingsProvider.notifier);
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.selectCurrency, style: TextStyle(color: AppColors.textPrimary)),
+        backgroundColor: colors.surfaceCards,
+        title: Text(l10n.selectCurrency, style: TextStyle(color: colors.textPrimary, inherit: true)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: currencies.map((currency) => ListTile(
-            title: Text(currency, style: TextStyle(color: AppColors.textPrimary)),
+            title: Text(currency, style: TextStyle(color: colors.textPrimary, inherit: true)),
             onTap: () async {
               await settingsNotifier.updateCurrency(currency);
               if (context.mounted) {
@@ -590,7 +622,7 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: AppColors.primaryAccent)),
+            child: Text(l10n.cancel, style: TextStyle(color: colors.primaryAccent, inherit: true)),
           ),
         ],
       ),

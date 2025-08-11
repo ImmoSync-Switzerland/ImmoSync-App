@@ -9,6 +9,7 @@ import 'package:immolink/features/home/domain/services/dashboard_service.dart';
 import 'package:immolink/features/chat/domain/models/conversation.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
 import '../../../../core/providers/currency_provider.dart';
@@ -44,14 +45,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return baseFontSize; // Tablets and larger
   }
 
-  // Helper method for responsive padding
-  EdgeInsets _getResponsivePadding(BuildContext context, EdgeInsets basePadding) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) {
-      return EdgeInsets.all(basePadding.top * 0.75); // Reduce padding on very small screens
-    }
-    return basePadding;
-  }
   @override
   void initState() {
     super.initState();
@@ -110,6 +103,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   Widget build(BuildContext context) {
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
     final currentUser = ref.watch(currentUserProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -117,13 +111,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       appBar: _buildAppBar(currentUser?.fullName ?? 'Property Manager'),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: colors.createGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFFF8FAFC), // Sehr helles Grau
-              const Color(0xFFF1F5F9), // Leicht dunkleres Grau
-            ],
           ),
         ),
         child: SafeArea(
@@ -214,20 +204,22 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   PreferredSizeWidget _buildAppBar(String name) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return AppBar(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       centerTitle: true,
       actions: [
         Container(
           margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colors.surfaceCards,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: colors.shadowColor,
                 blurRadius: 12,
                 offset: const Offset(0, 4),
                 spreadRadius: 0,
@@ -235,7 +227,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ],
           ),
           child: IconButton(
-            icon: Icon(Icons.notifications_outlined, color: const Color(0xFF64748B), size: 22),
+            icon: Icon(
+              Icons.notifications_outlined, 
+              color: colors.textSecondary, 
+              size: 22,
+            ),
             onPressed: () => HapticFeedback.lightImpact(),
           ),
         ),
@@ -244,20 +240,22 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
   Widget _buildWelcomeSection(String name) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.shadowColorMedium,
             blurRadius: 6,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -272,12 +270,12 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
+                  color: colors.primaryAccent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.waving_hand_rounded,
-                  color: Colors.white,
+                  color: colors.textOnAccent,
                   size: 24,
                 ),
               ),
@@ -317,27 +315,29 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: colors.accentLight.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.trending_up_rounded,
-                  color: const Color(0xFF3B82F6),
+                  color: colors.primaryAccent,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  l10n.managePropertiesAndTenants,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: const Color(0xFF3B82F6),
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
+                Expanded(
+                  child: Text(
+                    l10n.managePropertiesAndTenants,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colors.primaryAccent,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
                 ),
               ],
             ),
@@ -420,6 +420,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildFinancialOverview(List<Property> properties) {
+    final colors = ref.watch(dynamicColorsProvider);
     final totalRevenue = properties
         .where((p) => p.status == 'rented')
         .fold(0.0, (sum, p) => sum + p.rentAmount);
@@ -431,17 +432,17 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return Container(
       padding: const EdgeInsets.all(32.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.shadowColorMedium,
             blurRadius: 6,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -456,23 +457,25 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
+                  color: colors.primaryAccent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: Colors.white,
+                  color: colors.textOnAccent,
                   size: 24,
                 ),
               ),
               const SizedBox(width: 20),
-              Text(
-                'Financial Overview',
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
-                  letterSpacing: -0.6,
+              Expanded(
+                child: Text(
+                  'Financial Overview',
+                  style: TextStyle(
+                    fontSize: _getResponsiveFontSize(context, 22),
+                    fontWeight: FontWeight.w800,
+                    color: colors.textPrimary,
+                    letterSpacing: -0.6,
+                  ),
                 ),
               ),
             ],
@@ -484,14 +487,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 AppLocalizations.of(context)!.monthlyRevenue,
                 ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
                 Icons.trending_up_outlined,
-                AppColors.success,
+                colors.success,
               ),
               const SizedBox(height: 16),
               _buildFinancialCard(
                 AppLocalizations.of(context)!.outstanding,
                 ref.read(currencyProvider.notifier).formatAmount(outstanding),
                 Icons.warning_outlined,
-                AppColors.warning,
+                colors.warning,
               ),
             ],
           ),
@@ -501,6 +504,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildFinancialCard(String title, String amount, IconData icon, Color color) {
+    final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -509,15 +513,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       child: Container(
         padding: const EdgeInsets.all(24.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colors.surfaceCards,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFE2E8F0),
+            color: colors.borderLight,
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: colors.shadowColor,
               blurRadius: 12,
               offset: const Offset(0, 4),
               spreadRadius: 0,
@@ -534,22 +538,22 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: title.toLowerCase().contains('outstanding') 
-                        ? const Color(0xFFFEF3C7) // Gelb Background
-                        : const Color(0xFFDCFCE7), // Grün Background
+                        ? colors.warningLight
+                        : colors.successLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon, 
                     size: 20, 
                     color: title.toLowerCase().contains('outstanding') 
-                        ? const Color(0xFFF59E0B) // Warnung Orange
-                        : const Color(0xFF10B981), // Erfolg Grün
+                        ? colors.warning
+                        : colors.success,
                   ),
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: const Color(0xFF64748B),
+                  color: colors.textSecondary,
                 ),
               ],
             ),
@@ -559,7 +563,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               style: TextStyle(
                 fontSize: _getResponsiveFontSize(context, 28),
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF0F172A),
+                color: colors.textPrimary,
                 letterSpacing: -0.8,
               ),
               overflow: TextOverflow.ellipsis,
@@ -571,7 +575,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B),
+                color: colors.textSecondary,
                 letterSpacing: 0.8,
               ),
             ),
@@ -582,20 +586,21 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildQuickAccess() {
+    final colors = ref.watch(dynamicColorsProvider);
     return Container(
       padding: const EdgeInsets.all(32.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.shadowColorMedium,
             blurRadius: 6,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -610,12 +615,12 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
+                  color: colors.primaryAccent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.flash_on_outlined,
-                  color: Colors.white,
+                  color: colors.textOnAccent,
                   size: 24,
                 ),
               ),
@@ -626,7 +631,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   style: TextStyle(
                     fontSize: _getResponsiveFontSize(context, 22),
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF0F172A),
+                    color: colors.textPrimary,
                     letterSpacing: -0.6,
                   ),
                 ),
@@ -647,7 +652,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.addProperty,
                             Icons.add_home_outlined,
-                            AppColors.primaryAccent,
+                            colors.primaryAccent,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/add-property');
@@ -659,7 +664,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.messages,
                             Icons.chat_bubble_outline,
-                            AppColors.success,
+                            colors.success,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/conversations');
@@ -675,7 +680,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.reports,
                             Icons.analytics_outlined,
-                            AppColors.warning,
+                            colors.warning,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/reports');
@@ -687,7 +692,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.maintenance,
                             Icons.build_circle_outlined,
-                            AppColors.error,
+                            colors.error,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/maintenance/manage');
@@ -703,7 +708,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.tenants,
                             Icons.people_outline,
-                            AppColors.luxuryGold,
+                            colors.luxuryGold,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/tenants');
@@ -715,7 +720,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             'Services',
                             Icons.room_service_outlined,
-                            AppColors.info,
+                            colors.info,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/landlord/services');
@@ -736,7 +741,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.addProperty,
                             Icons.add_home_outlined,
-                            AppColors.primaryAccent,
+                            colors.primaryAccent,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/add-property');
@@ -748,7 +753,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.messages,
                             Icons.chat_bubble_outline,
-                            AppColors.success,
+                            colors.success,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/conversations');
@@ -760,7 +765,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.reports,
                             Icons.analytics_outlined,
-                            AppColors.warning,
+                            colors.warning,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/reports');
@@ -776,7 +781,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.maintenance,
                             Icons.build_circle_outlined,
-                            AppColors.error,
+                            colors.error,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/maintenance/manage');
@@ -788,7 +793,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             AppLocalizations.of(context)!.tenants,
                             Icons.people_outline,
-                            AppColors.luxuryGold,
+                            colors.luxuryGold,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/tenants');
@@ -800,7 +805,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           child: _buildQuickAccessButton(
                             'Services',
                             Icons.room_service_outlined,
-                            AppColors.info,
+                            colors.info,
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/landlord/services');
@@ -820,6 +825,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildQuickAccessButton(String label, IconData icon, Color iconColor, VoidCallback onPressed) {
+    final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -846,7 +852,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: colors.shadowColor,
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -858,15 +864,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: colors.surfaceCards.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: colors.surfaceCards.withValues(alpha: 0.6),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: colors.surfaceCards.withValues(alpha: 0.8),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                     spreadRadius: 0,
@@ -885,7 +891,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: colors.textPrimary,
                 letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
@@ -899,6 +905,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildPropertyOverview(List<Property> properties) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -906,24 +913,24 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.accentLight.withValues(alpha: 0.2),
+            colors.surfaceCards,
+            colors.accentLight.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: colors.shadowColorMedium,
             blurRadius: 24,
             offset: const Offset(0, 12),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
+            color: colors.surfaceCards.withValues(alpha: 0.9),
             blurRadius: 1,
             offset: const Offset(0, 1),
             spreadRadius: 0,
@@ -936,56 +943,60 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primaryAccent.withValues(alpha: 0.2),
-                          AppColors.primaryAccent.withValues(alpha: 0.1),
-                        ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colors.primaryAccent.withValues(alpha: 0.2),
+                            colors.primaryAccent.withValues(alpha: 0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colors.primaryAccent.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primaryAccent.withValues(alpha: 0.3),
-                        width: 1,
+                      child: Icon(
+                        Icons.home_work_outlined,
+                        color: colors.primaryAccent,
+                        size: 24,
                       ),
                     ),
-                    child: Icon(
-                      Icons.home_work_outlined,
-                      color: AppColors.primaryAccent,
-                      size: 24,
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Text(
+                        'Properties',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 18),
-                  Text(
-                    'Properties',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                  color: colors.primaryAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.2)),
+                  border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   '${properties.length} Total',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primaryAccent,
+                    color: colors.primaryAccent,
                     letterSpacing: -0.1,
                   ),
                 ),
@@ -1007,14 +1018,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.2)),
+                  border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.05),
-                      AppColors.primaryAccent.withValues(alpha: 0.02),
+                      colors.primaryAccent.withValues(alpha: 0.05),
+                      colors.primaryAccent.withValues(alpha: 0.02),
                     ],
                   ),
                 ),
@@ -1026,7 +1037,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primaryAccent,
+                        color: colors.primaryAccent,
                         letterSpacing: -0.1,
                       ),
                     ),
@@ -1034,7 +1045,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 14,
-                      color: AppColors.primaryAccent,
+                      color: colors.primaryAccent,
                     ),
                   ],
                 ),
@@ -1046,8 +1057,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildPropertyCard(Property property) {
-    final statusColor = property.status == 'rented' ? AppColors.success : 
-                      property.status == 'available' ? AppColors.primaryAccent : AppColors.warning;
+    final colors = ref.watch(dynamicColorsProvider);
+    final statusColor = property.status == 'rented' ? colors.success : 
+                      property.status == 'available' ? colors.primaryAccent : colors.warning;
 
     return GestureDetector(
       onTap: () {
@@ -1061,7 +1073,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceCards,
+              colors.surfaceCards,
               statusColor.withValues(alpha: 0.02),
             ],
           ),
@@ -1112,7 +1124,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       letterSpacing: -0.2,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -1124,7 +1136,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       Icon(
                         Icons.attach_money,
                         size: 16,
-                        color: AppColors.success,
+                        color: colors.success,
                       ),
                       Expanded(
                         child: Text(
@@ -1132,7 +1144,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.success,
+                            color: colors.success,
                             letterSpacing: -0.1,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -1170,6 +1182,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildRecentMessages() {
+    final colors = ref.watch(dynamicColorsProvider);
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -1177,18 +1190,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: colors.shadowColorMedium,
             blurRadius: 24,
             offset: const Offset(0, 12),
             spreadRadius: 0,
@@ -1213,19 +1226,19 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.success.withValues(alpha: 0.2),
-                      AppColors.success.withValues(alpha: 0.1),
+                      colors.success.withValues(alpha: 0.2),
+                      colors.success.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.success.withValues(alpha: 0.3),
+                    color: colors.success.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   Icons.chat_bubble_outline,
-                  color: AppColors.success,
+                  color: colors.success,
                   size: 24,
                 ),
               ),
@@ -1235,8 +1248,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   letterSpacing: -0.5,
+                  inherit: true,
                 ),
               ),
             ],
@@ -1251,7 +1265,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 'No recent messages',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
+                  inherit: true,
                 ),
               ),
             )
@@ -1268,6 +1283,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildMessageItem(Conversation conversation) {
+    final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
       onTap: () => _navigateToChat(conversation),
       child: Container(
@@ -1277,18 +1293,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceCards,
-              AppColors.primaryAccent.withValues(alpha: 0.02),
+              colors.surfaceCards,
+              colors.primaryAccent.withValues(alpha: 0.02),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.primaryAccent.withValues(alpha: 0.1),
+            color: colors.primaryAccent.withValues(alpha: 0.1),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor,
+              color: colors.shadowColor,
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -1303,17 +1319,17 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.primaryAccent.withValues(alpha: 0.2),
-                    AppColors.primaryAccent.withValues(alpha: 0.1),
+                    colors.primaryAccent.withValues(alpha: 0.2),
+                    colors.primaryAccent.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.2),
+                  color: colors.primaryAccent.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
-              child: Icon(Icons.chat_bubble_outline, color: AppColors.primaryAccent, size: 20),
+              child: Icon(Icons.chat_bubble_outline, color: colors.primaryAccent, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1328,8 +1344,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                             letterSpacing: -0.2,
+                            inherit: true,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1338,8 +1355,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         _getTimeAgo(conversation.lastMessageTime),
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textTertiary,
+                          color: colors.textTertiary,
                           fontWeight: FontWeight.w500,
+                          inherit: true,
                         ),
                       ),
                     ],
@@ -1349,8 +1367,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     conversation.lastMessage,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       letterSpacing: -0.1,
+                      inherit: true,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -1383,6 +1402,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildMaintenanceRequests() {
+    final colors = ref.watch(dynamicColorsProvider);
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -1390,18 +1410,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.warningLight.withValues(alpha: 0.3),
+            colors.surfaceCards,
+            colors.warningLight.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: colors.shadowColorMedium,
             blurRadius: 24,
             offset: const Offset(0, 12),
             spreadRadius: 0,
@@ -1426,19 +1446,19 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.warning.withValues(alpha: 0.2),
-                      AppColors.warning.withValues(alpha: 0.1),
+                      colors.warning.withValues(alpha: 0.2),
+                      colors.warning.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.warning.withValues(alpha: 0.3),
+                    color: colors.warning.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   Icons.build_circle_outlined,
-                  color: AppColors.warning,
+                  color: colors.warning,
                   size: 24,
                 ),
               ),
@@ -1448,8 +1468,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   letterSpacing: -0.5,
+                  inherit: true,
                 ),
               ),
             ],
@@ -1464,7 +1485,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 'No pending maintenance requests',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
+                  inherit: true,
                 ),
               ),
             )
@@ -1484,6 +1506,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildMaintenanceCard(MaintenanceRequest request, BuildContext context) {
+    final colors = ref.watch(dynamicColorsProvider);
     Color priorityColor = _getPriorityColor(request.priority);
     IconData icon = CategoryUtils.getCategoryIcon(request.category);
     
@@ -1498,7 +1521,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceCards,
+              colors.surfaceCards,
               priorityColor.withValues(alpha: 0.02),
             ],
           ),
@@ -1509,7 +1532,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor,
+              color: colors.shadowColor,
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -1546,8 +1569,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       letterSpacing: -0.2,
+                      inherit: true,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -1558,7 +1582,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       Icon(
                         Icons.location_on_outlined,
                         size: 14,
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -1566,8 +1590,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           request.location,
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                             letterSpacing: -0.1,
+                            inherit: true,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1594,6 +1619,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   fontWeight: FontWeight.w600,
                   color: priorityColor,
                   letterSpacing: 0.5,
+                  inherit: true,
                 ),
               ),
             ),

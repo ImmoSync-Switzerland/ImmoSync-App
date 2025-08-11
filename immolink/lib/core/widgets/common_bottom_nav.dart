@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../theme/app_colors.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/dynamic_colors_provider.dart';
 
 class CommonBottomNav extends ConsumerWidget {
   const CommonBottomNav({super.key});
@@ -11,6 +11,7 @@ class CommonBottomNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(routeAwareNavigationProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     
     // Update navigation index based on current route
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -24,19 +25,19 @@ class CommonBottomNav extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.primaryBackground,
-            AppColors.luxuryGradientStart,
+            colors.primaryBackground,
+            colors.luxuryGradientStart,
           ],
         ),
         border: Border(
           top: BorderSide(
-            color: AppColors.borderLight,
+            color: colors.borderLight,
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: colors.shadowColorMedium,
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -70,16 +71,16 @@ class CommonBottomNav extends ConsumerWidget {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        selectedItemColor: AppColors.primaryAccent,
-        unselectedItemColor: AppColors.textTertiary,
+        selectedItemColor: colors.primaryAccent,
+        unselectedItemColor: colors.textTertiary,
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: [
-          _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex),
-          _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex),
-          _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex),
-          _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex),
-          _buildBottomNavItem(Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex),
+          _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex, colors),
+          _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex, colors),
+          _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex, colors),
+          _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex, colors),
+          _buildBottomNavItem(Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex, colors),
         ],
       ),
     );
@@ -90,7 +91,8 @@ class CommonBottomNav extends ConsumerWidget {
     IconData activeIcon, 
     String label, 
     int index, 
-    int selectedIndex
+    int selectedIndex,
+    dynamic colors,
   ) {
     final isSelected = selectedIndex == index;
     return BottomNavigationBarItem(
@@ -101,19 +103,19 @@ class CommonBottomNav extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent.withValues(alpha: 0.1),
-              AppColors.primaryAccent.withValues(alpha: 0.05),
+              colors.primaryAccent.withValues(alpha: 0.1),
+              colors.primaryAccent.withValues(alpha: 0.05),
             ],
           ) : null,
           borderRadius: BorderRadius.circular(12),
           border: isSelected ? Border.all(
-            color: AppColors.primaryAccent.withValues(alpha: 0.2),
+            color: colors.primaryAccent.withValues(alpha: 0.2),
             width: 1,
           ) : null,
         ),
         child: Icon(
           isSelected ? activeIcon : icon,
-          color: isSelected ? AppColors.primaryAccent : AppColors.textTertiary,
+          color: isSelected ? colors.primaryAccent : colors.textTertiary,
         ),
       ),
       label: label,

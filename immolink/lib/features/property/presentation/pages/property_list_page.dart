@@ -6,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../../core/providers/navigation_provider.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../auth/presentation/providers/user_role_provider.dart';
@@ -39,24 +40,16 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     });
   }
   
-  // Design system colors
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color surface = Color(0xFFF2F2F2);
-  static const Color accent = Color(0xFF007AFF);
-  static const Color textPrimary = Color(0xFF000000);
-  static const Color textSecondary = Color(0xFF212121);
-  static const Color textCaption = Color(0xFF8E8E93);
-  static const Color success = Color(0xFF34C759);
-  static const Color warning = Color.fromARGB(255, 105, 96, 82);
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;;
     final userRole = ref.watch(userRoleProvider);
     final propertiesAsync = userRole == 'tenant' 
         ? ref.watch(tenantPropertiesProvider)
         : ref.watch(landlordPropertiesProvider);
       return Scaffold(
-      backgroundColor: background,
+      backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(l10n),
       bottomNavigationBar: const CommonBottomNav(),
       body: SafeArea(
@@ -66,9 +59,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             Expanded(
               child: propertiesAsync.when(
                 data: (properties) => _buildPropertyList(_filterProperties(properties), l10n),
-                loading: () => const Center(
+                loading: () => Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(accent),
+                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                   ),
                 ),
                 error: (error, stack) => _buildErrorState(error, l10n),
@@ -82,21 +75,23 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     );
   }
   PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return AppBar(
-      backgroundColor: background,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       title: Text(
         l10n.myProperties,
         style: TextStyle(
-          color: textPrimary,
+          color: colors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
+          inherit: true,
         ),
       ),
       centerTitle: true,      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: textPrimary, size: 20),
+        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
         onPressed: () {
           HapticFeedback.lightImpact();
           if (context.canPop()) {
@@ -143,6 +138,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.1,
+                  inherit: true,
                 ),
                 prefixIcon: Container(
                   padding: const EdgeInsets.all(12),
@@ -178,6 +174,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
                 letterSpacing: -0.1,
+                inherit: true,
               ),
             ),
           ),
@@ -204,6 +201,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildFilterChip(String label, String value) {
+    final colors = ref.watch(dynamicColorsProvider);
     final isSelected = _statusFilter == value;
     return GestureDetector(
       onTap: () {
@@ -218,21 +216,21 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  accent,
-                  accent.withValues(alpha: 0.8),
+                  colors.primaryAccent,
+                  colors.primaryAccent.withValues(alpha: 0.8),
                 ],
               )
             : null,
-          color: isSelected ? null : Colors.white,
+          color: isSelected ? null : colors.surfaceCards,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? accent : const Color(0xFFE2E8F0),
+            color: isSelected ? colors.primaryAccent : colors.dividerSeparator,
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected 
-                ? accent.withValues(alpha: 0.3)
+                ? colors.primaryAccent.withValues(alpha: 0.3)
                 : Colors.black.withValues(alpha: 0.04),
               blurRadius: isSelected ? 12 : 6,
               offset: Offset(0, isSelected ? 6 : 2),
@@ -247,6 +245,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             fontSize: 14,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.1,
+            inherit: true,
           ),
         ),
       ),
@@ -273,6 +272,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildPropertyList(List<Property> properties, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     if (properties.isEmpty) {
       return _buildEmptyState(l10n);
     }
@@ -283,7 +283,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         ref.invalidate(landlordPropertiesProvider);
         await Future.delayed(const Duration(seconds: 1));
       },
-      color: accent,
+      color: colors.primaryAccent,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: properties.length,
@@ -299,8 +299,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildPropertyCard(Property property, AppLocalizations l10n) {
-    final statusColor = property.status == 'rented' ? success : 
-                      property.status == 'available' ? accent : warning;
+    final colors = ref.watch(dynamicColorsProvider);
+    final statusColor = property.status == 'rented' ? colors.success : 
+                      property.status == 'available' ? colors.primaryAccent : colors.warning;
 
     return GestureDetector(
       onTap: () {
@@ -308,13 +309,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         context.push('/property/${property.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(28.0),
+        padding: const EdgeInsets.all(16.0), // Reduced from 28.0 to 16.0
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white,
+              colors.surfaceCards,
               statusColor.withValues(alpha: 0.02),
             ],
           ),
@@ -374,12 +375,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       Text(
                         property.address.street,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16, // Reduced from 18
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: colors.textPrimary,
                           letterSpacing: -0.3,
+                          inherit: true,
                         ),
-                        maxLines: 2,
+                        maxLines: 1, // Changed from 2 to 1 to prevent overflow
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
@@ -388,17 +390,18 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                           Icon(
                             Icons.location_on_outlined,
                             size: 16,
-                            color: const Color(0xFF64748B),
+                            color: colors.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               '${property.address.city}, ${property.address.postalCode}',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: const Color(0xFF64748B),
+                                fontSize: 13, // Reduced from 14
+                                color: colors.textSecondary,
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: -0.1,
+                                inherit: true,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -427,6 +430,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       fontWeight: FontWeight.w600,
                       color: statusColor,
                       letterSpacing: 0.5,
+                      inherit: true,
                     ),
                   ),
                 ),
@@ -451,7 +455,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       icon: Icons.attach_money,
                       label: l10n.monthlyRent,
                       value: ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
-                      iconColor: success,
+                      iconColor: colors.success,
                       isPrice: true,
                     ),
                   ),
@@ -465,7 +469,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       icon: Icons.square_foot,
                       label: l10n.size,
                       value: '${property.details.size.toStringAsFixed(0)} m²',
-                      iconColor: accent,
+                      iconColor: colors.primaryAccent,
                     ),
                   ),
                   Container(
@@ -478,7 +482,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       icon: Icons.meeting_room,
                       label: l10n.rooms,
                       value: '${property.details.rooms}',
-                      iconColor: warning,
+                      iconColor: colors.warning,
                     ),
                   ),
                 ],
@@ -519,6 +523,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             fontWeight: FontWeight.w700,
             color: const Color(0xFF0F172A),
             letterSpacing: -0.2,
+            inherit: true,
           ),
           textAlign: TextAlign.center,
         ),
@@ -530,6 +535,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             fontWeight: FontWeight.w600,
             color: const Color(0xFF64748B),
             letterSpacing: 0.5,
+            inherit: true,
           ),
           textAlign: TextAlign.center,
         ),
@@ -539,6 +545,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   Widget _buildEmptyState(AppLocalizations l10n) {
     final userRole = ref.watch(userRoleProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     
     return Center(
       child: Column(
@@ -547,14 +554,15 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           Icon(
             Icons.home_outlined,
             size: 64,
-            color: textCaption.withValues(alpha: 0.5),
+            color: colors.textTertiary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),          Text(
             userRole == 'tenant' ? l10n.noPropertiesAssigned : l10n.noPropertiesFound,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: textPrimary,
+              color: colors.textPrimary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),          Text(
@@ -563,7 +571,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 : l10n.addFirstProperty,
             style: TextStyle(
               fontSize: 14,
-              color: textCaption,
+              color: colors.textTertiary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 24),
@@ -575,7 +584,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 context.push('/add-property');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: accent,
+                backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -590,6 +599,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildErrorState(Object error, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -604,15 +614,17 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: textPrimary,
+              color: colors.textPrimary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: textCaption,
+              color: colors.textTertiary,
+              inherit: true,
             ),
             textAlign: TextAlign.center,
           ),
@@ -620,10 +632,12 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ElevatedButton(
             onPressed: () {
               HapticFeedback.mediumImpact();
+              // Invalidate both providers to ensure proper refresh regardless of user role
               ref.invalidate(landlordPropertiesProvider);
+              ref.invalidate(tenantPropertiesProvider);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: accent,
+              backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -638,11 +652,12 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildFAB() {
+    final colors = ref.watch(dynamicColorsProvider);
     return FloatingActionButton(
       onPressed: () {
         HapticFeedback.mediumImpact();
         context.push('/add-property');
-      },      backgroundColor: accent,
+      },      backgroundColor: colors.primaryAccent,
       foregroundColor: Colors.white,
       elevation: 4,
       child: const Icon(Icons.add, size: 24),
@@ -666,6 +681,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   void _showFilterDialog(BuildContext context, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -674,7 +690,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.all_inclusive, color: accent),
+              leading: Icon(Icons.all_inclusive, color: colors.primaryAccent),
               title: Text(l10n.all),
               onTap: () {
                 Navigator.of(context).pop();
@@ -682,7 +698,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.check_circle, color: success),
+              leading: Icon(Icons.check_circle, color: colors.success),
               title: Text(l10n.available),
               onTap: () {
                 Navigator.of(context).pop();
@@ -690,7 +706,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.home, color: accent),
+              leading: Icon(Icons.home, color: colors.primaryAccent),
               title: Text(l10n.rented),
               onTap: () {
                 Navigator.of(context).pop();
@@ -698,7 +714,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.build, color: warning),
+              leading: Icon(Icons.build, color: colors.warning),
               title: Text(l10n.maintenance),
               onTap: () {
                 Navigator.of(context).pop();
