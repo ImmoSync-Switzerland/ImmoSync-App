@@ -12,6 +12,7 @@ import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/currency_provider.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class PropertyDetailsPage extends ConsumerWidget {
   final String propertyId;
@@ -444,6 +445,8 @@ class PropertyDetailsPage extends ConsumerWidget {
   }
 
   Widget _buildFinancialDetails(BuildContext context, Property property, WidgetRef ref) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -453,13 +456,14 @@ class PropertyDetailsPage extends ConsumerWidget {
             AppLocalizations.of(context)!.financialDetails,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: colors.textPrimary,
                 ),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -469,12 +473,15 @@ class PropertyDetailsPage extends ConsumerWidget {
                   children: [
                     Text(
                       AppLocalizations.of(context)!.monthlyRent,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                     Text(
                       ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: colors.textPrimary,
                           ),
                     ),
                   ],
@@ -485,15 +492,17 @@ class PropertyDetailsPage extends ConsumerWidget {
                   children: [
                     Text(
                       AppLocalizations.of(context)!.outstandingPayments,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                     Text(
                       ref.read(currencyProvider.notifier).formatAmount(property.outstandingPayments),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: property.outstandingPayments > 0
-                                ? Colors.red
-                                : Colors.green,
+                                ? colors.error
+                                : colors.success,
                           ),
                     ),
                   ],

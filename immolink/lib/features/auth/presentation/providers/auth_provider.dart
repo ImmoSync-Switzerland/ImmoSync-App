@@ -90,10 +90,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> login(String email, String password) async {
+    print('AuthProvider: Starting login for $email');
     state = state.copyWith(isLoading: true, error: null);
+    print('AuthProvider: State set to loading=true, error=null');
 
     try {
+      print('AuthProvider: Calling auth service...');
       final userData = await _authService.loginUser(email: email, password: password);
+      print('AuthProvider: Login successful, userData: $userData');
 
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([
@@ -112,12 +116,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         userId: userData['userId']
       );
+      print('AuthProvider: Login state updated - authenticated: true');
     } catch (e) {
+      print('AuthProvider: Login failed with error: $e');
+      final errorMessage = e.toString();
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: errorMessage,
         isAuthenticated: false
       );
+      print('AuthProvider: Error state set - error: $errorMessage, loading: false, authenticated: false');
     }
   }
 

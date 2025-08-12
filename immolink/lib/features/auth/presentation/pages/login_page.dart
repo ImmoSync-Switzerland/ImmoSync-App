@@ -22,6 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
+  String? _currentError; // Track current error message
   bool _isShowingErrorDialog = false;
 
   @override
@@ -51,14 +52,38 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget build(BuildContext context) {
     // Listen to auth state changes
     ref.listen<AuthState>(authProvider, (previous, current) {
-      print('Auth state changed: isAuth=${current.isAuthenticated}, error=${current.error}, loading=${current.isLoading}');
+      print('LoginPage: Auth state changed - isAuth=${current.isAuthenticated}, error=${current.error}, loading=${current.isLoading}');
+      print('LoginPage: _isShowingErrorDialog=$_isShowingErrorDialog, mounted=$mounted');
+      
       if (current.isAuthenticated) {
-        context.go('/home');  // Navigate when authenticated
-      } else if (current.error != null && !current.isLoading && !_isShowingErrorDialog) {
-        // Show error popup when login fails
-        print('Showing error dialog: ${current.error}');
-        _isShowingErrorDialog = true;
-        _showErrorDialog(context, current.error!);
+        print('LoginPage: User authenticated, navigating to /home');
+        // Clear any previous error
+        setState(() {
+          _currentError = null;
+        });
+        if (mounted) {
+          context.go('/home');  // Navigate when authenticated
+        }
+      } else if (current.error != null && !current.isLoading) {
+        // Set error state to display inline
+        print('LoginPage: Setting error state: ${current.error}');
+        setState(() {
+          _currentError = current.error;
+        });
+        
+        // Also try dialog if mounted and not already showing
+        if (mounted && !_isShowingErrorDialog) {
+          print('LoginPage: Showing error dialog for: ${current.error}');
+          _isShowingErrorDialog = true;
+          _showErrorDialog(context, current.error!);
+        }
+      } else if (current.isLoading) {
+        // Clear error when starting new login attempt
+        setState(() {
+          _currentError = null;
+        });
+      } else if (current.error != null) {
+        print('LoginPage: Error exists but not showing dialog - loading: ${current.isLoading}, _isShowingErrorDialog: $_isShowingErrorDialog, mounted: $mounted');
       }
     });
 
@@ -216,6 +241,42 @@ class _LoginPageState extends ConsumerState<LoginPage>
               isPassword: true,
             ),
             const SizedBox(height: 16),
+            // Show error banner if there's an error
+            if (_currentError != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.red.shade200,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.red.shade600,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _currentError!,
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             _buildForgotPassword(),
             const SizedBox(height: 32),
             if (authState.isLoading)
@@ -340,11 +401,21 @@ class _LoginPageState extends ConsumerState<LoginPage>
       child: ElevatedButton(
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
-            print('Login attempt with: ${_emailController.text}'); // Debug log
+            print('LoginPage: Login button pressed - calling auth provider');
+            print('LoginPage: Login attempt with: ${_emailController.text}'); // Debug log
+            
             await ref.read(authProvider.notifier).login(
               _emailController.text,
               _passwordController.text,
             );
+            
+            if (mounted) {
+              print('LoginPage: Auth provider login call completed');
+            } else {
+              print('LoginPage: Widget unmounted after login call');
+            }
+          } else {
+            print('LoginPage: Form validation failed');
           }
         },
         style: ElevatedButton.styleFrom(
@@ -491,9 +562,20 @@ class _LoginPageState extends ConsumerState<LoginPage>
   }
 
   void _showErrorDialog(BuildContext context, String error) {
+    print('LoginPage: _showErrorDialog called with error: $error');
+    print('LoginPage: Context is valid: ${context.mounted}, Widget mounted: $mounted');
+    
+    if (!mounted) {
+      print('LoginPage: Widget not mounted, skipping dialog');
+      _isShowingErrorDialog = false;
+      return;
+    }
+    
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (BuildContext context) {
+        print('LoginPage: Dialog builder called - creating dialog widget');
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -578,7 +660,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
         );
       },
-    );
+    ).then((_) {
+      // Reset flag when dialog is dismissed by any means
+      print('LoginPage: Error dialog dismissed, resetting flag');
+      _isShowingErrorDialog = false;
+    });
   }
 
   String _formatErrorMessage(String error) {

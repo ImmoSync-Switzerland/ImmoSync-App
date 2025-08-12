@@ -37,6 +37,9 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    print('AuthService: Making login request to: $_apiUrl/auth/login');
+    print('AuthService: Login email: $email');
+    
     final response = await http.post(
       Uri.parse('$_apiUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
@@ -45,6 +48,9 @@ class AuthService {
         'password': password,
       }),
     );
+
+    print('AuthService: Login response status: ${response.statusCode}');
+    print('AuthService: Login response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -59,7 +65,18 @@ class AuthService {
       };
     }
 
-    throw Exception(json.decode(response.body)['message'] ?? 'Login failed');
+    // Parse error message from response
+    String errorMessage = 'Login failed';
+    try {
+      final errorData = json.decode(response.body);
+      errorMessage = errorData['message'] ?? 'Login failed';
+    } catch (e) {
+      print('AuthService: Error parsing error response: $e');
+      errorMessage = 'Login failed - Invalid response';
+    }
+    
+    print('AuthService: Throwing exception: $errorMessage');
+    throw Exception(errorMessage);
   }
 }
 

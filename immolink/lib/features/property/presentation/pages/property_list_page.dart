@@ -105,6 +105,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildSearchAndFilter(AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -112,7 +114,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           // Search bar with modern design matching dashboard
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -131,10 +133,15 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             ),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
               decoration: InputDecoration(
                 hintText: l10n.searchProperties,
                 hintStyle: TextStyle(
-                  color: const Color(0xFF64748B),
+                  color: colors.textSecondary,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.1,
@@ -144,15 +151,19 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   padding: const EdgeInsets.all(12),
                   child: Icon(
                     Icons.search_outlined, 
-                    color: const Color(0xFF64748B),
+                    color: colors.textSecondary,
                     size: 20,
                   ),
                 ),
                 suffixIcon: Container(
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: colors.surfaceCards,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colors.borderLight,
+                      width: 1,
+                    ),
                   ),
                   child: IconButton(
                     onPressed: () {
@@ -161,20 +172,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     },
                     icon: Icon(
                       Icons.filter_list_outlined,
-                      color: const Color(0xFF64748B),
+                      color: colors.textSecondary,
                       size: 18,
                     ),
                   ),
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-              ),
-              style: TextStyle(
-                color: const Color(0xFF0F172A),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                letterSpacing: -0.1,
-                inherit: true,
               ),
             ),
           ),
@@ -441,10 +445,10 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: colors.surfaceCards,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFFE2E8F0),
+                  color: colors.borderLight,
                   width: 1,
                 ),
               ),
@@ -457,12 +461,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       value: ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
                       iconColor: colors.success,
                       isPrice: true,
+                      colors: colors,
                     ),
                   ),
                   Container(
                     width: 1,
                     height: 50,
-                    color: const Color(0xFFE2E8F0),
+                    color: colors.borderLight,
                   ),
                   Expanded(
                     child: _buildDetailColumn(
@@ -470,12 +475,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       label: l10n.size,
                       value: '${property.details.size.toStringAsFixed(0)} m²',
                       iconColor: colors.primaryAccent,
+                      colors: colors,
                     ),
                   ),
                   Container(
                     width: 1,
                     height: 50,
-                    color: const Color(0xFFE2E8F0),
+                    color: colors.borderLight,
                   ),
                   Expanded(
                     child: _buildDetailColumn(
@@ -483,6 +489,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       label: l10n.rooms,
                       value: '${property.details.rooms}',
                       iconColor: colors.warning,
+                      colors: colors,
                     ),
                   ),
                 ],
@@ -499,6 +506,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     required String label,
     required String value,
     required Color iconColor,
+    required DynamicAppColors colors,
     bool isPrice = false,
   }) {
     return Column(
@@ -521,7 +529,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           style: TextStyle(
             fontSize: isPrice ? 16 : 15,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF0F172A),
+            color: colors.textPrimary,
             letterSpacing: -0.2,
             inherit: true,
           ),
@@ -533,7 +541,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF64748B),
+            color: colors.textSecondary,
             letterSpacing: 0.5,
             inherit: true,
           ),
