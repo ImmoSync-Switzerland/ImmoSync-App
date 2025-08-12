@@ -288,9 +288,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       l10n.goodMorning,
                       style: TextStyle(
                         fontSize: 14,
-                        color: const Color(0xFF64748B),
+                        color: colors.textSecondary,
                         fontWeight: FontWeight.w500,
                         letterSpacing: -0.1,
+                        inherit: true,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -299,9 +300,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       style: TextStyle(
                         fontSize: _getResponsiveFontSize(context, 32),
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
+                        color: colors.textPrimary,
                         letterSpacing: -0.8,
                         height: 1.1,
+                        inherit: true,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
@@ -1746,16 +1748,17 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Color _getPriorityColor(String priority) {
+    final colors = ref.watch(dynamicColorsProvider);
     switch (priority) {
       case 'urgent':
       case 'high':
-        return AppColors.error;
+        return colors.error;
       case 'medium':
-        return AppColors.warning;
+        return colors.warning;
       case 'low':
-        return AppColors.success;
+        return colors.success;
       default:
-        return AppColors.warning;
+        return colors.warning;
     }
   }
 

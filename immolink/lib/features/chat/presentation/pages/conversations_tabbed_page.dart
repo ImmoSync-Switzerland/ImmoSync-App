@@ -9,6 +9,7 @@ import '../../domain/models/conversation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../widgets/invitation_card.dart';
 
 class ConversationsTabbedPage extends ConsumerStatefulWidget {
@@ -45,25 +46,27 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         centerTitle: false,
         title: Text(
           l10n.messages,
           style: TextStyle(
-            color: const Color(0xFF0F172A),
+            color: colors.textPrimary,
             fontSize: 28,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.8,
+            inherit: true,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: const Color(0xFF64748B)),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textSecondary),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -76,11 +79,11 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           Container(
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: colors.shadowColor,
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                   spreadRadius: 0,
@@ -88,7 +91,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
               ],
             ),
             child: IconButton(
-              icon: Icon(Icons.contacts_outlined, color: const Color(0xFF3B82F6), size: 22),
+              icon: Icon(Icons.contacts_outlined, color: colors.primaryAccent, size: 22),
               onPressed: () {
                 HapticFeedback.lightImpact();
                 context.push('/address-book');
@@ -98,19 +101,21 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF3B82F6),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF3B82F6),
+          labelColor: colors.primaryAccent,
+          unselectedLabelColor: colors.textSecondary,
+          indicatorColor: colors.primaryAccent,
           indicatorWeight: 3,
           labelStyle: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
+            inherit: true,
           ),
           unselectedLabelStyle: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.2,
+            inherit: true,
           ),
           tabs: [
             Tab(text: l10n.messages),
@@ -137,20 +142,22 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   }
 
   Widget _buildSearchBar() {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.shadowColorMedium,
             blurRadius: 6,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -167,16 +174,17 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
         decoration: InputDecoration(
           hintText: 'Search conversations...',
           hintStyle: TextStyle(
-            color: const Color(0xFF64748B),
+            color: colors.textSecondary,
             fontSize: 15,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.1,
+            inherit: true,
           ),
           prefixIcon: Container(
             padding: const EdgeInsets.all(12),
             child: Icon(
               Icons.search_outlined, 
-              color: const Color(0xFF64748B),
+              color: colors.textSecondary,
               size: 20,
             ),
           ),
@@ -184,10 +192,11 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
         style: TextStyle(
-          color: const Color(0xFF0F172A),
+          color: colors.textPrimary,
           fontSize: 15,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.1,
+          inherit: true,
         ),
       ),
     );
@@ -195,6 +204,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
 
   Widget _buildMessagesTab() {
     final conversationsAsync = ref.watch(conversationsProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     
     return conversationsAsync.when(
       data: (conversations) {
@@ -222,12 +232,12 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           },
         );
       },
-      loading: () => const Center(
+      loading: () => Center(
         child: SizedBox(
           width: 32,
           height: 32,
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+            valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
             strokeWidth: 2.5,
           ),
         ),
@@ -239,6 +249,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   Widget _buildInvitationsTab() {
     final currentUser = ref.watch(currentUserProvider);
     final invitationsAsync = ref.watch(userInvitationsProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     
     return invitationsAsync.when(
       data: (invitations) {
@@ -277,12 +288,12 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           },
         );
       },
-      loading: () => const Center(
+      loading: () => Center(
         child: SizedBox(
           width: 32,
           height: 32,
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+            valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
             strokeWidth: 2.5,
           ),
         ),
@@ -297,6 +308,8 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     String otherUserId, 
     String currentUserId
   ) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -307,17 +320,17 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colors.surfaceCards,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: colors.shadowColor,
               blurRadius: 24,
               offset: const Offset(0, 8),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: colors.shadowColorMedium,
               blurRadius: 6,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -330,16 +343,16 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                color: colors.primaryAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                  color: colors.primaryAccent.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
               child: Icon(
                 Icons.person_outline,
-                color: const Color(0xFF3B82F6),
+                color: colors.primaryAccent,
                 size: 24,
               ),
             ),
@@ -356,8 +369,9 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                            color: colors.textPrimary,
                             letterSpacing: -0.2,
+                            inherit: true,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -366,8 +380,9 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
                         _getTimeAgo(conversation.lastMessageTime),
                         style: TextStyle(
                           fontSize: 12,
-                          color: const Color(0xFF64748B),
+                          color: colors.textSecondary,
                           fontWeight: FontWeight.w500,
+                          inherit: true,
                         ),
                       ),
                     ],
@@ -377,8 +392,9 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
                     conversation.lastMessage,
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFF64748B),
+                      color: colors.textSecondary,
                       letterSpacing: -0.1,
+                      inherit: true,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -393,6 +409,8 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   }
 
   Widget _buildEmptyState(String title, String subtitle) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -400,13 +418,13 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+              color: colors.primaryAccent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
               Icons.chat_bubble_outline,
               size: 48,
-              color: const Color(0xFF3B82F6),
+              color: colors.primaryAccent,
             ),
           ),
           const SizedBox(height: 24),
@@ -415,8 +433,9 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
+              color: colors.textPrimary,
               letterSpacing: -0.4,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),
@@ -424,7 +443,8 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
             subtitle,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF64748B),
+              color: colors.textSecondary,
+              inherit: true,
             ),
             textAlign: TextAlign.center,
           ),
@@ -434,18 +454,21 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   }
 
   Widget _buildErrorState() {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: const Color(0xFFEF4444)),
+          Icon(Icons.error_outline, size: 48, color: colors.error),
           const SizedBox(height: 16),
           Text(
             'Something went wrong',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF0F172A),
+              color: colors.textPrimary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),
@@ -453,7 +476,8 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
             'Please try again later',
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF64748B),
+              color: colors.textSecondary,
+              inherit: true,
             ),
           ),
         ],

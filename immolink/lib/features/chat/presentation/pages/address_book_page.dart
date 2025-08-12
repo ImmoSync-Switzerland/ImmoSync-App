@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../domain/models/contact_user.dart';
 import '../providers/contact_providers.dart';
 import '../providers/chat_service_provider.dart';
@@ -30,21 +30,24 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
     final currentUser = ref.watch(currentUserProvider);
     final contactsAsync = ref.watch(userContactsProvider);
     final isLandlord = currentUser?.role == 'landlord';
+    final colors = ref.watch(dynamicColorsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           isLandlord ? 'Tenants' : 'Landlords',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
+            inherit: true,
           ),
-        ),        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -62,7 +65,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               data: (contacts) {
                 final filteredContacts = _filterContacts(contacts);
                 if (filteredContacts.isEmpty) {
-                  return _buildEmptyState(isLandlord);
+                  return _buildEmptyState(isLandlord, colors);
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -71,28 +74,29 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                     final contact = filteredContacts[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildContactTile(contact, isLandlord),
+                      child: _buildContactTile(contact, isLandlord, colors),
                     );
                   },
                 );
               },
-              loading: () => const Center(
+              loading: () => Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
               ),
               error: (error, _) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                    Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
                       'Error loading contacts',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
+                        inherit: true,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -100,14 +104,15 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                       'Please try again later',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
+                        inherit: true,
                       ),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.invalidate(userContactsProvider),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryAccent,
+                        backgroundColor: colors.primaryAccent,
                         foregroundColor: Colors.white,
                       ),
                       child: const Text('Retry'),
@@ -123,6 +128,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
   }
 
   Widget _buildSearchBar() {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -130,18 +137,18 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -155,22 +162,24 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           });
         },
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 15,
           fontWeight: FontWeight.w500,
+          inherit: true,
         ),
         decoration: InputDecoration(
           hintText: 'Search contacts...',
           hintStyle: TextStyle(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 15,
             fontWeight: FontWeight.w400,
+            inherit: true,
           ),
           prefixIcon: Container(
             padding: const EdgeInsets.all(12),
             child: Icon(
               Icons.search_outlined,
-              color: AppColors.primaryAccent,
+              color: colors.primaryAccent,
               size: 20,
             ),
           ),
@@ -178,7 +187,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     size: 20,
                   ),
                   onPressed: () {
@@ -210,7 +219,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
     }).toList();
   }
 
-  Widget _buildEmptyState(bool isLandlord) {
+  Widget _buildEmptyState(bool isLandlord, DynamicAppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -222,8 +231,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryAccent.withValues(alpha: 0.1),
-                  AppColors.primaryAccent.withValues(alpha: 0.05),
+                  colors.primaryAccent.withValues(alpha: 0.1),
+                  colors.primaryAccent.withValues(alpha: 0.05),
                 ],
               ),
               shape: BoxShape.circle,
@@ -231,7 +240,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             child: Icon(
               Icons.contacts_outlined,
               size: 48,
-              color: AppColors.primaryAccent,
+              color: colors.primaryAccent,
             ),
           ),
           const SizedBox(height: 24),
@@ -244,7 +253,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),
@@ -256,7 +266,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                     : 'Your landlord contacts will appear here',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
+              inherit: true,
             ),
             textAlign: TextAlign.center,
           ),
@@ -265,25 +276,25 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
     );
   }
 
-  Widget _buildContactTile(ContactUser contact, bool isLandlord) {
+  Widget _buildContactTile(ContactUser contact, bool isLandlord, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
+            colors.surfaceCards,
+            colors.luxuryGradientStart.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -299,14 +310,14 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                isLandlord ? AppColors.success : AppColors.luxuryGold,
-                (isLandlord ? AppColors.success : AppColors.luxuryGold).withValues(alpha: 0.7),
+                isLandlord ? colors.success : colors.luxuryGold,
+                (isLandlord ? colors.success : colors.luxuryGold).withValues(alpha: 0.7),
               ],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: (isLandlord ? AppColors.success : AppColors.luxuryGold).withValues(alpha: 0.3),
+                color: (isLandlord ? colors.success : colors.luxuryGold).withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -319,6 +330,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
+                inherit: true,
               ),
             ),
           ),
@@ -326,9 +338,10 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         title: Text(
           contact.fullName,
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            inherit: true,
           ),
         ),
         subtitle: Column(
@@ -340,15 +353,16 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 Icon(
                   Icons.email_outlined,
                   size: 14,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     contact.email,
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       fontSize: 14,
+                      inherit: true,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -361,14 +375,15 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                   Icon(
                     Icons.phone_outlined,
                     size: 14,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     contact.phone,
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       fontSize: 14,
+                      inherit: true,
                     ),
                   ),
                 ],
@@ -379,7 +394,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                  color: colors.primaryAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -388,8 +403,9 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                       : '${contact.properties.length} ${contact.properties.length == 1 ? 'Property' : 'Properties'}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.primaryAccent,
+                    color: colors.primaryAccent,
                     fontWeight: FontWeight.w500,
+                    inherit: true,
                   ),
                 ),
               ),
@@ -401,7 +417,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             IconButton(
               icon: Icon(
                 Icons.chat_bubble_outline,
-                color: AppColors.primaryAccent,
+                color: colors.primaryAccent,
                 size: 20,
               ),
               onPressed: () {
@@ -413,7 +429,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               IconButton(
                 icon: Icon(
                   Icons.phone_outlined,
-                  color: AppColors.success,
+                  color: colors.success,
                   size: 20,
                 ),
                 onPressed: () {
@@ -427,6 +443,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
     );
   }
   void _startConversationWith(ContactUser contact) async {
+    final colors = ref.read(dynamicColorsProvider);
+    
     try {
       HapticFeedback.lightImpact();
       
@@ -439,22 +457,23 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.surfaceCards,
+                color: colors.surfaceCards,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Finding conversation...',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
+                      inherit: true,
                     ),
                   ),
                 ],
@@ -492,7 +511,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to start conversation: $e'),
-            backgroundColor: AppColors.error,
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -500,20 +519,23 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
   }
 
   void _callContact(ContactUser contact) {
+    final colors = ref.read(dynamicColorsProvider);
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.surfaceCards,
+          backgroundColor: colors.surfaceCards,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
             'Call ${contact.fullName}',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
+              inherit: true,
             ),
           ),
           content: Column(
@@ -522,18 +544,19 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               Text(
                 'Do you want to call ${contact.phone}?',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 14,
+                  inherit: true,
                 ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
+                  color: colors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.success.withValues(alpha: 0.2),
+                    color: colors.success.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -542,15 +565,16 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                   children: [
                     Icon(
                       Icons.phone,
-                      color: AppColors.success,
+                      color: colors.success,
                       size: 20,
                     ),
                     const SizedBox(width: 8),                    Text(
                       contact.phone,
                       style: TextStyle(
-                        color: AppColors.success,
+                        color: colors.success,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        inherit: true,
                       ),
                     ),
                   ],
@@ -564,8 +588,9 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w500,
+                  inherit: true,
                 ),
               ),
             ),
@@ -576,12 +601,12 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Phone call functionality will be implemented'),
-                    backgroundColor: AppColors.success,
+                    backgroundColor: colors.success,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
+                backgroundColor: colors.success,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

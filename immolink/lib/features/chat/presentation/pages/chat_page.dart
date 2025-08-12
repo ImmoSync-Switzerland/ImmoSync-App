@@ -9,6 +9,7 @@ import 'package:immolink/features/chat/presentation/providers/chat_service_provi
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -60,29 +61,33 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(conversationMessagesProvider(widget.conversationId));
     final currentUser = ref.watch(currentUserProvider);
+    final colors = ref.watch(dynamicColorsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(),
       body: Column(
         children: [
           Expanded(
             child: messagesAsync.when(
               data: (messages) => _buildMessagesList(messages, currentUser?.id ?? ''),
-              loading: () => const Center(
+              loading: () => Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
               ),
               error: (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                    Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
                       'Failed to load messages',
-                      style: AppTypography.subhead.copyWith(color: AppColors.error),
+                      style: AppTypography.subhead.copyWith(
+                        color: colors.error,
+                        inherit: true,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
@@ -101,11 +106,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
         onPressed: () {
           HapticFeedback.lightImpact();
           Navigator.of(context).pop();
@@ -115,7 +122,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.1),
+            backgroundColor: colors.primaryAccent.withValues(alpha: 0.1),
             backgroundImage: widget.otherUserAvatar != null 
                 ? NetworkImage(widget.otherUserAvatar!) 
                 : null,
@@ -125,8 +132,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         ? widget.otherUserName[0].toUpperCase() 
                         : 'U',
                     style: AppTypography.subhead.copyWith(
-                      color: AppColors.primaryAccent,
+                      color: colors.primaryAccent,
                       fontWeight: FontWeight.w600,
+                      inherit: true,
                     ),
                   )
                 : null,
@@ -139,23 +147,26 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 Text(
                   widget.otherUserName,
                   style: AppTypography.subhead.copyWith(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w600,
+                    inherit: true,
                   ),
                 ),
                 if (_isTyping)
                   Text(
                     'typing...',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.primaryAccent,
+                      color: colors.primaryAccent,
                       fontStyle: FontStyle.italic,
+                      inherit: true,
                     ),
                   )
                 else
                   Text(
                     'Online',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
+                      inherit: true,
                     ),
                   ),
               ],
@@ -165,14 +176,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.call_outlined, color: AppColors.textPrimary),
+          icon: Icon(Icons.call_outlined, color: colors.textPrimary),
           onPressed: () {
             HapticFeedback.lightImpact();
             // TODO: Implement voice call
           },
         ),
         IconButton(
-          icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
+          icon: Icon(Icons.more_vert, color: colors.textPrimary),
           onPressed: () {
             HapticFeedback.lightImpact();
             _showChatOptions();
@@ -283,6 +294,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   }
 
   Widget _buildMessageBubble(ChatMessage message, bool isMe) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
@@ -291,13 +304,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.1),
+              backgroundColor: colors.primaryAccent.withValues(alpha: 0.1),
               child: Text(
                 widget.otherUserName[0].toUpperCase(),
                 style: TextStyle(
-                  color: AppColors.primaryAccent,
+                  color: colors.primaryAccent,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
+                  inherit: true,
                 ),
               ),
             ),
@@ -312,15 +326,15 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primaryAccent,
-                          AppColors.primaryAccent.withValues(alpha: 0.8),
+                          colors.primaryAccent,
+                          colors.primaryAccent.withValues(alpha: 0.8),
                         ],
                       )
                     : null,
-                color: isMe ? null : AppColors.surfaceCards,
+                color: isMe ? null : colors.surfaceCards,
                 borderRadius: BorderRadius.circular(18),
                 border: isMe ? null : Border.all(
-                  color: AppColors.borderLight,
+                  color: colors.borderLight,
                   width: 1,
                 ),
               ),
@@ -330,7 +344,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   Text(
                     message.content,
                     style: AppTypography.body.copyWith(
-                      color: isMe ? Colors.white : AppColors.textPrimary,
+                      color: isMe ? Colors.white : colors.textPrimary,
+                      inherit: true,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -339,7 +354,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     style: AppTypography.caption.copyWith(
                       color: isMe 
                           ? Colors.white.withValues(alpha: 0.7)
-                          : AppColors.textTertiary,
+                          : colors.textTertiary,
+                      inherit: true,
                     ),
                   ),
                 ],
@@ -350,10 +366,10 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.1),
+              backgroundColor: colors.primaryAccent.withValues(alpha: 0.1),
               child: Icon(
                 Icons.person,
-                color: AppColors.primaryAccent,
+                color: colors.primaryAccent,
                 size: 16,
               ),
             ),
@@ -363,13 +379,15 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     );
   }
   Widget _buildMessageInput(String currentUserId) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       decoration: BoxDecoration(
-        color: AppColors.primaryBackground,
+        color: colors.primaryBackground,
         border: Border(
           top: BorderSide(
-            color: AppColors.borderLight,
+            color: colors.borderLight,
             width: 0.5,
           ),
         ),
@@ -383,7 +401,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 IconButton(
                   icon: Icon(
                     Icons.attach_file,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     size: 24,
                   ),
                   onPressed: () => _showAttachmentOptions(),
@@ -392,7 +410,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 IconButton(
                   icon: Icon(
                     Icons.emoji_emotions_outlined,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     size: 24,
                   ),
                   onPressed: () => _showEmojiPicker(),
@@ -401,21 +419,24 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceCards,
+                      color: colors.surfaceCards,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: AppColors.borderLight,
+                        color: colors.borderLight,
                         width: 0.5,
                       ),
                     ),
                     child: TextField(
                       controller: _messageController,
                       style: AppTypography.body.copyWith(
-                        color: AppColors.textPrimary,
-                      ),                      decoration: InputDecoration(
+                        color: colors.textPrimary,
+                        inherit: true,
+                      ),
+                      decoration: InputDecoration(
                         hintText: AppLocalizations.of(context)!.typeAMessage,
                         hintStyle: AppTypography.body.copyWith(
-                          color: AppColors.textTertiary,
+                          color: colors.textTertiary,
+                          inherit: true,
                         ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -444,14 +465,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primaryAccent,
-                          AppColors.primaryAccent.withValues(alpha: 0.8),
+                          colors.primaryAccent,
+                          colors.primaryAccent.withValues(alpha: 0.8),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                          color: colors.primaryAccent.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

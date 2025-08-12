@@ -9,6 +9,7 @@ import 'package:immolink/features/property/presentation/providers/property_provi
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/core/widgets/common_bottom_nav.dart';
 import 'package:immolink/core/providers/currency_provider.dart';
+import 'package:immolink/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {
@@ -64,12 +65,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     final l10n = AppLocalizations.of(context)!;
     final userRole = ref.watch(userRoleProvider);
     final isLandlord = userRole == 'landlord';
+    final colors = ref.watch(dynamicColorsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: colors.surfaceCards,
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: IconButton(
@@ -83,12 +85,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: colors.surfaceSecondary,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_ios_new,
-              color: Color(0xFF64748B),
+              color: colors.textSecondary,
               size: 18,
             ),
           ),
@@ -98,8 +100,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           style: TextStyle(
             fontSize: _getResponsiveFontSize(context, 22),
             fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
+            color: colors.textPrimary,
             letterSpacing: -0.6,
+            inherit: true,
           ),
         ),
         actions: [
@@ -114,14 +117,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF3B82F6),
-                      const Color(0xFF1D4ED8),
+                      colors.primaryAccent,
+                      colors.primaryAccent.withValues(alpha: 0.8),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                      color: colors.primaryAccent.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -144,7 +147,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  const Color(0xFFE2E8F0).withValues(alpha: 0.5),
+                  colors.borderLight.withValues(alpha: 0.5),
                   Colors.transparent,
                 ],
               ),

@@ -12,7 +12,7 @@ import 'package:immolink/core/widgets/mongo_image.dart';
 import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/currency_provider.dart';
 
@@ -46,9 +46,10 @@ class PropertyDetailsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final propertyAsync = ref.watch(propertyProvider(propertyId));
+    final colors = ref.watch(dynamicColorsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.primaryBackground,
       body: propertyAsync.when(
         data: (property) => CustomScrollView(
           slivers: [
@@ -59,13 +60,13 @@ class PropertyDetailsPage extends ConsumerWidget {
                 children: [
                   _buildHeader(context, property, ref),
                   const SizedBox(height: 16),
-                  _buildStats(context, property),
+                  _buildStats(context, property, ref),
                   const SizedBox(height: 24),
                   _buildDescription(context, property),
                   const SizedBox(height: 24),
-                  _buildAmenities(context, property),
+                  _buildAmenities(context, property, ref),
                   const SizedBox(height: 24),
-                  _buildLocation(context, property),
+                  _buildLocation(context, property, ref),
                   const SizedBox(height: 24),
                   _buildFinancialDetails(context, property, ref),
                   const SizedBox(height: 100), // Bottom padding for FAB
@@ -140,7 +141,7 @@ class PropertyDetailsPage extends ConsumerWidget {
           Text(
             '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primaryAccent,
+                  color: ref.read(dynamicColorsProvider).primaryAccent,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -149,7 +150,7 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStats(BuildContext context, Property property) {
+  Widget _buildStats(BuildContext context, Property property, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -159,6 +160,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               Icons.square_foot,
               '${property.details.size} m²',
               AppLocalizations.of(context)!.rooms, // Using existing key for now
+              ref,
             ),
           ),
           const SizedBox(width: 12),
@@ -168,6 +170,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               Icons.bed,
               '${property.details.rooms}',
               AppLocalizations.of(context)!.rooms,
+              ref,
             ),
           ),
           const SizedBox(width: 12),
@@ -177,6 +180,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               Icons.home,
               property.tenantIds.length.toString(),
               AppLocalizations.of(context)!.tenants,
+              ref,
             ),
           ),
         ],
@@ -189,16 +193,17 @@ class PropertyDetailsPage extends ConsumerWidget {
     IconData icon,
     String value,
     String label,
+    WidgetRef ref,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: ref.read(dynamicColorsProvider).surfaceSecondary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Icon(icon, color: AppColors.primaryAccent, size: 24),
+          Icon(icon, color: ref.read(dynamicColorsProvider).primaryAccent, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
@@ -209,7 +214,7 @@ class PropertyDetailsPage extends ConsumerWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
+                  color: ref.read(dynamicColorsProvider).textSecondary,
                 ),
           ),
         ],
@@ -242,7 +247,7 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildAmenities(BuildContext context, Property property) {
+  Widget _buildAmenities(BuildContext context, Property property, WidgetRef ref) {
     if (property.details.amenities.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -267,7 +272,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                  color: ref.read(dynamicColorsProvider).primaryAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -276,15 +281,16 @@ class PropertyDetailsPage extends ConsumerWidget {
                     Icon(
                       _getAmenityIcon(amenity),
                       size: 16,
-                      color: AppColors.primaryAccent,
+                      color: ref.read(dynamicColorsProvider).primaryAccent,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       amenity,
                       style: TextStyle(
-                        color: AppColors.primaryAccent,
+                        color: ref.read(dynamicColorsProvider).primaryAccent,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
+                        inherit: true,
                       ),
                     ),
                   ],
@@ -297,7 +303,7 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLocation(BuildContext context, Property property) {
+  Widget _buildLocation(BuildContext context, Property property, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -397,17 +403,17 @@ class PropertyDetailsPage extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                color: ref.read(dynamicColorsProvider).primaryAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                  color: ref.read(dynamicColorsProvider).primaryAccent.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.directions,
-                    color: AppColors.primaryAccent,
+                    color: ref.read(dynamicColorsProvider).primaryAccent,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -418,16 +424,18 @@ class PropertyDetailsPage extends ConsumerWidget {
                         Text(
                           AppLocalizations.of(context)!.getDirections,
                           style: TextStyle(
-                            color: AppColors.primaryAccent,
+                            color: ref.read(dynamicColorsProvider).primaryAccent,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
+                            inherit: true,
                           ),
                         ),
                         Text(
                           '${property.address.street}, ${property.address.city}',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: ref.read(dynamicColorsProvider).textSecondary,
                             fontSize: 12,
+                            inherit: true,
                           ),
                         ),
                       ],
@@ -435,7 +443,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                   ),
                   Icon(
                     Icons.open_in_new,
-                    color: AppColors.primaryAccent,
+                    color: ref.read(dynamicColorsProvider).primaryAccent,
                     size: 16,
                   ),
                 ],
@@ -779,7 +787,7 @@ class PropertyDetailsPage extends ConsumerWidget {
     if (currentUser?.role == 'landlord' && property.status == 'available') {
       return FloatingActionButton.extended(
         onPressed: () => _showInviteTenantDialog(context, property),
-        backgroundColor: AppColors.primaryAccent,
+        backgroundColor: ref.read(dynamicColorsProvider).primaryAccent,
         icon: const Icon(Icons.person_add, color: Colors.white),
         label: Text(
           AppLocalizations.of(context)!.inviteTenant,

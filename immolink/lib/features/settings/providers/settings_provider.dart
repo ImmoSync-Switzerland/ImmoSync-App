@@ -105,7 +105,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     ref.read(currencyProvider.notifier).setCurrency(state.currency);
     
     // Update theme provider
-    ref.read(themeModeProvider.notifier).state = state.theme;
+    ref.read(themeModeProvider.notifier).updateTheme(state.theme);
   }
 
   Future<void> _saveSettings() async {
@@ -130,7 +130,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> updateTheme(String theme) async {
     state = state.copyWith(theme: theme);
     await _saveSettings();
-    ref.read(themeModeProvider.notifier).state = theme;
+    ref.read(themeModeProvider.notifier).updateTheme(theme);
   }
 
   Future<void> updateCurrency(String currency) async {

@@ -7,6 +7,7 @@ import 'package:immolink/core/services/database_service.dart';
 import 'package:immolink/core/theme/app_theme.dart';
 import 'package:immolink/core/providers/theme_provider.dart';
 import 'package:immolink/core/providers/locale_provider.dart';
+import 'package:immolink/features/settings/providers/settings_provider.dart';
 import 'package:immolink/l10n_helper.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:immolink/core/config/db_config.dart';
@@ -43,6 +44,9 @@ class ImmoLink extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final currentLocale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
+    
+    // Ensure settings are loaded
+    ref.watch(settingsProvider);
     
     // Determine which theme mode to use
     ThemeMode appThemeMode;
