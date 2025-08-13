@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 
 class MaintenanceRequestDetailPage extends ConsumerWidget {
@@ -20,14 +20,15 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     final requestAsync = ref.watch(maintenanceRequestProvider(requestId));
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         title: Text(l10n.maintenanceRequestDetails),
-        backgroundColor: AppColors.surfaceCards,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: colors.surfaceCards,
+        foregroundColor: colors.textPrimary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -35,7 +36,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ),
       ),
       body: requestAsync.when(
-        data: (request) => _buildRequestDetails(context, request, l10n, ref),
+        data: (request) => _buildRequestDetails(context, request, l10n, ref, colors),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -44,7 +45,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: AppColors.error,
+                color: colors.error,
               ),
               const SizedBox(height: 16),
               Text(
@@ -52,7 +53,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -60,7 +61,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 error.toString(),
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -76,10 +77,10 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request, AppLocalizations l10n, WidgetRef ref) {
-    Color statusColor = _getStatusColor(request.status);
+  Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request, AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
+    Color statusColor = _getStatusColor(request.status, colors);
     IconData statusIcon = _getStatusIcon(request.status);
-    Color priorityColor = _getPriorityColor(request.priority);
+    Color priorityColor = _getPriorityColor(request.priority, colors);
 
     return CustomScrollView(
       slivers: [
@@ -149,7 +150,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                                color: colors.textPrimary,
                                 height: 1.2,
                               ),
                             ),
@@ -231,11 +232,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surfaceCards,
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.shadowColor.withValues(alpha: 0.08),
+                  color: colors.shadowColor.withValues(alpha: 0.08),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -250,7 +251,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     children: [
                       Icon(
                         Icons.description_outlined,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -259,7 +260,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ],
@@ -269,7 +270,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     request.description,
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       height: 1.6,
                     ),
                   ),
@@ -284,11 +285,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surfaceCards,
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.shadowColor.withValues(alpha: 0.08),
+                  color: colors.shadowColor.withValues(alpha: 0.08),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -303,7 +304,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -312,13 +313,13 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _buildModernDetailGrid(request),
+                  _buildModernDetailGrid(request, colors),
                 ],
               ),
             ),
@@ -331,11 +332,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.surfaceCards,
+                color: colors.surfaceCards,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.shadowColor.withValues(alpha: 0.08),
+                    color: colors.shadowColor.withValues(alpha: 0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -350,7 +351,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       children: [
                         Icon(
                           Icons.person_outline,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
@@ -359,18 +360,18 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
                     if (request.contractorInfo!.name != null)
-                      _buildModernDetailRow(Icons.person, 'Name', request.contractorInfo!.name!),
+                      _buildModernDetailRow(Icons.person, 'Name', request.contractorInfo!.name!, colors),
                     if (request.contractorInfo!.contact != null)
-                      _buildModernDetailRow(Icons.phone, 'Contact', request.contractorInfo!.contact!),
+                      _buildModernDetailRow(Icons.phone, 'Contact', request.contractorInfo!.contact!, colors),
                     if (request.contractorInfo!.company != null)
-                      _buildModernDetailRow(Icons.business, 'Company', request.contractorInfo!.company!),
+                      _buildModernDetailRow(Icons.business, 'Company', request.contractorInfo!.company!, colors),
                   ],
                 ),
               ),
@@ -383,11 +384,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.surfaceCards,
+                color: colors.surfaceCards,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.shadowColor.withValues(alpha: 0.08),
+                    color: colors.shadowColor.withValues(alpha: 0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -402,7 +403,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       children: [
                         Icon(
                           Icons.note_outlined,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
@@ -411,7 +412,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                       ],
@@ -421,10 +422,10 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryBackground,
+                        color: colors.primaryBackground,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.textTertiary.withValues(alpha: 0.1),
+                          color: colors.textTertiary.withValues(alpha: 0.1),
                         ),
                       ),
                       child: Column(
@@ -434,7 +435,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                             note.content,
                             style: TextStyle(
                               fontSize: 15,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                               height: 1.5,
                             ),
                           ),
@@ -443,7 +444,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                             DateFormat('MMM d, yyyy \'at\' h:mm a').format(note.timestamp),
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textTertiary,
+                              color: colors.textTertiary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -460,7 +461,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.all(20),
-            child: _buildModernActionButtons(context, ref, request),
+            child: _buildModernActionButtons(context, ref, request, colors),
           ),
         ),
 
@@ -472,7 +473,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailGrid(MaintenanceRequest request) {
+  Widget _buildModernDetailGrid(MaintenanceRequest request, DynamicAppColors colors) {
     return Column(
       children: [
         Row(
@@ -483,6 +484,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 'Category',
                 request.categoryDisplayText,
                 CategoryUtils.getCategoryColor(request.category),
+                colors,
               ),
             ),
             const SizedBox(width: 12),
@@ -491,7 +493,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Icons.location_on_outlined,
                 'Location',
                 request.location,
-                AppColors.info,
+                colors.info,
+                colors,
               ),
             ),
           ],
@@ -504,7 +507,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Icons.access_time,
                 'Reported',
                 DateFormat('MMM d').format(request.requestedDate),
-                AppColors.textSecondary,
+                colors.textSecondary,
+                colors,
               ),
             ),
             const SizedBox(width: 12),
@@ -513,7 +517,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Icons.priority_high,
                 'Urgency',
                 '${request.urgencyLevel}/5',
-                _getPriorityColor(request.priority),
+                _getPriorityColor(request.priority, colors),
+                colors,
               ),
             ),
           ],
@@ -528,7 +533,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     Icons.schedule,
                     'Scheduled',
                     DateFormat('MMM d').format(request.scheduledDate!),
-                    AppColors.warning,
+                    colors.warning,
+                    colors,
                   ),
                 ),
               if (request.scheduledDate != null && request.completedDate != null)
@@ -539,7 +545,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     Icons.check_circle_outline,
                     'Completed',
                     DateFormat('MMM d').format(request.completedDate!),
-                    AppColors.success,
+                    colors.success,
+                    colors,
                   ),
                 ),
             ],
@@ -555,7 +562,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     Icons.attach_money,
                     'Estimated',
                     '\$${request.cost!.estimated!.toStringAsFixed(2)}',
-                    AppColors.warning,
+                    colors.warning,
+                    colors,
                   ),
                 ),
               if (request.cost?.estimated != null && request.cost?.actual != null)
@@ -566,7 +574,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     Icons.money,
                     'Actual Cost',
                     '\$${request.cost!.actual!.toStringAsFixed(2)}',
-                    AppColors.success,
+                    colors.success,
+                    colors,
                   ),
                 ),
             ],
@@ -576,7 +585,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailCard(IconData icon, String label, String value, Color color) {
+  Widget _buildModernDetailCard(IconData icon, String label, String value, Color color, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -615,7 +624,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
         ],
@@ -623,7 +632,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailRow(IconData icon, String label, String value) {
+  Widget _buildModernDetailRow(IconData icon, String label, String value, DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -631,13 +640,13 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.textSecondary.withValues(alpha: 0.1),
+              color: colors.textSecondary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
               size: 16,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(width: 12),
@@ -649,7 +658,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -658,7 +667,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 value,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -668,7 +677,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernActionButtons(BuildContext context, WidgetRef ref, MaintenanceRequest request) {
+  Widget _buildModernActionButtons(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors) {
     if (request.status == 'completed' || request.status == 'cancelled') {
       return const SizedBox.shrink();
     }
@@ -681,21 +690,21 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             height: 56,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.info, AppColors.info.withValues(alpha: 0.8)],
+                colors: [colors.info, colors.info.withValues(alpha: 0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.info.withValues(alpha: 0.3),
+                  color: colors.info.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: ElevatedButton(
-              onPressed: () => _updateStatus(context, ref, request.id, 'in_progress'),
+              onPressed: () => _updateStatus(context, ref, request.id, 'in_progress', colors),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
@@ -731,21 +740,21 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             height: 56,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.success, AppColors.success.withValues(alpha: 0.8)],
+                colors: [colors.success, colors.success.withValues(alpha: 0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.success.withValues(alpha: 0.3),
+                  color: colors.success.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: ElevatedButton(
-              onPressed: () => _updateStatus(context, ref, request.id, 'completed'),
+              onPressed: () => _updateStatus(context, ref, request.id, 'completed', colors),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
@@ -782,11 +791,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           height: 48,
           child: OutlinedButton(
             onPressed: () {
-              _showAddNoteDialog(context, ref, requestId);
+              _showAddNoteDialog(context, ref, requestId, colors);
             },
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: AppColors.textSecondary.withValues(alpha: 0.3),
+                color: colors.textSecondary.withValues(alpha: 0.3),
                 width: 1.5,
               ),
               shape: RoundedRectangleBorder(
@@ -798,7 +807,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.note_add,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
@@ -807,7 +816,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -818,18 +827,18 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String status, DynamicAppColors colors) {
     switch (status) {
       case 'pending':
-        return AppColors.warning;
+        return colors.warning;
       case 'in_progress':
-        return AppColors.info;
+        return colors.info;
       case 'completed':
-        return AppColors.success;
+        return colors.success;
       case 'cancelled':
-        return AppColors.error;
+        return colors.error;
       default:
-        return AppColors.textTertiary;
+        return colors.textTertiary;
     }
   }
 
@@ -848,22 +857,22 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  Color _getPriorityColor(String priority) {
+  Color _getPriorityColor(String priority, DynamicAppColors colors) {
     switch (priority) {
       case 'low':
-        return AppColors.success;
+        return colors.success;
       case 'medium':
-        return AppColors.warning;
+        return colors.warning;
       case 'high':
-        return AppColors.error;
+        return colors.error;
       case 'urgent':
-        return AppColors.error;
+        return colors.error;
       default:
-        return AppColors.textTertiary;
+        return colors.textTertiary;
     }
   }
 
-  void _updateStatus(BuildContext context, WidgetRef ref, String requestId, String newStatus) async {
+  void _updateStatus(BuildContext context, WidgetRef ref, String requestId, String newStatus, DynamicAppColors colors) async {
     try {
       // Show loading indicator
       showDialog(
@@ -893,7 +902,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Status updated to ${newStatus.replaceAll('_', ' ')}'),
-            backgroundColor: AppColors.success,
+            backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -910,7 +919,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update status: $e'),
-            backgroundColor: AppColors.error,
+            backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -921,21 +930,21 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId) {
+  void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId, DynamicAppColors colors) {
     final TextEditingController noteController = TextEditingController();
     
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.surfaceCards,
+          backgroundColor: colors.surfaceCards,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
             'Add Note',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
@@ -945,10 +954,10 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBackground,
+                  color: colors.primaryBackground,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.textSecondary.withValues(alpha: 0.2),
+                    color: colors.textSecondary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: TextField(
@@ -957,13 +966,13 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                   decoration: InputDecoration(
                     hintText: 'Enter your note here...',
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                      color: colors.textSecondary.withValues(alpha: 0.6),
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(16),
                   ),
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontSize: 14,
                   ),
                 ),
@@ -978,7 +987,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -987,14 +996,14 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ElevatedButton(
               onPressed: () async {
                 if (noteController.text.trim().isNotEmpty) {
-                  await _addNote(context, ref, requestId, noteController.text.trim());
+                  await _addNote(context, ref, requestId, noteController.text.trim(), colors);
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryAccent,
+                backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1015,7 +1024,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId, String noteContent) async {
+  Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId, String noteContent, DynamicAppColors colors) async {
     try {
       // Show loading indicator
       showDialog(
@@ -1025,20 +1034,20 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.surfaceCards,
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Adding note...',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontSize: 16,
                   ),
                 ),
@@ -1072,7 +1081,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Note added successfully'),
-            backgroundColor: AppColors.success,
+            backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -1089,7 +1098,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to add note: $e'),
-            backgroundColor: AppColors.error,
+            backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

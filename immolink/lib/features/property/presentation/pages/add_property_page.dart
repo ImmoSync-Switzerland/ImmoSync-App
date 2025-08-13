@@ -10,6 +10,7 @@ import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/providers/currency_provider.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class AddPropertyPage extends ConsumerStatefulWidget {
   final Property? propertyToEdit;
@@ -43,16 +44,6 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     'Internet', 'Security System'
   ];
 
-  // Modern design system colors
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color surface = Color(0xFFF2F2F2);
-  static const Color divider = Color(0xFFE0E0E0);
-  static const Color accent = Color(0xFF007AFF);
-  static const Color textPrimary = Color(0xFF000000);
-  static const Color textSecondary = Color(0xFF212121);
-  static const Color textCaption = Color(0xFF8E8E93);
-  static const Color success = Color(0xFF34C759);
-  static const Color error = Color(0xFFFF3B30);
   @override
   void initState() {
     super.initState();
@@ -95,28 +86,31 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
 
   @override
   Widget build(BuildContext context) {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: background,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
           onPressed: () => context.pop(),
         ),        title: Text(
           widget.propertyToEdit != null ? 'Edit Property' : 'Add Property',
-          style: const TextStyle(
-            color: textPrimary,
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.3,
+            inherit: true,
           ),
         ),
         centerTitle: true,
       ),
       body: _isLoading
-          ? _buildLoadingWidget()
+          ? _buildLoadingWidget(colors)
           : AnimatedBuilder(
               animation: _slideAnimation,
               builder: (context, child) {
@@ -129,17 +123,17 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                       child: ListView(
                         padding: const EdgeInsets.all(20.0),
                         children: [
-                          _buildHeaderSection(),
+                          _buildHeaderSection(colors),
                           const SizedBox(height: 32),
-                          _buildLocationCard(),
+                          _buildLocationCard(colors),
                           const SizedBox(height: 24),
-                          _buildDetailsCard(),
+                          _buildDetailsCard(colors),
                           const SizedBox(height: 24),
-                          _buildAmenitiesCard(),
+                          _buildAmenitiesCard(colors),
                           const SizedBox(height: 24),
-                          _buildImagesCard(),
+                          _buildImagesCard(colors),
                           const SizedBox(height: 40),
-                          _buildSubmitButton(),
+                          _buildSubmitButton(colors),
                           const SizedBox(height: 32),
                         ],
                       ),
@@ -151,27 +145,28 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildLoadingWidget() {
+  Widget _buildLoadingWidget(DynamicAppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 32,
             height: 32,
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(accent),
+              valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
               strokeWidth: 2.5,
             ),
           ),
           const SizedBox(height: 24),
           Text(
             widget.propertyToEdit != null ? 'Updating property...' : 'Creating property...',
-            style: const TextStyle(
-              color: textCaption,
+            style: TextStyle(
+              color: colors.textTertiary,
               fontSize: 16,
               fontWeight: FontWeight.w500,
               letterSpacing: -0.2,
+              inherit: true,
             ),
           ),
         ],
@@ -179,40 +174,43 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildHeaderSection(DynamicAppColors colors) {
     final isEditing = widget.propertyToEdit != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           isEditing ? 'Edit Property' : 'New Property',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w700,
-            color: textPrimary,
+            color: colors.textPrimary,
             letterSpacing: -0.8,
             height: 1.1,
+            inherit: true,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           isEditing ? 'Update your property details' : 'Add property details to get started',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
-            color: textCaption,
+            color: colors.textTertiary,
             fontWeight: FontWeight.w400,
             letterSpacing: -0.2,
+            inherit: true,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLocationCard() {
+  Widget _buildLocationCard(DynamicAppColors colors) {
     return _buildCard(
       title: 'Location',
+      colors: colors,
       children: [
-        _buildTextField(
+        _buildTextField(colors: colors, 
           controller: _addressController,
           label: 'Street Address',
           validator: (value) => value?.isEmpty ?? true ? 'Address is required' : null,
@@ -222,7 +220,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           children: [
             Expanded(
               flex: 2,
-              child: _buildTextField(
+              child: _buildTextField(colors: colors, 
                 controller: _cityController,
                 label: 'City',
                 validator: (value) => value?.isEmpty ?? true ? 'City is required' : null,
@@ -230,7 +228,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildTextField(
+              child: _buildTextField(colors: colors, 
                 controller: _postalCodeController,
                 label: 'Postal Code',
                 validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
@@ -242,13 +240,15 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildDetailsCard(DynamicAppColors colors) {
     return _buildCard(
       title: 'Property Details',
+      colors: colors,
       children: [
         _buildTextField(
           controller: _rentController,
           label: 'Monthly Rent (${ref.read(currencyProvider.notifier).getSymbol()})',
+          colors: colors,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           validator: (value) {
@@ -261,7 +261,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         Row(
           children: [
             Expanded(
-              child: _buildTextField(
+              child: _buildTextField(colors: colors, 
                 controller: _sizeController,
                 label: 'Size (m²)',
                 keyboardType: TextInputType.number,
@@ -270,7 +270,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildTextField(
+              child: _buildTextField(colors: colors, 
                 controller: _roomsController,
                 label: 'Rooms',
                 keyboardType: TextInputType.number,
@@ -283,15 +283,16 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildAmenitiesCard() {
+  Widget _buildAmenitiesCard(DynamicAppColors colors) {
     return _buildCard(
+      colors: colors,
       title: 'Amenities',
       children: [
         Text(
           'Select available amenities',
           style: TextStyle(
             fontSize: 14,
-            color: textCaption,
+            color: colors.textTertiary,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -317,14 +318,14 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                 curve: Curves.easeInOut,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? accent : surface,
+                  color: isSelected ? colors.primaryAccent : colors.surfaceCards,
                   borderRadius: BorderRadius.circular(20),
-                  border: isSelected ? null : Border.all(color: divider, width: 1),
+                  border: isSelected ? null : Border.all(color: colors.borderLight, width: 1),
                 ),
                 child: Text(
                   amenity,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : textSecondary,
+                    color: isSelected ? Colors.white : colors.textSecondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.1,
@@ -338,8 +339,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildImagesCard() {
+  Widget _buildImagesCard(DynamicAppColors colors) {
     return _buildCard(
+      colors: colors,
       title: 'Images',      children: [
         GestureDetector(
           onTap: _pickImages,
@@ -347,10 +349,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             duration: const Duration(milliseconds: 150),
             height: 120,
             decoration: BoxDecoration(
-              color: selectedImages.isEmpty ? surface : accent.withValues(alpha: 0.05),
+              color: selectedImages.isEmpty ? colors.surfaceCards : colors.primaryAccent.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: selectedImages.isEmpty ? divider : accent.withValues(alpha: 0.3), 
+                color: selectedImages.isEmpty ? colors.borderLight : colors.primaryAccent.withValues(alpha: 0.3), 
                 width: 1.5,
               ),
             ),
@@ -361,7 +363,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                   Icon(
                     selectedImages.isEmpty ? Icons.cloud_upload_outlined : Icons.check_circle_outline,
                     size: 28,
-                    color: selectedImages.isEmpty ? textCaption : accent,
+                    color: selectedImages.isEmpty ? colors.textTertiary : colors.primaryAccent,
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -369,7 +371,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                         ? 'Tap to upload images' 
                         : '${selectedImages.length} image(s) selected',
                     style: TextStyle(
-                      color: selectedImages.isEmpty ? textCaption : accent,
+                      color: selectedImages.isEmpty ? colors.textTertiary : colors.primaryAccent,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       letterSpacing: -0.1,
@@ -395,13 +397,13 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                   margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: divider),
+                    border: Border.all(color: colors.borderLight),
                   ),
                   child: Stack(
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: _buildImagePreview(imagePath),
+                        child: _buildImagePreview(imagePath, colors),
                       ),
                       Positioned(
                         top: 4,
@@ -413,7 +415,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                             height: 24,
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: error.withValues(alpha: 0.9),
+                              color: colors.error.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -435,11 +437,11 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildCard({required String title, required List<Widget> children}) {
+  Widget _buildCard({required String title, required List<Widget> children, required DynamicAppColors colors}) {
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: background,
+        color: colors.primaryBackground,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -454,11 +456,12 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: textPrimary,
+              color: colors.textPrimary,
               letterSpacing: -0.3,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 20),
@@ -471,6 +474,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
+    required DynamicAppColors colors,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
@@ -480,11 +484,12 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: textCaption,
+            color: colors.textTertiary,
             letterSpacing: 0.5,
+            inherit: true,
           ),
         ),
         const SizedBox(height: 8),
@@ -493,21 +498,22 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           validator: validator,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
-          style: const TextStyle(
-            color: textPrimary,
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.2,
+            inherit: true,
           ),
           decoration: InputDecoration(
             hintText: 'Enter $label',
             hintStyle: TextStyle(
-              color: textCaption,
+              color: colors.textTertiary,
               fontSize: 16,
               fontWeight: FontWeight.w400,
             ),
             filled: true,
-            fillColor: surface,
+            fillColor: colors.surfaceCards,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
@@ -518,11 +524,11 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: accent, width: 2),
+              borderSide: BorderSide(color: colors.primaryAccent, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: error, width: 1),
+              borderSide: BorderSide(color: colors.error, width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
@@ -531,7 +537,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildSubmitButton() {
+  Widget _buildSubmitButton(DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: SizedBox(
@@ -540,7 +546,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         child: ElevatedButton(
           onPressed: _submitForm,
           style: ElevatedButton.styleFrom(
-            backgroundColor: accent,
+            backgroundColor: colors.primaryAccent,
             foregroundColor: Colors.white,
             elevation: 0,
             shadowColor: Colors.transparent,
@@ -560,6 +566,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       ),
     );
   }  Future<void> _pickImages() async {
+    final colors = ref.read(dynamicColorsProvider);
     try {
       HapticFeedback.lightImpact();
       FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -588,7 +595,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${result.files.length} image(s) selected'),
-            backgroundColor: success,
+            backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             margin: const EdgeInsets.all(16),
@@ -598,7 +605,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('No images selected'),
-            backgroundColor: textSecondary,
+            backgroundColor: colors.textSecondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             margin: const EdgeInsets.all(16),
@@ -606,11 +613,11 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         );
       }
     } catch (e) {
-      print('Error selecting images: $e');
+      print('colors.error selecting images: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error selecting images: ${e.toString()}'),
-          backgroundColor: error,
+          content: Text('colors.error selecting images: ${e.toString()}'),
+          backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           margin: const EdgeInsets.all(16),
@@ -618,7 +625,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       );
     }
   }
-  Widget _buildImagePreview(String imagePath) {
+  Widget _buildImagePreview(String imagePath, DynamicAppColors colors) {
     // Check if it's a URL (existing image) or a local file path (new upload)
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       // Remote image URL
@@ -631,10 +638,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           return Container(
             width: 100,
             height: 100,
-            color: surface,
+            color: colors.surfaceCards,
             child: Icon(
               Icons.broken_image_outlined,
-              color: textCaption,
+              color: colors.textTertiary,
               size: 32,
             ),
           );
@@ -644,10 +651,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           return Container(
             width: 100,
             height: 100,
-            color: surface,
+            color: colors.surfaceCards,
             child: Center(
               child: CircularProgressIndicator(
-                color: accent,
+                color: colors.primaryAccent,
                 strokeWidth: 2,
                 value: loadingProgress.expectedTotalBytes != null
                     ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
@@ -675,10 +682,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
               return Container(
                 width: 100,
                 height: 100,
-                color: surface,
+                color: colors.surfaceCards,
                 child: Icon(
                   Icons.broken_image_outlined,
-                  color: textCaption,
+                  color: colors.textTertiary,
                   size: 32,
                 ),
               );
@@ -691,10 +698,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       return Container(
         width: 100,
         height: 100,
-        color: surface,
+        color: colors.surfaceCards,
         child: Icon(
           Icons.image_outlined,
-          color: textCaption,
+          color: colors.textTertiary,
           size: 32,
         ),
       );
@@ -709,10 +716,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           return Container(
             width: 100,
             height: 100,
-            color: surface,
+            color: colors.surfaceCards,
             child: Icon(
               Icons.broken_image_outlined,
-              color: textCaption,
+              color: colors.textTertiary,
               size: 32,
             ),
           );
@@ -722,6 +729,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
   }
 
   void _removeImage(int index) {
+    final colors = ref.read(dynamicColorsProvider);
     HapticFeedback.lightImpact();
     setState(() {
       if (index >= 0 && index < selectedImages.length) {
@@ -732,7 +740,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Image removed'),
-        backgroundColor: textSecondary,
+        backgroundColor: colors.textSecondary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
@@ -741,6 +749,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
   void _submitForm() async {
+    final colors = ref.read(dynamicColorsProvider);
     if (_formKey.currentState?.validate() ?? false) {
       HapticFeedback.mediumImpact();
       setState(() {
@@ -808,7 +817,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Property updated successfully!'),
-              backgroundColor: success,
+              backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               margin: const EdgeInsets.all(16),
@@ -824,7 +833,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Property created successfully!'),
-              backgroundColor: success,
+              backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               margin: const EdgeInsets.all(16),
@@ -836,8 +845,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: error,
+            content: Text('colors.error: $e'),
+            backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             margin: const EdgeInsets.all(16),

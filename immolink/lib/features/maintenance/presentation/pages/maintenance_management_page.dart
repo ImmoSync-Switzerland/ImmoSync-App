@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 
 class MaintenanceManagementPage extends ConsumerWidget {
@@ -13,63 +13,71 @@ class MaintenanceManagementPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     final maintenanceRequests = ref.watch(landlordMaintenanceRequestsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         title: Text(l10n.maintenanceRequests),
-        backgroundColor: AppColors.surfaceCards,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: colors.surfaceCards,
+        foregroundColor: colors.textPrimary,
         elevation: 0,
       ),
       body: Column(
         children: [
-          _buildFilterOptions(context, l10n),
+          _buildFilterOptions(context, l10n, colors),
           Expanded(
             child: maintenanceRequests.when(
               data: (requests) {
                 if (requests.isEmpty) {
-                  return _buildEmptyState(l10n);
+                  return _buildEmptyState(l10n, colors);
                 }
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: requests.length,
                   itemBuilder: (context, index) {
-                    return _buildMaintenanceRequestCard(context, requests[index], l10n);
+                    return _buildMaintenanceRequestCard(context, requests[index], l10n, colors);
                   },
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: AppColors.error,
+              error: (error, stack) => Consumer(
+                builder: (context, ref, child) {
+                  final colors = ref.watch(dynamicColorsProvider);
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: colors.error,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading maintenance requests',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: colors.textPrimary,
+                            inherit: true,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.toString(),
+                          style: TextStyle(
+                            color: colors.textSecondary,
+                            inherit: true,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error loading maintenance requests',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      error.toString(),
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -77,16 +85,16 @@ class MaintenanceManagementPage extends ConsumerWidget {
       ),
     );
   }
-  Widget _buildFilterOptions(BuildContext context, AppLocalizations l10n) {
+  Widget _buildFilterOptions(BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -100,7 +108,8 @@ class MaintenanceManagementPage extends ConsumerWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 16),
@@ -120,6 +129,7 @@ class MaintenanceManagementPage extends ConsumerWidget {
                   onChanged: (value) {
                     // TODO: Implement filtering
                   },
+                  colors: colors,
                 ),
               ),
               const SizedBox(width: 16),
@@ -137,6 +147,7 @@ class MaintenanceManagementPage extends ConsumerWidget {
                   onChanged: (value) {
                     // TODO: Implement filtering
                   },
+                  colors: colors,
                 ),
               ),
             ],
@@ -151,12 +162,13 @@ class MaintenanceManagementPage extends ConsumerWidget {
     required String value,
     required List<DropdownMenuItem<String>> items,
     required Function(String?) onChanged,
+    required DynamicAppColors colors,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.primaryBackground,
+        color: colors.primaryBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonFormField<String>(
@@ -164,17 +176,17 @@ class MaintenanceManagementPage extends ConsumerWidget {
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,
-          labelStyle: TextStyle(color: AppColors.textSecondary),
+          labelStyle: TextStyle(color: colors.textSecondary, inherit: true),
         ),
         items: items,
         onChanged: onChanged,
-        dropdownColor: AppColors.surfaceCards,
-        style: TextStyle(color: AppColors.textPrimary),
+        dropdownColor: colors.surfaceCards,
+        style: TextStyle(color: colors.textPrimary, inherit: true),
       ),
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n) {
+  Widget _buildEmptyState(AppLocalizations l10n, DynamicAppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -182,7 +194,7 @@ class MaintenanceManagementPage extends ConsumerWidget {
           Icon(
             Icons.build_outlined,
             size: 64,
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
           const SizedBox(height: 16),
           Text(
@@ -190,7 +202,8 @@ class MaintenanceManagementPage extends ConsumerWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),
@@ -198,7 +211,8 @@ class MaintenanceManagementPage extends ConsumerWidget {
             l10n.noMaintenanceRequestsDescription,
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
+              inherit: true,
             ),
             textAlign: TextAlign.center,
           ),
@@ -206,34 +220,34 @@ class MaintenanceManagementPage extends ConsumerWidget {
       ),
     );
   }
-  Widget _buildMaintenanceRequestCard(BuildContext context, MaintenanceRequest request, AppLocalizations l10n) {
+  Widget _buildMaintenanceRequestCard(BuildContext context, MaintenanceRequest request, AppLocalizations l10n, DynamicAppColors colors) {
     Color statusColor;
     IconData statusIcon;
     String statusText;
 
     switch (request.status) {
       case 'pending':
-        statusColor = AppColors.warning;
+        statusColor = colors.warning;
         statusIcon = Icons.hourglass_empty;
         statusText = l10n.pending;
         break;
       case 'in_progress':
-        statusColor = AppColors.info;
+        statusColor = colors.info;
         statusIcon = Icons.engineering;
         statusText = l10n.inProgress;
         break;
       case 'completed':
-        statusColor = AppColors.success;
+        statusColor = colors.success;
         statusIcon = Icons.check_circle;
         statusText = l10n.completed;
         break;
       case 'cancelled':
-        statusColor = AppColors.error;
+        statusColor = colors.error;
         statusIcon = Icons.cancel;
         statusText = l10n.cancelled;
         break;
       default:
-        statusColor = AppColors.textTertiary;
+        statusColor = colors.textTertiary;
         statusIcon = Icons.help_outline;
         statusText = request.status;
     }
@@ -242,34 +256,34 @@ class MaintenanceManagementPage extends ConsumerWidget {
     String priorityText;
     switch (request.priority) {
       case 'low':
-        priorityColor = AppColors.success;
+        priorityColor = colors.success;
         priorityText = l10n.low;
         break;
       case 'medium':
-        priorityColor = AppColors.warning;
+        priorityColor = colors.warning;
         priorityText = l10n.medium;
         break;
       case 'high':
-        priorityColor = AppColors.error;
+        priorityColor = colors.error;
         priorityText = l10n.high;
         break;
       case 'emergency':
-        priorityColor = AppColors.error;
+        priorityColor = colors.error;
         priorityText = l10n.emergency;
         break;
       default:
-        priorityColor = AppColors.textTertiary;
+        priorityColor = colors.textTertiary;
         priorityText = request.priority ?? l10n.medium;
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -315,7 +329,8 @@ class MaintenanceManagementPage extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
+                                    color: colors.textPrimary,
+                                    inherit: true,
                                   ),
                                 ),
                                 Text(
@@ -374,8 +389,9 @@ class MaintenanceManagementPage extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     height: 1.4,
+                    inherit: true,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -384,14 +400,15 @@ class MaintenanceManagementPage extends ConsumerWidget {
                     Icon(
                       Icons.home_work_outlined,
                       size: 16,
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Property ID: ${request.propertyId}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
+                        inherit: true,
                       ),
                     ),
                     const Spacer(),
@@ -422,14 +439,15 @@ class MaintenanceManagementPage extends ConsumerWidget {
                     Icon(
                       Icons.access_time,
                       size: 16,
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Reported: ${DateFormat('MMM d, yyyy').format(request.dateCreated)}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
+                        inherit: true,
                       ),
                     ),
                   ],

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 
 // Mock service model
@@ -109,18 +109,19 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
-      appBar: _buildAppBar(l10n),
+      backgroundColor: colors.primaryBackground,
+      appBar: _buildAppBar(l10n, colors),
       bottomNavigationBar: const CommonBottomNav(),
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(l10n),
-            _buildSearchAndFilter(l10n),
+            _buildHeader(l10n, colors),
+            _buildSearchAndFilter(l10n, colors),
             Expanded(
-              child: _buildServicesList(l10n),
+              child: _buildServicesList(l10n, colors),
             ),
           ],
         ),
@@ -128,13 +129,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
+        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
         onPressed: () {
           HapticFeedback.lightImpact();
           context.pop();
@@ -143,7 +144,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
       title: Text(
         'Book Services',
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
@@ -152,7 +153,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildHeader(AppLocalizations l10n) {
+  Widget _buildHeader(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
@@ -161,15 +162,15 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -185,15 +186,15 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.2),
-                      AppColors.primaryAccent.withValues(alpha: 0.1),
+                      colors.primaryAccent.withValues(alpha: 0.2),
+                      colors.primaryAccent.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.room_service_outlined,
-                  color: AppColors.primaryAccent,
+                  color: colors.primaryAccent,
                   size: 24,
                 ),
               ),
@@ -204,7 +205,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
@@ -215,7 +216,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               height: 1.4,
             ),
           ),
@@ -224,7 +225,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildSearchAndFilter(AppLocalizations l10n) {
+  Widget _buildSearchAndFilter(AppLocalizations l10n, DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -232,24 +233,24 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           // Search bar
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surfaceCards,
+              color: colors.surfaceCards,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
+              border: Border.all(color: colors.borderLight),
             ),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               decoration: InputDecoration(
                 hintText: 'Search services...',
                 hintStyle: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 16,
                 ),
-                prefixIcon: Icon(Icons.search_outlined, color: AppColors.textSecondary),
+                prefixIcon: Icon(Icons.search_outlined, color: colors.textSecondary),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontSize: 16,
               ),
             ),
@@ -260,13 +261,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildFilterChip('All', 'all'),
+                _buildFilterChip('All', 'all', colors),
                 const SizedBox(width: 8),
-                _buildFilterChip('Maintenance', 'maintenance'),
+                _buildFilterChip('Maintenance', 'maintenance', colors),
                 const SizedBox(width: 8),
-                _buildFilterChip('Cleaning', 'cleaning'),
+                _buildFilterChip('Cleaning', 'cleaning', colors),
                 const SizedBox(width: 8),
-                _buildFilterChip('Repair', 'repair'),
+                _buildFilterChip('Repair', 'repair', colors),
                 const SizedBox(width: 8),
               ],
             ),
@@ -277,7 +278,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String value, DynamicAppColors colors) {
     final isSelected = _selectedCategory == value;
     return GestureDetector(
       onTap: () {
@@ -287,16 +288,16 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryAccent : AppColors.surfaceCards,
+          color: isSelected ? colors.primaryAccent : colors.surfaceCards,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primaryAccent : AppColors.borderLight,
+            color: isSelected ? colors.primaryAccent : colors.borderLight,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? Colors.white : colors.textSecondary,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -305,7 +306,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildServicesList(AppLocalizations l10n) {
+  Widget _buildServicesList(AppLocalizations l10n, DynamicAppColors colors) {
     final filteredServices = _services.where((service) {
       final matchesCategory = _selectedCategory == 'all' || service.category == _selectedCategory;
       final matchesSearch = _searchQuery.isEmpty || 
@@ -315,7 +316,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     }).toList();
 
     if (filteredServices.isEmpty) {
-      return _buildEmptyState(l10n);
+      return _buildEmptyState(l10n, colors);
     }
 
     return ListView.builder(
@@ -324,28 +325,28 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: _buildServiceCard(filteredServices[index], l10n),
+          child: _buildServiceCard(filteredServices[index], l10n, colors),
         );
       },
     );
   }
 
-  Widget _buildServiceCard(Service service, AppLocalizations l10n) {
+  Widget _buildServiceCard(Service service, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -363,15 +364,15 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.primaryAccent.withValues(alpha: 0.2),
-                        AppColors.primaryAccent.withValues(alpha: 0.1),
+                        colors.primaryAccent.withValues(alpha: 0.2),
+                        colors.primaryAccent.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     service.icon,
-                    color: AppColors.primaryAccent,
+                    color: colors.primaryAccent,
                     size: 24,
                   ),
                 ),
@@ -385,7 +386,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -393,7 +394,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         service.provider,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -403,8 +404,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: service.isAvailable 
-                        ? AppColors.success.withValues(alpha: 0.1)
-                        : AppColors.warning.withValues(alpha: 0.1),
+                        ? colors.success.withValues(alpha: 0.1)
+                        : colors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -412,7 +413,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: service.isAvailable ? AppColors.success : AppColors.warning,
+                      color: service.isAvailable ? colors.success : colors.warning,
                     ),
                   ),
                 ),
@@ -423,7 +424,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               service.description,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -438,7 +439,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         'Price',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                       Text(
@@ -446,7 +447,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.success,
+                          color: colors.success,
                         ),
                       ),
                     ],
@@ -460,7 +461,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         'Schedule',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                       Text(
@@ -468,7 +469,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ],
@@ -478,10 +479,10 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   height: 40,
                   child: ElevatedButton(
                     onPressed: service.isAvailable 
-                        ? () => _showBookingDialog(context, service)
+                        ? () => _showBookingDialog(context, service, colors)
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryAccent,
+                      backgroundColor: colors.primaryAccent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -505,7 +506,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n) {
+  Widget _buildEmptyState(AppLocalizations l10n, DynamicAppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -513,7 +514,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           Icon(
             Icons.search_off_outlined,
             size: 64,
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            color: colors.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -521,7 +522,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -529,7 +530,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             'Try adjusting your search or filter criteria',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -537,7 +538,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  void _showBookingDialog(BuildContext context, Service service) {
+  void _showBookingDialog(BuildContext context, Service service, DynamicAppColors colors) {
     DateTime selectedDate = DateTime.now().add(Duration(days: 1));
     TimeOfDay selectedTime = TimeOfDay(hour: 9, minute: 0);
 
@@ -551,7 +552,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           content: Column(
@@ -562,13 +563,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 'Select your preferred date and time:',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 16),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.calendar_today_outlined, color: AppColors.primaryAccent),
+                leading: Icon(Icons.calendar_today_outlined, color: colors.primaryAccent),
                 title: Text(
                   'Date: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
                   style: TextStyle(fontWeight: FontWeight.w500),
@@ -588,7 +589,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.access_time_outlined, color: AppColors.primaryAccent),
+                leading: Icon(Icons.access_time_outlined, color: colors.primaryAccent),
                 title: Text(
                   'Time: ${selectedTime.format(context)}',
                   style: TextStyle(fontWeight: FontWeight.w500),
@@ -608,18 +609,18 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
+                  color: colors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.attach_money, color: AppColors.success, size: 20),
+                    Icon(Icons.attach_money, color: colors.success, size: 20),
                     Text(
                       'Total: \$${service.price.toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.success,
+                        color: colors.success,
                       ),
                     ),
                   ],
@@ -632,16 +633,16 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: colors.textSecondary),
               ),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _showBookingConfirmation(context, service, selectedDate, selectedTime);
+                _showBookingConfirmation(context, service, selectedDate, selectedTime, colors);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryAccent,
+                backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -655,28 +656,28 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  void _showBookingConfirmation(BuildContext context, Service service, DateTime date, TimeOfDay time) {
+  void _showBookingConfirmation(BuildContext context, Service service, DateTime date, TimeOfDay time, DynamicAppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: AppColors.success),
+            Icon(Icons.check_circle_outline, color: colors.success),
             const SizedBox(width: 8),
             Text('Booking Confirmed'),
           ],
         ),
         content: Text(
           'Your booking for ${service.name} has been confirmed for ${date.day}/${date.month}/${date.year} at ${time.format(context)}.\n\nYou will receive a confirmation email shortly.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: colors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Done',
-              style: TextStyle(color: AppColors.primaryAccent),
+              style: TextStyle(color: colors.primaryAccent),
             ),
           ),
         ],

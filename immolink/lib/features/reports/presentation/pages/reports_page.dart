@@ -201,10 +201,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildPeriodSelector(AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: const Color(0xFFE2E8F0),
           width: 1,
@@ -235,8 +235,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         gradient: isSelected
           ? LinearGradient(
@@ -249,7 +249,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             )
           : null,
         color: isSelected ? null : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isSelected 
             ? Colors.transparent 
@@ -259,8 +259,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         boxShadow: isSelected ? [
           BoxShadow(
             color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
             spreadRadius: 0,
           ),
         ] : null,
@@ -269,7 +269,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         label,
         style: TextStyle(
           color: isSelected ? Colors.white : const Color(0xFF64748B),
-          fontSize: 14,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.1,
         ),

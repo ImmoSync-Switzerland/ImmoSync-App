@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/navigation_provider.dart';
@@ -176,7 +175,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             if (properties.isNotEmpty) 
                               _buildPropertyCard(properties.first, currency, colors)
                             else
-                              _buildNoPropertyCard(),
+                              _buildNoPropertyCard(colors),
                             const SizedBox(height: 24),
                             _buildQuickActions(colors),
                             const SizedBox(height: 24),
@@ -192,13 +191,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             );
           },
           loading: () => Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFF8F9FA),
-                  Color(0xFFFFFFFF),
+                  colors.surfaceCards,
+                  colors.surfaceSecondary,
                 ],
               ),
             ),
@@ -209,15 +208,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: colors.surfaceCards.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.grey.withValues(alpha: 0.2),
+                        color: colors.borderLight,
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: colors.shadowColor,
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -255,13 +254,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             print('Tenant Dashboard Error: $error');
             print('Stack trace: $stackTrace');
             return Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFF8F9FA),
-                    Color(0xFFFFFFFF),
+                    colors.surfaceCards,
+                    colors.surfaceSecondary,
                   ],
                 ),
               ),
@@ -270,15 +269,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   margin: const EdgeInsets.all(20),
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: colors.surfaceCards.withValues(alpha: 0.95),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.2),
+                      color: colors.borderLight,
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: colors.shadowColor,
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
@@ -290,10 +289,10 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.1),
+                          color: colors.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                        child: Icon(Icons.error_outline, size: 48, color: colors.error),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -301,7 +300,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
+                          inherit: true,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -309,7 +309,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         error.toString(),
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
+                          inherit: true,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -318,8 +319,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.primaryAccent,
-                              AppColors.primaryAccent.withValues(alpha: 0.8),
+                              colors.primaryAccent,
+                              colors.primaryAccent.withValues(alpha: 0.8),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -659,7 +660,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7), // Grün Background
+                    color: colors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -813,21 +814,21 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     );
   }
 
-  Widget _buildNoPropertyCard() {
+  Widget _buildNoPropertyCard(DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(32.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.shadowColor.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -839,12 +840,12 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7), // Gelb Background
+              color: colors.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.home_work_outlined,
-              color: const Color(0xFFF59E0B),
+              color: colors.warning,
               size: 48,
             ),
           ),
@@ -854,8 +855,9 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF0F172A),
+              color: colors.textPrimary,
               letterSpacing: -0.6,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 12),
@@ -863,9 +865,10 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             'Contact your landlord to get access to your rental property information.',
             style: TextStyle(
               fontSize: 15,
-              color: const Color(0xFF64748B),
+              color: colors.textSecondary,
               fontWeight: FontWeight.w500,
               letterSpacing: -0.1,
+              inherit: true,
             ),
             textAlign: TextAlign.center,
           ),
@@ -874,11 +877,11 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6),
+              color: colors.primaryAccent,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                  color: colors.primaryAccent.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                   spreadRadius: 0,
@@ -1162,13 +1165,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              iconColor.withValues(alpha: 0.15),
               iconColor.withValues(alpha: 0.08),
+              iconColor.withValues(alpha: 0.04),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: iconColor.withValues(alpha: 0.2),
+            color: iconColor.withValues(alpha: 0.15),
             width: 1,
           ),
           boxShadow: [
@@ -1179,7 +1182,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: colors.shadowColor.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
               spreadRadius: 0,
@@ -1191,15 +1194,15 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colors.surfaceCards.withValues(alpha: 0.9),
+                color: colors.surfaceCards,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: colors.borderLight.withValues(alpha: 0.6),
+                  color: colors.borderLight.withValues(alpha: 0.5),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: colors.surfaceCards.withValues(alpha: 0.8),
+                    color: colors.shadowColor.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                     spreadRadius: 0,

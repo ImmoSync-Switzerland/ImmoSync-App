@@ -8,7 +8,6 @@ import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/home/domain/services/dashboard_service.dart';
 import 'package:immolink/features/chat/domain/models/conversation.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
@@ -130,8 +129,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       HapticFeedback.lightImpact();
                       await Future.delayed(const Duration(seconds: 1));
                     },
-                    color: AppColors.primaryAccent,
-                    backgroundColor: AppColors.primaryBackground,
+                    color: colors.primaryAccent,
+                    backgroundColor: colors.primaryBackground,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(20),
@@ -160,40 +159,52 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               );
             },
           ),
-          loading: () => const Center(
-            child: SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
-                strokeWidth: 2.5,
-              ),
-            ),
+          loading: () => Consumer(
+            builder: (context, ref, child) {
+              final colors = ref.watch(dynamicColorsProvider);
+              return Center(
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              );
+            },
           ),
-          error: (error, stack) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.error),
-                const SizedBox(height: 16),
-                Text(
-                  'Something went wrong',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+          error: (error, stack) => Consumer(
+            builder: (context, ref, child) {
+              final colors = ref.watch(dynamicColorsProvider);
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: colors.error),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Something went wrong',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
+                        inherit: true,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please try again later',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textTertiary,
+                        inherit: true,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please try again later',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
         ),
         ),
@@ -1386,6 +1397,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   void _navigateToChat(Conversation conversation) async {
+    final colors = ref.read(dynamicColorsProvider);
     try {
       // Navigate to chat page with conversation details
       context.push(
@@ -1397,7 +1409,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Unable to open chat. Please try again.'),
-          backgroundColor: AppColors.error,
+          backgroundColor: colors.error,
         ),
       );
     }
@@ -1696,6 +1708,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   void _showFilterDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.read(dynamicColorsProvider);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1704,7 +1717,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.all_inclusive, color: AppColors.primaryAccent),
+              leading: Icon(Icons.all_inclusive, color: colors.primaryAccent),
               title: Text(l10n.all),
               onTap: () {
                 Navigator.of(context).pop();
@@ -1712,7 +1725,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               },
             ),
             ListTile(
-              leading: Icon(Icons.check_circle, color: AppColors.success),
+              leading: Icon(Icons.check_circle, color: colors.success),
               title: Text(l10n.available),
               onTap: () {
                 Navigator.of(context).pop();
@@ -1720,7 +1733,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               },
             ),
             ListTile(
-              leading: Icon(Icons.home, color: AppColors.info),
+              leading: Icon(Icons.home, color: colors.info),
               title: Text(l10n.occupied),
               onTap: () {
                 Navigator.of(context).pop();
@@ -1728,7 +1741,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               },
             ),
             ListTile(
-              leading: Icon(Icons.build, color: AppColors.warning),
+              leading: Icon(Icons.build, color: colors.warning),
               title: Text(l10n.maintenance),
               onTap: () {
                 Navigator.of(context).pop();

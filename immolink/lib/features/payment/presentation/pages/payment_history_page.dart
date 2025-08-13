@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/payment/domain/models/payment.dart';
 import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
-import 'package:immolink/core/theme/app_colors.dart';
+import 'package:immolink/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
 
 class PaymentHistoryPage extends ConsumerWidget {
@@ -12,26 +12,27 @@ class PaymentHistoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     final payments = currentUser?.role == 'landlord'
         ? ref.watch(landlordPaymentsProvider)
         : ref.watch(tenantPaymentsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         title: Text(
           'Payment History',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: AppColors.surfaceCards,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: colors.surfaceCards,
+        foregroundColor: colors.textPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -40,7 +41,7 @@ class PaymentHistoryPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFilterOptions(context),
+            _buildFilterOptions(context, colors),
             const SizedBox(height: 24),
             Expanded(
               child: payments.when(
@@ -53,7 +54,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                           Icon(
                             Icons.payment_outlined,
                             size: 64,
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -61,7 +62,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -69,7 +70,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                             'Your payment history will appear here once you make your first payment.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -81,7 +82,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                   return ListView.builder(
                     itemCount: paymentsList.length,
                     itemBuilder: (context, index) {
-                      return _buildPaymentCard(context, paymentsList[index]);
+                      return _buildPaymentCard(context, paymentsList[index], colors);
                     },
                   );
                 },
@@ -93,7 +94,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                         width: 32,
                         height: 32,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                          valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                           strokeWidth: 2.5,
                         ),
                       ),
@@ -101,7 +102,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                       Text(
                         'Loading payment history...',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           fontSize: 14,
                         ),
                       ),
@@ -112,14 +113,14 @@ class PaymentHistoryPage extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                      Icon(Icons.error_outline, size: 48, color: colors.error),
                       const SizedBox(height: 16),
                       Text(
                         'Error loading payment history',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -127,7 +128,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                         error.toString(),
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -139,8 +140,8 @@ class PaymentHistoryPage extends ConsumerWidget {
                               : tenantPaymentsProvider);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryAccent,
-                          foregroundColor: AppColors.textOnAccent,
+                          backgroundColor: colors.primaryAccent,
+                          foregroundColor: colors.textOnAccent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -158,18 +159,18 @@ class PaymentHistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterOptions(BuildContext context) {
+  Widget _buildFilterOptions(BuildContext context, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor.withValues(alpha: 0.08),
+            color: colors.shadowColor.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -185,7 +186,7 @@ class PaymentHistoryPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -194,10 +195,10 @@ class PaymentHistoryPage extends ConsumerWidget {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBackground,
+                      color: colors.primaryBackground,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.borderLight,
+                        color: colors.borderLight,
                         width: 1,
                       ),
                     ),
@@ -206,7 +207,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                       decoration: InputDecoration(
                         labelText: 'Status',
                         labelStyle: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           fontSize: 14,
                         ),
                         border: InputBorder.none,
@@ -216,10 +217,10 @@ class PaymentHistoryPage extends ConsumerWidget {
                         ),
                       ),
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontSize: 14,
                       ),
-                      dropdownColor: AppColors.surfaceCards,
+                      dropdownColor: colors.surfaceCards,
                       items: const [
                         DropdownMenuItem(value: 'All', child: Text('All')),
                         DropdownMenuItem(value: 'pending', child: Text('Pending')),
@@ -237,10 +238,10 @@ class PaymentHistoryPage extends ConsumerWidget {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBackground,
+                      color: colors.primaryBackground,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.borderLight,
+                        color: colors.borderLight,
                         width: 1,
                       ),
                     ),
@@ -249,7 +250,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                       decoration: InputDecoration(
                         labelText: 'Type',
                         labelStyle: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           fontSize: 14,
                         ),
                         border: InputBorder.none,
@@ -259,10 +260,10 @@ class PaymentHistoryPage extends ConsumerWidget {
                         ),
                       ),
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontSize: 14,
                       ),
-                      dropdownColor: AppColors.surfaceCards,
+                      dropdownColor: colors.surfaceCards,
                       items: const [
                         DropdownMenuItem(value: 'All', child: Text('All')),
                         DropdownMenuItem(value: 'rent', child: Text('Rent')),
@@ -283,29 +284,29 @@ class PaymentHistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentCard(BuildContext context, Payment payment) {
+  Widget _buildPaymentCard(BuildContext context, Payment payment, DynamicAppColors colors) {
     Color statusColor;
     IconData statusIcon;
 
     switch (payment.status) {
       case 'pending':
-        statusColor = AppColors.warning;
+        statusColor = colors.warning;
         statusIcon = Icons.hourglass_empty;
         break;
       case 'completed':
-        statusColor = AppColors.success;
+        statusColor = colors.success;
         statusIcon = Icons.check_circle;
         break;
       case 'failed':
-        statusColor = AppColors.error;
+        statusColor = colors.error;
         statusIcon = Icons.cancel;
         break;
       case 'refunded':
-        statusColor = AppColors.info;
+        statusColor = colors.info;
         statusIcon = Icons.replay;
         break;
       default:
-        statusColor = AppColors.textTertiary;
+        statusColor = colors.textTertiary;
         statusIcon = Icons.help_outline;
     }
 
@@ -314,15 +315,15 @@ class PaymentHistoryPage extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor.withValues(alpha: 0.08),
+            color: colors.shadowColor.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

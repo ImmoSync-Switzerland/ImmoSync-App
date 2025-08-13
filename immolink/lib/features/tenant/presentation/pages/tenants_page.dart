@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../chat/domain/models/contact_user.dart';
 import '../../../chat/presentation/providers/contact_providers.dart';
 import '../../../property/domain/models/property.dart';
@@ -48,12 +48,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
   }  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     final contactsAsync = ref.watch(allTenantsProvider);
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
-      appBar: _buildAppBar(),
+      backgroundColor: colors.primaryBackground,
+      appBar: _buildAppBar(colors),
       body: AnimatedBuilder(
         animation: _animationController,
         builder: (context, child) {
@@ -67,24 +68,24 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 ref.invalidate(landlordPropertiesProvider);
                 await Future.delayed(const Duration(milliseconds: 500));
               },
-                color: AppColors.primaryAccent,
-                backgroundColor: AppColors.primaryBackground,
+                color: colors.primaryAccent,
+                backgroundColor: colors.primaryBackground,
                 child: Column(
                   children: [
-                    _buildHeader(),
-                    _buildSearchBar(),
+                    _buildHeader(colors),
+                    _buildSearchBar(colors),
                     Expanded(
                       child: contactsAsync.when(
                         data: (tenants) {
                           final filteredTenants = _filterTenants(tenants);
                           return propertiesAsync.when(
-                            data: (properties) => _buildTenantsContent(filteredTenants, properties, l10n),
+                            data: (properties) => _buildTenantsContent(filteredTenants, properties, l10n, colors),
                             loading: () => const Center(child: CircularProgressIndicator()),
-                            error: (error, _) => _buildErrorState(),
+                            error: (error, _) => _buildErrorState(colors),
                           );
                         },
-                        loading: () => _buildLoadingState(),
-                        error: (error, _) => _buildErrorState(),
+                        loading: () => _buildLoadingState(colors),
+                        error: (error, _) => _buildErrorState(colors),
                       ),
                     ),
                   ],
@@ -94,23 +95,24 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           );
         },
       ),
-      floatingActionButton: _buildFAB(),
+      floatingActionButton: _buildFAB(colors),
     );
   }
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
       title: Text(
         l10n.tenants,
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
+          inherit: true,
         ),
       ),      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
         onPressed: () {
           if (context.canPop()) {
             context.pop();
@@ -121,7 +123,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.filter_list_outlined, color: AppColors.textPrimary),
+          icon: Icon(Icons.filter_list_outlined, color: colors.textPrimary),
           onPressed: () {
             HapticFeedback.lightImpact();
             _showFilterOptions();
@@ -130,7 +132,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ],
     );
   }
-  Widget _buildHeader() {
+  Widget _buildHeader(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
@@ -142,8 +144,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               letterSpacing: -0.5,
+              inherit: true,
             ),
           ),
           const SizedBox(height: 8),
@@ -151,16 +154,17 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             l10n.manageTenantDescription,
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               letterSpacing: -0.2,
+              inherit: true,
             ),
           ),
         ],
       ),
     );
   }
-  Widget _buildSearchBar() {
-    final l10n = AppLocalizations.of(context)!;
+  Widget _buildSearchBar(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
@@ -168,18 +172,18 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -193,14 +197,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           });
         },
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: l10n.searchTenants,
           hintStyle: TextStyle(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 15,
             fontWeight: FontWeight.w400,
           ),
@@ -208,7 +212,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             padding: const EdgeInsets.all(12),
             child: Icon(
               Icons.search_outlined,
-              color: AppColors.primaryAccent,
+              color: colors.primaryAccent,
               size: 20,
             ),
           ),
@@ -216,7 +220,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     size: 20,
                   ),
                   onPressed: () {
@@ -234,14 +238,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildTenantsContent(List<ContactUser> tenants, List<Property> properties, AppLocalizations l10n) {
+  Widget _buildTenantsContent(List<ContactUser> tenants, List<Property> properties, AppLocalizations l10n, DynamicAppColors colors) {
     if (tenants.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(colors);
     }
 
     return Column(
       children: [
-        _buildStatsCards(tenants, properties),
+        _buildStatsCards(tenants, properties, colors),
         const SizedBox(height: 16),
         Expanded(
           child: ListView.builder(
@@ -252,7 +256,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               final tenantProperties = _getTenantProperties(tenant, properties);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: _buildTenantCard(tenant, tenantProperties, l10n),
+                child: _buildTenantCard(tenant, tenantProperties, l10n, colors),
               );
             },
           ),
@@ -260,7 +264,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ],
     );
   }
-  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties) {
+  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties, DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     final totalTenants = tenants.length;
     final occupiedProperties = properties.where((p) => p.status == 'rented').length;
@@ -275,7 +279,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               l10n.totalTenants,
               totalTenants.toString(),
               Icons.people_outline,
-              AppColors.primaryAccent,
+              colors.primaryAccent,
+              colors,
             ),
           ),
           const SizedBox(width: 12),          Expanded(
@@ -283,7 +288,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               l10n.occupiedUnits,
               occupiedProperties.toString(),
               Icons.home_outlined,
-              AppColors.success,
+              colors.success,
+              colors,
             ),
           ),
           const SizedBox(width: 12),
@@ -292,7 +298,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               l10n.pendingIssues,
               pendingIssues.toString(),
               Icons.warning_outlined,
-              AppColors.warning,
+              colors.warning,
+              colors,
             ),
           ),
         ],
@@ -300,7 +307,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -308,7 +315,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
+            colors.surfaceCards,
             color.withValues(alpha: 0.03),
           ],
         ),
@@ -341,7 +348,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
@@ -350,7 +357,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
@@ -359,11 +366,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
-  Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties, AppLocalizations l10n) {
+  Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties, AppLocalizations l10n, DynamicAppColors colors) {
     final hasProperties = tenantProperties.isNotEmpty;
     // Use status from backend if available, otherwise fall back to property-based logic
     final tenantStatus = tenant.status ?? (hasProperties ? 'active' : 'available');
-    final statusColor = tenantStatus == 'active' ? AppColors.success : AppColors.warning;
+    final statusColor = tenantStatus == 'active' ? colors.success : colors.warning;
 
     return GestureDetector(
       onTap: () {
@@ -377,7 +384,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceCards,
+              colors.surfaceCards,
               statusColor.withValues(alpha: 0.02),
             ],
           ),
@@ -388,7 +395,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor,
+              color: colors.shadowColor,
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -437,7 +444,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -446,7 +453,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                         tenant.email,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                       if (tenant.phone.isNotEmpty) ...[
@@ -456,14 +463,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                             Icon(
                               Icons.phone_outlined,
                               size: 14,
-                              color: AppColors.textTertiary,
+                              color: colors.textTertiary,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               tenant.phone,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -498,10 +505,10 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.05),
+                  color: colors.success.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.success.withValues(alpha: 0.1),
+                    color: colors.success.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
@@ -513,7 +520,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                         Icon(
                           Icons.home_outlined,
                           size: 16,
-                          color: AppColors.success,
+                          color: colors.success,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -521,7 +528,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.success,
+                            color: colors.success,
                           ),
                         ),
                       ],
@@ -537,7 +544,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                               property.address.street,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ),
@@ -546,7 +553,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.success,
+                              color: colors.success,
                             ),
                           ),
                         ],
@@ -563,7 +570,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   child: _buildActionButton(
                     l10n.message,
                     Icons.chat_bubble_outline,
-                    AppColors.primaryAccent,
+                    colors.primaryAccent,
                     () => _messageTenant(tenant),
                   ),
                 ),
@@ -572,7 +579,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   child: _buildActionButton(
                     l10n.call,
                     Icons.phone_outlined,
-                    AppColors.success,
+                    colors.success,
                     () => _callTenant(tenant),
                   ),
                 ),
@@ -581,7 +588,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   child: _buildActionButton(
                     l10n.details,
                     Icons.info_outline,
-                    AppColors.textSecondary,
+                    colors.textSecondary,
                     () => _showTenantDetails(tenant, tenantProperties),
                   ),
                 ),
@@ -624,7 +631,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -639,8 +646,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.primaryAccent.withValues(alpha: 0.1),
-                    AppColors.primaryAccent.withValues(alpha: 0.05),
+                    colors.primaryAccent.withValues(alpha: 0.1),
+                    colors.primaryAccent.withValues(alpha: 0.05),
                   ],
                 ),
                 shape: BoxShape.circle,
@@ -648,7 +655,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               child: Icon(
                 Icons.people_outline,
                 size: 48,
-                color: AppColors.primaryAccent,
+                color: colors.primaryAccent,
               ),
             ),
             const SizedBox(height: 24),
@@ -657,7 +664,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -665,7 +672,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               l10n.addPropertiesInviteTenants,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -676,7 +683,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 context.push('/add-property');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryAccent,
+                backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -691,14 +698,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
           ),
           const SizedBox(height: 16),
           Text(l10n.loadingTenants),
@@ -707,27 +714,27 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: AppColors.error),
+          Icon(Icons.error_outline, size: 48, color: colors.error),
           const SizedBox(height: 16),
           Text(
             l10n.errorLoadingTenants,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),          const SizedBox(height: 8),
           Text(
             l10n.pleaseTryAgainLater,
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -737,7 +744,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               ref.invalidate(landlordPropertiesProvider);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryAccent,
+              backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
             ),
             child: Text(l10n.retryLoading),
@@ -747,21 +754,21 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildFAB() {
+  Widget _buildFAB(DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primaryAccent,
-            AppColors.primaryAccent.withValues(alpha: 0.8),
+            colors.primaryAccent,
+            colors.primaryAccent.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryAccent.withValues(alpha: 0.3),
+            color: colors.primaryAccent.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -776,7 +783,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         elevation: 0,
         child: Icon(
           Icons.add_home,
-          color: AppColors.textOnAccent,
+          color: colors.textOnAccent,
           size: 28,
         ),
       ),
@@ -805,10 +812,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
 
   void _messageTenant(ContactUser tenant) {
     HapticFeedback.lightImpact();
+    final colors = ref.read(dynamicColorsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Starting conversation with ${tenant.fullName}...'),
-        backgroundColor: AppColors.primaryAccent,
+        backgroundColor: colors.primaryAccent,
         action: SnackBarAction(
           label: 'Open Chat',
           textColor: Colors.white,
@@ -819,11 +827,12 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
   }
 
   void _callTenant(ContactUser tenant) {
+    final colors = ref.read(dynamicColorsProvider);
     if (tenant.phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No phone number available for ${tenant.fullName}'),
-          backgroundColor: AppColors.warning,
+          backgroundColor: colors.warning,
         ),
       );
       return;
@@ -833,22 +842,22 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.surfaceCards,
+          backgroundColor: colors.surfaceCards,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
             'Call ${tenant.fullName}',
-            style: TextStyle(color: AppColors.textPrimary),
+            style: TextStyle(color: colors.textPrimary, inherit: true),
           ),
           content: Text(
             'Do you want to call ${tenant.phone}?',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(color: colors.textSecondary, inherit: true),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Cancel', style: TextStyle(color: colors.textSecondary, inherit: true)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -857,12 +866,12 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Phone call functionality will be implemented'),
-                    backgroundColor: AppColors.success,
+                    backgroundColor: colors.success,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
+                backgroundColor: colors.success,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Call'),
@@ -878,10 +887,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          final colors = ref.watch(dynamicColorsProvider);
+          return Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: AppColors.surfaceCards,
+          color: colors.surfaceCards,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -891,7 +903,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -911,8 +923,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                AppColors.primaryAccent,
-                                AppColors.primaryAccent.withValues(alpha: 0.7),
+                                colors.primaryAccent,
+                                colors.primaryAccent.withValues(alpha: 0.7),
                               ],
                             ),
                             shape: BoxShape.circle,
@@ -938,14 +950,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
+                                  color: colors.textPrimary,
                                 ),
                               ),
                               Text(
                                 'Tenant Details',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ],
@@ -953,46 +965,47 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: Icon(Icons.close, color: AppColors.textTertiary),
+                          icon: Icon(Icons.close, color: colors.textTertiary),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     // Contact Information
                     _buildDetailSection('Contact Information', [
-                      _buildDetailItem('Email', tenant.email, Icons.email_outlined),
+                      _buildDetailItem('Email', tenant.email, Icons.email_outlined, colors),
                       if (tenant.phone.isNotEmpty)
-                        _buildDetailItem('Phone', tenant.phone, Icons.phone_outlined),
-                    ]),
+                        _buildDetailItem('Phone', tenant.phone, Icons.phone_outlined, colors),
+                    ], colors),
                     const SizedBox(height: 24),
                     // Properties
                     if (tenantProperties.isNotEmpty) ...[
                       _buildDetailSection('Assigned Properties', 
                         tenantProperties.map((property) => 
-                          _buildPropertyDetailItem(property)
-                        ).toList()
+                          _buildPropertyDetailItem(property, colors)
+                        ).toList(),
+                        colors
                       ),
                     ] else ...[
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.1),
+                          color: colors.warning.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.warning.withValues(alpha: 0.2),
+                            color: colors.warning.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.warning_outlined, color: AppColors.warning),
+                            Icon(Icons.warning_outlined, color: colors.warning),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'No properties assigned to this tenant',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: AppColors.warning,
+                                  color: colors.warning,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -1007,11 +1020,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             ),
           ],
         ),
+      );
+        },
       ),
     );
   }
 
-  Widget _buildDetailSection(String title, List<Widget> children) {
+  Widget _buildDetailSection(String title, List<Widget> children, DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1020,7 +1035,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -1029,21 +1044,21 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildDetailItem(String label, String value, IconData icon) {
+  Widget _buildDetailItem(String label, String value, IconData icon, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryBackground,
+        color: colors.primaryBackground,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primaryAccent, size: 20),
+          Icon(icon, color: colors.primaryAccent, size: 20),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1052,7 +1067,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1060,7 +1075,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 value,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1071,21 +1086,21 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildPropertyDetailItem(Property property) {
+  Widget _buildPropertyDetailItem(Property property, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryBackground,
+        color: colors.primaryBackground,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.home_outlined, color: AppColors.success, size: 20),
+          Icon(Icons.home_outlined, color: colors.success, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1095,7 +1110,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   property.address.street,
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1103,7 +1118,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   '${property.address.city}, ${property.address.postalCode}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -1113,7 +1128,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.success,
+              color: colors.success,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1124,10 +1139,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
 
   void _showFilterOptions() {
     // TODO: Implement filter options (Active/Inactive, Property type, etc.)
+    final colors = ref.read(dynamicColorsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Filter options will be implemented'),
-        backgroundColor: AppColors.primaryAccent,
+        backgroundColor: colors.primaryAccent,
       ),
     );
   }

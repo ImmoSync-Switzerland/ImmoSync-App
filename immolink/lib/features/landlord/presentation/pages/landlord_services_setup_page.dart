@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 
 // Service model for landlord setup
@@ -66,31 +66,37 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
-    return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
-      appBar: _buildAppBar(l10n),
-      bottomNavigationBar: const CommonBottomNav(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(l10n),
-            Expanded(
-              child: _buildServicesList(l10n),
+    return Consumer(
+      builder: (context, ref, child) {
+        final colors = ref.watch(dynamicColorsProvider);
+        
+        return Scaffold(
+          backgroundColor: colors.primaryBackground,
+          appBar: _buildAppBar(l10n, colors),
+          bottomNavigationBar: const CommonBottomNav(),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(l10n, colors),
+                Expanded(
+                  child: _buildServicesList(l10n, colors),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: _buildFAB(l10n),
+          ),
+          floatingActionButton: _buildFAB(l10n, colors),
+        );
+      },
     );
   }
 
-  PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
+        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
         onPressed: () {
           HapticFeedback.lightImpact();
           context.pop();
@@ -99,7 +105,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
       title: Text(
         'Tenant Services',
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
@@ -108,7 +114,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 
-  Widget _buildHeader(AppLocalizations l10n) {
+  Widget _buildHeader(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
@@ -117,15 +123,15 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -141,15 +147,15 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.luxuryGold.withValues(alpha: 0.2),
-                      AppColors.luxuryGold.withValues(alpha: 0.1),
+                      colors.luxuryGold.withValues(alpha: 0.2),
+                      colors.luxuryGold.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.business_center_outlined,
-                  color: AppColors.luxuryGold,
+                  color: colors.luxuryGold,
                   size: 24,
                 ),
               ),
@@ -160,7 +166,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
@@ -171,7 +177,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             'Set up and manage services that your tenants can book. Add service providers, set pricing, and control availability.',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               height: 1.4,
             ),
           ),
@@ -180,9 +186,9 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 
-  Widget _buildServicesList(AppLocalizations l10n) {
+  Widget _buildServicesList(AppLocalizations l10n, DynamicAppColors colors) {
     if (_services.isEmpty) {
-      return _buildEmptyState(l10n);
+      return _buildEmptyState(l10n, colors);
     }
 
     return ListView.builder(
@@ -191,28 +197,28 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: _buildServiceCard(_services[index], l10n),
+          child: _buildServiceCard(_services[index], l10n, colors),
         );
       },
     );
   }
 
-  Widget _buildServiceCard(LandlordService service, AppLocalizations l10n) {
+  Widget _buildServiceCard(LandlordService service, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -230,15 +236,15 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.primaryAccent.withValues(alpha: 0.2),
-                        AppColors.primaryAccent.withValues(alpha: 0.1),
+                        colors.primaryAccent.withValues(alpha: 0.2),
+                        colors.primaryAccent.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     _getCategoryIcon(service.category),
-                    color: AppColors.primaryAccent,
+                    color: colors.primaryAccent,
                     size: 24,
                   ),
                 ),
@@ -252,7 +258,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -260,14 +266,14 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                         service.provider,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+                  icon: Icon(Icons.more_vert, color: colors.textSecondary),
                   onSelected: (value) => _handleServiceAction(value, service),
                   itemBuilder: (context) => [
                     PopupMenuItem(
@@ -297,9 +303,9 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outlined, size: 20, color: AppColors.error),
+                          Icon(Icons.delete_outlined, size: 20, color: colors.error),
                           SizedBox(width: 12),
-                          Text('Delete', style: TextStyle(color: AppColors.error)),
+                          Text('Delete', style: TextStyle(color: colors.error)),
                         ],
                       ),
                     ),
@@ -312,7 +318,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
               service.description,
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -320,10 +326,10 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primaryAccent.withValues(alpha: 0.05),
+                color: colors.primaryAccent.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                  color: colors.primaryAccent.withValues(alpha: 0.1),
                 ),
               ),
               child: Column(
@@ -338,7 +344,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                               'Price',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                             Text(
@@ -346,7 +352,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.success,
+                                color: colors.success,
                               ),
                             ),
                           ],
@@ -360,7 +366,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                               'Schedule',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                             Text(
@@ -368,7 +374,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
+                                color: colors.textPrimary,
                               ),
                             ),
                           ],
@@ -378,8 +384,8 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: service.isActive 
-                              ? AppColors.success.withValues(alpha: 0.1)
-                              : AppColors.warning.withValues(alpha: 0.1),
+                              ? colors.success.withValues(alpha: 0.1)
+                              : colors.warning.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -387,7 +393,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: service.isActive ? AppColors.success : AppColors.warning,
+                            color: service.isActive ? colors.success : colors.warning,
                           ),
                         ),
                       ),
@@ -399,14 +405,14 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                       Icon(
                         Icons.phone_outlined,
                         size: 16,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         service.contactInfo,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -420,7 +426,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n) {
+  Widget _buildEmptyState(AppLocalizations l10n, DynamicAppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -428,7 +434,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
           Icon(
             Icons.business_center_outlined,
             size: 64,
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            color: colors.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -436,7 +442,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -444,14 +450,14 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             'Add services that your tenants can book',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => _showAddServiceDialog(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryAccent,
+              backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -465,13 +471,13 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 
-  Widget _buildFAB(AppLocalizations l10n) {
+  Widget _buildFAB(AppLocalizations l10n, DynamicAppColors colors) {
     return FloatingActionButton(
       onPressed: () {
         HapticFeedback.mediumImpact();
         _showAddServiceDialog(context);
       },
-      backgroundColor: AppColors.primaryAccent,
+      backgroundColor: colors.primaryAccent,
       foregroundColor: Colors.white,
       child: Icon(Icons.add, size: 24),
     );
@@ -505,6 +511,8 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
   }
 
   void _toggleServiceStatus(LandlordService service) {
+    final colors = ref.read(dynamicColorsProvider);
+    
     setState(() {
       final index = _services.indexWhere((s) => s.id == service.id);
       if (index >= 0) {
@@ -527,12 +535,14 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
         content: Text(
           '${service.name} ${service.isActive ? 'disabled' : 'enabled'}',
         ),
-        backgroundColor: AppColors.success,
+        backgroundColor: colors.success,
       ),
     );
   }
 
   void _showDeleteConfirmation(BuildContext context, LandlordService service) {
+    final colors = ref.read(dynamicColorsProvider);
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -555,12 +565,12 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Service deleted'),
-                  backgroundColor: AppColors.success,
+                  backgroundColor: colors.success,
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              backgroundColor: colors.error,
               foregroundColor: Colors.white,
             ),
             child: Text('Delete'),
@@ -579,6 +589,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
   }
 
   void _showServiceDialog(BuildContext context, LandlordService? service) {
+    final colors = ref.read(dynamicColorsProvider);
     final isEditing = service != null;
     final formKey = GlobalKey<FormState>();
     
@@ -709,7 +720,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
 
                 setState(() {
                   if (isEditing) {
-                    final index = _services.indexWhere((s) => s.id == service!.id);
+                    final index = _services.indexWhere((s) => s.id == service.id);
                     if (index >= 0) _services[index] = newService;
                   } else {
                     _services.add(newService);
@@ -720,13 +731,13 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(isEditing ? 'Service updated' : 'Service added'),
-                    backgroundColor: AppColors.success,
+                    backgroundColor: colors.success,
                   ),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryAccent,
+              backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
             ),
             child: Text(isEditing ? 'Update' : 'Add'),
@@ -736,3 +747,4 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 }
+

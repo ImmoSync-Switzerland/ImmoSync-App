@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 
 class AutoPaymentSetupPage extends ConsumerStatefulWidget {
@@ -39,10 +39,11 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
-      appBar: _buildAppBar(l10n),
+      backgroundColor: colors.primaryBackground,
+      appBar: _buildAppBar(l10n, colors),
       bottomNavigationBar: const CommonBottomNav(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -52,15 +53,15 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(l10n),
+                _buildHeader(l10n, colors),
                 const SizedBox(height: 32),
-                _buildPaymentMethodSelector(l10n),
+                _buildPaymentMethodSelector(l10n, colors),
                 const SizedBox(height: 24),
-                _buildPaymentForm(l10n),
+                _buildPaymentForm(l10n, colors),
                 const SizedBox(height: 32),
-                _buildSetupButton(l10n),
+                _buildSetupButton(l10n, colors),
                 const SizedBox(height: 24),
-                _buildSecurityNote(l10n),
+                _buildSecurityNote(l10n, colors),
               ],
             ),
           ),
@@ -69,13 +70,13 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary, size: 20),
+        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
         onPressed: () {
           HapticFeedback.lightImpact();
           context.pop();
@@ -84,7 +85,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
       title: Text(
         'Auto Payment Setup',
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
@@ -93,7 +94,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildHeader(AppLocalizations l10n) {
+  Widget _buildHeader(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -101,15 +102,15 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -125,15 +126,15 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.success.withValues(alpha: 0.2),
-                      AppColors.success.withValues(alpha: 0.1),
+                      colors.success.withValues(alpha: 0.2),
+                      colors.success.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.payment_outlined,
-                  color: AppColors.success,
+                  color: colors.success,
                   size: 24,
                 ),
               ),
@@ -144,7 +145,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
@@ -155,7 +156,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             'Set up automatic rent payments to never miss a due date. Your payment information is encrypted and secure.',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               height: 1.4,
             ),
           ),
@@ -164,7 +165,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildPaymentMethodSelector(AppLocalizations l10n) {
+  Widget _buildPaymentMethodSelector(AppLocalizations l10n, DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -173,7 +174,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(height: 16),
@@ -185,6 +186,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 Icons.account_balance_outlined,
                 'bank',
                 'ACH Transfer',
+                colors,
               ),
             ),
             const SizedBox(width: 16),
@@ -194,6 +196,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 Icons.credit_card_outlined,
                 'card',
                 'Instant Payment',
+                colors,
               ),
             ),
           ],
@@ -202,7 +205,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildPaymentMethodCard(String title, IconData icon, String value, String subtitle) {
+  Widget _buildPaymentMethodCard(String title, IconData icon, String value, String subtitle, DynamicAppColors colors) {
     final isSelected = _selectedPaymentMethod == value;
     
     return GestureDetector(
@@ -215,17 +218,17 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isSelected 
-                ? [AppColors.primaryAccent.withValues(alpha: 0.1), AppColors.primaryAccent.withValues(alpha: 0.05)]
-                : [AppColors.surfaceCards, AppColors.surfaceCards],
+                ? [colors.primaryAccent.withValues(alpha: 0.1), colors.primaryAccent.withValues(alpha: 0.05)]
+                : [colors.surfaceCards, colors.surfaceCards],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primaryAccent : AppColors.borderLight,
+            color: isSelected ? colors.primaryAccent : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor,
+              color: colors.shadowColor,
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -237,13 +240,13 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isSelected 
-                    ? AppColors.primaryAccent.withValues(alpha: 0.1)
-                    : AppColors.textSecondary.withValues(alpha: 0.1),
+                    ? colors.primaryAccent.withValues(alpha: 0.1)
+                    : colors.textSecondary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? AppColors.primaryAccent : AppColors.textSecondary,
+                color: isSelected ? colors.primaryAccent : colors.textSecondary,
                 size: 24,
               ),
             ),
@@ -253,7 +256,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -262,7 +265,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -272,19 +275,19 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildPaymentForm(AppLocalizations l10n) {
+  Widget _buildPaymentForm(AppLocalizations l10n, DynamicAppColors colors) {
     return _selectedPaymentMethod == 'bank' 
-        ? _buildBankForm(l10n)
-        : _buildCardForm(l10n);
+        ? _buildBankForm(l10n, colors)
+        : _buildCardForm(l10n, colors);
   }
 
-  Widget _buildBankForm(AppLocalizations l10n) {
+  Widget _buildBankForm(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +297,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -336,13 +339,13 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildCardForm(AppLocalizations l10n) {
+  Widget _buildCardForm(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,7 +355,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -436,18 +439,18 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildSetupButton(AppLocalizations l10n) {
+  Widget _buildSetupButton(AppLocalizations l10n, DynamicAppColors colors) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
           HapticFeedback.mediumImpact();
           if (_formKey.currentState?.validate() ?? false) {
-            _showSetupConfirmation(context);
+            _showSetupConfirmation(context, colors);
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryAccent,
+          backgroundColor: colors.primaryAccent,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -466,19 +469,19 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildSecurityNote(AppLocalizations l10n) {
+  Widget _buildSecurityNote(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.info.withValues(alpha: 0.1),
+        color: colors.info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+        border: Border.all(color: colors.info.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.security_outlined,
-            color: AppColors.info,
+            color: colors.info,
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -491,7 +494,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -499,7 +502,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   'Your payment information is encrypted with bank-level security. You can modify or cancel auto payments anytime.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     height: 1.3,
                   ),
                 ),
@@ -511,21 +514,21 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  void _showSetupConfirmation(BuildContext context) {
+  void _showSetupConfirmation(BuildContext context, DynamicAppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: AppColors.success),
+            Icon(Icons.check_circle_outline, color: colors.success),
             const SizedBox(width: 8),
             Text('Setup Complete'),
           ],
         ),
         content: Text(
           'Your automatic payment has been set up successfully. You will receive a confirmation email shortly.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: colors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -535,7 +538,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             },
             child: Text(
               'Done',
-              style: TextStyle(color: AppColors.primaryAccent),
+              style: TextStyle(color: colors.primaryAccent),
             ),
           ),
         ],
