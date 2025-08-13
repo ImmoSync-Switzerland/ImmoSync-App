@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ContactSupportPage extends ConsumerStatefulWidget {
@@ -49,21 +49,23 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           l10n.contactSupport,
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -72,29 +74,29 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.primaryBackground, AppColors.surfaceCards],
+            colors: [colors.primaryBackground, colors.surfaceCards],
           ),
         ),
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            _buildHeaderCard(l10n),
+            _buildHeaderCard(l10n, colors),
             const SizedBox(height: 24),
-            _buildQuickContactSection(context, l10n),
+            _buildQuickContactSection(context, l10n, colors),
             const SizedBox(height: 24),
-            _buildSupportForm(l10n),
+            _buildSupportForm(l10n, colors),
             const SizedBox(height: 24),
-            _buildSupportInfoCard(l10n),
+            _buildSupportInfoCard(l10n, colors),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderCard(AppLocalizations l10n) {
+  Widget _buildHeaderCard(AppLocalizations l10n, DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -105,8 +107,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryAccent.withValues(alpha: 0.1),
-              AppColors.accentLight.withValues(alpha: 0.1),
+              colors.primaryAccent.withValues(alpha: 0.1),
+              colors.accentLight.withValues(alpha: 0.1),
             ],
           ),
         ),
@@ -118,7 +120,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               children: [
                 Icon(
                   Icons.support_agent,
-                  color: AppColors.primaryAccent,
+                  color: colors.primaryAccent,
                   size: 28,
                 ),
                 const SizedBox(width: 12),
@@ -127,7 +129,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ],
@@ -137,7 +139,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               l10n.supportTeamDescription,
               style: TextStyle(
                 fontSize: 16,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -147,10 +149,10 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildQuickContactSection(BuildContext context, AppLocalizations l10n) {
+  Widget _buildQuickContactSection(BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -164,7 +166,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -175,6 +177,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                     l10n.emailUs,
                     Icons.email,
                     () => _launchEmail(l10n),
+                    colors: colors,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -183,6 +186,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                     l10n.callUs,
                     Icons.phone,
                     () => _launchPhone(l10n),
+                    colors: colors,
                   ),
                 ),
               ],
@@ -193,6 +197,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               Icons.chat,
               () => _showLiveChatDialog(context, l10n),
               fullWidth: true,
+              colors: colors,
             ),
           ],
         ),
@@ -200,13 +205,13 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildQuickContactButton(String title, IconData icon, VoidCallback onTap, {bool fullWidth = false}) {
+  Widget _buildQuickContactButton(String title, IconData icon, VoidCallback onTap, {bool fullWidth = false, required DynamicAppColors colors}) {
     return ElevatedButton.icon(
       onPressed: onTap,
-      icon: Icon(icon, color: AppColors.textOnAccent),
-      label: Text(title, style: TextStyle(color: AppColors.textOnAccent)),
+      icon: Icon(icon, color: colors.textOnAccent),
+      label: Text(title, style: TextStyle(color: colors.textOnAccent)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryAccent,
+        backgroundColor: colors.primaryAccent,
         padding: const EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -216,12 +221,12 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildSupportForm(AppLocalizations l10n) {
+  Widget _buildSupportForm(AppLocalizations l10n, DynamicAppColors colors) {
     final currentUser = ref.watch(currentUserProvider);
 
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -237,7 +242,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -245,7 +250,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 l10n.supportFormDescription,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 20),
@@ -254,7 +259,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBackground.withValues(alpha: 0.5),
+                  color: colors.primaryBackground.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -264,13 +269,13 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                       l10n.accountInformation,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('${l10n.name}: ${currentUser?.fullName ?? l10n.notAvailable}', style: TextStyle(color: AppColors.textSecondary)),
-                    Text('${l10n.email}: ${currentUser?.email ?? l10n.notAvailable}', style: TextStyle(color: AppColors.textSecondary)),
-                    Text('${l10n.role}: ${currentUser?.role ?? l10n.notAvailable}', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('${l10n.name}: ${currentUser?.fullName ?? l10n.notAvailable}', style: TextStyle(color: colors.textSecondary)),
+                    Text('${l10n.email}: ${currentUser?.email ?? l10n.notAvailable}', style: TextStyle(color: colors.textSecondary)),
+                    Text('${l10n.role}: ${currentUser?.role ?? l10n.notAvailable}', style: TextStyle(color: colors.textSecondary)),
                   ],
                 ),
               ),
@@ -284,7 +289,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primaryAccent),
+                    borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                 ),
                 items: _getLocalizedCategories(l10n).map((category) => DropdownMenuItem(
@@ -307,7 +312,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primaryAccent),
+                    borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                 ),
                 items: _getLocalizedPriorities(l10n).map((priority) => DropdownMenuItem(
@@ -344,7 +349,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primaryAccent),
+                    borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                 ),
                 validator: (value) {
@@ -366,7 +371,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primaryAccent),
+                    borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                   alignLabelWithHint: true,
                 ),
@@ -388,7 +393,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : () => _submitSupportRequest(l10n),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryAccent,
+                    backgroundColor: colors.primaryAccent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -400,7 +405,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnAccent),
+                            valueColor: AlwaysStoppedAnimation<Color>(colors.textOnAccent),
                           ),
                         )
                       : Text(
@@ -408,7 +413,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textOnAccent,
+                            color: colors.textOnAccent,
                           ),
                         ),
                 ),
@@ -420,10 +425,10 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildSupportInfoCard(AppLocalizations l10n) {
+  Widget _buildSupportInfoCard(AppLocalizations l10n, DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -437,26 +442,26 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(Icons.schedule, l10n.responseTime, l10n.responseTimeInfo),
-            _buildInfoRow(Icons.language, l10n.languages, l10n.languagesSupported),
-            _buildInfoRow(Icons.support, l10n.supportHours, l10n.supportHoursInfo),
-            _buildInfoRow(Icons.emergency, l10n.emergency, l10n.emergencyInfo),
+            _buildInfoRow(Icons.schedule, l10n.responseTime, l10n.responseTimeInfo, colors),
+            _buildInfoRow(Icons.language, l10n.languages, l10n.languagesSupported, colors),
+            _buildInfoRow(Icons.support, l10n.supportHours, l10n.supportHoursInfo, colors),
+            _buildInfoRow(Icons.emergency, l10n.emergency, l10n.emergencyInfo, colors),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String title, String info) {
+  Widget _buildInfoRow(IconData icon, String title, String info, DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primaryAccent, size: 20),
+          Icon(icon, color: colors.primaryAccent, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -466,14 +471,14 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
                   info,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -554,25 +559,26 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   }
 
   void _showLiveChatDialog(BuildContext context, AppLocalizations l10n) {
+    final colors = ref.read(dynamicColorsProvider);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCards,
-        title: Text(l10n.liveChatTitle, style: TextStyle(color: AppColors.textPrimary)),
+        backgroundColor: colors.surfaceCards,
+        title: Text(l10n.liveChatTitle, style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.chat, size: 48, color: AppColors.primaryAccent),
+            Icon(Icons.chat, size: 48, color: colors.primaryAccent),
             const SizedBox(height: 16),
             Text(
               l10n.liveChatAvailable,
-              style: TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: colors.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
               l10n.liveChatOutsideHours,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: TextStyle(color: colors.textSecondary, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ],
@@ -580,7 +586,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close, style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(l10n.close, style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -589,8 +595,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 SnackBar(content: Text(l10n.liveChatSoon)),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryAccent),
-            child: Text(l10n.startChat, style: TextStyle(color: AppColors.textOnAccent)),
+            style: ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
+            child: Text(l10n.startChat, style: TextStyle(color: colors.textOnAccent)),
           ),
         ],
       ),
@@ -623,10 +629,11 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       });
 
       // Show success message
+      final colors = ref.read(dynamicColorsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.supportRequestSubmitted),
-          backgroundColor: AppColors.success,
+          backgroundColor: colors.success,
         ),
       );
     }
