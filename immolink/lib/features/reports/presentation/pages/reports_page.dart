@@ -130,7 +130,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.download_outlined,
                   color: Colors.white,
                   size: 20,
@@ -162,7 +162,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildPeriodSelector(l10n),
+              _buildPeriodSelector(l10n, colors),
               const SizedBox(height: 32),
               if (isLandlord)
                 _buildLandlordReports(context, ref, l10n)
@@ -199,14 +199,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPeriodSelector(AppLocalizations l10n) {
+  Widget _buildPeriodSelector(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
@@ -223,7 +223,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           return Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedPeriod = period),
-              child: _buildPeriodChip(period, isSelected),
+              child: _buildPeriodChip(period, isSelected, colors),
             ),
           );
         }).toList(),
@@ -231,7 +231,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPeriodChip(String label, bool isSelected) {
+  Widget _buildPeriodChip(String label, bool isSelected, DynamicAppColors colors) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -243,8 +243,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF3B82F6),
-                const Color(0xFF1D4ED8),
+                colors.info,
+                colors.info.withValues(alpha: 0.8),
               ],
             )
           : null,
@@ -253,12 +253,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         border: Border.all(
           color: isSelected 
             ? Colors.transparent 
-            : const Color(0xFFE2E8F0),
+            : colors.borderLight,
           width: 1,
         ),
         boxShadow: isSelected ? [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+            color: colors.info.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
             spreadRadius: 0,
@@ -268,7 +268,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       child: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : const Color(0xFF64748B),
+          color: isSelected ? Colors.white : colors.textSecondary,
           fontSize: 12,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.1,
@@ -282,17 +282,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     final properties = ref.watch(landlordPropertiesProvider);
     final payments = ref.watch(landlordPaymentsProvider);
     final maintenanceRequests = ref.watch(landlordMaintenanceRequestsProvider);
+    final colors = ref.watch(dynamicColorsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFinancialOverview(properties, payments, ref, l10n),
+        _buildFinancialOverview(properties, payments, ref, l10n, colors),
         const SizedBox(height: 24),
-        _buildPropertyMetrics(properties, l10n),
+        _buildPropertyMetrics(properties, l10n, colors),
         const SizedBox(height: 24),
-        _buildMaintenanceOverview(maintenanceRequests, l10n),
+        _buildMaintenanceOverview(maintenanceRequests, l10n, colors),
         const SizedBox(height: 24),
-        _buildRevenueChart(properties, payments, ref, l10n),
+        _buildRevenueChart(properties, payments, ref, l10n, colors),
       ],
     );
   }
@@ -300,20 +301,21 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   Widget _buildTenantReports(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final payments = ref.watch(tenantPaymentsProvider);
     final maintenanceRequests = ref.watch(tenantMaintenanceRequestsProvider);
+    final colors = ref.watch(dynamicColorsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildTenantPaymentSummary(payments, ref, l10n),
+        _buildTenantPaymentSummary(payments, ref, l10n, colors),
         const SizedBox(height: 24),
-        _buildTenantMaintenanceHistory(maintenanceRequests, l10n),
+        _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors),
         const SizedBox(height: 24),
-        _buildPaymentHistory(payments, ref, l10n),
+        _buildPaymentHistory(payments, ref, l10n, colors),
       ],
     );
   }
 
-  Widget _buildFinancialOverview(AsyncValue properties, AsyncValue payments, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildFinancialOverview(AsyncValue properties, AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -321,18 +323,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            const Color(0xFF10B981).withValues(alpha: 0.02),
+            colors.surfaceCards,
+            colors.success.withValues(alpha: 0.02),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+          color: colors.success.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -353,12 +355,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
+                  color: colors.success,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: Colors.white,
+                  color: colors.surfaceCards,
                   size: 24,
                 ),
               ),
@@ -368,7 +370,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -398,7 +400,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           'Monthly Revenue',
                           _formatCurrency(totalRevenue),
                           Icons.trending_up,
-                          const Color(0xFF10B981),
+                          colors.success,
+                          colors,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -408,7 +411,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           'Collected',
                           _formatCurrency(completedPayments),
                           Icons.check_circle_outline,
-                          const Color(0xFF3B82F6),
+                          colors.info,
+                          colors,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -418,7 +422,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           'Outstanding',
                           _formatCurrency(pendingPayments),
                           Icons.hourglass_empty,
-                          const Color(0xFFF59E0B),
+                          colors.warning,
+                          colors,
                         ),
                       ),
                     ],
@@ -455,16 +460,23 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(amount);
   }
 
-  Widget _buildFinancialMetric(String title, String value, IconData icon, Color color) {
+  Widget _buildFinancialMetric(String title, String value, IconData icon, Color color, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: colors.borderLight,
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -482,7 +494,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF0F172A),
+              color: colors.textPrimary,
               letterSpacing: -0.5,
             ),
           ),
@@ -492,7 +504,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF64748B),
+              color: colors.textSecondary,
               letterSpacing: 0.6,
             ),
             textAlign: TextAlign.center,
@@ -502,7 +514,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPropertyMetrics(AsyncValue properties, AppLocalizations l10n) {
+  Widget _buildPropertyMetrics(AsyncValue properties, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -510,18 +522,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            const Color(0xFF3B82F6).withValues(alpha: 0.02),
+            colors.surfaceCards,
+            colors.info.withValues(alpha: 0.02),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+          color: colors.info.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -536,12 +548,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
+                  color: colors.info,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.home_work_outlined,
-                  color: Colors.white,
+                  color: colors.surfaceCards,
                   size: 24,
                 ),
               ),
@@ -551,7 +563,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -572,7 +584,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Total Properties',
                       totalProperties.toString(),
                       Icons.home_outlined,
-                      const Color(0xFF3B82F6),
+                      colors.info,
+                      colors,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -582,7 +595,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Occupied',
                       rentedProperties.toString(),
                       Icons.check_circle_outline,
-                      const Color(0xFF10B981),
+                      colors.success,
+                      colors,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -592,7 +606,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Available',
                       availableProperties.toString(),
                       Icons.radio_button_unchecked,
-                      const Color(0xFF64748B),
+                      colors.textSecondary,
+                      colors,
                     ),
                   ),
                 ],
@@ -606,7 +621,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests, AppLocalizations l10n) {
+  Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -614,18 +629,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            const Color(0xFFF59E0B).withValues(alpha: 0.02),
+            colors.surfaceCards,
+            colors.warning.withValues(alpha: 0.02),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+          color: colors.warning.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -640,12 +655,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B),
+                  color: colors.warning,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.build_circle_outlined,
-                  color: Colors.white,
+                  color: colors.surfaceCards,
                   size: 24,
                 ),
               ),
@@ -655,7 +670,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -676,7 +691,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Total Requests',
                       totalRequests.toString(),
                       Icons.list_alt_outlined,
-                      const Color(0xFF64748B),
+                      colors.textSecondary,
+                      colors,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -686,7 +702,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Pending',
                       pendingRequests.toString(),
                       Icons.hourglass_empty,
-                      const Color(0xFFF59E0B),
+                      colors.warning,
+                      colors,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -696,7 +713,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Completed',
                       completedRequests.toString(),
                       Icons.check_circle_outline,
-                      const Color(0xFF10B981),
+                      colors.success,
+                      colors,
                     ),
                   ),
                 ],
@@ -710,7 +728,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildRevenueChart(AsyncValue properties, AsyncValue payments, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildRevenueChart(AsyncValue properties, AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -718,7 +736,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
+            colors.surfaceCards,
             const Color(0xFF8B5CF6).withValues(alpha: 0.02),
           ],
         ),
@@ -747,7 +765,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   color: const Color(0xFF8B5CF6),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.trending_up,
                   color: Colors.white,
                   size: 24,
@@ -759,7 +777,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -769,10 +787,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: colors.surfaceSecondary,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFFE2E8F0),
+                color: colors.borderLight,
                 width: 1,
               ),
             ),
@@ -792,7 +810,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -800,18 +818,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            const Color(0xFF10B981).withValues(alpha: 0.02),
+            colors.surfaceCards,
+            colors.success.withValues(alpha: 0.02),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+          color: colors.success.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -826,12 +844,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
+                  color: colors.success,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: Colors.white,
+                  color: colors.surfaceCards,
                   size: 24,
                 ),
               ),
@@ -841,7 +859,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -866,7 +884,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Total Paid',
                       _formatCurrency(totalPaid),
                       Icons.check_circle_outline,
-                      const Color(0xFF10B981),
+                      colors.success,
+                      colors,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -876,7 +895,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Pending',
                       _formatCurrency(pendingAmount),
                       Icons.hourglass_empty,
-                      const Color(0xFFF59E0B),
+                      colors.warning,
+                      colors,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -886,7 +906,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       'Total Payments',
                       totalPayments.toString(),
                       Icons.receipt_long_outlined,
-                      const Color(0xFF3B82F6),
+                      colors.info,
+                      colors,
                     ),
                   ),
                 ],
@@ -900,7 +921,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests, AppLocalizations l10n) {
+  Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -908,18 +929,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            const Color(0xFFF59E0B).withValues(alpha: 0.02),
+            colors.surfaceCards,
+            colors.warning.withValues(alpha: 0.02),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+          color: colors.warning.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -937,7 +958,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   color: const Color(0xFFF59E0B),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.handyman_outlined,
                   color: Colors.white,
                   size: 24,
@@ -949,7 +970,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -986,15 +1007,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
               return Column(
                 children: requestList.take(5).map<Widget>((request) {
-                  final statusColor = _getMaintenanceStatusColor(request.status);
+                  final statusColor = _getMaintenanceStatusColor(request.status, colors);
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFFE2E8F0),
+                        color: colors.borderLight,
                         width: 1,
                       ),
                     ),
@@ -1065,7 +1086,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -1073,7 +1094,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
+            colors.surfaceCards,
             const Color(0xFF3B82F6).withValues(alpha: 0.02),
           ],
         ),
@@ -1102,7 +1123,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   color: const Color(0xFF3B82F6),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.history,
                   color: Colors.white,
                   size: 24,
@@ -1114,7 +1135,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+                  color: colors.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -1148,10 +1169,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFFE2E8F0),
+                        color: colors.borderLight,
                         width: 1,
                       ),
                     ),
@@ -1224,16 +1245,16 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Color _getMaintenanceStatusColor(String status) {
+  Color _getMaintenanceStatusColor(String status, DynamicAppColors colors) {
     switch (status.toLowerCase()) {
       case 'completed':
-        return const Color(0xFF10B981);
+        return colors.success;
       case 'in_progress':
-        return const Color(0xFF3B82F6);
+        return colors.info;
       case 'pending':
-        return const Color(0xFFF59E0B);
+        return colors.warning;
       default:
-        return const Color(0xFF64748B);
+        return colors.textSecondary;
     }
   }
 
