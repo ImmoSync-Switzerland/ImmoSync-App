@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class ChangePasswordPage extends ConsumerStatefulWidget {
   const ChangePasswordPage({super.key});
@@ -31,21 +31,22 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           'Change Password',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -62,7 +63,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -71,7 +72,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   'Enter your current password and choose a new one',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -93,6 +94,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     }
                     return null;
                   },
+                  colors: colors,
                 ),
                 const SizedBox(height: 24),
                 
@@ -118,6 +120,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     }
                     return null;
                   },
+                  colors: colors,
                 ),
                 const SizedBox(height: 24),
                 
@@ -140,6 +143,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     }
                     return null;
                   },
+                  colors: colors,
                 ),
                 const SizedBox(height: 32),
                 
@@ -151,13 +155,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primaryAccent.withValues(alpha: 0.05),
-                        AppColors.primaryAccent.withValues(alpha: 0.02),
+                        colors.primaryAccent.withValues(alpha: 0.05),
+                        colors.primaryAccent.withValues(alpha: 0.02),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                      color: colors.primaryAccent.withValues(alpha: 0.1),
                       width: 1,
                     ),
                   ),
@@ -168,7 +172,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                         children: [
                           Icon(
                             Icons.security_outlined,
-                            color: AppColors.primaryAccent,
+                            color: colors.primaryAccent,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -177,16 +181,16 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildRequirement('At least 8 characters long'),
-                      _buildRequirement('Contains uppercase letters (A-Z)'),
-                      _buildRequirement('Contains lowercase letters (a-z)'),
-                      _buildRequirement('Contains numbers (0-9)'),
+                      _buildRequirement('At least 8 characters long', colors),
+                      _buildRequirement('Contains uppercase letters (A-Z)', colors),
+                      _buildRequirement('Contains lowercase letters (a-z)', colors),
+                      _buildRequirement('Contains numbers (0-9)', colors),
                     ],
                   ),
                 ),
@@ -198,7 +202,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _changePassword,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryAccent,
+                      backgroundColor: colors.primaryAccent,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -210,7 +214,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnAccent),
+                              valueColor: AlwaysStoppedAnimation<Color>(colors.textOnAccent),
                               strokeWidth: 2,
                             ),
                           )
@@ -219,7 +223,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textOnAccent,
+                              color: colors.textOnAccent,
                             ),
                           ),
                   ),
@@ -238,6 +242,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     required bool obscureText,
     required VoidCallback onToggleVisibility,
     required String? Function(String?) validator,
+    required DynamicAppColors colors,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -245,13 +250,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.surfaceCards.withValues(alpha: 0.8),
+            colors.surfaceCards,
+            colors.surfaceCards.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
       ),
@@ -262,26 +267,26 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
           suffixIcon: IconButton(
             icon: Icon(
               obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
             ),
             onPressed: onToggleVisibility,
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
           errorStyle: TextStyle(
-            color: AppColors.error,
+            color: colors.error,
             fontSize: 14,
           ),
         ),
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
@@ -289,7 +294,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     );
   }
 
-  Widget _buildRequirement(String text) {
+  Widget _buildRequirement(String text, DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -297,14 +302,14 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           Icon(
             Icons.check_circle_outline,
             size: 16,
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
             ),
           ),
         ],
@@ -313,6 +318,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   }
 
   Future<void> _changePassword() async {
+    final colors = ref.read(dynamicColorsProvider);
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -329,7 +336,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Password changed successfully'),
-            backgroundColor: AppColors.success,
+            backgroundColor: colors.success,
           ),
         );
         context.pop();
@@ -339,7 +346,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to change password: $e'),
-            backgroundColor: AppColors.error,
+            backgroundColor: colors.error,
           ),
         );
       }

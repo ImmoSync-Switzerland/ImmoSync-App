@@ -28,7 +28,7 @@ router.get('/available-tenants', async (req, res) => {
   }
 });
 
-// Get all tenants
+// GET /api/tenants - Fetch tenant users with filtering support
 router.get('/tenants', async (req, res) => {
   const client = new MongoClient(dbUri);
   
@@ -36,39 +36,73 @@ router.get('/tenants', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     
-    // Get all tenants
+    const { propertyId, landlordId } = req.query;
+    
+    // Build query based on filters
+    let query = { role: 'tenant' };
+    
+    if (propertyId) {
+      if (!ObjectId.isValid(propertyId)) {
+        return res.status(400).json({ message: 'Invalid property ID format' });
+      }
+      // Find tenants assigned to specific property
+      query.propertyId = new ObjectId(propertyId);
+    }
+    
+    if (landlordId) {
+      if (!ObjectId.isValid(landlordId)) {
+        return res.status(400).json({ message: 'Invalid landlord ID format' });
+      }
+      // Find tenants associated with landlord's properties
+      query.landlordId = new ObjectId(landlordId);
+    }
+    
+    // Get all tenants matching the filters
     const tenants = await db.collection('users')
-      .find({ role: 'tenant' })
+      .find(query)
       .toArray();
     
-    // Find properties for each tenant to include property information
-    const tenantsWithProperties = await Promise.all(
+    // Find property and lease information for each tenant
+    const tenantsWithDetails = await Promise.all(
       tenants.map(async (tenant) => {
-        const properties = await db.collection('properties')
-          .find({ 
-            tenantIds: tenant._id.toString() 
-          })
-          .toArray();
+        let propertyInfo = null;
+        let leaseInfo = null;
         
-        const propertyAddresses = properties.map(prop => 
-          `${prop.address.street}, ${prop.address.city}`
-        );
+        // Get property information if tenant has propertyId
+        if (tenant.propertyId) {
+          propertyInfo = await db.collection('properties')
+            .findOne({ _id: new ObjectId(tenant.propertyId) });
+        }
+        
+        // Get lease information from leases collection
+        leaseInfo = await db.collection('leases')
+          .findOne({ tenantId: tenant._id });
         
         return {
-          ...tenant,
-          properties: propertyAddresses,
+          _id: tenant._id.toString(),
+          name: tenant.fullName || tenant.name || '',
+          email: tenant.email || '',
+          propertyId: tenant.propertyId ? tenant.propertyId.toString() : '',
+          landlordId: tenant.landlordId ? tenant.landlordId.toString() : '',
           phone: tenant.phone || '',
-          // Add tenant status based on property assignment
-          status: properties.length > 0 ? 'active' : 'available'
+          leaseStart: leaseInfo ? leaseInfo.startDate : null,
+          leaseEnd: leaseInfo ? leaseInfo.endDate : null,
+          rentAmount: leaseInfo ? leaseInfo.rentAmount : (propertyInfo ? propertyInfo.rentAmount : 0)
         };
       })
     );
     
-    console.log(`Found ${tenantsWithProperties.length} total tenants`);
-    res.json(tenantsWithProperties);
+    // Format response to match expected structure
+    const response = {
+      tenants: tenantsWithDetails,
+      Count: tenantsWithDetails.length
+    };
+    
+    console.log(`Found ${tenantsWithDetails.length} tenants with filters:`, { propertyId, landlordId });
+    res.json(response);
   } catch (error) {
-    console.error('Error fetching all tenants:', error);
-    res.status(500).json({ message: 'Error fetching tenants' });
+    console.error('Error fetching tenants:', error);
+    res.status(500).json({ message: 'Error fetching tenants', error: error.message });
   } finally {
     await client.close();
   }

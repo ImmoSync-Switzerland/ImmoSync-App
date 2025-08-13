@@ -123,8 +123,9 @@ router.post('/', async (req, res) => {
     
     console.log(`Created invitation ${result.insertedId} for tenant ${tenantId}`);
     res.status(201).json({ 
-      invitationId: result.insertedId,
-      conversationId: conversationResult.insertedId,
+      success: true,
+      invitationId: result.insertedId.toString(),
+      conversationId: conversationResult.insertedId.toString(),
       message: 'Invitation sent successfully' 
     });
     

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
@@ -59,10 +59,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
-      appBar: _buildAppBar(),
+      backgroundColor: colors.primaryBackground,
+      appBar: _buildAppBar(colors),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -76,13 +77,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeaderSection(),
+                      _buildHeaderSection(colors),
                       const SizedBox(height: 32),
-                      _buildProfileImageSection(currentUser),
+                      _buildProfileImageSection(currentUser, colors),
                       const SizedBox(height: 32),
-                      _buildFormSection(),
+                      _buildFormSection(colors),
                       const SizedBox(height: 40),
-                      _buildActionButtons(),
+                      _buildActionButtons(colors),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -95,24 +96,24 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.surfaceCards,
+            color: colors.surfaceCards,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.borderLight,
+              color: colors.borderLight,
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.shadowColor,
+                color: colors.shadowColor,
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -120,7 +121,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           ),
           child: Icon(
             Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             size: 18,
           ),
         ),
@@ -132,7 +133,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
       title: Text(
         'Edit Profile',
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
@@ -142,7 +143,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildHeaderSection(DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -151,7 +152,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             letterSpacing: -0.7,
           ),
         ),
@@ -160,7 +161,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           'Update your personal information and account details',
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontWeight: FontWeight.w400,
             letterSpacing: -0.2,
           ),
@@ -169,7 +170,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     );
   }
 
-  Widget _buildProfileImageSection(user) {
+  Widget _buildProfileImageSection(user, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -177,18 +178,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
+            colors.surfaceCards,
+            colors.luxuryGradientStart,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: colors.shadowColorMedium,
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -205,17 +206,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.primaryAccent.withValues(alpha: 0.1),
-                      AppColors.luxuryGold.withValues(alpha: 0.1),
+                      colors.primaryAccent.withValues(alpha: 0.1),
+                      colors.luxuryGold.withValues(alpha: 0.1),
                     ],
                   ),
                   border: Border.all(
-                    color: AppColors.primaryAccent.withValues(alpha: 0.2),
+                    color: colors.primaryAccent.withValues(alpha: 0.2),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadowColor,
+                      color: colors.shadowColor,
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -229,7 +230,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.primaryAccent,
+                      color: colors.primaryAccent,
                     ),
                   ),
                 ),
@@ -241,10 +242,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   onTap: () {
                     HapticFeedback.lightImpact();
                     // TODO: Implement image picker
+                    final colors = ref.read(dynamicColorsProvider);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text('Profile image upload coming soon'),
-                        backgroundColor: AppColors.info,
+                        backgroundColor: colors.info,
                       ),
                     );
                   },
@@ -255,18 +257,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primaryAccent,
-                          AppColors.primaryAccent.withValues(alpha: 0.8),
+                          colors.primaryAccent,
+                          colors.primaryAccent.withValues(alpha: 0.8),
                         ],
                       ),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.primaryBackground,
+                        color: colors.primaryBackground,
                         width: 2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                          color: colors.primaryAccent.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -292,7 +294,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -301,7 +303,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   user?.email ?? 'user@example.com',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -311,13 +313,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.luxuryGold.withValues(alpha: 0.1),
-                        AppColors.luxuryGold.withValues(alpha: 0.05),
+                        colors.luxuryGold.withValues(alpha: 0.1),
+                        colors.luxuryGold.withValues(alpha: 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.luxuryGold.withValues(alpha: 0.3),
+                      color: colors.luxuryGold.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -326,7 +328,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.luxuryGold,
+                      color: colors.luxuryGold,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -339,7 +341,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     );
   }
 
-  Widget _buildFormSection() {
+  Widget _buildFormSection(DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -347,18 +349,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.accentLight.withValues(alpha: 0.3),
+            colors.surfaceCards,
+            colors.accentLight.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColorMedium,
+            color: colors.shadowColorMedium,
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -378,19 +380,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primaryAccent.withValues(alpha: 0.2),
-                        AppColors.primaryAccent.withValues(alpha: 0.1),
+                        colors.primaryAccent.withValues(alpha: 0.2),
+                        colors.primaryAccent.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                      color: colors.primaryAccent.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
                   child: Icon(
                     Icons.edit_outlined,
-                    color: AppColors.primaryAccent,
+                    color: colors.primaryAccent,
                     size: 24,
                   ),
                 ),
@@ -400,7 +402,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -420,6 +422,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                 }
                 return null;
               },
+              colors: colors,
             ),
             const SizedBox(height: 20),
             _buildInputField(
@@ -428,13 +431,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
               icon: Icons.email_outlined,
               enabled: false,
               suffixIcon: Icons.lock_outline,
+              colors: colors,
             ),
             const SizedBox(height: 12),
             Text(
               'Email cannot be changed for security reasons',
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
                 fontStyle: FontStyle.italic,
                 letterSpacing: -0.1,
               ),
@@ -453,6 +457,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                 }
                 return null;
               },
+              colors: colors,
             ),
           ],
         ),
@@ -468,6 +473,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     bool enabled = true,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    required DynamicAppColors colors,
   }) {
     return TextFormField(
       controller: controller,
@@ -475,7 +481,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
       keyboardType: keyboardType,
       validator: validator,
       style: TextStyle(
-        color: enabled ? AppColors.textPrimary : AppColors.textTertiary,
+        color: enabled ? colors.textPrimary : colors.textTertiary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
         letterSpacing: -0.2,
@@ -483,7 +489,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: enabled ? AppColors.textSecondary : AppColors.textTertiary,
+          color: enabled ? colors.textSecondary : colors.textTertiary,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -491,51 +497,51 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           padding: const EdgeInsets.all(12),
           child: Icon(
             icon,
-            color: enabled ? AppColors.primaryAccent : AppColors.textTertiary,
+            color: enabled ? colors.primaryAccent : colors.textTertiary,
             size: 20,
           ),
         ),
         suffixIcon: suffixIcon != null 
           ? Icon(
               suffixIcon,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               size: 18,
             )
           : null,
         filled: true,
-        fillColor: enabled ? AppColors.primaryBackground : AppColors.surfaceCards.withValues(alpha: 0.5),
+        fillColor: enabled ? colors.primaryBackground : colors.surfaceCards.withValues(alpha: 0.5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: AppColors.borderLight,
+            color: colors.borderLight,
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: AppColors.borderLight,
+            color: colors.borderLight,
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: AppColors.primaryAccent,
+            color: colors.primaryAccent,
             width: 2,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: AppColors.error,
+            color: colors.error,
             width: 1,
           ),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: AppColors.borderLight.withValues(alpha: 0.5),
+            color: colors.borderLight.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -544,7 +550,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(DynamicAppColors colors) {
     return Column(
       children: [
         Container(
@@ -555,14 +561,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primaryAccent,
-                AppColors.primaryAccent.withValues(alpha: 0.8),
+                colors.primaryAccent,
+                colors.primaryAccent.withValues(alpha: 0.8),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                color: colors.primaryAccent.withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -619,18 +625,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
             },
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: AppColors.borderMedium,
+                color: colors.borderMedium,
                 width: 1,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              backgroundColor: AppColors.surfaceCards,
+              backgroundColor: colors.surfaceCards,
             ),
             child: Text(
               'Cancel',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 letterSpacing: -0.1,
@@ -643,6 +649,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
   }
 
   void _saveProfile() async {
+    final colors = ref.read(dynamicColorsProvider);
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -677,7 +685,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                 ),
               ],
             ),
-            backgroundColor: AppColors.success,
+            backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -710,7 +718,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                 ),
               ],
             ),
-            backgroundColor: AppColors.error,
+            backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

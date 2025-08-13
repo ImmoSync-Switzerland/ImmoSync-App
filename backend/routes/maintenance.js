@@ -132,7 +132,12 @@ router.post('/', async (req, res) => {
     const savedRequest = await db.collection('maintenanceRequests')
       .findOne({ _id: result.insertedId });
     
-    res.status(201).json(savedRequest);
+    res.status(201).json({
+      success: true,
+      ticketId: savedRequest._id.toString(),
+      message: 'Maintenance request created successfully',
+      ticket: savedRequest
+    });
   } catch (error) {
     console.error('Error creating maintenance request:', error);
     res.status(500).json({ message: 'Error creating maintenance request', error: error.message });

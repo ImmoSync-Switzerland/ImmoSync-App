@@ -14,8 +14,11 @@ const invitationsRoutes = require('./routes/invitations');
 const uploadRoutes = require('./routes/upload');
 const imagesRoutes = require('./routes/images');
 const maintenanceRoutes = require('./routes/maintenance');
+const maintenanceRequestsRoutes = require('./routes/maintenance-requests');
 const emailRoutes = require('./routes/email');
 const notificationRoutes = require('./routes/notifications');
+const servicesRoutes = require('./routes/services');
+const ticketsRoutes = require('./routes/tickets');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -55,8 +58,18 @@ app.use('/api/invitations', invitationsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/images', imagesRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/maintenance-requests', maintenanceRequestsRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/services', servicesRoutes);
+app.use('/api/tickets', ticketsRoutes);
+
+// Add specific route for /api/tenants that points to users/tenants
+app.use('/api/tenants', (req, res, next) => {
+  // Redirect /api/tenants to /api/users/tenants
+  req.url = '/tenants' + req.url;
+  usersRouter(req, res, next);
+});
 
 const PORT = process.env.PORT || 3000;
 

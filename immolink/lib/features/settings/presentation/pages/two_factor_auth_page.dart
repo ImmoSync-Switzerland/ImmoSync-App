@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class TwoFactorAuthPage extends ConsumerStatefulWidget {
@@ -271,21 +271,22 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = ref.watch(dynamicColorsProvider);
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           'Two-Factor Authentication',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -294,7 +295,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.primaryBackground, AppColors.surfaceCards],
+            colors: [colors.primaryBackground, colors.surfaceCards],
           ),
         ),
         child: _isLoading
@@ -304,20 +305,20 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildStatusCard(),
+                    _buildStatusCard(colors),
                     const SizedBox(height: 24),
                     if (_errorMessage != null) ...[
-                      _buildErrorCard(),
+                      _buildErrorCard(colors),
                       const SizedBox(height: 16),
                     ],
                     if (_successMessage != null) ...[
-                      _buildSuccessCard(),
+                      _buildSuccessCard(colors),
                       const SizedBox(height: 16),
                     ],
-                    if (!_is2FAEnabled) _buildSetupSection(),
-                    if (_is2FAEnabled && !_showDisableVerification) _buildEnabledSection(),
-                    if (_showVerification) _buildVerificationSection(),
-                    if (_showDisableVerification) _buildDisableVerificationSection(),
+                    if (!_is2FAEnabled) _buildSetupSection(colors),
+                    if (_is2FAEnabled && !_showDisableVerification) _buildEnabledSection(colors),
+                    if (_showVerification) _buildVerificationSection(colors),
+                    if (_showDisableVerification) _buildDisableVerificationSection(colors),
                   ],
                 ),
               ),
@@ -325,10 +326,10 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard(DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -341,7 +342,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               children: [
                 Icon(
                   _is2FAEnabled ? Icons.security : Icons.security_outlined,
-                  color: _is2FAEnabled ? AppColors.success : AppColors.warning,
+                  color: _is2FAEnabled ? colors.success : colors.warning,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -350,7 +351,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ],
@@ -360,15 +361,15 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: _is2FAEnabled 
-                    ? AppColors.success.withValues(alpha: 0.1)
-                    : AppColors.warning.withValues(alpha: 0.1),
+                    ? colors.success.withValues(alpha: 0.1)
+                    : colors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   Icon(
                     _is2FAEnabled ? Icons.check_circle : Icons.warning,
-                    color: _is2FAEnabled ? AppColors.success : AppColors.warning,
+                    color: _is2FAEnabled ? colors.success : colors.warning,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -379,7 +380,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                           _is2FAEnabled ? '2FA Enabled' : '2FA Disabled',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                         if (_is2FAEnabled && _maskedPhone != null) ...[
@@ -388,7 +389,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                             'Phone: $_maskedPhone',
                             style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                         ],
@@ -404,19 +405,19 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildErrorCard() {
+  Widget _buildErrorCard(DynamicAppColors colors) {
     return Card(
-      color: AppColors.error.withValues(alpha: 0.1),
+      color: colors.error.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            Icon(Icons.error, color: AppColors.error),
+            Icon(Icons.error, color: colors.error),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 _errorMessage!,
-                style: TextStyle(color: AppColors.error),
+                style: TextStyle(color: colors.error),
               ),
             ),
           ],
@@ -425,19 +426,19 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildSuccessCard() {
+  Widget _buildSuccessCard(DynamicAppColors colors) {
     return Card(
-      color: AppColors.success.withValues(alpha: 0.1),
+      color: colors.success.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            Icon(Icons.check_circle, color: AppColors.success),
+            Icon(Icons.check_circle, color: colors.success),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 _successMessage!,
-                style: TextStyle(color: AppColors.success),
+                style: TextStyle(color: colors.success),
               ),
             ),
           ],
@@ -446,10 +447,10 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildSetupSection() {
+  Widget _buildSetupSection(DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -463,7 +464,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -471,7 +472,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               'Add an extra layer of security to your account by enabling SMS-based two-factor authentication.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
@@ -481,13 +482,13 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               decoration: InputDecoration(
                 labelText: 'Phone Number',
                 hintText: '+41 12 345 67 89',
-                prefixIcon: Icon(Icons.phone, color: AppColors.primaryAccent),
+                prefixIcon: Icon(Icons.phone, color: colors.primaryAccent),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.primaryAccent),
+                  borderSide: BorderSide(color: colors.primaryAccent),
                 ),
               ),
             ),
@@ -497,7 +498,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _setup2FA,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryAccent,
+                  backgroundColor: colors.primaryAccent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -508,7 +509,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textOnAccent,
+                    color: colors.textOnAccent,
                   ),
                 ),
               ),
@@ -519,10 +520,10 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildEnabledSection() {
+  Widget _buildEnabledSection(DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -536,7 +537,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -544,7 +545,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               'Your account is protected with SMS-based two-factor authentication. You will receive a verification code on your registered phone number when logging in.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
@@ -553,7 +554,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               child: OutlinedButton(
                 onPressed: _isLoading ? null : _disable2FA,
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppColors.error),
+                  side: BorderSide(color: colors.error),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -564,7 +565,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.error,
+                    color: colors.error,
                   ),
                 ),
               ),
@@ -575,10 +576,10 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildVerificationSection() {
+  Widget _buildVerificationSection(DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -592,7 +593,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -600,7 +601,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               'We sent a 6-digit verification code to your phone number. Enter it below to complete the 2FA setup.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
@@ -611,13 +612,13 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               decoration: InputDecoration(
                 labelText: 'Verification Code',
                 hintText: '123456',
-                prefixIcon: Icon(Icons.sms, color: AppColors.primaryAccent),
+                prefixIcon: Icon(Icons.sms, color: colors.primaryAccent),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.primaryAccent),
+                  borderSide: BorderSide(color: colors.primaryAccent),
                 ),
                 counterText: '',
               ),
@@ -628,7 +629,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _verify2FASetup,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryAccent,
+                  backgroundColor: colors.primaryAccent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -639,7 +640,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textOnAccent,
+                    color: colors.textOnAccent,
                   ),
                 ),
               ),
@@ -650,10 +651,10 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
     );
   }
 
-  Widget _buildDisableVerificationSection() {
+  Widget _buildDisableVerificationSection(DynamicAppColors colors) {
     return Card(
       elevation: 4,
-      color: AppColors.surfaceCards,
+      color: colors.surfaceCards,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -667,7 +668,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -675,7 +676,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               'We sent a verification code to your phone number. Enter it below to disable 2FA.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
@@ -686,13 +687,13 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               decoration: InputDecoration(
                 labelText: 'Verification Code',
                 hintText: '123456',
-                prefixIcon: Icon(Icons.sms, color: AppColors.primaryAccent),
+                prefixIcon: Icon(Icons.sms, color: colors.primaryAccent),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.primaryAccent),
+                  borderSide: BorderSide(color: colors.primaryAccent),
                 ),
                 counterText: '',
               ),
@@ -703,7 +704,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _verifyDisable2FA,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
+                  backgroundColor: colors.error,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -714,7 +715,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textOnAccent,
+                    color: colors.textOnAccent,
                   ),
                 ),
               ),
