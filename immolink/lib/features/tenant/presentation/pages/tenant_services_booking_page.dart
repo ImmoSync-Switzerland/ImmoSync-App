@@ -155,8 +155,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
 
   Widget _buildHeader(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -166,13 +166,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             colors.luxuryGradientStart,
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -182,7 +182,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -190,20 +190,20 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       colors.primaryAccent.withValues(alpha: 0.1),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.room_service_outlined,
                   color: colors.primaryAccent,
-                  size: 24,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Available Services',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: colors.textPrimary,
                   ),
@@ -211,13 +211,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: colors.textSecondary,
-              height: 1.4,
+              height: 1.3,
             ),
           ),
         ],
@@ -227,7 +227,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
 
   Widget _buildSearchAndFilter(AppLocalizations l10n, DynamicAppColors colors) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           // Search bar
@@ -243,19 +243,19 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 hintText: 'Search services...',
                 hintStyle: TextStyle(
                   color: colors.textSecondary,
-                  fontSize: 16,
+                  fontSize: 15,
                 ),
-                prefixIcon: Icon(Icons.search_outlined, color: colors.textSecondary),
+                prefixIcon: Icon(Icons.search_outlined, color: colors.textSecondary, size: 20),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               ),
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 16,
+                fontSize: 15,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Category filter
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -320,11 +320,11 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: filteredServices.length,
       itemBuilder: (context, index) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: 12),
           child: _buildServiceCard(filteredServices[index], l10n, colors),
         );
       },
@@ -342,25 +342,25 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             colors.luxuryGradientStart,
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -368,15 +368,15 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         colors.primaryAccent.withValues(alpha: 0.1),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     service.icon,
                     color: colors.primaryAccent,
-                    size: 24,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,34 +384,38 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       Text(
                         service.name,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: colors.textPrimary,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         service.provider,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: colors.textSecondary,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: service.isAvailable 
                         ? colors.success.withValues(alpha: 0.1)
                         : colors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     service.isAvailable ? 'Available' : 'Busy',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: service.isAvailable ? colors.success : colors.warning,
                     ),
@@ -419,33 +423,36 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               service.description,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: colors.textSecondary,
-                height: 1.4,
+                height: 1.3,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Price',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: colors.textSecondary,
                         ),
                       ),
                       Text(
                         '\$${service.price.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: colors.success,
                         ),
@@ -454,29 +461,32 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   ),
                 ),
                 Expanded(
+                  flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Schedule',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: colors.textSecondary,
                         ),
                       ),
                       Text(
                         service.duration,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: colors.textPrimary,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 SizedBox(
-                  height: 40,
+                  height: 32,
                   child: ElevatedButton(
                     onPressed: service.isAvailable 
                         ? () => _showBookingDialog(context, service, colors)
@@ -485,14 +495,15 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       backgroundColor: colors.primaryAccent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     child: Text(
                       'Book',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
