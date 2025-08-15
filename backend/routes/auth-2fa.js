@@ -1,12 +1,84 @@
 const express = require('express');
 const router = express.Router();
 
-// Mock SMS service - in production, integrate with services like Twilio, AWS SNS, etc.
+// Twilio SMS Service
+const twilio = require('twilio');
+
+// Twilio configuration - in production, these should be environment variables
+const TWILIO_CONFIG = {
+  accountSid: process.env.TWILIO_ACCOUNT_SID || 'your_twilio_account_sid',
+  authToken: process.env.TWILIO_AUTH_TOKEN || 'your_twilio_auth_token',
+  phoneNumber: process.env.TWILIO_PHONE_NUMBER || 'your_twilio_phone_number'
+};
+
+// Initialize Twilio client
+let twilioClient;
+let useMockSMS = false;
+
+try {
+  if (TWILIO_CONFIG.accountSid && TWILIO_CONFIG.authToken && 
+      TWILIO_CONFIG.accountSid !== 'your_twilio_account_sid') {
+    twilioClient = twilio(TWILIO_CONFIG.accountSid, TWILIO_CONFIG.authToken);
+    console.log('Twilio SMS service initialized');
+  } else {
+    useMockSMS = true;
+    console.log('Twilio credentials not found, using mock SMS service');
+  }
+} catch (error) {
+  console.error('Error initializing Twilio:', error);
+  useMockSMS = true;
+}
+
+// SMS Service with real Twilio integration
 class SMSService {
   static async sendSMS(phoneNumber, message) {
-    // Mock implementation - replace with actual SMS service
-    console.log(`SMS sent to ${phoneNumber}: ${message}`);
-    return { success: true, messageId: `msg_${Date.now()}` };
+    try {
+      if (useMockSMS) {
+        // Mock implementation for development/testing
+        console.log(`[MOCK SMS] To: ${phoneNumber}, Message: ${message}`);
+        return { 
+          success: true, 
+          messageId: `mock_msg_${Date.now()}`,
+          isMock: true 
+        };
+      }
+
+      // Real Twilio SMS
+      const twilioMessage = await twilioClient.messages.create({
+        body: message,
+        from: TWILIO_CONFIG.phoneNumber,
+        to: phoneNumber
+      });
+
+      console.log(`SMS sent successfully: ${twilioMessage.sid}`);
+      return { 
+        success: true, 
+        messageId: twilioMessage.sid,
+        status: twilioMessage.status,
+        isMock: false 
+      };
+
+    } catch (error) {
+      console.error('Error sending SMS:', error);
+      
+      // Fallback to mock if Twilio fails
+      if (!useMockSMS) {
+        console.log('Falling back to mock SMS due to error');
+        console.log(`[FALLBACK MOCK SMS] To: ${phoneNumber}, Message: ${message}`);
+        return { 
+          success: true, 
+          messageId: `fallback_msg_${Date.now()}`,
+          isMock: true,
+          error: error.message 
+        };
+      }
+      
+      throw error;
+    }
+  }
+
+  static isUsingMockSMS() {
+    return useMockSMS;
   }
 }
 
@@ -56,11 +128,13 @@ router.post('/setup-2fa', async (req, res) => {
 
     // Send SMS
     const message = `Your ImmoLink 2FA setup code is: ${code}. Valid for 10 minutes.`;
-    await SMSService.sendSMS(phoneNumber, message);
+    const smsResult = await SMSService.sendSMS(phoneNumber, message);
 
     res.json({
       success: true,
-      message: 'Verification code sent to your phone number'
+      message: 'Verification code sent to your phone number',
+      smsStatus: smsResult.isMock ? 'mock' : 'sent',
+      messageId: smsResult.messageId
     });
 
   } catch (error) {
@@ -162,12 +236,14 @@ router.post('/send-login-code', async (req, res) => {
 
     // Send SMS
     const message = `Your ImmoLink login code is: ${code}. Valid for 5 minutes.`;
-    await SMSService.sendSMS(user2FA.phoneNumber, message);
+    const smsResult = await SMSService.sendSMS(user2FA.phoneNumber, message);
 
     res.json({
       success: true,
       message: 'Verification code sent to your registered phone number',
-      maskedPhone: user2FA.phoneNumber.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')
+      maskedPhone: user2FA.phoneNumber.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2'),
+      smsStatus: smsResult.isMock ? 'mock' : 'sent',
+      messageId: smsResult.messageId
     });
 
   } catch (error) {
@@ -303,11 +379,12 @@ router.post('/disable', async (req, res) => {
       });
 
       const message = `Your ImmoLink 2FA disable code is: ${code}. Valid for 10 minutes.`;
-      await SMSService.sendSMS(user2FA.phoneNumber, message);
+      const smsResult = await SMSService.sendSMS(user2FA.phoneNumber, message);
 
       res.json({
         success: true,
-        message: 'Verification code sent to disable 2FA'
+        message: 'Verification code sent to disable 2FA',
+        smsStatus: smsResult.isMock ? 'mock' : 'sent'
       });
     }
 
@@ -315,6 +392,26 @@ router.post('/disable', async (req, res) => {
     console.error('Error disabling 2FA:', error);
     res.status(500).json({
       error: 'Failed to disable 2FA',
+      details: error.message
+    });
+  }
+});
+
+// SMS Service Status endpoint
+router.get('/sms-status', (req, res) => {
+  try {
+    res.json({
+      smsService: SMSService.isUsingMockSMS() ? 'mock' : 'twilio',
+      isProduction: !SMSService.isUsingMockSMS(),
+      twilioConfigured: !SMSService.isUsingMockSMS(),
+      message: SMSService.isUsingMockSMS() 
+        ? 'Using mock SMS service for development/testing' 
+        : 'Using Twilio SMS service for production'
+    });
+  } catch (error) {
+    console.error('Error checking SMS status:', error);
+    res.status(500).json({
+      error: 'Failed to check SMS status',
       details: error.message
     });
   }

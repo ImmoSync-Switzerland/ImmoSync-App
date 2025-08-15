@@ -18,6 +18,10 @@
     "mongodb": "^6.13.0",
     "mongoose": "^8.16.0",
     "multer": "^2.0.2",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "twilio": "^5.8.0"
+  },
+  "devDependencies": {
+    "axios": "^1.11.0"
   }
 }
