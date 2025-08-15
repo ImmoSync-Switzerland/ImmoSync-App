@@ -134,6 +134,52 @@ router.post('/:propertyId/invite-tenant', async (req, res) => {
   }
 });
 
+// Remove tenant from property
+router.post('/:propertyId/remove-tenant', async (req, res) => {
+  const client = new MongoClient(dbUri);
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+
+    const { tenantId } = req.body;
+    const propertyId = new ObjectId(req.params.propertyId);
+
+    // Remove tenant from property
+    const result = await db.collection('properties').updateOne(
+      { _id: propertyId },
+      {
+        $pull: { tenantIds: tenantId }
+      }
+    );
+
+    // Check if property has any tenants left
+    const property = await db.collection('properties').findOne({ _id: propertyId });
+    const hasRemainingTenants = property.tenantIds && property.tenantIds.length > 0;
+
+    // Update property status if no tenants left
+    if (!hasRemainingTenants) {
+      await db.collection('properties').updateOne(
+        { _id: propertyId },
+        { $set: { status: 'available' } }
+      );
+    }
+
+    // Remove property assignment from user
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(tenantId) },
+      { $unset: { propertyId: "" } }
+    );
+
+    res.json({ success: true, message: 'Tenant removed successfully' });
+  } catch (error) {
+    console.error('Error removing tenant:', error);
+    res.status(500).json({ message: 'Failed to remove tenant' });
+  } finally {
+    await client.close();
+  }
+});
+
 // New POST route for property creation
 router.post('/', async (req, res) => {
   const client = new MongoClient(dbUri);

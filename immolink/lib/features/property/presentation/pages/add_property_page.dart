@@ -594,7 +594,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${result.files.length} image(s) selected'),
+            content: Text('${result.files.length} Bild(er) ausgewählt'),
             backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -604,7 +604,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('No images selected'),
+            content: const Text('Keine Bilder ausgewählt'),
             backgroundColor: colors.textSecondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -816,7 +816,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Property updated successfully!'),
+              content: const Text('Immobilie erfolgreich aktualisiert!'),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -832,7 +832,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Property created successfully!'),
+              content: const Text('Immobilie erfolgreich erstellt!'),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

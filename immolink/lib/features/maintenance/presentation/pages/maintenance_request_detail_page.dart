@@ -888,6 +888,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
   }
 
   void _updateStatus(BuildContext context, WidgetRef ref, String requestId, String newStatus, DynamicAppColors colors) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       // Show loading indicator
       showDialog(
@@ -916,7 +917,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Status updated to ${newStatus.replaceAll('_', ' ')}'),
+            content: Text('${l10n.statusUpdatedTo} ${newStatus.replaceAll('_', ' ')}'),
             backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -933,7 +934,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update status: $e'),
+            content: Text('${l10n.failedToUpdateStatus}: $e'),
             backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -947,6 +948,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
   void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId, DynamicAppColors colors) {
     final TextEditingController noteController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
     
     showDialog(
       context: context,
@@ -957,7 +959,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            'Add Note',
+            l10n.addNote,
             style: TextStyle(
               color: colors.textPrimary,
               fontSize: 20,
@@ -1095,7 +1097,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Note added successfully'),
+            content: Text(AppLocalizations.of(context)!.noteAddedSuccessfully),
             backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -1112,7 +1114,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add note: $e'),
+            content: Text('${AppLocalizations.of(context)!.failedToAddNote}: $e'),
             backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -1125,6 +1127,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
   }
 
   Widget _buildAddNoteSection(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
+    
     // Only show add note section if the request is not completed/cancelled
     if (request.status == 'completed' || request.status == 'cancelled') {
       return const SizedBox.shrink();
@@ -1156,7 +1160,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Add Note',
+                l10n.addNote,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -1171,7 +1175,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             child: ElevatedButton.icon(
               onPressed: () => _showAddNoteDialog(context, ref, request.id, colors),
               icon: const Icon(Icons.add_comment, size: 18),
-              label: const Text('Add Note'),
+              label: Text(l10n.addNote),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: colors.textOnAccent,

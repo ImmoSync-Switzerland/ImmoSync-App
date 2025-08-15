@@ -72,6 +72,34 @@ class PropertyService {
     }
   }
 
+  Future<void> removeTenant(String propertyId, String tenantId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final landlordId = prefs.getString('userId');
+
+    if (landlordId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/properties/$propertyId/remove-tenant'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'tenantId': tenantId,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to remove tenant: ${response.statusCode}');
+      }
+      
+      print('Tenant $tenantId removed successfully from property $propertyId');
+    } catch (e) {
+      print('Error removing tenant: $e');
+      throw Exception('Failed to remove tenant: $e');
+    }
+  }
+
   Stream<List<Property>> getLandlordProperties(String landlordId) async* {
     final idString =
         landlordId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');

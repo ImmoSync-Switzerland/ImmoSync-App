@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../domain/models/invitation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../property/presentation/providers/property_providers.dart';
 import '../../../../core/constants/api_constants.dart';
 
 // Service provider for invitation operations
@@ -26,15 +27,35 @@ class InvitationService {
     throw Exception('Failed to fetch invitations');
   }
 
-  Future<void> respondToInvitation(String invitationId, String response) async {
+  Future<void> acceptInvitation(String invitationId) async {
     final httpResponse = await http.put(
-      Uri.parse('$_apiUrl/invitations/$invitationId/respond'),
+      Uri.parse('$_apiUrl/invitations/$invitationId/accept'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'response': response}),
     );
 
     if (httpResponse.statusCode != 200) {
-      throw Exception('Failed to respond to invitation');
+      throw Exception('Failed to accept invitation');
+    }
+  }
+
+  Future<void> declineInvitation(String invitationId) async {
+    final httpResponse = await http.put(
+      Uri.parse('$_apiUrl/invitations/$invitationId/decline'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (httpResponse.statusCode != 200) {
+      throw Exception('Failed to decline invitation');
+    }
+  }
+
+  Future<void> respondToInvitation(String invitationId, String response) async {
+    if (response == 'accept') {
+      await acceptInvitation(invitationId);
+    } else if (response == 'decline') {
+      await declineInvitation(invitationId);
+    } else {
+      throw Exception('Invalid response: $response');
     }
   }
 
@@ -93,17 +114,51 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
   InvitationNotifier(this._invitationService, this._ref) 
       : super(const AsyncValue.data(null));
 
-  Future<void> respondToInvitation(String invitationId, String response) async {
+  Future<void> acceptInvitation(String invitationId) async {
     state = const AsyncValue.loading();
     
     try {
-      await _invitationService.respondToInvitation(invitationId, response);
+      await _invitationService.acceptInvitation(invitationId);
       state = const AsyncValue.data(null);
       
-      // Refresh invitations after responding
+      // Refresh invitations after accepting
       _ref.invalidate(userInvitationsProvider);
+      // Refresh tenant properties to show the newly assigned property
+      _ref.invalidate(tenantPropertiesProvider);
+      // Also refresh all properties to ensure UI consistency
+      _ref.invalidate(propertiesProvider);
+      // Refresh landlord properties as well (status might have changed)
+      _ref.invalidate(landlordPropertiesProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> declineInvitation(String invitationId) async {
+    state = const AsyncValue.loading();
+    
+    try {
+      await _invitationService.declineInvitation(invitationId);
+      state = const AsyncValue.data(null);
+      
+      // Refresh invitations after declining
+      _ref.invalidate(userInvitationsProvider);
+      // Refresh tenant properties in case anything changed
+      _ref.invalidate(tenantPropertiesProvider);
+      // Also refresh all properties to ensure UI consistency
+      _ref.invalidate(propertiesProvider);
+      // Refresh landlord properties as well
+      _ref.invalidate(landlordPropertiesProvider);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> respondToInvitation(String invitationId, String response) async {
+    if (response == 'accept') {
+      await acceptInvitation(invitationId);
+    } else if (response == 'decline') {
+      await declineInvitation(invitationId);
     }
   }
 

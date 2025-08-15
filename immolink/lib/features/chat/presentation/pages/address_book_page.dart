@@ -168,7 +168,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           inherit: true,
         ),
         decoration: InputDecoration(
-          hintText: 'Search contacts...',
+          hintText: 'Kontakte suchen...',
           hintStyle: TextStyle(
             color: colors.textTertiary,
             fontSize: 15,
@@ -510,7 +510,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to start conversation: $e'),
+            content: Text('Unterhaltung konnte nicht gestartet werden: $e'),
             backgroundColor: colors.error,
           ),
         );

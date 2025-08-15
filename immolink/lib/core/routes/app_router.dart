@@ -236,7 +236,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (otherUserId == null || otherUserName == null) {
             return const Scaffold(
               body: Center(
-                child: Text('Invalid chat parameters'),
+                child: Text('Ungültige Chat-Parameter'),
               ),
             );
           }

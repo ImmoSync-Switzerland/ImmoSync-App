@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 
@@ -81,6 +82,7 @@ class PrivacySettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final privacySettings = ref.watch(privacySettingsProvider);
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -125,6 +127,7 @@ class PrivacySettingsPage extends ConsumerWidget {
   }
 
   Widget _buildProfileVisibilitySection(BuildContext context, WidgetRef ref, PrivacySettings settings, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -141,7 +144,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 Icon(Icons.visibility, color: colors.primaryAccent),
                 const SizedBox(width: 12),
                 Text(
-                  'Profile Visibility',
+                  l10n.publicProfile,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -152,7 +155,7 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Control who can see your profile information and how you appear to other users.',
+              'Kontrollieren Sie, wer Ihre Profilinformationen sehen kann und wie Sie anderen Benutzern angezeigt werden.',
               style: TextStyle(
                 fontSize: 14,
                 color: colors.textSecondary,
@@ -160,8 +163,8 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Show Profile to Other Users', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Allow other users to view your basic profile information', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Profil anderen Benutzern zeigen', style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(l10n.allowOtherUsersViewProfile, style: TextStyle(color: colors.textSecondary)),
               value: settings.showProfile,
               onChanged: (value) {
                 ref.read(privacySettingsProvider.notifier).updateShowProfile(value);
@@ -171,8 +174,8 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text('Show Contact Information', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Display your email and phone number to connected users', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Kontaktinformationen anzeigen', style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text('E-Mail und Telefonnummer für verbundene Benutzer anzeigen', style: TextStyle(color: colors.textSecondary)),
               value: settings.showContactInfo,
               onChanged: (value) {
                 ref.read(privacySettingsProvider.notifier).updateShowContactInfo(value);

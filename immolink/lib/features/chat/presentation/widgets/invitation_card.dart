@@ -362,8 +362,13 @@ class InvitationCard extends ConsumerWidget {
 
   void _respondToInvitation(BuildContext context, WidgetRef ref, String response) async {
     try {
-      await ref.read(invitationNotifierProvider.notifier)
-          .respondToInvitation(invitation.id, response);
+      final notifier = ref.read(invitationNotifierProvider.notifier);
+      
+      if (response == 'accepted') {
+        await notifier.acceptInvitation(invitation.id);
+      } else if (response == 'declined') {
+        await notifier.declineInvitation(invitation.id);
+      }
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -11,6 +11,9 @@ import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../widgets/invitation_card.dart';
+import '../../../property/presentation/providers/property_providers.dart';
+import '../../../property/domain/models/property.dart';
+import '../../../auth/domain/models/user.dart';
 
 class ConversationsTabbedPage extends ConsumerStatefulWidget {
   const ConversationsTabbedPage({super.key});
@@ -30,6 +33,11 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     
+    // Add listener to rebuild when tab changes
+    _tabController.addListener(() {
+      setState(() {});
+    });
+    
     // Set navigation index to Messages (2) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(routeAwareNavigationProvider.notifier).setIndex(2);
@@ -47,6 +55,8 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
+    final currentUser = ref.watch(currentUserProvider);
+    final isLandlord = currentUser?.role == 'landlord';
     
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -119,11 +129,20 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           ),
           tabs: [
             Tab(text: l10n.messages),
-            Tab(text: 'Invitations'), // TODO: Add to l10n
+            Tab(text: l10n.invitations),
           ],
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
+      floatingActionButton: isLandlord && _tabController.index == 1 
+        ? FloatingActionButton.extended(
+            onPressed: () => _showInviteTenantDialog(),
+            backgroundColor: colors.primaryAccent,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.person_add),
+            label: Text(l10n.addTenant),
+          )
+        : null,
       body: Column(
         children: [
           _buildSearchBar(),
@@ -172,7 +191,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           });
         },
         decoration: InputDecoration(
-          hintText: 'Search conversations...',
+          hintText: AppLocalizations.of(context)!.searchConversationsHint,
           hintStyle: TextStyle(
             color: colors.textSecondary,
             fontSize: 15,
@@ -508,5 +527,359 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     } else {
       return 'Just now';
     }
+  }
+
+  void _showInviteTenantDialog() {
+    final currentUser = ref.read(currentUserProvider);
+    final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
+    
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.error),
+          backgroundColor: colors.error,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => InviteTenantDialog(
+        landlordId: currentUser.id,
+      ),
+    );
+  }
+}
+
+class InviteTenantDialog extends ConsumerStatefulWidget {
+  final String landlordId;
+
+  const InviteTenantDialog({
+    super.key,
+    required this.landlordId,
+  });
+
+  @override
+  ConsumerState<InviteTenantDialog> createState() => _InviteTenantDialogState();
+}
+
+class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  String? _selectedPropertyId;
+  String? _selectedTenantId;
+  final _messageController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final propertiesAsync = ref.watch(landlordPropertiesProvider);
+    final tenantsAsync = ref.watch(availableTenantsProvider);
+
+    return Dialog(
+      backgroundColor: colors.surfaceCards,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.addTenant,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close, color: colors.textSecondary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Property Selection
+            Text(
+              l10n.property,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            propertiesAsync.when(
+              data: (properties) => _buildPropertyDropdown(properties, colors),
+              loading: () => const CircularProgressIndicator(),
+              error: (error, _) => Text('Error: $error'),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Tenant Search
+            Text(
+              l10n.searchTenants,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildSearchBar(colors),
+            
+            const SizedBox(height: 16),
+            
+            // Tenant List
+            Expanded(
+              child: tenantsAsync.when(
+                data: (tenants) => _buildTenantList(tenants, colors),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(child: Text('Error: $error')),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Message
+            Text(
+              l10n.message,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _messageController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.typeAMessage,
+                hintStyle: TextStyle(color: colors.textSecondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colors.textSecondary.withValues(alpha: 0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colors.primaryAccent),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Send Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _canSendInvitation() ? _sendInvitation : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colors.primaryAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  AppLocalizations.of(context)!.submit,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPropertyDropdown(List<Property> properties, DynamicAppColors colors) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.textSecondary.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedPropertyId,
+          hint: Text(
+            AppLocalizations.of(context)!.pleaseSelectProperty,
+            style: TextStyle(color: colors.textSecondary),
+          ),
+          isExpanded: true,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          items: properties.map((property) {
+            return DropdownMenuItem<String>(
+              value: property.id,
+              child: Text(
+                '${property.address.street}, ${property.address.city}',
+                style: TextStyle(color: colors.textPrimary),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedPropertyId = value;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(DynamicAppColors colors) {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: AppLocalizations.of(context)!.searchTenants,
+        hintStyle: TextStyle(color: colors.textSecondary),
+        prefixIcon: Icon(Icons.search, color: colors.textSecondary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colors.textSecondary.withValues(alpha: 0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colors.primaryAccent),
+        ),
+      ),
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value.toLowerCase();
+        });
+      },
+    );
+  }
+
+  Widget _buildTenantList(List<User> tenants, DynamicAppColors colors) {
+    final filteredTenants = tenants.where((tenant) {
+      return tenant.fullName.toLowerCase().contains(_searchQuery) ||
+             tenant.email.toLowerCase().contains(_searchQuery);
+    }).toList();
+
+    if (filteredTenants.isEmpty) {
+      return Center(
+        child: Text(
+          AppLocalizations.of(context)!.noTenantsFound,
+          style: TextStyle(
+            color: colors.textSecondary,
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: filteredTenants.length,
+      itemBuilder: (context, index) {
+        final tenant = filteredTenants[index];
+        final isSelected = _selectedTenantId == tenant.id;
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? colors.primaryAccent.withValues(alpha: 0.1) : colors.primaryBackground,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? colors.primaryAccent : colors.textSecondary.withValues(alpha: 0.2),
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
+              child: Text(
+                tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?',
+                style: TextStyle(
+                  color: colors.primaryAccent,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            title: Text(
+              tenant.fullName,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: Text(
+              tenant.email,
+              style: TextStyle(color: colors.textSecondary),
+            ),
+            onTap: () {
+              setState(() {
+                _selectedTenantId = isSelected ? null : tenant.id;
+              });
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  bool _canSendInvitation() {
+    return _selectedPropertyId != null && _selectedTenantId != null;
+  }
+
+  void _sendInvitation() async {
+    if (!_canSendInvitation()) return;
+
+    final colors = ref.read(dynamicColorsProvider);
+    
+    try {
+      await ref.read(invitationNotifierProvider.notifier).sendInvitation(
+        propertyId: _selectedPropertyId!,
+        landlordId: widget.landlordId,
+        tenantId: _selectedTenantId!,
+        message: _messageController.text.isNotEmpty 
+          ? _messageController.text 
+          : AppLocalizations.of(context)!.inviteTenant,
+      );
+      
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.success),
+            backgroundColor: colors.success,
+          ),
+        );
+        
+        // Refresh invitations
+        ref.invalidate(userInvitationsProvider);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${AppLocalizations.of(context)!.error}: $error'),
+            backgroundColor: colors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _messageController.dispose();
+    super.dispose();
   }
 }

@@ -100,7 +100,7 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
               controller: _searchController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Search properties, landlords, messages...',
+                hintText: 'Immobilien, Vermieter, Nachrichten suchen...',
                 hintStyle: TextStyle(
                   color: colors.textTertiary,
                   fontSize: 16,

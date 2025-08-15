@@ -11,6 +11,8 @@ import '../../../../core/providers/currency_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../property/presentation/providers/property_providers.dart';
 import '../../../property/domain/models/property.dart';
+import '../../../chat/presentation/providers/invitation_provider.dart';
+import '../../../chat/presentation/widgets/invitation_card.dart';
 import '../providers/activity_provider.dart';
 import '../../domain/models/activity.dart';
 
@@ -162,6 +164,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             _buildWelcomeSection(currentUser?.fullName ?? 'Tenant', colors),
                             const SizedBox(height: 24),
                             _buildSearchBar(colors),
+                            const SizedBox(height: 24),
+                            _buildInvitationsSection(colors),
                             const SizedBox(height: 24),
                             if (properties.isNotEmpty) 
                               _buildPropertyCard(properties.first, currency, colors)
@@ -544,7 +548,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           context.push('/tenant-search');
         },
         decoration: InputDecoration(
-          hintText: 'Search properties, maintenance, messages...',
+          hintText: 'Immobilien, Wartung, Nachrichten suchen...',
           hintStyle: TextStyle(
             color: colors.textSecondary,
             fontSize: 15,
@@ -806,6 +810,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   }
 
   Widget _buildNoPropertyCard(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(32.0),
       decoration: BoxDecoration(
@@ -842,7 +847,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           ),
           const SizedBox(height: 24),
           Text(
-            'No Property Assigned',
+            l10n.noPropertiesAssigned,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -853,7 +858,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           ),
           const SizedBox(height: 12),
           Text(
-            'Contact your landlord to get access to your rental property information.',
+            l10n.contactLandlordForAccess,
             style: TextStyle(
               fontSize: 15,
               color: colors.textSecondary,
@@ -862,33 +867,6 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               inherit: true,
             ),
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: colors.primaryAccent,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primaryAccent.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: Text(
-              'Contact Landlord',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-                letterSpacing: -0.1,
-              ),
-              textAlign: TextAlign.center,
-            ),
           ),
         ],
       ),
@@ -1500,5 +1478,93 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       default:
         return Icons.notifications_rounded;
     }
+  }
+
+  Widget _buildInvitationsSection(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
+    final pendingInvitations = ref.watch(pendingInvitationsProvider);
+
+    return pendingInvitations.when(
+      data: (invitations) {
+        if (invitations.isEmpty) {
+          return const SizedBox.shrink(); // Don't show anything if no invitations
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colors.surfaceCards,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadowColor,
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colors.primaryAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.mail_outline,
+                      color: colors.primaryAccent,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    l10n.invitations,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colors.primaryAccent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${invitations.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ...invitations.map((invitation) => 
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: InvitationCard(
+                    invitation: invitation, 
+                    isLandlord: false,
+                  ),
+                ),
+              ).toList(),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
+    );
   }
 }

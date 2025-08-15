@@ -541,7 +541,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send message: $error'),
+            content: Text('Nachricht konnte nicht gesendet werden: $error'),
             backgroundColor: AppColors.error,
           ),
         );

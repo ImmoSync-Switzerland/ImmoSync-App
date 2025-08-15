@@ -1408,7 +1408,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       print('Error navigating to chat: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Unable to open chat. Please try again.'),
+          content: Text('Chat kann nicht geöffnet werden. Bitte versuchen Sie es erneut.'),
           backgroundColor: colors.error,
         ),
       );

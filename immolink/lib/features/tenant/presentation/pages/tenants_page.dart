@@ -1132,6 +1132,24 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(width: 8),
+          Consumer(
+            builder: (context, ref, child) {
+              return IconButton(
+                onPressed: () => _showRemoveTenantDialog(property),
+                icon: Icon(
+                  Icons.remove_circle_outline,
+                  color: colors.error,
+                  size: 20,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: colors.error.withValues(alpha: 0.1),
+                  minimumSize: const Size(32, 32),
+                  padding: const EdgeInsets.all(4),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -1142,9 +1160,88 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     final colors = ref.read(dynamicColorsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Filter options will be implemented'),
+        content: Text('Filteroptionen werden implementiert'),
         backgroundColor: colors.primaryAccent,
       ),
     );
+  }
+
+  void _showRemoveTenantDialog(Property property) {
+    final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.surfaceCards,
+        title: Text(
+          l10n.removeTenant,
+          style: TextStyle(color: colors.textPrimary),
+        ),
+        content: Text(
+          l10n.removeTenantConfirmation,
+          style: TextStyle(color: colors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              l10n.cancel,
+              style: TextStyle(color: colors.textTertiary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => _removeTenantFromProperty(property),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(l10n.removeTenant),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _removeTenantFromProperty(Property property) async {
+    final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
+    Navigator.pop(context); // Close dialog
+    Navigator.pop(context); // Close tenant details
+    
+    try {
+      // Find the current tenant that we're viewing
+      final contactsAsync = ref.read(allTenantsProvider);
+      if (contactsAsync.hasValue) {
+        final tenants = contactsAsync.value!;
+        final tenant = tenants.firstWhere(
+          (t) => property.tenantIds.contains(t.id),
+          orElse: () => throw Exception('Tenant not found'),
+        );
+
+        await ref.read(tenantRemovalProvider.notifier).removeTenant(
+          property.id,
+          tenant.id,
+        );
+
+        // Refresh the data
+        ref.invalidate(allTenantsProvider);
+        ref.invalidate(landlordPropertiesProvider);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.tenantRemovedSuccessfully),
+            backgroundColor: colors.success,
+          ),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.failedToRemoveTenant),
+          backgroundColor: colors.error,
+        ),
+      );
+    }
   }
 }

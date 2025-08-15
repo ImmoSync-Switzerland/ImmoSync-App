@@ -51,6 +51,11 @@ final tenantInvitationProvider =
   return TenantInvitationNotifier(ref.watch(propertyServiceProvider));
 });
 
+final tenantRemovalProvider =
+    StateNotifierProvider<TenantRemovalNotifier, AsyncValue<void>>((ref) {
+  return TenantRemovalNotifier(ref.watch(propertyServiceProvider));
+});
+
 class TenantInvitationNotifier extends StateNotifier<AsyncValue<void>> {
   final PropertyService _propertyService;
 
@@ -62,6 +67,24 @@ class TenantInvitationNotifier extends StateNotifier<AsyncValue<void>> {
 
     try {
       await _propertyService.inviteTenant(propertyId, tenantId);
+      state = const AsyncValue.data(null);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+}
+
+class TenantRemovalNotifier extends StateNotifier<AsyncValue<void>> {
+  final PropertyService _propertyService;
+
+  TenantRemovalNotifier(this._propertyService)
+      : super(const AsyncValue.data(null));
+
+  Future<void> removeTenant(String propertyId, String tenantId) async {
+    state = const AsyncValue.loading();
+
+    try {
+      await _propertyService.removeTenant(propertyId, tenantId);
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

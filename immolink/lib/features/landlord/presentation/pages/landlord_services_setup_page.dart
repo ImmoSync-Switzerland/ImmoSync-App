@@ -309,7 +309,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                         children: [
                           Icon(Icons.delete_outlined, size: 18, color: colors.error),
                           SizedBox(width: 10),
-                          Text('Delete', style: TextStyle(color: colors.error)),
+                          Text('Löschen', style: TextStyle(color: colors.error)),
                         ],
                       ),
                     ),
@@ -561,7 +561,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Delete Service'),
+        title: Text('Service löschen'),
         content: Text(
           'Are you sure you want to delete "${service.name}"? This action cannot be undone.',
         ),
@@ -578,7 +578,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Service deleted'),
+                  content: Text('Service gelöscht'),
                   backgroundColor: colors.success,
                 ),
               );

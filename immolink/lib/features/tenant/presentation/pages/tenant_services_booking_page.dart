@@ -240,7 +240,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               decoration: InputDecoration(
-                hintText: 'Search services...',
+                hintText: l10n.searchServices,
                 hintStyle: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 14, // Reduced from 15
@@ -550,6 +550,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
   }
 
   void _showBookingDialog(BuildContext context, Service service, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     DateTime selectedDate = DateTime.now().add(Duration(days: 1));
     TimeOfDay selectedTime = TimeOfDay(hour: 9, minute: 0);
 
@@ -659,7 +660,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text('Confirm Booking'),
+              child: Text(l10n.confirmBooking),
             ),
           ],
         ),
@@ -668,6 +669,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
   }
 
   void _showBookingConfirmation(BuildContext context, Service service, DateTime date, TimeOfDay time, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -676,7 +678,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           children: [
             Icon(Icons.check_circle_outline, color: colors.success),
             const SizedBox(width: 8),
-            Text('Booking Confirmed'),
+            Text(l10n.bookingConfirmed),
           ],
         ),
         content: Text(

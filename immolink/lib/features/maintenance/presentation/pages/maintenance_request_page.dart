@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
@@ -570,7 +571,7 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
       if (_selectedPropertyId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Please select a property'),
+            content: Text(AppLocalizations.of(context)!.pleaseSelectProperty),
             backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -643,7 +644,7 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
           // Show success message and navigate back
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Maintenance request submitted successfully'),
+              content: Text(AppLocalizations.of(context)!.maintenanceRequestSubmittedSuccessfully),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -662,7 +663,7 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to submit request: $e'),
+              content: Text('${AppLocalizations.of(context)!.failedToSubmitRequest}: $e'),
               backgroundColor: colors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(

@@ -181,7 +181,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Export Reports'),
-        content: const Text('Choose export format:'),
+        content: const Text('Exportformat wählen:'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -430,11 +430,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Error loading payments'),
+                error: (_, __) => const Text('Fehler beim Laden der Zahlungen'),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Error loading properties'),
+            error: (_, __) => const Text('Fehler beim Laden der Immobilien'),
           ),
         ],
       ),
@@ -614,7 +614,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Error loading property metrics'),
+            error: (_, __) => const Text('Fehler beim Laden der Immobilienkennzahlen'),
           ),
         ],
       ),
@@ -721,7 +721,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Error loading maintenance data'),
+            error: (_, __) => const Text('Fehler beim Laden der Wartungsdaten'),
           ),
         ],
       ),
@@ -914,7 +914,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Error loading payment summary'),
+            error: (_, __) => const Text('Fehler beim Laden der Zahlungsübersicht'),
           ),
         ],
       ),
@@ -1079,7 +1079,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Error loading maintenance requests'),
+            error: (_, __) => const Text('Fehler beim Laden der Wartungsanfragen'),
           ),
         ],
       ),
@@ -1238,7 +1238,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Error loading payment history'),
+            error: (_, __) => const Text('Fehler beim Laden der Zahlungshistorie'),
           ),
         ],
       ),

@@ -245,7 +245,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                     final colors = ref.read(dynamicColorsProvider);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Profile image upload coming soon'),
+                        content: Text('Profilbild-Upload kommt bald'),
                         backgroundColor: colors.info,
                       ),
                     );

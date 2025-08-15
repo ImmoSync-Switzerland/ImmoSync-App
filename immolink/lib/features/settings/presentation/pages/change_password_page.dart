@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 
@@ -32,6 +33,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -127,7 +129,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 // Confirm Password Field
                 _buildPasswordField(
                   controller: _confirmPasswordController,
-                  label: 'Confirm New Password',
+                  label: l10n.confirmNewPassword,
                   obscureText: _obscureConfirmPassword,
                   onToggleVisibility: () {
                     setState(() {
@@ -335,7 +337,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Password changed successfully'),
+            content: Text(AppLocalizations.of(context)!.passwordChangedSuccessfully),
             backgroundColor: colors.success,
           ),
         );
@@ -345,7 +347,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to change password: $e'),
+            content: Text('${AppLocalizations.of(context)!.failedToChangePassword}: $e'),
             backgroundColor: colors.error,
           ),
         );
