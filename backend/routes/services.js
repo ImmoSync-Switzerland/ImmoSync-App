@@ -30,11 +30,20 @@ router.get('/', async (req, res) => {
       }
       query.landlordId = new ObjectId(landlordId);
     }
-    
+
+    console.log(`Looking for services with filters:`, {
+      category: category || undefined,
+      availability: availability || undefined,
+      landlordId: landlordId || undefined
+    });
+    console.log('MongoDB query object:', query);
+
     const services = await db.collection('services')
       .find(query)
       .sort({ createdAt: -1 })
       .toArray();
+
+    console.log(`Query returned ${services.length} services`);
     
     // Format response to match expected structure
     const response = {

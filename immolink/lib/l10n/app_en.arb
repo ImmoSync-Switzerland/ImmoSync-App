@@ -4,6 +4,7 @@
   "dashboard": "Dashboard",  
   "properties": "Properties",
   "tenants": "Tenants",
+  "services": "Services",
   "messages": "Messages",
   "reports": "Reports",
   "profile": "Profile",

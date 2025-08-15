@@ -163,13 +163,10 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     // For now, get services from the first landlord
     // In a real implementation, you might want to combine services from all landlords
     final firstLandlordId = landlordIds.first;
-    print('TenantServices: Looking for services from landlordId: $firstLandlordId');
-    print('TenantServices: All landlord IDs: $landlordIds');
     final servicesAsync = ref.watch(tenantAvailableServicesProvider(firstLandlordId));
     
     return servicesAsync.when(
       data: (services) {
-        print('TenantServices: Received ${services.length} services from API');
         final tenantServices = services.map((s) => TenantService.fromServiceModel(s)).toList();
         
         return Column(
@@ -499,7 +496,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   ),
                 ),
                 SizedBox(
-                  height: 32,
+                  height: 28,
                   child: ElevatedButton(
                     onPressed: service.isAvailable 
                         ? () => _showBookingDialog(context, service, colors)
@@ -512,8 +509,6 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       ),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: const Size(0, 32),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
                       'Book',

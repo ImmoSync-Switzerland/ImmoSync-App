@@ -516,128 +516,23 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
         availability: service.isActive ? 'unavailable' : 'available',
       );
       
-      final serviceService = ref.read(serviceServiceProvider);
-      await serviceService.updateService(updatedService);
+      await ref.read(serviceNotifierProvider.notifier).updateService(updatedService);
       
-      // Refresh the services lists
-      ref.invalidate(landlordServicesProvider);
-      ref.invalidate(tenantAvailableServicesProvider);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${service.name} ${service.isActive ? 'disabled' : 'enabled'}',
-            ),
-            backgroundColor: colors.success,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${service.name} ${service.isActive ? 'disabled' : 'enabled'}',
           ),
-        );
-      }
+          backgroundColor: colors.success,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating service: $e'),
-            backgroundColor: colors.error,
-          ),
-        );
-      }
-    }
-  }
-
-  void _createService(ServiceModel.Service serviceModel) async {
-    final colors = ref.read(dynamicColorsProvider);
-    
-    try {
-      final serviceService = ref.read(serviceServiceProvider);
-      await serviceService.createService(serviceModel);
-      
-      // Refresh the services lists
-      ref.invalidate(landlordServicesProvider);
-      ref.invalidate(tenantAvailableServicesProvider);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Service added'),
-            backgroundColor: colors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating service: $e'),
-            backgroundColor: colors.error,
-          ),
-        );
-      }
-    }
-  }
-
-  void _updateService(ServiceModel.Service serviceModel) async {
-    final colors = ref.read(dynamicColorsProvider);
-    
-    try {
-      final serviceService = ref.read(serviceServiceProvider);
-      await serviceService.updateService(serviceModel);
-      
-      // Refresh the services lists
-      ref.invalidate(landlordServicesProvider);
-      ref.invalidate(tenantAvailableServicesProvider);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Service updated'),
-            backgroundColor: colors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating service: $e'),
-            backgroundColor: colors.error,
-          ),
-        );
-      }
-    }
-  }
-
-  void _deleteService(LandlordService service) async {
-    final colors = ref.read(dynamicColorsProvider);
-    
-    try {
-      // Use the service directly to avoid provider disposal issues
-      final serviceService = ref.read(serviceServiceProvider);
-      
-      // Perform the deletion
-      await serviceService.deleteService(service.id);
-      
-      // Refresh the services lists
-      ref.invalidate(landlordServicesProvider);
-      ref.invalidate(tenantAvailableServicesProvider);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Service deleted'),
-            backgroundColor: colors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting service: $e'),
-            backgroundColor: colors.error,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating service: $e'),
+          backgroundColor: colors.error,
+        ),
+      );
     }
   }
 
@@ -658,9 +553,25 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             child: Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteService(service);
+            onPressed: () async {
+              try {
+                await ref.read(serviceNotifierProvider.notifier).deleteService(service.id);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Service gelöscht'),
+                    backgroundColor: colors.success,
+                  ),
+                );
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error deleting service: $e'),
+                    backgroundColor: colors.error,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.error,
@@ -789,27 +700,42 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             child: Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
                 formKey.currentState?.save();
                 
-                final serviceModel = ServiceModel.Service(
-                  id: service?.id ?? '',
-                  name: name,
-                  description: description,
-                  category: category,
-                  availability: 'available',
-                  landlordId: user.id,
-                  price: price,
-                  contactInfo: '$provider\n$contactInfo',
-                );
+                try {
+                  final serviceModel = ServiceModel.Service(
+                    id: service?.id ?? '',
+                    name: name,
+                    description: description,
+                    category: category,
+                    availability: 'available',
+                    landlordId: user.id,
+                    price: price,
+                    contactInfo: '$provider\n$contactInfo',
+                  );
 
-                Navigator.of(context).pop();
-                
-                if (isEditing) {
-                  _updateService(serviceModel);
-                } else {
-                  _createService(serviceModel);
+                  if (isEditing) {
+                    await ref.read(serviceNotifierProvider.notifier).updateService(serviceModel);
+                  } else {
+                    await ref.read(serviceNotifierProvider.notifier).createService(serviceModel);
+                  }
+
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isEditing ? 'Service updated' : 'Service added'),
+                      backgroundColor: colors.success,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: colors.error,
+                    ),
+                  );
                 }
               }
             },
