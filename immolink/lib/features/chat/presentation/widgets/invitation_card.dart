@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import '../../../chat/presentation/providers/invitation_provider.dart';
 import '../../../chat/domain/models/invitation.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class InvitationCard extends ConsumerWidget {
   final Invitation invitation;
@@ -16,23 +17,24 @@ class InvitationCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(dynamicColorsProvider);
     final statusColor = _getStatusColor(invitation.status);
     final isExpired = invitation.expiresAt != null && 
                      DateTime.now().isAfter(invitation.expiresAt!);
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: colors.shadowColor,
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.shadowColor.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -74,7 +76,7 @@ class InvitationCard extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: colors.textPrimary,
                           letterSpacing: -0.2,
                         ),
                       ),
@@ -85,7 +87,7 @@ class InvitationCard extends ConsumerWidget {
                           : 'From ${invitation.landlordName ?? "Landlord"}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: const Color(0xFF64748B),
+                          color: colors.textSecondary,
                           letterSpacing: -0.1,
                         ),
                       ),
@@ -121,14 +123,14 @@ class InvitationCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: colors.primaryBackground,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.home_outlined,
-                      color: const Color(0xFF64748B),
+                      color: colors.textSecondary,
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -141,7 +143,7 @@ class InvitationCard extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF0F172A),
+                              color: colors.textPrimary,
                               letterSpacing: -0.1,
                             ),
                           ),
@@ -151,7 +153,7 @@ class InvitationCard extends ConsumerWidget {
                               'Rent: \$${invitation.propertyRent!.toStringAsFixed(0)}/month',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: const Color(0xFF64748B),
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -169,10 +171,10 @@ class InvitationCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: colors.primaryBackground,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFFE2E8F0),
+                    color: colors.borderLight,
                     width: 1,
                   ),
                 ),
@@ -183,7 +185,7 @@ class InvitationCard extends ConsumerWidget {
                       children: [
                         Icon(
                           Icons.chat_bubble_outline,
-                          color: const Color(0xFF64748B),
+                          color: colors.textSecondary,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
@@ -192,7 +194,7 @@ class InvitationCard extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF64748B),
+                            color: colors.textSecondary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -203,7 +205,7 @@ class InvitationCard extends ConsumerWidget {
                       invitation.message,
                       style: TextStyle(
                         fontSize: 14,
-                        color: const Color(0xFF0F172A),
+                        color: colors.textPrimary,
                         letterSpacing: -0.1,
                         height: 1.4,
                       ),
@@ -222,7 +224,7 @@ class InvitationCard extends ConsumerWidget {
                     _getDateText(),
                     style: TextStyle(
                       fontSize: 12,
-                      color: const Color(0xFF64748B),
+                      color: colors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

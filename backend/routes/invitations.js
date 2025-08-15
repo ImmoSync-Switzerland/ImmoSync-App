@@ -147,39 +147,80 @@ router.put('/:invitationId/accept', async (req, res) => {
     
     const invitationId = req.params.invitationId;
     
-    // Find and update the invitation
-    const invitation = await db.collection('invitations')
-      .findOneAndUpdate(
-        { _id: new ObjectId(invitationId), status: 'pending' },
+    // First find the invitation to ensure it exists and is pending
+    const existingInvitation = await db.collection('invitations')
+      .findOne({ _id: new ObjectId(invitationId), status: 'pending' });
+    
+    if (!existingInvitation) {
+      return res.status(404).json({ message: 'Invitation not found or already processed' });
+    }
+    
+    // Update the invitation status
+    const invitationUpdateResult = await db.collection('invitations')
+      .updateOne(
+        { _id: new ObjectId(invitationId) },
         { 
           $set: { 
             status: 'accepted',
             acceptedAt: new Date()
           }
-        },
-        { returnDocument: 'after' }
+        }
       );
     
-    if (!invitation.value) {
-      return res.status(404).json({ message: 'Invitation not found or already processed' });
+    if (invitationUpdateResult.modifiedCount === 0) {
+      return res.status(500).json({ message: 'Failed to update invitation status' });
     }
     
+    console.log(`Successfully updated invitation ${invitationId} to accepted status`);
+    
     // Add tenant to property
-    const propertyUpdateResult = await db.collection('properties').updateOne(
-      { _id: new ObjectId(invitation.value.propertyId) },
-      { 
-        $addToSet: { tenantIds: invitation.value.tenantId },
-        $set: { status: 'rented' }
+    console.log(`Attempting to add tenant ${existingInvitation.tenantId} to property ${existingInvitation.propertyId}`);
+    console.log(`Property ID type: ${typeof existingInvitation.propertyId}`);
+    console.log(`Tenant ID type: ${typeof existingInvitation.tenantId}`);
+    
+    try {
+      const propertyUpdateResult = await db.collection('properties').updateOne(
+        { _id: new ObjectId(existingInvitation.propertyId) },
+        { 
+          $addToSet: { tenantIds: existingInvitation.tenantId },
+          $set: { status: 'rented' }
+        }
+      );
+      
+      console.log(`Property update result:`, {
+        acknowledged: propertyUpdateResult.acknowledged,
+        matchedCount: propertyUpdateResult.matchedCount,
+        modifiedCount: propertyUpdateResult.modifiedCount
+      });
+      
+      if (propertyUpdateResult.matchedCount === 0) {
+        console.error(`❌ Property ${existingInvitation.propertyId} not found during update!`);
+        return res.status(500).json({ message: 'Property not found during tenant assignment' });
       }
-    );
-    
-    console.log(`Property update result:`, propertyUpdateResult);
-    console.log(`Added tenant ${invitation.value.tenantId} to property ${invitation.value.propertyId}`);
-    
-    // Verify the property was updated correctly
-    const updatedProperty = await db.collection('properties')
-      .findOne({ _id: new ObjectId(invitation.value.propertyId) });
-    console.log(`Updated property tenantIds:`, updatedProperty?.tenantIds);
+      
+      if (propertyUpdateResult.modifiedCount === 0) {
+        console.log(`⚠️ Property ${existingInvitation.propertyId} was not modified - tenant might already be assigned`);
+      }
+      
+      // Verify the property was updated correctly
+      const updatedProperty = await db.collection('properties')
+        .findOne({ _id: new ObjectId(existingInvitation.propertyId) });
+      console.log(`Updated property tenantIds:`, updatedProperty?.tenantIds);
+      console.log(`Updated property status:`, updatedProperty?.status);
+      
+      // Double-check if tenant was actually added
+      if (updatedProperty && updatedProperty.tenantIds && updatedProperty.tenantIds.includes(existingInvitation.tenantId)) {
+        console.log(`✅ Tenant ${existingInvitation.tenantId} successfully added to property`);
+      } else {
+        console.error(`❌ Tenant ${existingInvitation.tenantId} was NOT added to property despite update operation`);
+        console.error(`Current tenantIds: [${updatedProperty?.tenantIds?.join(', ') || 'empty'}]`);
+        return res.status(500).json({ message: 'Failed to assign tenant to property' });
+      }
+      
+    } catch (propertyError) {
+      console.error('❌ Error updating property:', propertyError);
+      return res.status(500).json({ message: 'Error updating property with tenant assignment' });
+    }
     
     // Send acceptance message
     const conversation = await db.collection('conversations')
@@ -188,7 +229,7 @@ router.put('/:invitationId/accept', async (req, res) => {
     if (conversation) {
       const acceptanceMessage = {
         conversationId: conversation._id.toString(),
-        senderId: invitation.value.tenantId,
+        senderId: existingInvitation.tenantId,
         content: 'Great! I accept your invitation. Looking forward to renting this property.',
         timestamp: new Date(),
         messageType: 'text'

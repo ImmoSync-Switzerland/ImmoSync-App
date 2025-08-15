@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immolink/core/widgets/common_bottom_nav.dart';
-import 'package:immolink/core/providers/navigation_provider.dart';
 
 void main() {
   group('CommonBottomNav Integration Tests', () {

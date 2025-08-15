@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immolink/features/auth/domain/models/user.dart';
 import 'package:immolink/features/property/domain/services/property_service.dart';
@@ -16,34 +17,72 @@ final propertiesProvider = StreamProvider<List<Property>>((ref) {
   return propertyService.getAllProperties();
 });
 
-// Landlord-specific properties provider
-final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) {
-  print('Provider initialized');
+// Real-time refresh timer provider
+final propertyRefreshTimerProvider = StreamProvider<int>((ref) async* {
+  // Create a timer that emits every 30 seconds
+  var counter = 0;
+  final timer = Timer.periodic(const Duration(seconds: 30), (timer) {});
+  
+  // Keep the provider alive
+  ref.onDispose(() {
+    timer.cancel();
+  });
+  
+  yield counter++;
+  
+  await for (final _ in Stream.periodic(const Duration(seconds: 30))) {
+    yield counter++;
+  }
+});
+
+// Landlord-specific properties provider with real-time refresh
+final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
+  print('LandlordPropertiesProvider initialized');
   final currentUser = ref.watch(currentUserProvider);
+  
+  // Watch the refresh timer to trigger updates
+  ref.watch(propertyRefreshTimerProvider);
+  
   print('Current user in provider: ${currentUser?.id}');
 
   // Early return empty list if no user
   if (currentUser == null) {
-    return Stream.value([]);
+    yield [];
+    return;
   }
 
   final propertyService = ref.watch(propertyServiceProvider);
   print('Calling PropertyService.getLandlordProperties with ID: ${currentUser.id}');
-  return propertyService.getLandlordProperties(currentUser.id);
+  
+  // Get initial data
+  await for (final properties in propertyService.getLandlordProperties(currentUser.id)) {
+    print('LandlordPropertiesProvider: Yielding ${properties.length} properties');
+    yield properties;
+  }
 });
 
-// Tenant-specific properties provider  
-final tenantPropertiesProvider = StreamProvider<List<Property>>((ref) {
+// Tenant-specific properties provider with real-time refresh
+final tenantPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
+  print('TenantPropertiesProvider initialized');
   final currentUser = ref.watch(currentUserProvider);
+  
+  // Watch the refresh timer to trigger updates
+  ref.watch(propertyRefreshTimerProvider);
   
   // Early return empty list if no user
   if (currentUser == null) {
-    return Stream.value([]);
+    yield [];
+    return;
   }
 
   final propertyService = ref.watch(propertyServiceProvider);
   print('Calling PropertyService.getTenantProperties with ID: ${currentUser.id}');
-  return propertyService.getTenantProperties(currentUser.id);
+  
+  // Get initial data
+  await for (final properties in propertyService.getTenantProperties(currentUser.id)) {
+    print('TenantPropertiesProvider: Yielding ${properties.length} properties');
+    yield properties;
+  }
 });
 
 final tenantInvitationProvider =

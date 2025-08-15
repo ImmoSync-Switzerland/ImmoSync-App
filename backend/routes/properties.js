@@ -176,6 +176,13 @@ router.post('/:propertyId/remove-tenant', async (req, res) => {
       { $unset: { propertyId: "" } }
     );
 
+      // Remove all invitations for this property and tenant
+      const invitationDeleteResult = await db.collection('invitations').deleteMany({
+        propertyId: propertyId.toString(),
+        tenantId: tenantId
+      });
+      console.log(`Deleted ${invitationDeleteResult.deletedCount} invitations for property ${propertyId} and tenant ${tenantId}`);
+
     res.json({ success: true, message: 'Tenant removed successfully' });
   } catch (error) {
     console.error('Error removing tenant:', error);
