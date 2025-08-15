@@ -31,7 +31,16 @@ router.get('/landlord/:landlordId', async (req, res) => {
       .limit(parseInt(limit))
       .toArray();
     
-    res.json(requests);
+    // Ensure ObjectIds are properly serialized to strings
+    const serializedRequests = requests.map(request => ({
+      ...request,
+      _id: request._id.toString(),
+      propertyId: request.propertyId.toString(),
+      tenantId: request.tenantId.toString(),
+      landlordId: request.landlordId.toString()
+    }));
+    
+    res.json(serializedRequests);
   } catch (error) {
     console.error('Error fetching landlord maintenance requests:', error);
     res.status(500).json({ message: 'Error fetching maintenance requests', error: error.message });
@@ -57,7 +66,16 @@ router.get('/tenant/:tenantId', async (req, res) => {
       .limit(parseInt(limit))
       .toArray();
     
-    res.json(requests);
+    // Ensure ObjectIds are properly serialized to strings
+    const serializedRequests = requests.map(request => ({
+      ...request,
+      _id: request._id.toString(),
+      propertyId: request.propertyId.toString(),
+      tenantId: request.tenantId.toString(),
+      landlordId: request.landlordId.toString()
+    }));
+    
+    res.json(serializedRequests);
   } catch (error) {
     console.error('Error fetching tenant maintenance requests:', error);
     res.status(500).json({ message: 'Error fetching maintenance requests', error: error.message });
@@ -76,7 +94,16 @@ router.get('/recent/:landlordId', async (req, res) => {
       .limit(5)
       .toArray();
     
-    res.json(requests);
+    // Ensure ObjectIds are properly serialized to strings
+    const serializedRequests = requests.map(request => ({
+      ...request,
+      _id: request._id.toString(),
+      propertyId: request.propertyId.toString(),
+      tenantId: request.tenantId.toString(),
+      landlordId: request.landlordId.toString()
+    }));
+    
+    res.json(serializedRequests);
   } catch (error) {
     console.error('Error fetching recent maintenance requests:', error);
     res.status(500).json({ message: 'Error fetching recent maintenance requests', error: error.message });
@@ -132,11 +159,20 @@ router.post('/', async (req, res) => {
     const savedRequest = await db.collection('maintenanceRequests')
       .findOne({ _id: result.insertedId });
     
+    // Ensure ObjectIds are properly serialized to strings
+    const serializedRequest = {
+      ...savedRequest,
+      _id: savedRequest._id.toString(),
+      propertyId: savedRequest.propertyId.toString(),
+      tenantId: savedRequest.tenantId.toString(),
+      landlordId: savedRequest.landlordId.toString()
+    };
+    
     res.status(201).json({
       success: true,
       ticketId: savedRequest._id.toString(),
       message: 'Maintenance request created successfully',
-      ticket: savedRequest
+      ticket: serializedRequest
     });
   } catch (error) {
     console.error('Error creating maintenance request:', error);
@@ -225,7 +261,16 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Maintenance request not found' });
     }
     
-    res.json(request);
+    // Ensure ObjectIds are properly serialized to strings
+    const serializedRequest = {
+      ...request,
+      _id: request._id.toString(),
+      propertyId: request.propertyId.toString(),
+      tenantId: request.tenantId.toString(),
+      landlordId: request.landlordId.toString()
+    };
+    
+    res.json(serializedRequest);
   } catch (error) {
     console.error('Error fetching maintenance request:', error);
     res.status(500).json({ message: 'Error fetching maintenance request', error: error.message });
@@ -251,7 +296,16 @@ router.get('/property/:propertyId', async (req, res) => {
       .limit(parseInt(limit))
       .toArray();
     
-    res.json(requests);
+    // Ensure ObjectIds are properly serialized to strings
+    const serializedRequests = requests.map(request => ({
+      ...request,
+      _id: request._id.toString(),
+      propertyId: request.propertyId.toString(),
+      tenantId: request.tenantId.toString(),
+      landlordId: request.landlordId.toString()
+    }));
+    
+    res.json(serializedRequests);
   } catch (error) {
     console.error('Error fetching property maintenance requests:', error);
     res.status(500).json({ message: 'Error fetching maintenance requests', error: error.message });

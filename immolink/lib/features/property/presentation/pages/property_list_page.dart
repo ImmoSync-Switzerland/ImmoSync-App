@@ -108,24 +108,24 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     final colors = ref.watch(dynamicColorsProvider);
     
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16), // Reduced from 20
       child: Column(
         children: [
           // Search bar with modern design matching dashboard
           Container(
             decoration: BoxDecoration(
               color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14), // Reduced from 16
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withValues(alpha: 0.06), // Reduced opacity
+                  blurRadius: 20, // Reduced from 24
+                  offset: const Offset(0, 6), // Reduced from 8
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 6,
+                  color: Colors.black.withValues(alpha: 0.03), // Reduced opacity
+                  blurRadius: 4, // Reduced from 6
                   offset: const Offset(0, 2),
                   spreadRadius: 0,
                 ),
@@ -135,31 +135,31 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               onChanged: (value) => setState(() => _searchQuery = value),
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 15,
+                fontSize: 14, // Reduced from 15
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
                 hintText: l10n.searchProperties,
                 hintStyle: TextStyle(
                   color: colors.textSecondary,
-                  fontSize: 15,
+                  fontSize: 14, // Reduced from 15
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.1,
                   inherit: true,
                 ),
                 prefixIcon: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10), // Reduced from 12
                   child: Icon(
                     Icons.search_outlined, 
                     color: colors.textSecondary,
-                    size: 20,
+                    size: 18, // Reduced from 20
                   ),
                 ),
                 suffixIcon: Container(
-                  margin: const EdgeInsets.all(8),
+                  margin: const EdgeInsets.all(6), // Reduced from 8
                   decoration: BoxDecoration(
                     color: colors.surfaceCards,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6), // Reduced from 8
                     border: Border.all(
                       color: colors.borderLight,
                       width: 1,
@@ -173,29 +173,29 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     icon: Icon(
                       Icons.filter_list_outlined,
                       color: colors.textSecondary,
-                      size: 18,
+                      size: 16, // Reduced from 18
                     ),
                   ),
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), // Reduced padding
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14), // Reduced from 16
           // Status filter with scrollable behavior
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _buildFilterChip(_capitalizeFilter(l10n.all), 'all'),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6), // Reduced from 8
                 _buildFilterChip(_capitalizeFilter(l10n.available), 'available'),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildFilterChip(_capitalizeFilter(l10n.rented), 'rented'),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildFilterChip(_capitalizeFilter(l10n.maintenance), 'maintenance'),
-                const SizedBox(width: 8), // Extra padding at the end
+                const SizedBox(width: 6), // Extra padding at the end
               ],
             ),
           ),
@@ -213,7 +213,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         setState(() => _statusFilter = value);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Reduced padding
         decoration: BoxDecoration(
           gradient: isSelected 
             ? LinearGradient(
@@ -226,7 +226,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               )
             : null,
           color: isSelected ? null : colors.surfaceCards,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14), // Reduced from 16
           border: Border.all(
             color: isSelected ? colors.primaryAccent : colors.dividerSeparator,
             width: 1,
@@ -235,9 +235,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             BoxShadow(
               color: isSelected 
                 ? colors.primaryAccent.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.04),
-              blurRadius: isSelected ? 12 : 6,
-              offset: Offset(0, isSelected ? 6 : 2),
+                : Colors.black.withValues(alpha: 0.03), // Reduced opacity
+              blurRadius: isSelected ? 10 : 4, // Reduced blur
+              offset: Offset(0, isSelected ? 4 : 2), // Reduced offset
               spreadRadius: 0,
             ),
           ],
@@ -246,7 +246,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           label,
           style: TextStyle(
             color: isSelected ? Colors.white : const Color(0xFF64748B),
-            fontSize: 14,
+            fontSize: 13, // Reduced from 14
             fontWeight: FontWeight.w600,
             letterSpacing: -0.1,
             inherit: true,
@@ -313,7 +313,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         context.push('/property/${property.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(16.0), // Reduced from 28.0 to 16.0
+        padding: const EdgeInsets.all(14.0), // Reduced from 16.0
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -323,21 +323,21 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               statusColor.withValues(alpha: 0.02),
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16), // Reduced from 20
           border: Border.all(
             color: statusColor.withValues(alpha: 0.15),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.06), // Reduced opacity
+              blurRadius: 20, // Reduced from 24
+              offset: const Offset(0, 6), // Reduced from 8
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
+              color: Colors.black.withValues(alpha: 0.03), // Reduced opacity
+              blurRadius: 4, // Reduced from 6
               offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
@@ -350,10 +350,10 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             Row(
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 70, // Reduced from 80
+                  height: 70, // Reduced from 80
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14), // Reduced from 16
                     border: Border.all(
                       color: statusColor.withValues(alpha: 0.2),
                       width: 1,
@@ -368,10 +368,10 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     : Icon(
                         Icons.home_outlined,
                         color: statusColor,
-                        size: 32,
+                        size: 28, // Reduced from 32
                       ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 16), // Reduced from 20
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,21 +379,21 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       Text(
                         property.address.street,
                         style: TextStyle(
-                          fontSize: 16, // Reduced from 18
+                          fontSize: 15, // Reduced from 16
                           fontWeight: FontWeight.w700,
                           color: colors.textPrimary,
                           letterSpacing: -0.3,
                           inherit: true,
                         ),
-                        maxLines: 1, // Changed from 2 to 1 to prevent overflow
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4), // Reduced from 6
                       Row(
                         children: [
                           Icon(
                             Icons.location_on_outlined,
-                            size: 16,
+                            size: 14, // Reduced from 16
                             color: colors.textSecondary,
                           ),
                           const SizedBox(width: 4),
@@ -401,7 +401,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                             child: Text(
                               '${property.address.city}, ${property.address.postalCode}',
                               style: TextStyle(
-                                fontSize: 13, // Reduced from 14
+                                fontSize: 12, // Reduced from 13
                                 color: colors.textSecondary,
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: -0.1,
@@ -416,12 +416,12 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12), // Reduced from 16
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Reduced padding
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6), // Reduced from 8
                     border: Border.all(
                       color: statusColor.withValues(alpha: 0.2),
                       width: 1,
@@ -430,7 +430,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   child: Text(
                     _getLocalizedStatus(property.status, l10n),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10, // Reduced from 11
                       fontWeight: FontWeight.w600,
                       color: statusColor,
                       letterSpacing: 0.5,
@@ -440,13 +440,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18), // Reduced from 24
             // Property details in modern card layout
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16), // Reduced from 20
               decoration: BoxDecoration(
                 color: colors.surfaceCards,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14), // Reduced from 16
                 border: Border.all(
                   color: colors.borderLight,
                   width: 1,
@@ -466,7 +466,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   ),
                   Container(
                     width: 1,
-                    height: 50,
+                    height: 44, // Reduced from 50
                     color: colors.borderLight,
                   ),
                   Expanded(
@@ -480,7 +480,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   ),
                   Container(
                     width: 1,
-                    height: 50,
+                    height: 44, // Reduced from 50
                     color: colors.borderLight,
                   ),
                   Expanded(
@@ -512,40 +512,44 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6), // Reduced from 8
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6), // Reduced from 8
           ),
           child: Icon(
             icon, 
-            size: 16, 
+            size: 14, // Reduced from 16
             color: iconColor,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6), // Reduced from 8
         Text(
           value,
           style: TextStyle(
-            fontSize: isPrice ? 16 : 15,
+            fontSize: isPrice ? 14 : 13, // Reduced from 16/15
             fontWeight: FontWeight.w700,
             color: colors.textPrimary,
             letterSpacing: -0.2,
             inherit: true,
           ),
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 9, // Reduced from 10
             fontWeight: FontWeight.w600,
             color: colors.textSecondary,
             letterSpacing: 0.5,
             inherit: true,
           ),
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

@@ -601,15 +601,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   Widget _buildQuickAccess() {
     final colors = ref.watch(dynamicColorsProvider);
     return Container(
-      padding: const EdgeInsets.all(32.0),
+      padding: const EdgeInsets.all(24.0), // Reduced from 32.0
       decoration: BoxDecoration(
         color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14), // Reduced from 16
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            blurRadius: 20, // Reduced from 24
+            offset: const Offset(0, 6), // Reduced from 8
             spreadRadius: 0,
           ),
           BoxShadow(
@@ -842,7 +842,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14), // Reduced from 20
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -852,7 +852,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               iconColor.withValues(alpha: 0.08),
             ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14), // Reduced from 16
           border: Border.all(
             color: iconColor.withValues(alpha: 0.2),
             width: 1,
@@ -860,13 +860,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           boxShadow: [
             BoxShadow(
               color: iconColor.withValues(alpha: 0.15),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              blurRadius: 12, // Reduced from 16
+              offset: const Offset(0, 4), // Reduced from 6
               spreadRadius: 0,
             ),
             BoxShadow(
               color: colors.shadowColor,
-              blurRadius: 8,
+              blurRadius: 6, // Reduced from 8
               offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
@@ -875,10 +875,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12), // Reduced from 16
               decoration: BoxDecoration(
                 color: colors.surfaceCards.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10), // Reduced from 12
                 border: Border.all(
                   color: colors.surfaceCards.withValues(alpha: 0.6),
                   width: 1,
@@ -886,7 +886,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 boxShadow: [
                   BoxShadow(
                     color: colors.surfaceCards.withValues(alpha: 0.8),
-                    blurRadius: 8,
+                    blurRadius: 6, // Reduced from 8
                     offset: const Offset(0, 2),
                     spreadRadius: 0,
                   ),
@@ -894,15 +894,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
               child: Icon(
                 icon, 
-                size: 24,
+                size: 20, // Reduced from 24
                 color: iconColor,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced from 16
             Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13, // Reduced from 14
                 fontWeight: FontWeight.w700,
                 color: colors.textPrimary,
                 letterSpacing: -0.2,
@@ -920,7 +920,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   Widget _buildPropertyOverview(List<Property> properties) {
     final colors = ref.watch(dynamicColorsProvider);
     return Container(
-      padding: const EdgeInsets.all(28.0),
+      padding: const EdgeInsets.all(20.0), // Reduced from 28.0
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -930,7 +930,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             colors.accentLight.withValues(alpha: 0.2),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20), // Reduced from 24
         border: Border.all(
           color: colors.borderLight,
           width: 1,
@@ -938,8 +938,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         boxShadow: [
           BoxShadow(
             color: colors.shadowColorMedium,
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            blurRadius: 20, // Reduced from 24
+            offset: const Offset(0, 8), // Reduced from 12
             spreadRadius: 0,
           ),
           BoxShadow(

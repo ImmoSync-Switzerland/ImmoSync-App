@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 
@@ -457,6 +458,14 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ),
           ),
 
+        // Add Note Section (for tenants)
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildAddNoteSection(context, ref, request, colors),
+          ),
+        ),
+
         // Action Buttons Section
         SliverToBoxAdapter(
           child: Container(
@@ -678,6 +687,12 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
   }
 
   Widget _buildModernActionButtons(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors) {
+    // Only landlords and property managers can update maintenance request status
+    final userRole = ref.watch(userRoleProvider);
+    if (userRole == 'tenant') {
+      return const SizedBox.shrink();
+    }
+    
     if (request.status == 'completed' || request.status == 'cancelled') {
       return const SizedBox.shrink();
     }
@@ -1107,5 +1122,68 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         );
       }
     }
+  }
+
+  Widget _buildAddNoteSection(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors) {
+    // Only show add note section if the request is not completed/cancelled
+    if (request.status == 'completed' || request.status == 'cancelled') {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surfaceCards,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.note_add,
+                color: colors.primaryAccent,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Add Note',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _showAddNoteDialog(context, ref, request.id, colors),
+              icon: const Icon(Icons.add_comment, size: 18),
+              label: const Text('Add Note'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.primaryAccent,
+                foregroundColor: colors.textOnAccent,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

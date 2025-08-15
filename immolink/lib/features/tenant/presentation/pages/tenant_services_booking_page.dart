@@ -155,8 +155,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
 
   Widget _buildHeader(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(14), // Reduced from 16
+      padding: const EdgeInsets.all(14), // Reduced from 16
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -166,13 +166,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             colors.luxuryGradientStart,
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14), // Reduced from 16
         border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 10, // Reduced from 12
+            offset: const Offset(0, 3), // Reduced from 4
           ),
         ],
       ),
@@ -182,7 +182,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8), // Reduced from 10
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -190,20 +190,20 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       colors.primaryAccent.withValues(alpha: 0.1),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8), // Reduced from 10
                 ),
                 child: Icon(
                   Icons.room_service_outlined,
                   color: colors.primaryAccent,
-                  size: 20,
+                  size: 18, // Reduced from 20
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10), // Reduced from 12
               Expanded(
                 child: Text(
                   'Available Services',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16, // Reduced from 18
                     fontWeight: FontWeight.w700,
                     color: colors.textPrimary,
                   ),
@@ -211,11 +211,11 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10), // Reduced from 12
           Text(
             'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12, // Reduced from 13
               color: colors.textSecondary,
               height: 1.3,
             ),
@@ -234,7 +234,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           Container(
             decoration: BoxDecoration(
               color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10), // Reduced from 12
               border: Border.all(color: colors.borderLight),
             ),
             child: TextField(
@@ -243,36 +243,36 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 hintText: 'Search services...',
                 hintStyle: TextStyle(
                   color: colors.textSecondary,
-                  fontSize: 15,
+                  fontSize: 14, // Reduced from 15
                 ),
-                prefixIcon: Icon(Icons.search_outlined, color: colors.textSecondary, size: 20),
+                prefixIcon: Icon(Icons.search_outlined, color: colors.textSecondary, size: 18), // Reduced from 20
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12), // Reduced padding
               ),
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 15,
+                fontSize: 14, // Reduced from 15
               ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12), // Reduced from 14
           // Category filter
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _buildFilterChip('All', 'all', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6), // Reduced from 8
                 _buildFilterChip('Maintenance', 'maintenance', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildFilterChip('Cleaning', 'cleaning', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildFilterChip('Repair', 'repair', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14), // Reduced from 16
         ],
       ),
     );
@@ -286,10 +286,10 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
         setState(() => _selectedCategory = value);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), // Reduced padding
         decoration: BoxDecoration(
           color: isSelected ? colors.primaryAccent : colors.surfaceCards,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16), // Reduced from 20
           border: Border.all(
             color: isSelected ? colors.primaryAccent : colors.borderLight,
           ),
@@ -298,7 +298,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           label,
           style: TextStyle(
             color: isSelected ? Colors.white : colors.textSecondary,
-            fontSize: 14,
+            fontSize: 13, // Reduced from 14
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -347,20 +347,20 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 8,
+            blurRadius: 6, // Reduced from 8
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12), // Reduced from 14
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6), // Reduced from 8
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -368,54 +368,54 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                         colors.primaryAccent.withValues(alpha: 0.1),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6), // Reduced from 8
                   ),
                   child: Icon(
                     service.icon,
                     color: colors.primaryAccent,
-                    size: 20,
+                    size: 18, // Reduced from 20
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10), // Reduced from 12
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         service.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15, // Reduced from 16
                           fontWeight: FontWeight.w600,
                           color: colors.textPrimary,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         service.provider,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colors.textSecondary,
-                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12, // Reduced from 13
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), // Reduced padding
                   decoration: BoxDecoration(
                     color: service.isAvailable 
                         ? colors.success.withValues(alpha: 0.1)
                         : colors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(4), // Reduced from 6
                   ),
                   child: Text(
                     service.isAvailable ? 'Available' : 'Busy',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 9, // Reduced from 10
                       fontWeight: FontWeight.w600,
                       color: service.isAvailable ? colors.success : colors.warning,
                     ),
@@ -423,18 +423,18 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10), // Reduced from 12
             Text(
               service.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12, // Reduced from 13
                 color: colors.textSecondary,
                 height: 1.3,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10), // Reduced from 12
             Row(
               children: [
                 Expanded(
@@ -445,14 +445,14 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       Text(
                         'Price',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10, // Reduced from 11
                           color: colors.textSecondary,
                         ),
                       ),
                       Text(
                         '\$${service.price.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14, // Reduced from 16
                           fontWeight: FontWeight.w700,
                           color: colors.success,
                         ),
@@ -468,25 +468,25 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       Text(
                         'Schedule',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10, // Reduced from 11
                           color: colors.textSecondary,
                         ),
                       ),
                       Text(
                         service.duration,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12, // Reduced from 13
                           fontWeight: FontWeight.w600,
                           color: colors.textPrimary,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 SizedBox(
-                  height: 32,
+                  height: 28, // Reduced from 32
                   child: ElevatedButton(
                     onPressed: service.isAvailable 
                         ? () => _showBookingDialog(context, service, colors)
@@ -495,15 +495,15 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                       backgroundColor: colors.primaryAccent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14), // Reduced from 16
                       ),
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
                     ),
                     child: Text(
                       'Book',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12, // Reduced font size
                         fontWeight: FontWeight.w600,
                       ),
                     ),

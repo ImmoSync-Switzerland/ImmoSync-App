@@ -66,9 +66,11 @@ class MaintenanceRequest {
       images: List<String>.from(map['images'] ?? []),
       requestedDate: map['requestedDate'] != null 
           ? DateTime.parse(map['requestedDate'])
-          : (map['dateCreated'] != null 
-              ? DateTime.parse(map['dateCreated'])
-              : DateTime.now()),
+          : (map['createdAt'] != null 
+              ? DateTime.parse(map['createdAt'])
+              : (map['dateCreated'] != null 
+                  ? DateTime.parse(map['dateCreated'])
+                  : DateTime.now())),
       scheduledDate: map['scheduledDate'] != null 
           ? DateTime.parse(map['scheduledDate'])
           : null,
@@ -143,6 +145,10 @@ class MaintenanceRequest {
         return 'Medium Priority';
     }
   }
+
+  // Getter methods for backward compatibility
+  DateTime get createdAt => requestedDate;
+  DateTime? get updatedAt => completedDate ?? scheduledDate;
 
   String get statusDisplayText {
     switch (status) {

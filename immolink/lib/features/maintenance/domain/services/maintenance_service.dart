@@ -29,15 +29,24 @@ class MaintenanceService {
   // Get all maintenance requests for a tenant
   Future<List<MaintenanceRequest>> getMaintenanceRequestsByTenant(String tenantId) async {
     try {
+      final url = '$_apiUrl/maintenance/tenant/$tenantId';
+      print('DEBUG: Fetching maintenance requests from: $url');
+      print('DEBUG: Tenant ID: $tenantId');
+      
       final response = await http.get(
-        Uri.parse('$_apiUrl/maintenance/tenant/$tenantId'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
       );
 
+      print('DEBUG: Response status code: ${response.statusCode}');
+      print('DEBUG: Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        print('DEBUG: Found ${data.length} maintenance requests');
         return data.map((json) => MaintenanceRequest.fromMap(json)).toList();
       } else {
+        print('DEBUG: Failed with status code: ${response.statusCode}');
         throw Exception('Failed to load maintenance requests');
       }
     } catch (e) {
@@ -77,7 +86,9 @@ class MaintenanceService {
 
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
-        return MaintenanceRequest.fromMap(data);
+        // Handle the backend response format which wraps the ticket data
+        final ticketData = data['ticket'] ?? data;
+        return MaintenanceRequest.fromMap(ticketData);
       } else {
         throw Exception('Failed to create maintenance request');
       }
@@ -115,15 +126,23 @@ class MaintenanceService {
   // Get a specific maintenance request
   Future<MaintenanceRequest> getMaintenanceRequestById(String id) async {
     try {
+      final url = '$_apiUrl/maintenance/$id';
+      print('DEBUG: Fetching maintenance request by ID from: $url');
+      print('DEBUG: Request ID: $id');
+      
       final response = await http.get(
-        Uri.parse('$_apiUrl/maintenance/$id'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
       );
+
+      print('DEBUG: Response status code: ${response.statusCode}');
+      print('DEBUG: Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return MaintenanceRequest.fromMap(data);
       } else {
+        print('DEBUG: Failed with status code: ${response.statusCode}');
         throw Exception('Failed to load maintenance request');
       }
     } catch (e) {

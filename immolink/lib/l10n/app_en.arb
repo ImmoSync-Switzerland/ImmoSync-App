@@ -326,5 +326,20 @@
   "maintenanceRequestDetails": "Maintenance Request Details",
   "blockUser": "Block User", 
   "reportConversation": "Report Conversation",
-  "deleteConversation": "Delete Conversation"
+  "deleteConversation": "Delete Conversation",
+  "myMaintenanceRequests": "My Maintenance Requests",
+  "errorLoadingRequests": "Error loading maintenance requests",
+  "retry": "Retry",
+  "createRequest": "Create Request",
+  "created": "Created",
+  "updated": "Updated",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "statusPending": "Pending",
+  "statusInProgress": "In Progress",
+  "statusCompleted": "Completed",
+  "statusCancelled": "Cancelled",
+  "priorityHigh": "High",
+  "priorityMedium": "Medium",
+  "priorityLow": "Low"
 }

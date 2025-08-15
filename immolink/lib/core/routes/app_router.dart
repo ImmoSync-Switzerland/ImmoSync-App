@@ -11,6 +11,7 @@ import 'package:immolink/features/home/presentation/pages/home_page.dart';
 import 'package:immolink/features/maintenance/presentation/pages/maintenance_management_page.dart';
 import 'package:immolink/features/maintenance/presentation/pages/maintenance_request_page.dart';
 import 'package:immolink/features/maintenance/presentation/pages/maintenance_request_detail_page.dart';
+import 'package:immolink/features/maintenance/presentation/pages/tenant_maintenance_requests_page.dart';
 import 'package:immolink/features/payment/presentation/pages/make_payment_page.dart';
 import 'package:immolink/features/payment/presentation/pages/payment_history_page.dart';
 import 'package:immolink/features/payment/presentation/pages/auto_payment_setup_page.dart';
@@ -94,6 +95,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/maintenance/manage',
         builder: (context, state) => const MaintenanceManagementPage(),
+      ),
+      GoRoute(
+        path: '/tenant/maintenance',
+        builder: (context, state) => const TenantMaintenanceRequestsPage(),
       ),
       GoRoute(
         path: '/maintenance/:id',

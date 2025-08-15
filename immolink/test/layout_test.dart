@@ -75,7 +75,6 @@ void main() {
       final buttonFinder = find.byType(ElevatedButton);
       expect(buttonFinder, findsOneWidget);
       
-      final buttonWidget = tester.widget<ElevatedButton>(buttonFinder);
       final renderBox = tester.renderObject<RenderBox>(buttonFinder);
       
       // Button should be at least 44pt high for accessibility

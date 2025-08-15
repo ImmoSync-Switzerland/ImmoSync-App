@@ -21,24 +21,6 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   String _selectedPriority = 'Medium';
   bool _isSubmitting = false;
 
-  final List<String> _categories = [
-    'General',
-    'Account & Settings', 
-    'Property Management',
-    'Payments & Billing',
-    'Technical Issues',
-    'Security Concerns',
-    'Feature Request',
-    'Bug Report',
-  ];
-
-  final List<String> _priorities = [
-    'Low',
-    'Medium',
-    'High',
-    'Urgent',
-  ];
-
   @override
   void dispose() {
     _subjectController.dispose();
