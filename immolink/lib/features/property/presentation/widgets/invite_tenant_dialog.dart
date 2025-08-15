@@ -21,7 +21,7 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final tenantsAsync = ref.watch(availableTenantsProvider);
+    final tenantsAsync = ref.watch(availableTenantsProvider(widget.propertyId));
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

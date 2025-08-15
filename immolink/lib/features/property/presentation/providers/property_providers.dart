@@ -92,9 +92,9 @@ class TenantRemovalNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final availableTenantsProvider = StreamProvider<List<User>>((ref) {
+final availableTenantsProvider = StreamProvider.family<List<User>, String?>((ref, propertyId) {
   final userService = ref.watch(userServiceProvider);
-  return userService.getAvailableTenants();
+  return userService.getAvailableTenants(propertyId: propertyId);
 });
 
 final propertyProvider =

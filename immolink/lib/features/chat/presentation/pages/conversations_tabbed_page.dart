@@ -577,7 +577,7 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
-    final tenantsAsync = ref.watch(availableTenantsProvider);
+    final tenantsAsync = ref.watch(availableTenantsProvider(_selectedPropertyId));
 
     return Dialog(
       backgroundColor: colors.surfaceCards,

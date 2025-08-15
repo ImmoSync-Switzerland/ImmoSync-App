@@ -6,10 +6,16 @@ import '../models/user.dart';
 class UserService {
   final String _apiUrl = DbConfig.apiUrl;
 
-  Stream<List<User>> getAvailableTenants() async* {
-    print('Fetching available tenants');
+  Stream<List<User>> getAvailableTenants({String? propertyId}) async* {
+    print('Fetching available tenants for property: $propertyId');
+    
+    String url = '$_apiUrl/users/available-tenants';
+    if (propertyId != null) {
+      url += '?propertyId=$propertyId';
+    }
+    
     final response = await http.get(
-      Uri.parse('$_apiUrl/users/available-tenants'),
+      Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
     );
 

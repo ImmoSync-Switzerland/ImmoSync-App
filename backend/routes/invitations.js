@@ -165,13 +165,21 @@ router.put('/:invitationId/accept', async (req, res) => {
     }
     
     // Add tenant to property
-    await db.collection('properties').updateOne(
+    const propertyUpdateResult = await db.collection('properties').updateOne(
       { _id: new ObjectId(invitation.value.propertyId) },
       { 
         $addToSet: { tenantIds: invitation.value.tenantId },
         $set: { status: 'rented' }
       }
     );
+    
+    console.log(`Property update result:`, propertyUpdateResult);
+    console.log(`Added tenant ${invitation.value.tenantId} to property ${invitation.value.propertyId}`);
+    
+    // Verify the property was updated correctly
+    const updatedProperty = await db.collection('properties')
+      .findOne({ _id: new ObjectId(invitation.value.propertyId) });
+    console.log(`Updated property tenantIds:`, updatedProperty?.tenantIds);
     
     // Send acceptance message
     const conversation = await db.collection('conversations')

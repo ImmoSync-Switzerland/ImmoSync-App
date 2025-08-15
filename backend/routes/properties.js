@@ -61,8 +61,13 @@ router.get('/tenant/:tenantId', async (req, res) => {
       })
       .toArray();
 
+    console.log('Query used:', { tenantIds: { $in: [req.params.tenantId] } });
     console.log('Found properties for tenant:', properties.length);
-    console.log('Properties details:', JSON.stringify(properties, null, 2));
+    console.log('Properties with tenantIds:', properties.map(p => ({ 
+      id: p._id, 
+      address: p.address?.street,
+      tenantIds: p.tenantIds 
+    })));
 
     res.json({ properties });
   } catch (error) {

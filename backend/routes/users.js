@@ -3,7 +3,7 @@ const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
 
-// Get all available tenants (not assigned to any property)
+// Get all available tenants (for a specific property or all available)
 router.get('/available-tenants', async (req, res) => {
   const client = new MongoClient(dbUri);
   
@@ -11,15 +11,60 @@ router.get('/available-tenants', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     
-    const tenants = await db.collection('users')
-      .find({ 
-        role: 'tenant',
-        propertyId: { $exists: false } 
-      })
-      .toArray();
+    const { propertyId } = req.query;
     
-    console.log(`Found ${tenants.length} available tenants`);
-    res.json(tenants);
+    if (propertyId) {
+      // Get tenants available for a specific property
+      if (!ObjectId.isValid(propertyId)) {
+        return res.status(400).json({ message: 'Invalid property ID format' });
+      }
+      
+      // Find tenants who are NOT assigned to this specific property
+      // and don't have a pending/accepted invitation for this property
+      const tenants = await db.collection('users')
+        .find({ 
+          role: 'tenant'
+        })
+        .toArray();
+      
+      // Filter out tenants who are already assigned to this property
+      const property = await db.collection('properties')
+        .findOne({ _id: new ObjectId(propertyId) });
+      
+      const assignedTenantIds = property?.tenantIds || [];
+      
+      // Filter out tenants with pending/accepted invitations for this property
+      const invitations = await db.collection('invitations')
+        .find({ 
+          propertyId: propertyId,
+          status: { $in: ['pending', 'accepted'] }
+        })
+        .toArray();
+      
+      const invitedTenantIds = invitations.map(inv => inv.tenantId);
+      
+      // Combine both lists to exclude
+      const excludedTenantIds = [...assignedTenantIds, ...invitedTenantIds];
+      
+      const availableTenants = tenants.filter(tenant => 
+        !excludedTenantIds.includes(tenant._id.toString())
+      );
+      
+      console.log(`Found ${availableTenants.length} available tenants for property ${propertyId}`);
+      console.log(`Excluded ${excludedTenantIds.length} tenants (assigned: ${assignedTenantIds.length}, invited: ${invitedTenantIds.length})`);
+      res.json(availableTenants);
+    } else {
+      // Original logic - get all tenants without any property assignment
+      const tenants = await db.collection('users')
+        .find({ 
+          role: 'tenant',
+          propertyId: { $exists: false } 
+        })
+        .toArray();
+      
+      console.log(`Found ${tenants.length} available tenants (no property assigned)`);
+      res.json(tenants);
+    }
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ message: 'Error fetching tenants' });
