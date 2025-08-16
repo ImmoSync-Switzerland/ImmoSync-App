@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'dart:async';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/chat/domain/models/chat_message.dart';
 import 'package:immolink/features/chat/presentation/providers/messages_provider.dart';
@@ -35,6 +36,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   bool _isTyping = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -47,6 +49,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
+    
+    // Start auto-refresh timer for real-time chat updates
+    _startAutoRefresh();
   }
 
   @override
@@ -54,7 +59,17 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     _messageController.dispose();
     _scrollController.dispose();
     _animationController.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    // Refresh messages every 3 seconds to check for new messages
+    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) {
+        ref.read(conversationMessagesProvider(widget.conversationId).notifier).refresh();
+      }
+    });
   }
 
   @override
@@ -62,6 +77,24 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     final messagesAsync = ref.watch(conversationMessagesProvider(widget.conversationId));
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
+
+    // Listen for message changes and auto-scroll to bottom
+    ref.listen<AsyncValue<List<ChatMessage>>>(
+      conversationMessagesProvider(widget.conversationId),
+      (previous, next) {
+        next.whenData((messages) {
+          if (messages.isNotEmpty && _scrollController.hasClients) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            });
+          }
+        });
+      },
+    );
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,

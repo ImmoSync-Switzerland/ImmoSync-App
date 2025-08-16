@@ -12,7 +12,7 @@ final invitationServiceProvider = Provider<InvitationService>((ref) {
 });
 
 class InvitationService {
-  static const String _apiUrl = ApiConstants.baseUrl;
+  static String _apiUrl = ApiConstants.baseUrl;
 
   Future<List<Invitation>> getUserInvitations(String userId) async {
     final response = await http.get(

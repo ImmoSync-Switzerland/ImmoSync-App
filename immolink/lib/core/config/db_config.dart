@@ -11,5 +11,9 @@ class DbConfig {
     print('  dbName: $dbName');
     print('  apiUrl: $apiUrl');
     print('  env loaded: ${dotenv.env.isNotEmpty}');
+    print('  API_URL from env: ${dotenv.env['API_URL']}');
+    
+    // Verify services will use correct URL
+    print('Services will use API URL: $apiUrl');
   }
 }

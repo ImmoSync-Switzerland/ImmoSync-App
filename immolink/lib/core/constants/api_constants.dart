@@ -1,5 +1,7 @@
+import '../config/db_config.dart';
+
 class ApiConstants {
-  static const String baseUrl = 'https://backend.immosync.ch/api';
+  static String get baseUrl => DbConfig.apiUrl;
   
   // Endpoints
   static const String properties = '/properties';

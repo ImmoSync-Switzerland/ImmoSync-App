@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/activity.dart';
+import '../../../../core/config/db_config.dart';
 
 class ActivityService {
-  static const String baseUrl = 'http://localhost:3000/api';
+  static String get baseUrl => DbConfig.apiUrl;
 
   // Get recent activities for a user
   Future<List<Activity>> getRecentActivities(String userId, {int limit = 10}) async {

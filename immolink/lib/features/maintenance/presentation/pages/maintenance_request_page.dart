@@ -616,16 +616,31 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
 
         final maintenanceService = ref.read(maintenanceServiceProvider);
         final currentUser = ref.read(currentUserProvider);
+        final properties = ref.read(tenantPropertiesProvider);
 
         if (currentUser?.id == null) {
           throw Exception('User not authenticated');
+        }
+
+        // Get the selected property to extract landlord ID
+        String? landlordId;
+        properties.whenData((propertyList) {
+          final selectedProperty = propertyList.firstWhere(
+            (property) => property.id == _selectedPropertyId,
+            orElse: () => throw Exception('Selected property not found'),
+          );
+          landlordId = selectedProperty.landlordId;
+        });
+
+        if (landlordId == null) {
+          throw Exception('Could not determine property landlord');
         }
 
         final request = MaintenanceRequest(
           id: '', // Will be set by backend
           propertyId: _selectedPropertyId!,
           tenantId: currentUser!.id,
-          landlordId: '', // Will be set by backend
+          landlordId: landlordId!,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
           category: _selectedCategory!,
@@ -640,6 +655,10 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
         // Close loading dialog
         if (context.mounted) {
           Navigator.of(context).pop();
+          
+          // Refresh maintenance requests providers to show the new request
+          ref.invalidate(tenantMaintenanceRequestsProvider);
+          ref.invalidate(landlordMaintenanceRequestsProvider);
           
           // Show success message and navigate back
           ScaffoldMessenger.of(context).showSnackBar(

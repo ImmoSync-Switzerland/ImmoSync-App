@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/service.dart';
+import '../../../../core/config/db_config.dart';
 
 class ServiceService {
-  final String _baseUrl = 'http://localhost:3000/api';
+  final String _baseUrl = DbConfig.apiUrl;
+
+  ServiceService() {
+    print('ServiceService initialized with base URL: $_baseUrl');
+  }
 
   // Get all services with optional filters
   Future<List<Service>> getServices({
