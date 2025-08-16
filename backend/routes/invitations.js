@@ -389,49 +389,39 @@ router.post('/email-invite', async (req, res) => {
     
     let tenantId = null;
     
-    if (tenant) {
-      // User exists, create direct invitation
-      tenantId = tenant._id.toString();
-      
-      const invitation = {
-        propertyId: new ObjectId(propertyId),
-        landlordId: new ObjectId(landlordId),
-        tenantId: new ObjectId(tenantId),
-        message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
-        status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        invitationType: 'email'
-      };
-      
-      await db.collection('invitations').insertOne(invitation);
-      
-      // TODO: Send push notification to existing user
-      console.log(`Invitation sent to existing user: ${tenantEmail}`);
-    } else {
-      // User doesn't exist, create email invitation record
-      const emailInvitation = {
-        propertyId: new ObjectId(propertyId),
-        landlordId: new ObjectId(landlordId),
-        tenantEmail: tenantEmail,
-        message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
-        status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        invitationType: 'email_pending'
-      };
-      
-      await db.collection('emailInvitations').insertOne(emailInvitation);
-      
-      console.log(`Email invitation created for new user: ${tenantEmail}`);
+    if (!tenant) {
+      // User doesn't exist - return error as tenant needs a database ID
+      return res.status(404).json({ 
+        message: 'Cannot send invitation: User with this email address does not exist in the system',
+        tenantEmail: tenantEmail
+      });
     }
+    
+    // User exists, create direct invitation
+    tenantId = tenant._id.toString();
+    
+    const invitation = {
+      propertyId: new ObjectId(propertyId),
+      landlordId: new ObjectId(landlordId),
+      tenantId: new ObjectId(tenantId),
+      message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      invitationType: 'email'
+    };
+    
+    await db.collection('invitations').insertOne(invitation);
+    
+    // TODO: Send push notification to existing user
+    console.log(`Invitation sent to existing user: ${tenantEmail}`);
     
     // TODO: Send actual email notification
     // This would integrate with an email service like SendGrid, Mailgun, etc.
     
     res.status(201).json({ 
       message: 'Invitation sent successfully',
-      recipientExists: !!tenant,
+      recipientExists: true,
       tenantEmail: tenantEmail
     });
     
