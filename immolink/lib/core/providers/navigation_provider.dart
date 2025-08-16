@@ -10,8 +10,8 @@ final currentRouteProvider = StateProvider<String>((ref) => '/home');
 int getNavigationIndexFromRoute(String route) {
   if (route.startsWith('/home') || route.startsWith('/tenant-dashboard') || route.startsWith('/landlord-dashboard')) {
     return 0; // Dashboard
-  } else if (route.startsWith('/properties') || route.startsWith('/property')) {
-    return 1; // Properties/Immobilien
+  } else if (route.startsWith('/properties') || route.startsWith('/property') || route.startsWith('/documents')) {
+    return 1; // Properties/Documents
   } else if (route.startsWith('/conversations') || route.startsWith('/chat')) {
     return 2; // Messages/Nachrichten
   } else if (route.startsWith('/reports') || route.startsWith('/maintenance')) {

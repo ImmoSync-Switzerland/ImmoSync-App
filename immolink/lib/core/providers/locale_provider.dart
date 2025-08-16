@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocaleNotifier extends StateNotifier<Locale> {
-  LocaleNotifier() : super(const Locale('en')) {
+  LocaleNotifier() : super(const Locale('de')) { // Default to German
     _loadSavedLocale();
   }
 
@@ -11,7 +11,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
   Future<void> _loadSavedLocale() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedLanguage = prefs.getString('language') ?? 'en';
+      final savedLanguage = prefs.getString('language') ?? 'de'; // Default to German
       updateLanguage(savedLanguage);
     } catch (e) {
       print('Error loading saved locale: $e');
@@ -37,7 +37,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
         state = const Locale('it');
         break;
       default:
-        state = const Locale('en');
+        state = const Locale('de'); // Default to German instead of English
     }
   }
 }

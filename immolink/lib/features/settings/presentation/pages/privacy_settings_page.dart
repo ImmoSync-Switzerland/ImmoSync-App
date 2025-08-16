@@ -82,7 +82,6 @@ class PrivacySettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final privacySettings = ref.watch(privacySettingsProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,

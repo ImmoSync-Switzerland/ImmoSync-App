@@ -9,10 +9,33 @@ import 'package:intl/intl.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 
-class MaintenanceManagementPage extends ConsumerWidget {
+class MaintenanceManagementPage extends ConsumerStatefulWidget {
   const MaintenanceManagementPage({super.key});
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MaintenanceManagementPage> createState() => _MaintenanceManagementPageState();
+}
+
+class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagementPage> {
+  String? _selectedStatus;
+  String? _selectedPriority;
+
+  List<MaintenanceRequest> _filterRequests(List<MaintenanceRequest> requests) {
+    List<MaintenanceRequest> filtered = requests;
+
+    if (_selectedStatus != null && _selectedStatus != 'all') {
+      filtered = filtered.where((request) => request.status == _selectedStatus).toList();
+    }
+
+    if (_selectedPriority != null && _selectedPriority != 'all') {
+      filtered = filtered.where((request) => request.priority == _selectedPriority).toList();
+    }
+
+    return filtered;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
     final maintenanceRequests = ref.watch(landlordMaintenanceRequestsProvider);
@@ -31,15 +54,16 @@ class MaintenanceManagementPage extends ConsumerWidget {
           Expanded(
             child: maintenanceRequests.when(
               data: (requests) {
-                if (requests.isEmpty) {
+                final filtered = _filterRequests(requests);
+                if (filtered.isEmpty) {
                   return _buildEmptyState(l10n, colors);
                 }
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: requests.length,
+                  itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    return _buildMaintenanceRequestCard(context, requests[index], l10n, colors, ref);
+                    return _buildMaintenanceRequestCard(context, filtered[index], l10n, colors, ref);
                   },
                 );
               },
@@ -128,7 +152,9 @@ class MaintenanceManagementPage extends ConsumerWidget {
                     DropdownMenuItem(value: 'cancelled', child: Text(l10n.cancelled)),
                   ],
                   onChanged: (value) {
-                    // TODO: Implement filtering
+                    setState(() {
+                      _selectedStatus = value;
+                    });
                   },
                   colors: colors,
                 ),
@@ -146,7 +172,9 @@ class MaintenanceManagementPage extends ConsumerWidget {
                     DropdownMenuItem(value: 'emergency', child: Text(l10n.emergency)),
                   ],
                   onChanged: (value) {
-                    // TODO: Implement filtering
+                    setState(() {
+                      _selectedPriority = value;
+                    });
                   },
                   colors: colors,
                 ),

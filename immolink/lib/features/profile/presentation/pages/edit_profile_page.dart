@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/domain/services/user_service.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -17,6 +18,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _userService = UserService();
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
@@ -241,14 +243,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    // TODO: Implement image picker
-                    final colors = ref.read(dynamicColorsProvider);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Profilbild-Upload kommt bald'),
-                        backgroundColor: colors.info,
-                      ),
-                    );
+                    _showImagePickerDialog();
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
@@ -662,8 +657,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     HapticFeedback.mediumImpact();
 
     try {
-      // TODO: Implement actual profile update API call
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser?.id == null) {
+        throw Exception('User not logged in');
+      }
+
+      await _userService.updateProfile(
+        userId: currentUser!.id,
+        fullName: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+      );
+
+      // Update the user provider
+      ref.invalidate(currentUserProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -734,6 +741,56 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
         });
       }
     }
+  }
+
+  void _showImagePickerDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Profile Picture'),
+        content: const Text('Select profile picture source'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pickImageFromGallery();
+            },
+            child: const Text('Gallery'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pickImageFromCamera();
+            },
+            child: const Text('Camera'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _pickImageFromGallery() {
+    final colors = ref.read(dynamicColorsProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Gallery image picker will be implemented with image_picker package'),
+        backgroundColor: colors.info,
+      ),
+    );
+  }
+
+  void _pickImageFromCamera() {
+    final colors = ref.read(dynamicColorsProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Camera image picker will be implemented with image_picker package'),
+        backgroundColor: colors.info,
+      ),
+    );
   }
 }
 

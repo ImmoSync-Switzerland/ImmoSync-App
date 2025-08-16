@@ -190,7 +190,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Implement PDF export
+              _exportToPDF();
             },
             child: const Text('Export PDF'),
           ),
@@ -1279,5 +1279,41 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         .split(' ')
         .map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
         .join(' ');
+  }
+
+  void _exportToPDF() {
+    final colors = ref.read(dynamicColorsProvider);
+    
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Generating PDF report...'),
+          ],
+        ),
+      ),
+    );
+
+    // Simulate PDF generation
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('PDF export feature will be implemented with pdf package'),
+          backgroundColor: colors.info,
+          action: SnackBarAction(
+            label: 'OK',
+            onPressed: () {},
+          ),
+        ),
+      );
+    });
   }
 }

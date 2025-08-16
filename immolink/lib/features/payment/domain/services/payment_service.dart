@@ -155,5 +155,44 @@ class PaymentService {
       // This allows the UI to proceed as if the delete was successful
     }
   }
+
+  Future<Payment> cancelPayment(String id) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_apiUrl/payments/$id/cancel'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Payment.fromMap(data);
+      } else {
+        throw Exception('Failed to cancel payment');
+      }
+    } catch (e) {
+      print('Network error in cancelPayment: $e');
+      // Return a cancelled payment to simulate successful cancellation
+      throw Exception('Unable to cancel payment. Please try again.');
+    }
+  }
+
+  Future<String> downloadReceipt(String paymentId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_apiUrl/payments/$paymentId/receipt'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['receiptUrl'] as String;
+      } else {
+        throw Exception('Failed to generate receipt');
+      }
+    } catch (e) {
+      print('Network error in downloadReceipt: $e');
+      throw Exception('Unable to download receipt. Please try again.');
+    }
+  }
 }
 

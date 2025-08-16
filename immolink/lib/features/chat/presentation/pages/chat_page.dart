@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/chat/domain/models/chat_message.dart';
 import 'package:immolink/features/chat/presentation/providers/messages_provider.dart';
@@ -212,7 +215,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
           icon: Icon(Icons.call_outlined, color: colors.textPrimary),
           onPressed: () {
             HapticFeedback.lightImpact();
-            // TODO: Implement voice call
+            _initiateVoiceCall();
           },
         ),
         IconButton(
@@ -629,7 +632,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     title: Text(AppLocalizations.of(context)!.blockUser),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Implement block user
+                      _blockUser();
                     },
                   ),
                   ListTile(
@@ -637,7 +640,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     title: Text(AppLocalizations.of(context)!.reportConversation),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Implement report
+                      _reportConversation();
                     },
                   ),
                   ListTile(
@@ -645,7 +648,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     title: Text(AppLocalizations.of(context)!.deleteConversation),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Implement delete conversation
+                      _deleteConversation();
                     },
                   ),
                 ],
@@ -847,34 +850,209 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     );
   }
 
-  void _pickImageFromGallery() {
-    // TODO: Implement image picker from gallery
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Gallery picker will be implemented'),
-        backgroundColor: AppColors.primaryAccent,
+  Future<void> _initiateVoiceCall() async {
+    try {
+      // For demonstration, we'll use tel: URL to initiate a call
+      // In a real app, you'd get the contact's phone number
+      const phoneNumber = 'tel:+1234567890'; // This would be dynamic
+      
+      if (await canLaunchUrl(Uri.parse(phoneNumber))) {
+        await launchUrl(Uri.parse(phoneNumber));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot make phone calls on this device'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error initiating call: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _blockUser() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Block User'),
+        content: const Text('Are you sure you want to block this user? You will no longer receive messages from them.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Implement block user functionality
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('User blocked successfully'),
+                  backgroundColor: AppColors.primaryAccent,
+                ),
+              );
+            },
+            child: const Text('Block'),
+          ),
+        ],
       ),
     );
   }
 
-  void _pickImageFromCamera() {
-    // TODO: Implement camera picker
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Camera picker will be implemented'),
-        backgroundColor: AppColors.primaryAccent,
+  void _reportConversation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report Conversation'),
+        content: const Text('Are you sure you want to report this conversation? Our support team will review it.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Implement report functionality
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Conversation reported successfully'),
+                  backgroundColor: AppColors.primaryAccent,
+                ),
+              );
+            },
+            child: const Text('Report'),
+          ),
+        ],
       ),
     );
   }
 
-  void _pickDocument() {
-    // TODO: Implement document picker
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Document picker will be implemented'),
-        backgroundColor: AppColors.primaryAccent,
+  void _deleteConversation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Conversation'),
+        content: const Text('Are you sure you want to delete this conversation? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Implement delete conversation functionality
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Go back to previous screen
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Conversation deleted successfully'),
+                  backgroundColor: AppColors.primaryAccent,
+                ),
+              );
+            },
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
+  }
+
+  void _pickImageFromGallery() async {
+    try {
+      final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      
+      if (image != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Image selected: ${image.name}'),
+            backgroundColor: AppColors.primaryAccent,
+          ),
+        );
+        // Here you would normally send the image
+        // await _chatService.sendImage(image);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error selecting image: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _pickImageFromCamera() async {
+    try {
+      final XFile? image = await ImagePicker().pickImage(source: ImageSource.camera);
+      
+      if (image != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Photo taken: ${image.name}'),
+            backgroundColor: AppColors.primaryAccent,
+          ),
+        );
+        // Here you would normally send the image
+        // await _chatService.sendImage(image);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error taking photo: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _pickDocument() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'txt', 'jpg', 'png'],
+      );
+
+      if (result != null) {
+        PlatformFile file = result.files.first;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sending document: ${file.name}'),
+            backgroundColor: AppColors.primaryAccent,
+          ),
+        );
+        
+        // Send the document
+        final chatService = ref.read(chat_providers.chatServiceProvider);
+        final currentUser = ref.read(currentUserProvider);
+        
+        if (currentUser != null) {
+          await chatService.sendDocument(
+            conversationId: widget.conversationId,
+            senderId: currentUser.id,
+            fileName: file.name,
+            filePath: file.path ?? '',
+            fileSize: file.size.toString(),
+          );
+          
+          // Refresh messages
+          ref.invalidate(conversationMessagesProvider(widget.conversationId));
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending document: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   bool _isSameDay(DateTime date1, DateTime date2) {

@@ -11,16 +11,45 @@ router.post('/register', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
 
-    // Create user document matching schema
+    const {
+      email,
+      password,
+      fullName,
+      role,
+      phone,
+      isCompany,
+      companyName,
+      companyAddress,
+      taxId,
+      address,
+      birthDate
+    } = req.body;
+
+    // Create user document with enhanced fields
     const newUser = {
-      email: req.body.email,
-      password: await bcrypt.hash(req.body.password, 10),
-      fullName: req.body.fullName,
-      role: req.body.role.toLowerCase(), // Ensure lowercase for enum match
-      birthDate: new Date(req.body.birthDate),
+      email: email,
+      password: await bcrypt.hash(password, 10),
+      fullName: fullName,
+      role: role.toLowerCase(), // Ensure lowercase for enum match
+      phone: phone,
+      isCompany: isCompany || false,
       isAdmin: false,
-      isValidated: true
+      isValidated: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
+
+    // Add company-specific fields
+    if (isCompany) {
+      newUser.companyName = companyName;
+      newUser.companyAddress = companyAddress;
+      newUser.taxId = taxId;
+    } else {
+      newUser.address = address;
+      if (birthDate) {
+        newUser.birthDate = new Date(birthDate);
+      }
+    }
 
     // Log document for verification
     console.log('Attempting to insert user:', newUser);
@@ -29,7 +58,8 @@ router.post('/register', async (req, res) => {
     
     res.status(201).json({
       success: true,
-      userId: result.insertedId
+      userId: result.insertedId,
+      message: 'Registration successful'
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -79,6 +109,63 @@ router.post('/login', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Change password endpoint
+router.patch('/change-password', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { userId, currentPassword, newPassword } = req.body;
+    
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: userId, currentPassword, newPassword' 
+      });
+    }
+    
+    // Find user
+    const user = await db.collection('users')
+      .findOne({ _id: new ObjectId(userId) });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Verify current password
+    const bcrypt = require('bcryptjs');
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+    
+    // Hash new password
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update password
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          password: hashedNewPassword,
+          passwordChangedAt: new Date(),
+          updatedAt: new Date()
+        } 
+      }
+    );
+    
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Error changing password' });
   } finally {
     await client.close();
   }

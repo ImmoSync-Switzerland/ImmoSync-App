@@ -22,8 +22,24 @@ class User {
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
+    // Handle MongoDB _id conversion properly
+    String userId = '';
+    if (map['_id'] != null) {
+      // Handle different ID formats from MongoDB
+      final idValue = map['_id'];
+      if (idValue is String) {
+        userId = idValue;
+      } else if (idValue is Map && idValue['\$oid'] != null) {
+        userId = idValue['\$oid'];
+      } else {
+        userId = idValue.toString();
+      }
+    } else if (map['id'] != null) {
+      userId = map['id'].toString();
+    }
+    
     return User(
-        id: map['_id'],
+        id: userId,
         email: map['email'],
         fullName: map['fullName'],
         birthDate: DateTime.parse(map['birthDate']),

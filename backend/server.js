@@ -1,3 +1,6 @@
+// Load environment variables first
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -19,6 +22,8 @@ const emailRoutes = require('./routes/email');
 const notificationRoutes = require('./routes/notifications');
 const servicesRoutes = require('./routes/services');
 const ticketsRoutes = require('./routes/tickets');
+const paymentsRoutes = require('./routes/payments');
+const activitiesRoutes = require('./routes/activities');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -63,6 +68,8 @@ app.use('/api/email', emailRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/tickets', ticketsRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/activities', activitiesRoutes);
 
 // Add specific route for /api/tenants that points to users/tenants
 app.use('/api/tenants', (req, res, next) => {

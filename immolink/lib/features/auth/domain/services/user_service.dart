@@ -29,5 +29,37 @@ class UserService {
       yield tenants;
     }
   }
+
+  Future<User> updateProfile({
+    required String userId,
+    required String fullName,
+    required String email,
+    required String phone,
+    String? address,
+  }) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_apiUrl/users/$userId'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'fullName': fullName,
+          'email': email,
+          'phone': phone,
+          if (address != null) 'address': address,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return User.fromMap(data);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Profile update failed');
+      }
+    } catch (e) {
+      print('UserService: Update profile error: $e');
+      throw Exception('Failed to update profile');
+    }
+  }
 }
 

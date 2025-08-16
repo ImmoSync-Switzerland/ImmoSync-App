@@ -52,7 +52,14 @@ router.get('/available-tenants', async (req, res) => {
       
       console.log(`Found ${availableTenants.length} available tenants for property ${propertyId}`);
       console.log(`Excluded ${excludedTenantIds.length} tenants (assigned: ${assignedTenantIds.length}, invited: ${invitedTenantIds.length})`);
-      res.json(availableTenants);
+      
+      // Convert ObjectIds to strings for frontend compatibility
+      const serializedTenants = availableTenants.map(tenant => ({
+        ...tenant,
+        _id: tenant._id.toString()
+      }));
+      
+      res.json(serializedTenants);
     } else {
       // Original logic - get all tenants without any property assignment
       const tenants = await db.collection('users')
@@ -63,7 +70,14 @@ router.get('/available-tenants', async (req, res) => {
         .toArray();
       
       console.log(`Found ${tenants.length} available tenants (no property assigned)`);
-      res.json(tenants);
+      
+      // Convert ObjectIds to strings for frontend compatibility
+      const serializedTenants = tenants.map(tenant => ({
+        ...tenant,
+        _id: tenant._id.toString()
+      }));
+      
+      res.json(serializedTenants);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -170,6 +184,50 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Update user profile
+router.patch('/:userId', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { userId } = req.params;
+    const { fullName, email, phone, address } = req.body;
+    
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    // Prepare update data
+    const updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
+    if (address) updateData.address = address;
+    
+    updateData.updatedAt = new Date();
+    
+    const result = await db.collection('users').findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    );
+    
+    if (!result.value) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    console.log(`Updated user profile for user: ${userId}`);
+    res.json(result.value);
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Error updating user profile', error: error.message });
   } finally {
     await client.close();
   }

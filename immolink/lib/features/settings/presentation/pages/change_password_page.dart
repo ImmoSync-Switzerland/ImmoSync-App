@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../auth/domain/services/auth_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ChangePasswordPage extends ConsumerStatefulWidget {
   const ChangePasswordPage({super.key});
@@ -16,6 +18,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _authService = AuthService();
   
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
@@ -331,8 +334,16 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     });
 
     try {
-      // TODO: Implement actual password change logic with authentication service
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser?.id == null) {
+        throw Exception('User not logged in');
+      }
+
+      await _authService.changePassword(
+        userId: currentUser!.id,
+        currentPassword: _currentPasswordController.text,
+        newPassword: _newPasswordController.text,
+      );
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

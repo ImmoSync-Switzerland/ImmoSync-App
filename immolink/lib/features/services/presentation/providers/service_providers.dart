@@ -19,6 +19,12 @@ final landlordServicesProvider = FutureProvider.autoDispose<List<Service>>((ref)
   return serviceService.getServicesForLandlord(user.id);
 });
 
+// Provider for all available services (admin-managed, not landlord-specific)
+final allAvailableServicesProvider = FutureProvider.autoDispose<List<Service>>((ref) async {
+  final serviceService = ref.watch(serviceServiceProvider);
+  return serviceService.getServices(availability: 'available');
+});
+
 // Provider for services available to tenants
 final tenantAvailableServicesProvider = FutureProvider.autoDispose.family<List<Service>, String>((ref, landlordId) async {
   final serviceService = ref.watch(serviceServiceProvider);

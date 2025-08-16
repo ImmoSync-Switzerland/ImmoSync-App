@@ -346,4 +346,71 @@ router.put('/:conversationId', async (req, res) => {
   }
 });
 
+// Find or create conversation between two users
+router.post('/find-or-create', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { participants } = req.body;
+    
+    if (!participants || participants.length !== 2) {
+      return res.status(400).json({ message: 'Exactly two participants required' });
+    }
+    
+    // Check if conversation already exists
+    let conversation = await db.collection('conversations')
+      .findOne({
+        participants: { $all: participants, $size: 2 }
+      });
+    
+    if (!conversation) {
+      // Create new conversation
+      const newConversation = {
+        participants,
+        lastMessage: '',
+        lastMessageSenderId: '',
+        lastMessageTime: new Date(),
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const result = await db.collection('conversations').insertOne(newConversation);
+      conversation = await db.collection('conversations')
+        .findOne({ _id: result.insertedId });
+    }
+    
+    res.json(conversation);
+  } catch (error) {
+    console.error('Error finding/creating conversation:', error);
+    res.status(500).json({ message: 'Error finding/creating conversation' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Get current user conversations (alternative endpoint)
+router.get('/user/current', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    // This endpoint would need authentication middleware to get current user
+    // For now, return error asking for user ID
+    res.status(400).json({ 
+      message: 'Please use /user/:userId endpoint with specific user ID' 
+    });
+  } catch (error) {
+    console.error('Error fetching current user conversations:', error);
+    res.status(500).json({ message: 'Error fetching conversations' });
+  } finally {
+    await client.close();
+  }
+});
+
 module.exports = router;

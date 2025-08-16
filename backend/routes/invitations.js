@@ -34,8 +34,12 @@ router.get('/user/:userId', async (req, res) => {
         const landlord = await db.collection('users')
           .findOne({ _id: new ObjectId(invitation.landlordId) });
         
-        const tenant = await db.collection('users')
-          .findOne({ _id: new ObjectId(invitation.tenantId) });
+        // Handle empty tenantId gracefully
+        let tenant = null;
+        if (invitation.tenantId && ObjectId.isValid(invitation.tenantId)) {
+          tenant = await db.collection('users')
+            .findOne({ _id: new ObjectId(invitation.tenantId) });
+        }
         
         return {
           ...invitation,
@@ -69,6 +73,30 @@ router.post('/', async (req, res) => {
     const db = client.db(dbName);
     
     const { propertyId, landlordId, tenantId, message } = req.body;
+    
+    // Debug logging
+    console.log('=== INVITATION CREATION DEBUG ===');
+    console.log('Full request body:', JSON.stringify(req.body, null, 2));
+    console.log('Extracted tenantId:', tenantId);
+    console.log('TenantId type:', typeof tenantId);
+    console.log('TenantId length:', tenantId ? tenantId.length : 'null/undefined');
+    console.log('================================');
+    
+    // Validate required fields
+    if (!propertyId || !landlordId || !tenantId) {
+      console.error('Missing required fields:', { propertyId, landlordId, tenantId });
+      return res.status(400).json({ 
+        message: 'Missing required fields: propertyId, landlordId, and tenantId are required' 
+      });
+    }
+    
+    // Validate ObjectId formats
+    if (!ObjectId.isValid(propertyId) || !ObjectId.isValid(landlordId) || !ObjectId.isValid(tenantId)) {
+      console.error('Invalid ObjectId format:', { propertyId, landlordId, tenantId });
+      return res.status(400).json({ 
+        message: 'Invalid ID format - all IDs must be valid ObjectIds' 
+      });
+    }
     
     // Check if invitation already exists
     const existingInvitation = await db.collection('invitations')
@@ -320,6 +348,96 @@ router.put('/:invitationId/decline', async (req, res) => {
   } catch (error) {
     console.error('Error declining invitation:', error);
     res.status(500).json({ message: 'Error declining invitation' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Send email invitation to tenant
+router.post('/email-invite', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { propertyId, landlordId, tenantEmail, message } = req.body;
+    
+    if (!propertyId || !landlordId || !tenantEmail) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
+    // Validate ObjectId formats
+    if (!ObjectId.isValid(propertyId) || !ObjectId.isValid(landlordId)) {
+      return res.status(400).json({ message: 'Invalid ID format' });
+    }
+    
+    // Get property and landlord details
+    const property = await db.collection('properties')
+      .findOne({ _id: new ObjectId(propertyId) });
+    
+    const landlord = await db.collection('users')
+      .findOne({ _id: new ObjectId(landlordId) });
+    
+    if (!property || !landlord) {
+      return res.status(404).json({ message: 'Property or landlord not found' });
+    }
+    
+    // Check if user with this email exists
+    let tenant = await db.collection('users')
+      .findOne({ email: tenantEmail });
+    
+    let tenantId = null;
+    
+    if (tenant) {
+      // User exists, create direct invitation
+      tenantId = tenant._id.toString();
+      
+      const invitation = {
+        propertyId: new ObjectId(propertyId),
+        landlordId: new ObjectId(landlordId),
+        tenantId: new ObjectId(tenantId),
+        message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        invitationType: 'email'
+      };
+      
+      await db.collection('invitations').insertOne(invitation);
+      
+      // TODO: Send push notification to existing user
+      console.log(`Invitation sent to existing user: ${tenantEmail}`);
+    } else {
+      // User doesn't exist, create email invitation record
+      const emailInvitation = {
+        propertyId: new ObjectId(propertyId),
+        landlordId: new ObjectId(landlordId),
+        tenantEmail: tenantEmail,
+        message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        invitationType: 'email_pending'
+      };
+      
+      await db.collection('emailInvitations').insertOne(emailInvitation);
+      
+      console.log(`Email invitation created for new user: ${tenantEmail}`);
+    }
+    
+    // TODO: Send actual email notification
+    // This would integrate with an email service like SendGrid, Mailgun, etc.
+    
+    res.status(201).json({ 
+      message: 'Invitation sent successfully',
+      recipientExists: !!tenant,
+      tenantEmail: tenantEmail
+    });
+    
+  } catch (error) {
+    console.error('Error sending email invitation:', error);
+    res.status(500).json({ message: 'Error sending invitation' });
   } finally {
     await client.close();
   }

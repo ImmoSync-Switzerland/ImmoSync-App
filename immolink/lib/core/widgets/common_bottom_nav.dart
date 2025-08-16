@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/dynamic_colors_provider.dart';
+import '../../features/auth/presentation/providers/user_role_provider.dart';
 
 class CommonBottomNav extends ConsumerWidget {
   const CommonBottomNav({super.key});
@@ -12,6 +13,7 @@ class CommonBottomNav extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(routeAwareNavigationProvider);
     final colors = ref.watch(dynamicColorsProvider);
+    final userRole = ref.watch(userRoleProvider);
     
     // Update navigation index based on current route
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -49,13 +51,17 @@ class CommonBottomNav extends ConsumerWidget {
           HapticFeedback.lightImpact();
           ref.read(routeAwareNavigationProvider.notifier).setIndex(index);
           
-          // Navigate to the appropriate pages
+          // Navigate to the appropriate pages based on user role
           switch (index) {
             case 0: // Dashboard
               context.go('/home');
               break;
-            case 1: // Properties
-              context.go('/properties');
+            case 1: // Properties/Documents (role-based)
+              if (userRole == 'tenant') {
+                context.go('/documents');
+              } else {
+                context.go('/properties');
+              }
               break;
             case 2: // Messages
               context.go('/conversations');
@@ -75,15 +81,23 @@ class CommonBottomNav extends ConsumerWidget {
         unselectedItemColor: colors.textTertiary,
         selectedFontSize: 12,
         unselectedFontSize: 12,
-        items: [
-          _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex, colors),
-          _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex, colors),
-          _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex, colors),
-          _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex, colors),
-          _buildBottomNavItem(Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex, colors),
-        ],
+        items: _buildNavigationItems(userRole, selectedIndex, colors),
       ),
     );
+  }
+
+  List<BottomNavigationBarItem> _buildNavigationItems(String userRole, int selectedIndex, dynamic colors) {
+    return [
+      _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex, colors),
+      // Role-based second tab
+      if (userRole == 'tenant')
+        _buildBottomNavItem(Icons.folder_outlined, Icons.folder, 'Documents', 1, selectedIndex, colors)
+      else
+        _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex, colors),
+      _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex, colors),
+      _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex, colors),
+      _buildBottomNavItem(Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex, colors),
+    ];
   }
 
   BottomNavigationBarItem _buildBottomNavItem(

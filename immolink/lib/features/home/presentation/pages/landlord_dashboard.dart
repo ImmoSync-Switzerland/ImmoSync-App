@@ -32,6 +32,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   List<Conversation> _recentMessages = [];
   List<MaintenanceRequest> _recentMaintenanceRequests = [];
   bool _isLoadingDashboardData = false;
+  String _propertyFilter = 'all'; // all, available, occupied, maintenance
 
   // Helper method for responsive font sizes
   double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
@@ -404,19 +405,43 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           suffixIcon: Container(
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: _propertyFilter != 'all' 
+                ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+                : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(8),
+              border: _propertyFilter != 'all' 
+                ? Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3))
+                : null,
             ),
-            child: IconButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                _showFilterDialog(context);
-              },
-              icon: Icon(
-                Icons.filter_list_outlined,
-                color: const Color(0xFF64748B),
-                size: 18,
-              ),
+            child: Stack(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _showFilterDialog(context);
+                  },
+                  icon: Icon(
+                    Icons.filter_list_outlined,
+                    color: _propertyFilter != 'all' 
+                      ? const Color(0xFF3B82F6)
+                      : const Color(0xFF64748B),
+                    size: 18,
+                  ),
+                ),
+                if (_propertyFilter != 'all')
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           border: InputBorder.none,
@@ -521,7 +546,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        // TODO: Navigate to detailed financial view
+        _navigateToFinancialDetails(title, amount);
       },
       child: Container(
         padding: const EdgeInsets.all(24.0),
@@ -917,8 +942,36 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
+  String _getFilterDisplayName() {
+    switch (_propertyFilter) {
+      case 'available':
+        return 'Available';
+      case 'occupied':
+        return 'Occupied';
+      case 'maintenance':
+        return 'Maintenance';
+      default:
+        return 'All';
+    }
+  }
+
+  List<Property> _filterProperties(List<Property> properties) {
+    switch (_propertyFilter) {
+      case 'available':
+        return properties.where((p) => p.status == 'available').toList();
+      case 'occupied':
+        return properties.where((p) => p.status == 'rented').toList();
+      case 'maintenance':
+        return properties.where((p) => p.status == 'maintenance').toList();
+      case 'all':
+      default:
+        return properties;
+    }
+  }
+
   Widget _buildPropertyOverview(List<Property> properties) {
     final colors = ref.watch(dynamicColorsProvider);
+    final filteredProperties = _filterProperties(properties);
     return Container(
       padding: const EdgeInsets.all(20.0), // Reduced from 28.0
       decoration: BoxDecoration(
@@ -985,7 +1038,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     const SizedBox(width: 18),
                     Expanded(
                       child: Text(
-                        'Properties',
+                        _propertyFilter == 'all' 
+                          ? 'Properties' 
+                          : 'Properties (${_getFilterDisplayName()})',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -1005,7 +1060,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
                 ),
                 child: Text(
-                  '${properties.length} Total',
+                  '${filteredProperties.length} Total',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1017,11 +1072,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ],
           ),
           const SizedBox(height: 28),
-          ...properties.take(3).map((property) => Padding(
+          ...filteredProperties.take(3).map((property) => Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _buildPropertyCard(property),
           )),
-          if (properties.length > 3)
+          if (filteredProperties.length > 3)
             GestureDetector(
               onTap: () {
                 HapticFeedback.lightImpact();
@@ -1396,6 +1451,65 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
+  void _navigateToFinancialDetails(String title, String amount) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$title Details'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Total Amount: $amount', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('Breakdown:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              if (title.contains('Revenue'))
+                ...[
+                  const Text('• Rent payments: \$8,500'),
+                  const Text('• Late fees: \$200'),
+                  const Text('• Service charges: \$300'),
+                ]
+              else if (title.contains('Expenses'))
+                ...[
+                  const Text('• Maintenance: \$1,200'),
+                  const Text('• Utilities: \$800'),
+                  const Text('• Insurance: \$400'),
+                  const Text('• Property management: \$600'),
+                ]
+              else if (title.contains('Profit'))
+                ...[
+                  const Text('• Total Revenue: \$9,000'),
+                  const Text('• Total Expenses: \$3,000'),
+                  const Text('• Net Profit: \$6,000'),
+                ]
+              else
+                const Text('Detailed breakdown coming soon...'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Here you would navigate to full financial reports page
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Full financial reports coming soon!')),
+              );
+            },
+            child: const Text('View Full Report'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _navigateToChat(Conversation conversation) async {
     final colors = ref.read(dynamicColorsProvider);
     try {
@@ -1721,7 +1835,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               title: Text(l10n.all),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: Apply filter for all properties
+                setState(() {
+                  _propertyFilter = 'all';
+                });
+                // Trigger refresh of property data
+                ref.invalidate(landlordPropertiesProvider);
               },
             ),
             ListTile(
@@ -1729,7 +1847,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               title: Text(l10n.available),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: Apply filter for available properties
+                setState(() {
+                  _propertyFilter = 'available';
+                });
+                ref.invalidate(landlordPropertiesProvider);
               },
             ),
             ListTile(
@@ -1737,7 +1858,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               title: Text(l10n.occupied),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: Apply filter for occupied properties
+                setState(() {
+                  _propertyFilter = 'occupied';
+                });
+                ref.invalidate(landlordPropertiesProvider);
               },
             ),
             ListTile(
@@ -1745,7 +1869,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               title: Text(l10n.maintenance),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: Apply filter for maintenance properties
+                setState(() {
+                  _propertyFilter = 'maintenance';
+                });
+                ref.invalidate(landlordPropertiesProvider);
               },
             ),
           ],

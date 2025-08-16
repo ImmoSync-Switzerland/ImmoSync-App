@@ -37,8 +37,14 @@ class RegisterNotifier extends StateNotifier<RegisterState> {
     required String fullName,
     required String email,
     required String password,
-    required DateTime birthDate,
     required String role,
+    required String phone,
+    required bool isCompany,
+    String? companyName,
+    String? companyAddress,
+    String? taxId,
+    String? address,
+    DateTime? birthDate,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     
@@ -47,8 +53,14 @@ class RegisterNotifier extends StateNotifier<RegisterState> {
         email: email,
         password: password,
         fullName: fullName,
-        birthDate: birthDate,
         role: role,
+        phone: phone,
+        isCompany: isCompany,
+        companyName: companyName,
+        companyAddress: companyAddress,
+        taxId: taxId,
+        address: address,
+        birthDate: birthDate,
       );
       
       state = state.copyWith(

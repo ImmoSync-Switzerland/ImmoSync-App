@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../domain/models/contact_user.dart';
@@ -595,15 +596,23 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                // TODO: Implement actual phone call functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Phone call functionality will be implemented'),
-                    backgroundColor: colors.success,
-                  ),
-                );
+                try {
+                  final phoneUrl = Uri.parse('tel:${contact.phone}');
+                  if (await canLaunchUrl(phoneUrl)) {
+                    await launchUrl(phoneUrl);
+                  } else {
+                    throw Exception('Could not launch phone dialer');
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not make phone call: ${e.toString()}'),
+                      backgroundColor: colors.error,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.success,

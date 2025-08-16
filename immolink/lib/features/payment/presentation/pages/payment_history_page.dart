@@ -3,17 +3,145 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/payment/domain/models/payment.dart';
 import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
+import 'package:immolink/features/payment/domain/services/payment_service.dart';
 import 'package:immolink/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class PaymentHistoryPage extends ConsumerWidget {
+class PaymentHistoryPage extends ConsumerStatefulWidget {
   const PaymentHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PaymentHistoryPage> createState() => _PaymentHistoryPageState();
+}
+
+class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
+  String _selectedStatus = 'All';
+  String _selectedType = 'All';
+  final PaymentService _paymentService = PaymentService();
+
+  List<Payment> _filterPayments(List<Payment> payments) {
+    return payments.where((payment) {
+      bool statusMatch = _selectedStatus == 'All' || payment.status == _selectedStatus;
+      bool typeMatch = _selectedType == 'All' || payment.type == _selectedType;
+      return statusMatch && typeMatch;
+    }).toList();
+  }
+
+  Future<void> _cancelPayment(Payment payment) async {
+    try {
+      // Show confirmation dialog
+      final shouldCancel = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Cancel Payment'),
+          content: const Text('Are you sure you want to cancel this payment? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, Cancel'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldCancel == true) {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        await _paymentService.cancelPayment(payment.id);
+        
+        // Close loading dialog
+        Navigator.of(context).pop();
+        
+        // Close payment details dialog
+        Navigator.of(context).pop();
+        
+        // Refresh the payments list
+        ref.invalidate(landlordPaymentsProvider);
+        ref.invalidate(tenantPaymentsProvider);
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment cancelled successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if open
+      Navigator.of(context).pop();
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to cancel payment: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _downloadReceipt(Payment payment) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final receiptUrl = await _paymentService.downloadReceipt(payment.id);
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Launch the receipt URL
+      if (await canLaunchUrl(Uri.parse(receiptUrl))) {
+        await launchUrl(Uri.parse(receiptUrl));
+      } else {
+        throw Exception('Could not open receipt');
+      }
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Receipt download started'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // Close loading dialog if open
+      Navigator.of(context).pop();
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to download receipt: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    final payments = currentUser?.role == 'landlord'
+    final paymentsAsync = currentUser?.role == 'landlord'
         ? ref.watch(landlordPaymentsProvider)
         : ref.watch(tenantPaymentsProvider);
 
@@ -44,9 +172,10 @@ class PaymentHistoryPage extends ConsumerWidget {
             _buildFilterOptions(context, colors),
             const SizedBox(height: 24),
             Expanded(
-              child: payments.when(
+              child: paymentsAsync.when(
                 data: (paymentsList) {
-                  if (paymentsList.isEmpty) {
+                  final filteredPayments = _filterPayments(paymentsList);
+                  if (filteredPayments.isEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -80,9 +209,9 @@ class PaymentHistoryPage extends ConsumerWidget {
                   }
 
                   return ListView.builder(
-                    itemCount: paymentsList.length,
+                    itemCount: filteredPayments.length,
                     itemBuilder: (context, index) {
-                      return _buildPaymentCard(context, paymentsList[index], colors);
+                      return _buildPaymentCard(context, filteredPayments[index], colors);
                     },
                   );
                 },
@@ -203,7 +332,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                       ),
                     ),
                     child: DropdownButtonFormField<String>(
-                      value: 'All',
+                      value: _selectedStatus,
                       decoration: InputDecoration(
                         labelText: 'Status',
                         labelStyle: TextStyle(
@@ -229,7 +358,11 @@ class PaymentHistoryPage extends ConsumerWidget {
                         DropdownMenuItem(value: 'refunded', child: Text('Refunded')),
                       ],
                       onChanged: (value) {
-                        // TODO: Implement filtering
+                        if (value != null) {
+                          setState(() {
+                            _selectedStatus = value;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -246,7 +379,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                       ),
                     ),
                     child: DropdownButtonFormField<String>(
-                      value: 'All',
+                      value: _selectedType,
                       decoration: InputDecoration(
                         labelText: 'Type',
                         labelStyle: TextStyle(
@@ -271,7 +404,11 @@ class PaymentHistoryPage extends ConsumerWidget {
                         DropdownMenuItem(value: 'fee', child: Text('Fee')),
                       ],
                       onChanged: (value) {
-                        // TODO: Implement filtering
+                        if (value != null) {
+                          setState(() {
+                            _selectedType = value;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -495,10 +632,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                     const SizedBox(height: 24),
                     if (payment.status == 'pending')
                       ElevatedButton(
-                        onPressed: () {
-                          // TODO: Implement payment cancellation
-                          Navigator.pop(context);
-                        },
+                        onPressed: () => _cancelPayment(payment),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -517,9 +651,7 @@ class PaymentHistoryPage extends ConsumerWidget {
                       ),
                     if (payment.status == 'completed')
                       ElevatedButton(
-                        onPressed: () {
-                          // TODO: Implement receipt download
-                        },
+                        onPressed: () => _downloadReceipt(payment),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
                           padding: const EdgeInsets.symmetric(vertical: 16),

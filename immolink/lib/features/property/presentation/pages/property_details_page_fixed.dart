@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:immolink/features/property/presentation/widgets/invite_tenant_dialog.dart';
+import 'package:immolink/features/property/presentation/widgets/email_invite_tenant_dialog.dart';
 import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -64,7 +64,7 @@ class PropertyDetailsPage extends ConsumerWidget {
   void _showInviteTenantDialog(BuildContext context, Property property) {
     showDialog(
       context: context,
-      builder: (context) => InviteTenantDialog(propertyId: property.id),
+      builder: (context) => EmailInviteTenantDialog(propertyId: property.id),
     );
   }
 

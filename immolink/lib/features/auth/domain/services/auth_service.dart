@@ -9,19 +9,37 @@ class AuthService {
     required String email,
     required String password,
     required String fullName,
-    required DateTime birthDate,
     required String role,
+    required String phone,
+    required bool isCompany,
+    String? companyName,
+    String? companyAddress,
+    String? taxId,
+    String? address,
+    DateTime? birthDate,
   }) async {
+    final Map<String, dynamic> requestBody = {
+      'email': email,
+      'password': password,
+      'fullName': fullName,
+      'role': role,
+      'phone': phone,
+      'isCompany': isCompany,
+    };
+
+    if (isCompany) {
+      requestBody['companyName'] = companyName;
+      requestBody['companyAddress'] = companyAddress;
+      requestBody['taxId'] = taxId;
+    } else {
+      requestBody['address'] = address;
+      requestBody['birthDate'] = birthDate?.toIso8601String();
+    }
+
     final response = await http.post(
       Uri.parse('$_apiUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'email': email,
-        'password': password,
-        'fullName': fullName,
-        'birthDate': birthDate.toIso8601String(),
-        'role': role,
-      }),
+      body: json.encode(requestBody),
     );
 
     print('Registration response: ${response.body}');
@@ -77,6 +95,34 @@ class AuthService {
     
     print('AuthService: Throwing exception: $errorMessage');
     throw Exception(errorMessage);
+  }
+
+  Future<void> changePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_apiUrl/auth/change-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userId': userId,
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Password change failed');
+      }
+    } catch (e) {
+      print('AuthService: Change password error: $e');
+      throw Exception('Failed to change password');
+    }
   }
 }
 

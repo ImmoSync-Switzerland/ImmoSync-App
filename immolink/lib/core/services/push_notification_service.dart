@@ -6,6 +6,13 @@ class PushNotificationService {
   static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   
+  // Static callback for navigation
+  static void Function(String route)? _navigationCallback;
+  
+  static void setNavigationCallback(void Function(String route) callback) {
+    _navigationCallback = callback;
+  }
+  
   static Future<void> initialize() async {
     // Request permission for notifications
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
@@ -145,14 +152,16 @@ class PushNotificationService {
     switch (type) {
       case 'payment_reminder':
         // Navigate to payment page
-        if (id != null) {
-          // TODO: Navigate to payment with id
+        if (id != null && _navigationCallback != null) {
+          // Navigate to payment history page to view specific payment
+          _navigationCallback!('/payments/history');
         }
         break;
       case 'maintenance_request':
         // Navigate to maintenance page
-        if (id != null) {
-          // TODO: Navigate to maintenance request with id
+        if (id != null && _navigationCallback != null) {
+          // Navigate to specific maintenance request detail page
+          _navigationCallback!('/maintenance/$id');
         }
         break;
       case 'message':

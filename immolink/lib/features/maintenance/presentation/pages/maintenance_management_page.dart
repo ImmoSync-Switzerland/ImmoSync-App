@@ -9,13 +9,30 @@ import 'package:intl/intl.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 
-class MaintenanceManagementPage extends ConsumerWidget {
+class MaintenanceManagementPage extends ConsumerStatefulWidget {
   const MaintenanceManagementPage({super.key});
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MaintenanceManagementPage> createState() => _MaintenanceManagementPageState();
+}
+
+class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagementPage> {
+  String _selectedStatus = 'All';
+  String _selectedPriority = 'All';
+
+  List<MaintenanceRequest> _filterRequests(List<MaintenanceRequest> requests) {
+    return requests.where((request) {
+      bool statusMatch = _selectedStatus == 'All' || request.status == _selectedStatus;
+      bool priorityMatch = _selectedPriority == 'All' || request.priority == _selectedPriority;
+      return statusMatch && priorityMatch;
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    final maintenanceRequests = ref.watch(landlordMaintenanceRequestsProvider);
+    final maintenanceRequestsAsync = ref.watch(landlordMaintenanceRequestsProvider);
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -29,17 +46,18 @@ class MaintenanceManagementPage extends ConsumerWidget {
         children: [
           _buildFilterOptions(context, l10n, colors),
           Expanded(
-            child: maintenanceRequests.when(
+            child: maintenanceRequestsAsync.when(
               data: (requests) {
-                if (requests.isEmpty) {
+                final filteredRequests = _filterRequests(requests);
+                if (filteredRequests.isEmpty) {
                   return _buildEmptyState(l10n, colors);
                 }
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: requests.length,
+                  itemCount: filteredRequests.length,
                   itemBuilder: (context, index) {
-                    return _buildMaintenanceRequestCard(context, requests[index], l10n, colors, ref);
+                    return _buildMaintenanceRequestCard(context, filteredRequests[index], l10n, colors, ref);
                   },
                 );
               },
@@ -119,7 +137,7 @@ class MaintenanceManagementPage extends ConsumerWidget {
               Expanded(
                 child: _buildDropdown(
                   label: l10n.status,
-                  value: 'All',
+                  value: _selectedStatus,
                   items: [
                     DropdownMenuItem(value: 'All', child: Text(l10n.all)),
                     DropdownMenuItem(value: 'pending', child: Text(l10n.pending)),
@@ -128,7 +146,11 @@ class MaintenanceManagementPage extends ConsumerWidget {
                     DropdownMenuItem(value: 'cancelled', child: Text(l10n.cancelled)),
                   ],
                   onChanged: (value) {
-                    // TODO: Implement filtering
+                    if (value != null) {
+                      setState(() {
+                        _selectedStatus = value;
+                      });
+                    }
                   },
                   colors: colors,
                 ),
@@ -137,7 +159,7 @@ class MaintenanceManagementPage extends ConsumerWidget {
               Expanded(
                 child: _buildDropdown(
                   label: l10n.priority,
-                  value: 'All',
+                  value: _selectedPriority,
                   items: [
                     DropdownMenuItem(value: 'All', child: Text(l10n.all)),
                     DropdownMenuItem(value: 'low', child: Text(l10n.low)),
@@ -146,7 +168,11 @@ class MaintenanceManagementPage extends ConsumerWidget {
                     DropdownMenuItem(value: 'emergency', child: Text(l10n.emergency)),
                   ],
                   onChanged: (value) {
-                    // TODO: Implement filtering
+                    if (value != null) {
+                      setState(() {
+                        _selectedPriority = value;
+                      });
+                    }
                   },
                   colors: colors,
                 ),

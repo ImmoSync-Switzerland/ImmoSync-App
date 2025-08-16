@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../chat/domain/models/contact_user.dart';
 import '../../../chat/presentation/providers/contact_providers.dart';
@@ -860,15 +861,23 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               child: Text('Cancel', style: TextStyle(color: colors.textSecondary, inherit: true)),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                // TODO: Implement actual phone call functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Phone call functionality will be implemented'),
-                    backgroundColor: colors.success,
-                  ),
-                );
+                try {
+                  final phoneUrl = Uri.parse('tel:${tenant.phone}');
+                  if (await canLaunchUrl(phoneUrl)) {
+                    await launchUrl(phoneUrl);
+                  } else {
+                    throw Exception('Could not launch phone dialer');
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not make phone call: ${e.toString()}'),
+                      backgroundColor: colors.error,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.success,
@@ -1156,12 +1165,53 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
   }
 
   void _showFilterOptions() {
-    // TODO: Implement filter options (Active/Inactive, Property type, etc.)
-    final colors = ref.read(dynamicColorsProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Filteroptionen werden implementiert'),
-        backgroundColor: colors.primaryAccent,
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter Tenants'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('All Tenants'),
+              leading: Radio<String>(
+                value: 'all',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+            ListTile(
+              title: const Text('Active Tenants'),
+              leading: Radio<String>(
+                value: 'active',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+            ListTile(
+              title: const Text('Inactive Tenants'),
+              leading: Radio<String>(
+                value: 'inactive',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+            ListTile(
+              title: const Text('By Property Type'),
+              leading: Radio<String>(
+                value: 'property_type',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

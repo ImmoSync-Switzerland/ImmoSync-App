@@ -545,7 +545,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       child: TextField(
         onTap: () {
           HapticFeedback.lightImpact();
-          context.push('/tenant-search');
+          context.push('/search');
         },
         decoration: InputDecoration(
           hintText: 'Immobilien, Wartung, Nachrichten suchen...',
@@ -573,7 +573,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             child: IconButton(
               onPressed: () {
                 HapticFeedback.lightImpact();
-                // TODO: Show filter options for tenant
+                _showFilterDialog();
               },
               icon: Icon(
                 Icons.filter_list_outlined,
@@ -1565,6 +1565,50 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       },
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => const SizedBox.shrink(),
+    );
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter Options'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('All'),
+              leading: Radio<String>(
+                value: 'all',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+            ListTile(
+              title: const Text('Recent'),
+              leading: Radio<String>(
+                value: 'recent',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+            ListTile(
+              title: const Text('Important'),
+              leading: Radio<String>(
+                value: 'important',
+                groupValue: 'all',
+                onChanged: (value) => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 }

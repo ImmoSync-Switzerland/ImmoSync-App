@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immolink/features/auth/presentation/pages/login_page.dart';
-import 'package:immolink/features/auth/presentation/pages/register_page.dart';
+import 'package:immolink/features/auth/presentation/pages/enhanced_register_page.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/chat/presentation/pages/chat_page.dart';
 import 'package:immolink/features/chat/presentation/pages/conversations_tabbed_page.dart';
@@ -19,6 +19,7 @@ import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/property/presentation/pages/add_property_page.dart';
 import 'package:immolink/features/property/presentation/pages/property_details_page.dart';
 import 'package:immolink/features/property/presentation/pages/property_list_page.dart';
+import 'package:immolink/features/tenant/presentation/pages/tenant_documents_page.dart';
 import 'package:immolink/features/reports/presentation/pages/reports_page.dart';
 import 'package:immolink/features/settings/presentation/pages/settings_page.dart';
 import 'package:immolink/features/settings/presentation/pages/change_password_page.dart';
@@ -30,10 +31,10 @@ import 'package:immolink/features/settings/presentation/pages/terms_of_service_p
 import 'package:immolink/features/settings/presentation/pages/privacy_policy_page.dart';
 import 'package:immolink/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:immolink/features/profile/presentation/pages/profile_page.dart';
-import 'package:immolink/features/search/presentation/pages/tenant_search_page.dart';
 import 'package:immolink/features/tenant/presentation/pages/tenants_page.dart';
+import 'package:immolink/features/search/presentation/pages/universal_search_page.dart';
 import 'package:immolink/features/tenant/presentation/pages/tenant_services_booking_page.dart';
-import 'package:immolink/features/landlord/presentation/pages/landlord_services_setup_page.dart';
+import 'package:immolink/features/landlord/presentation/pages/landlord_services_booking_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -47,7 +48,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const RegisterPage(),
+        builder: (context, state) => const EnhancedRegisterPage(),
       ),
       GoRoute(
         path: '/home',
@@ -62,6 +63,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/properties',
         builder: (context, state) => const PropertyListPage(),
+      ),
+      GoRoute(
+        path: '/documents',
+        builder: (context, state) => const TenantDocumentsPage(),
       ),
       GoRoute(
         path: '/property/:id',
@@ -127,10 +132,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/tenant/services',
         builder: (context, state) => const TenantServicesBookingPage(),
       ),
-      // Landlord services setup route
+      // Landlord services booking route
       GoRoute(
         path: '/landlord/services',
-        builder: (context, state) => const LandlordServicesSetupPage(),
+        builder: (context, state) => const LandlordServicesBookingPage(),
       ),
       // Settings route
       GoRoute(
@@ -210,12 +215,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Search route
       GoRoute(
         path: '/search',
-        builder: (context, state) => const TenantSearchPage(),
-      ),
-      // Tenant Search route
-      GoRoute(
-        path: '/tenant-search',
-        builder: (context, state) => const TenantSearchPage(),
+        builder: (context, state) => const UniversalSearchPage(),
       ),
       // Reports route
       GoRoute(

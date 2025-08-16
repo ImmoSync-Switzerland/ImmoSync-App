@@ -227,4 +227,72 @@ class ChatService {
       return [];
     }
   }
+
+  // Send document/file message
+  Future<void> sendDocument({
+    required String conversationId,
+    required String senderId,
+    required String fileName,
+    required String filePath,
+    String? fileSize,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'senderId': senderId,
+          'messageType': 'file',
+          'content': fileName,
+          'metadata': {
+            'fileName': fileName,
+            'filePath': filePath,
+            'fileSize': fileSize,
+            'fileType': fileName.split('.').last,
+          },
+          'timestamp': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to send document');
+      }
+    } catch (e) {
+      print('Error sending document: $e');
+      throw Exception('Failed to send document: $e');
+    }
+  }
+
+  // Send image message
+  Future<void> sendImage({
+    required String conversationId,
+    required String senderId,
+    required String fileName,
+    required String imagePath,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'senderId': senderId,
+          'messageType': 'image',
+          'content': fileName,
+          'metadata': {
+            'fileName': fileName,
+            'imagePath': imagePath,
+            'fileType': 'image',
+          },
+          'timestamp': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to send image');
+      }
+    } catch (e) {
+      print('Error sending image: $e');
+      throw Exception('Failed to send image: $e');
+    }
+  }
 }
