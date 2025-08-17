@@ -116,6 +116,38 @@ class PaymentService {
     }
   }
 
+  Future<String> createPaymentIntent({
+    required double amount,
+    required String propertyId,
+    required String tenantId,
+    String? paymentType,
+    String currency = 'usd',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/payments/create-payment-intent'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'amount': amount,
+          'currency': currency,
+          'propertyId': propertyId,
+          'tenantId': tenantId,
+          'paymentType': paymentType ?? 'rent',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['clientSecret'];
+      } else {
+        throw Exception('Failed to create payment intent: ${response.body}');
+      }
+    } catch (e) {
+      print('Error creating payment intent: $e');
+      throw Exception('Failed to create payment intent: $e');
+    }
+  }
+
   Future<Payment> updatePayment(Payment payment) async {
     try {
       final response = await http.put(

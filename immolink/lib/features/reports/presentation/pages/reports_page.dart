@@ -269,7 +269,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         label,
         style: TextStyle(
           color: isSelected ? Colors.white : colors.textSecondary,
-          fontSize: 12,
+          fontSize: _getResponsiveFontSize(context, 12),
           fontWeight: FontWeight.w600,
           letterSpacing: -0.1,
         ),
@@ -368,7 +368,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Financial Overview',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -492,7 +492,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: _getResponsiveFontSize(context, 20),
               fontWeight: FontWeight.w800,
               color: colors.textPrimary,
               letterSpacing: -0.5,
@@ -502,7 +502,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           Text(
             title.toUpperCase(),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: _getResponsiveFontSize(context, 11),
               fontWeight: FontWeight.w600,
               color: colors.textSecondary,
               letterSpacing: 0.6,
@@ -561,7 +561,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Property Overview',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -668,7 +668,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Maintenance Overview',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -775,7 +775,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Revenue Analytics',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -794,11 +794,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 width: 1,
               ),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'Revenue Chart Coming Soon',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: _getResponsiveFontSize(context, 16),
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF64748B),
                 ),
@@ -857,7 +857,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Payment Summary',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -968,7 +968,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Maintenance Requests',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -982,7 +982,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               if (requestList.isEmpty) {
                 return Container(
                   padding: const EdgeInsets.all(40),
-                  child: const Center(
+                  child: Center(
                     child: Column(
                       children: [
                         Icon(
@@ -994,7 +994,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                         Text(
                           'No maintenance requests',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: _getResponsiveFontSize(context, 16),
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF64748B),
                           ),
@@ -1040,8 +1040,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             children: [
                               Text(
                                 request.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: _getResponsiveFontSize(context, 16),
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF0F172A),
                                 ),
@@ -1049,8 +1049,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                               const SizedBox(height: 4),
                               Text(
                                 DateFormat('MMM d, yyyy').format(request.requestedDate),
-                                style: const TextStyle(
-                                  fontSize: 14,
+                                style: TextStyle(
+                                  fontSize: _getResponsiveFontSize(context, 14),
                                   color: Color(0xFF64748B),
                                 ),
                               ),
@@ -1066,7 +1066,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           child: Text(
                             _formatStatusText(request.status),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: _getResponsiveFontSize(context, 12),
                               fontWeight: FontWeight.w600,
                               color: statusColor,
                             ),
@@ -1133,7 +1133,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               Text(
                 'Recent Payments',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                   letterSpacing: -0.6,
@@ -1147,11 +1147,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               if (paymentsList.isEmpty) {
                 return Container(
                   padding: const EdgeInsets.all(40),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'No payments found',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: _getResponsiveFontSize(context, 16),
                         color: Color(0xFF64748B),
                       ),
                     ),
@@ -1199,8 +1199,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             children: [
                               Text(
                                 _formatCurrency(payment.amount),
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  fontSize: _getResponsiveFontSize(context, 18),
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF0F172A),
                                 ),
@@ -1208,8 +1208,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                               const SizedBox(height: 4),
                               Text(
                                 '${payment.type.toUpperCase()} - ${DateFormat('MMM d, yyyy').format(payment.date)}',
-                                style: const TextStyle(
-                                  fontSize: 14,
+                                style: TextStyle(
+                                  fontSize: _getResponsiveFontSize(context, 14),
                                   color: Color(0xFF64748B),
                                 ),
                               ),
@@ -1225,7 +1225,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           child: Text(
                             _formatStatusText(payment.status),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: _getResponsiveFontSize(context, 12),
                               fontWeight: FontWeight.w600,
                               color: statusColor,
                             ),

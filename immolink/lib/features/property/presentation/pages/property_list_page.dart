@@ -10,6 +10,7 @@ import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../auth/presentation/providers/user_role_provider.dart';
+import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../../../../core/widgets/mongo_image.dart';
 
 class PropertyListPage extends ConsumerStatefulWidget {
@@ -590,20 +591,61 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           const SizedBox(height: 24),
           // Only show add property button for landlords
           if (userRole == 'landlord')
-            ElevatedButton(
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                context.push('/add-property');
+            Consumer(
+              builder: (context, ref, child) {
+                final subscriptionAsync = ref.watch(userSubscriptionProvider);
+                return subscriptionAsync.when(
+                  data: (subscription) {
+                    final hasActiveSubscription = subscription != null && subscription.status == 'active';
+                    
+                    return ElevatedButton(
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        if (hasActiveSubscription) {
+                          context.push('/add-property');
+                        } else {
+                          _showSubscriptionRequiredDialog();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: hasActiveSubscription ? colors.primaryAccent : colors.textTertiary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!hasActiveSubscription) ...[
+                            Icon(Icons.lock, size: 16),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(hasActiveSubscription ? l10n.addProperty : 'Subscription Required'),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.textTertiary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    ),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
+                );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.primaryAccent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(l10n.addProperty),
             ),
         ],
       ),
@@ -665,14 +707,130 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   Widget _buildFAB() {
     final colors = ref.watch(dynamicColorsProvider);
-    return FloatingActionButton(
-      onPressed: () {
-        HapticFeedback.mediumImpact();
-        context.push('/add-property');
-      },      backgroundColor: colors.primaryAccent,
-      foregroundColor: Colors.white,
-      elevation: 4,
-      child: const Icon(Icons.add, size: 24),
+    final subscriptionAsync = ref.watch(userSubscriptionProvider);
+    
+    return subscriptionAsync.when(
+      data: (subscription) {
+        final hasActiveSubscription = subscription != null && subscription.status == 'active';
+        
+        return FloatingActionButton(
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            if (hasActiveSubscription) {
+              context.push('/add-property');
+            } else {
+              _showSubscriptionRequiredDialog();
+            }
+          },
+          backgroundColor: hasActiveSubscription ? colors.primaryAccent : colors.textTertiary,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          child: hasActiveSubscription 
+              ? const Icon(Icons.add, size: 24) 
+              : const Icon(Icons.lock, size: 24),
+        );
+      },
+      loading: () => FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: colors.textTertiary,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+      ),
+      error: (_, __) => FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: colors.textTertiary,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        child: const Icon(Icons.error, size: 24),
+      ),
+    );
+  }
+
+  void _showSubscriptionRequiredDialog() {
+    final colors = ref.read(dynamicColorsProvider);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.surfaceCards,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_outlined, color: colors.warning, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Subscription Required',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'To add properties, you need an active subscription plan.',
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primaryAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.star_outline, color: colors.primaryAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Choose a plan that fits your needs and start managing your properties today!',
+                      style: TextStyle(
+                        color: colors.primaryAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: colors.textTertiary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.push('/subscription/landlord');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primaryAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('View Plans'),
+          ),
+        ],
+      ),
     );
   }
   

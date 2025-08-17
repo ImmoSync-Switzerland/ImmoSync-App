@@ -126,6 +126,44 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Create payment intent for tenant payments
+router.post('/create-payment-intent', async (req, res) => {
+  const stripeError = requireStripe(res);
+  if (stripeError) return stripeError;
+
+  try {
+    const { amount, currency, propertyId, tenantId, paymentType } = req.body;
+    
+    if (!amount || !propertyId || !tenantId) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: amount, propertyId, tenantId' 
+      });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: currency || 'usd',
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: {
+        propertyId: propertyId,
+        tenantId: tenantId,
+        paymentType: paymentType || 'rent'
+      }
+    });
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id
+    });
+
+  } catch (error) {
+    console.error('Error creating payment intent:', error);
+    res.status(500).json({ message: 'Error creating payment intent' });
+  }
+});
+
 // Create new payment
 router.post('/', async (req, res) => {
   const client = new MongoClient(dbUri);

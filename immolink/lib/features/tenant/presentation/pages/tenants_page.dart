@@ -50,7 +50,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    final contactsAsync = ref.watch(allTenantsProvider);
+    final contactsAsync = ref.watch(userContactsProvider); // Changed from allTenantsProvider
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
 
     return Scaffold(
@@ -65,7 +65,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               opacity: _fadeAnimation.value,
               child: RefreshIndicator(              onRefresh: () async {
                 HapticFeedback.lightImpact();
-                ref.invalidate(allTenantsProvider);
+                ref.invalidate(userContactsProvider); // Changed from allTenantsProvider
                 ref.invalidate(landlordPropertiesProvider);
                 await Future.delayed(const Duration(milliseconds: 500));
               },
@@ -269,7 +269,6 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     final l10n = AppLocalizations.of(context)!;
     final totalTenants = tenants.length;
     final occupiedProperties = properties.where((p) => p.status == 'rented').length;
-    final pendingIssues = 2; // Mock data - would come from maintenance requests
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -284,22 +283,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               colors,
             ),
           ),
-          const SizedBox(width: 12),          Expanded(
+          const SizedBox(width: 12),
+          Expanded(
             child: _buildStatCard(
               l10n.occupiedUnits,
               occupiedProperties.toString(),
               Icons.home_outlined,
               colors.success,
-              colors,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              l10n.pendingIssues,
-              pendingIssues.toString(),
-              Icons.warning_outlined,
-              colors.warning,
               colors,
             ),
           ),
@@ -741,7 +731,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              ref.invalidate(allTenantsProvider);
+              ref.invalidate(userContactsProvider); // Changed from allTenantsProvider
               ref.invalidate(landlordPropertiesProvider);
             },
             style: ElevatedButton.styleFrom(
@@ -1261,7 +1251,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     
     try {
       // Find the current tenant that we're viewing
-      final contactsAsync = ref.read(allTenantsProvider);
+      final contactsAsync = ref.read(userContactsProvider); // Changed from allTenantsProvider
       if (contactsAsync.hasValue) {
         final tenants = contactsAsync.value!;
         final tenant = tenants.firstWhere(
@@ -1275,7 +1265,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         );
 
         // Refresh the data
-        ref.invalidate(allTenantsProvider);
+        ref.invalidate(userContactsProvider); // Changed from allTenantsProvider
         ref.invalidate(landlordPropertiesProvider);
 
         ScaffoldMessenger.of(context).showSnackBar(

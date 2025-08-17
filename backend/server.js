@@ -23,6 +23,7 @@ const notificationRoutes = require('./routes/notifications');
 const servicesRoutes = require('./routes/services');
 const ticketsRoutes = require('./routes/tickets');
 const paymentsRoutes = require('./routes/payments');
+const subscriptionsRoutes = require('./routes/subscriptions');
 const activitiesRoutes = require('./routes/activities');
 
 // Enable CORS for all routes
@@ -69,6 +70,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/activities', activitiesRoutes);
 
 // Add specific route for /api/tenants that points to users/tenants

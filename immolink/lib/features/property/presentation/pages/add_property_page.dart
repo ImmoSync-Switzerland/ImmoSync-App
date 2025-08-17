@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
+import 'package:immolink/features/subscription/presentation/providers/subscription_providers.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -759,7 +760,48 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       try {
         final currentUser = ref.read(currentUserProvider);
         final landlordId = currentUser?.id.toString() ?? '';
-          // Upload images to MongoDB if any are selected
+        
+        // If creating a new property (not editing), check subscription limits
+        if (widget.propertyToEdit == null) {
+          final subscriptionAsync = ref.read(userSubscriptionProvider);
+          final propertiesAsync = ref.read(landlordPropertiesProvider);
+          
+          if (subscriptionAsync.hasValue && propertiesAsync.hasValue) {
+            final subscription = subscriptionAsync.value;
+            final currentProperties = propertiesAsync.value ?? [];
+            
+            // Check if user has an active subscription
+            if (subscription == null || subscription.status != 'active') {
+              _showSubscriptionRequiredDialog();
+              setState(() {
+                _isLoading = false;
+              });
+              return;
+            }
+            
+            // Get subscription plan to check property limits
+            final plansAsync = ref.read(subscriptionPlansProvider);
+            if (plansAsync.hasValue) {
+              final plans = plansAsync.value ?? [];
+              final currentPlan = plans.where((plan) => plan.id == subscription.planId).firstOrNull;
+              
+              if (currentPlan != null) {
+                final currentPropertyCount = currentProperties.length;
+                final maxProperties = _extractPropertyLimit(currentPlan.features);
+                
+                if (maxProperties != null && currentPropertyCount >= maxProperties) {
+                  _showPropertyLimitReachedDialog(maxProperties, currentPlan.name);
+                  setState(() {
+                    _isLoading = false;
+                  });
+                  return;
+                }
+              }
+            }
+          }
+        }
+        
+        // Upload images to MongoDB if any are selected
         List<String> uploadedImageIds = [];
         if (_pickerResult != null && _pickerResult!.files.isNotEmpty) {
           print('Found ${_pickerResult!.files.length} files to upload');
@@ -858,6 +900,202 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         });
       }
     }
+  }
+
+  int? _extractPropertyLimit(List<String> features) {
+    // Look for patterns like "Up to 3 properties" or "Unlimited properties"
+    for (String feature in features) {
+      if (feature.toLowerCase().contains('unlimited properties')) {
+        return null; // Unlimited
+      }
+      
+      // Match patterns like "Up to X properties" or "X properties"
+      final regex = RegExp(r'up to (\d+) properties|\b(\d+) properties', caseSensitive: false);
+      final match = regex.firstMatch(feature);
+      if (match != null) {
+        final numberStr = match.group(1) ?? match.group(2);
+        if (numberStr != null) {
+          return int.tryParse(numberStr);
+        }
+      }
+    }
+    return 0; // Default to 0 if no limit found
+  }
+
+  void _showSubscriptionRequiredDialog() {
+    final colors = ref.read(dynamicColorsProvider);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.surfaceCards,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_outlined, color: colors.warning, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Subscription Required',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'To add properties, you need an active subscription plan.',
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primaryAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.star_outline, color: colors.primaryAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Choose a plan that fits your needs and start managing your properties today!',
+                      style: TextStyle(
+                        color: colors.primaryAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: colors.textTertiary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.push('/subscription/landlord');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primaryAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('View Plans'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPropertyLimitReachedDialog(int maxProperties, String planName) {
+    final colors = ref.read(dynamicColorsProvider);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.surfaceCards,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.home_outlined, color: colors.warning, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Property Limit Reached',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You\'ve reached the maximum number of properties ($maxProperties) for your $planName plan.',
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.luxuryGold.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.luxuryGold.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.upgrade_outlined, color: colors.luxuryGold, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Upgrade to a higher plan to add more properties and unlock additional features.',
+                      style: TextStyle(
+                        color: colors.luxuryGold,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: colors.textTertiary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.push('/subscription/landlord');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.luxuryGold,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Upgrade Plan'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

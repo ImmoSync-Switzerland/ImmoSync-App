@@ -8,6 +8,7 @@ import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/home/domain/services/dashboard_service.dart';
 import 'package:immolink/features/chat/domain/models/conversation.dart';
 import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
+import 'package:immolink/features/subscription/presentation/providers/subscription_providers.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../features/property/presentation/providers/property_providers.dart';
@@ -687,7 +688,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Row(
                       children: [
                         Expanded(
-                          child: _buildQuickAccessButton(
+                          child: _buildSubscriptionAwareButton(
                             AppLocalizations.of(context)!.addProperty,
                             Icons.add_home_outlined,
                             colors.primaryAccent,
@@ -767,6 +768,26 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            'Subscription',
+                            Icons.payment_outlined,
+                            colors.luxuryGold,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/subscription/landlord');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: Container()), // Empty space
+                        const SizedBox(width: 12),
+                        Expanded(child: Container()), // Empty space
+                      ],
+                    ),
                   ],
                 );
               } else {
@@ -776,7 +797,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Row(
                       children: [
                         Expanded(
-                          child: _buildQuickAccessButton(
+                          child: _buildSubscriptionAwareButton(
                             AppLocalizations.of(context)!.addProperty,
                             Icons.add_home_outlined,
                             colors.primaryAccent,
@@ -850,6 +871,26 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                             },
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            'Subscription',
+                            Icons.payment_outlined,
+                            colors.luxuryGold,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/subscription/landlord');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(child: Container()), // Empty space
+                        const SizedBox(width: 16),
+                        Expanded(child: Container()), // Empty space
                       ],
                     ),
                   ],
@@ -938,6 +979,212 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionAwareButton(String label, IconData icon, Color iconColor, VoidCallback onPressed) {
+    final colors = ref.watch(dynamicColorsProvider);
+    final subscriptionAsync = ref.watch(userSubscriptionProvider);
+    
+    return subscriptionAsync.when(
+      data: (subscription) {
+        final hasActiveSubscription = subscription != null && subscription.status == 'active';
+        
+        return GestureDetector(
+          onTap: hasActiveSubscription ? onPressed : () => _showSubscriptionRequiredDialog(),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: hasActiveSubscription ? [
+                  iconColor.withValues(alpha: 0.15),
+                  iconColor.withValues(alpha: 0.08),
+                ] : [
+                  colors.textTertiary.withValues(alpha: 0.15),
+                  colors.textTertiary.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: hasActiveSubscription ? iconColor.withValues(alpha: 0.2) : colors.textTertiary.withValues(alpha: 0.2),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: hasActiveSubscription ? iconColor.withValues(alpha: 0.15) : colors.textTertiary.withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: colors.shadowColor,
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceCards.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: colors.surfaceCards.withValues(alpha: 0.6),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.surfaceCards.withValues(alpha: 0.8),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        icon, 
+                        size: 20,
+                        color: hasActiveSubscription ? iconColor : colors.textTertiary,
+                      ),
+                      if (!hasActiveSubscription)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Icon(
+                            Icons.lock,
+                            size: 12,
+                            color: colors.warning,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: hasActiveSubscription ? colors.textPrimary : colors.textTertiary,
+                    letterSpacing: -0.2,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (!hasActiveSubscription)
+                  Text(
+                    'Subscription Required',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: colors.warning,
+                      letterSpacing: -0.1,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+      error: (_, __) => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+    );
+  }
+
+  void _showSubscriptionRequiredDialog() {
+    final colors = ref.read(dynamicColorsProvider);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.surfaceCards,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_outlined, color: colors.warning, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Subscription Required',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'To add properties, you need an active subscription plan.',
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primaryAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.star_outline, color: colors.primaryAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Choose a plan that fits your needs and start managing your properties today!',
+                      style: TextStyle(
+                        color: colors.primaryAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: colors.textTertiary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.push('/subscription/landlord');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primaryAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('View Plans'),
+          ),
+        ],
       ),
     );
   }

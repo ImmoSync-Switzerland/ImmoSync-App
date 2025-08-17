@@ -35,6 +35,9 @@ import 'package:immolink/features/tenant/presentation/pages/tenants_page.dart';
 import 'package:immolink/features/search/presentation/pages/universal_search_page.dart';
 import 'package:immolink/features/tenant/presentation/pages/tenant_services_booking_page.dart';
 import 'package:immolink/features/landlord/presentation/pages/landlord_services_booking_page.dart';
+import 'package:immolink/features/subscription/presentation/pages/landlord_subscription_page.dart';
+import 'package:immolink/features/subscription/presentation/pages/subscription_payment_page.dart';
+import 'package:immolink/features/subscription/domain/models/subscription.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -136,6 +139,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/landlord/services',
         builder: (context, state) => const LandlordServicesBookingPage(),
+      ),
+      // Subscription routes
+      GoRoute(
+        path: '/subscription/landlord',
+        builder: (context, state) => const LandlordSubscriptionPage(),
+      ),
+      GoRoute(
+        path: '/subscription/payment',
+        builder: (context, state) {
+          final planData = state.extra as Map<String, dynamic>?;
+          
+          if (planData == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid subscription parameters')),
+            );
+          }
+          
+          return SubscriptionPaymentPage(
+            plan: planData['plan'] as SubscriptionPlan,
+            isYearly: planData['isYearly'] as bool,
+          );
+        },
       ),
       // Settings route
       GoRoute(
