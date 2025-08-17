@@ -458,14 +458,6 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ),
           ),
 
-        // Add Note Section (for tenants)
-        SliverToBoxAdapter(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: _buildAddNoteSection(context, ref, request, colors),
-          ),
-        ),
-
         // Action Buttons Section
         SliverToBoxAdapter(
           child: Container(
@@ -1126,68 +1118,4 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  Widget _buildAddNoteSection(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    
-    // Only show add note section if the request is not completed/cancelled
-    if (request.status == 'completed' || request.status == 'cancelled') {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.note_add,
-                color: colors.primaryAccent,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.addNote,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _showAddNoteDialog(context, ref, request.id, colors),
-              icon: const Icon(Icons.add_comment, size: 18),
-              label: Text(l10n.addNote),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.primaryAccent,
-                foregroundColor: colors.textOnAccent,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

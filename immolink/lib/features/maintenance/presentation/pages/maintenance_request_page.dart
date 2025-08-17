@@ -43,6 +43,43 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
     'Emergency'
   ];
 
+  // Helper method to convert display names to internal values
+  String _getCategoryValue(String displayName) {
+    switch (displayName) {
+      case 'Plumbing':
+        return 'plumbing';
+      case 'Electrical':
+        return 'electrical';
+      case 'Heating/Cooling':
+        return 'heating';
+      case 'Appliance':
+        return 'appliances';
+      case 'Structural':
+        return 'structural';
+      case 'Pest Control':
+        return 'pest_control';
+      case 'Other':
+        return 'other';
+      default:
+        return 'other';
+    }
+  }
+
+  String _getPriorityValue(String displayName) {
+    switch (displayName) {
+      case 'Low':
+        return 'low';
+      case 'Medium':
+        return 'medium';
+      case 'High':
+        return 'high';
+      case 'Emergency':
+        return 'urgent';
+      default:
+        return 'medium';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -643,8 +680,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
           landlordId: landlordId!,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
-          category: _selectedCategory!,
-          priority: _selectedPriority!,
+          category: _getCategoryValue(_selectedCategory!),
+          priority: _getPriorityValue(_selectedPriority!),
           status: 'pending',
           location: _locationController.text.trim(),
           requestedDate: DateTime.now(),

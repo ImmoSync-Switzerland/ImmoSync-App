@@ -59,6 +59,9 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
       final success = await _sendEmailInvitation(invitationData);
 
       if (success && mounted) {
+        // Invalidate providers to refresh the UI
+        ref.invalidate(userInvitationsProvider);
+        
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

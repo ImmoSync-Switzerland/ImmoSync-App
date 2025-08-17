@@ -4,6 +4,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../chat/presentation/providers/invitation_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/constants/api_constants.dart';
 
@@ -277,6 +278,9 @@ class _EmailInviteTenantDialogState extends ConsumerState<EmailInviteTenantDialo
       final success = await _sendEmailInvitation(invitationData);
 
       if (success && mounted) {
+        // Invalidate providers to refresh the UI
+        ref.invalidate(userInvitationsProvider);
+        
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
