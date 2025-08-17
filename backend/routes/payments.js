@@ -607,4 +607,94 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
   }
 });
 
+// Create Stripe checkout session for subscriptions
+router.post('/create-subscription-checkout', async (req, res) => {
+  const stripeError = requireStripe(res);
+  if (stripeError) return stripeError;
+
+  try {
+    const { planId, isYearly, userId, successUrl, cancelUrl } = req.body;
+    
+    if (!planId || !userId) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: planId, userId' 
+      });
+    }
+
+    // Define your subscription plans here
+    const plans = {
+      'basic': {
+        name: 'Basic Plan',
+        monthlyPrice: 999, // $9.99 in cents
+        yearlyPrice: 9999, // $99.99 in cents
+        features: ['Up to 5 properties', 'Basic support', 'Mobile app access']
+      },
+      'pro': {
+        name: 'Pro Plan',
+        monthlyPrice: 1999, // $19.99 in cents
+        yearlyPrice: 19999, // $199.99 in cents
+        features: ['Up to 20 properties', 'Priority support', 'Advanced analytics', 'Mobile app access']
+      },
+      'enterprise': {
+        name: 'Enterprise Plan',
+        monthlyPrice: 4999, // $49.99 in cents
+        yearlyPrice: 49999, // $499.99 in cents
+        features: ['Unlimited properties', 'Premium support', 'Advanced analytics', 'Custom integrations', 'Mobile app access']
+      }
+    };
+
+    const selectedPlan = plans[planId];
+    if (!selectedPlan) {
+      return res.status(400).json({ message: 'Invalid plan ID' });
+    }
+
+    const price = isYearly ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
+    const interval = isYearly ? 'year' : 'month';
+
+    // Create or retrieve the price in Stripe
+    const stripePrice = await stripe.prices.create({
+      unit_amount: price,
+      currency: 'usd',
+      recurring: {
+        interval: interval,
+      },
+      product_data: {
+        name: selectedPlan.name,
+      },
+    });
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: stripePrice.id,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: successUrl || `${process.env.FLUTTER_APP_SCHEME}://subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${process.env.FLUTTER_APP_SCHEME}://subscription-cancel`,
+      client_reference_id: userId,
+      metadata: {
+        planId: planId,
+        userId: userId,
+        isYearly: isYearly.toString(),
+      },
+    });
+
+    res.json({ 
+      checkoutUrl: session.url,
+      sessionId: session.id 
+    });
+
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ 
+      message: 'Error creating checkout session',
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
