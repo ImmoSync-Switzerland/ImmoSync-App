@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../property/presentation/providers/property_providers.dart';
 import '../../../property/domain/models/property.dart';
 import '../providers/invitation_provider.dart';
+import '../../../../core/constants/api_constants.dart';
 
 class PropertyEmailInviteDialog extends ConsumerStatefulWidget {
   final String landlordId;
@@ -41,16 +44,21 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
     });
 
     try {
-      await ref.read(invitationNotifierProvider.notifier).sendInvitation(
-        propertyId: _selectedPropertyId!,
-        landlordId: widget.landlordId,
-        tenantId: '', // Will be handled by email
-        message: _messageController.text.trim().isNotEmpty 
-          ? _messageController.text.trim()
-          : 'You have been invited to a property',
-      );
+      // Create invitation data for email invitation
+      final invitationData = {
+        'propertyId': _selectedPropertyId!,
+        'landlordId': widget.landlordId,
+        'tenantEmail': _emailController.text.trim(),
+        'message': _messageController.text.trim().isNotEmpty 
+            ? _messageController.text.trim() 
+            : 'Sie wurden eingeladen, diese Immobilie zu mieten.',
+        'invitationType': 'email', // Mark as email invitation
+      };
 
-      if (mounted) {
+      // Send email invitation through backend
+      final success = await _sendEmailInvitation(invitationData);
+
+      if (success && mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -74,6 +82,28 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<bool> _sendEmailInvitation(Map<String, dynamic> invitationData) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/invitations/email-invite'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(invitationData),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else if (response.statusCode == 404) {
+        // Handle the case where user doesn't exist
+        final errorResponse = json.decode(response.body);
+        throw Exception(errorResponse['message'] ?? 'User with this email address does not exist in the system');
+      } else {
+        throw Exception('Failed to send invitation');
+      }
+    } catch (error) {
+      throw Exception('Failed to send invitation: $error');
     }
   }
 

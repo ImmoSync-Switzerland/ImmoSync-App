@@ -14,11 +14,14 @@ router.get('/user/:userId', async (req, res) => {
     const userId = req.params.userId;
     
     // Find invitations for this user - both as tenant and landlord
+    // Handle both string and ObjectId formats for tenantId/landlordId
     const invitations = await db.collection('invitations')
       .find({ 
         $or: [
-          { tenantId: userId },     // Invitations received as tenant
-          { landlordId: userId }    // Invitations sent as landlord
+          { tenantId: userId },                    // String format
+          { tenantId: new ObjectId(userId) },      // ObjectId format
+          { landlordId: userId },                  // String format
+          { landlordId: new ObjectId(userId) }     // ObjectId format
         ],
         status: { $in: ['pending', 'accepted', 'declined'] }
       })
@@ -206,11 +209,15 @@ router.put('/:invitationId/accept', async (req, res) => {
     console.log(`Property ID type: ${typeof existingInvitation.propertyId}`);
     console.log(`Tenant ID type: ${typeof existingInvitation.tenantId}`);
     
+    // Convert tenantId to string to match schema validation requirements
+    const tenantIdString = existingInvitation.tenantId.toString();
+    console.log(`Tenant ID as string: ${tenantIdString}`);
+    
     try {
       const propertyUpdateResult = await db.collection('properties').updateOne(
         { _id: new ObjectId(existingInvitation.propertyId) },
         { 
-          $addToSet: { tenantIds: existingInvitation.tenantId },
+          $addToSet: { tenantIds: tenantIdString },
           $set: { status: 'rented' }
         }
       );
@@ -237,10 +244,10 @@ router.put('/:invitationId/accept', async (req, res) => {
       console.log(`Updated property status:`, updatedProperty?.status);
       
       // Double-check if tenant was actually added
-      if (updatedProperty && updatedProperty.tenantIds && updatedProperty.tenantIds.includes(existingInvitation.tenantId)) {
-        console.log(`✅ Tenant ${existingInvitation.tenantId} successfully added to property`);
+      if (updatedProperty && updatedProperty.tenantIds && updatedProperty.tenantIds.includes(tenantIdString)) {
+        console.log(`✅ Tenant ${tenantIdString} successfully added to property`);
       } else {
-        console.error(`❌ Tenant ${existingInvitation.tenantId} was NOT added to property despite update operation`);
+        console.error(`❌ Tenant ${tenantIdString} was NOT added to property despite update operation`);
         console.error(`Current tenantIds: [${updatedProperty?.tenantIds?.join(', ') || 'empty'}]`);
         return res.status(500).json({ message: 'Failed to assign tenant to property' });
       }
