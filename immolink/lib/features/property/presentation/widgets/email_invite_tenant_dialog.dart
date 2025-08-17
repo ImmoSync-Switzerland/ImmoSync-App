@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../core/constants/api_constants.dart';
 
 class EmailInviteTenantDialog extends ConsumerStatefulWidget {
   final String propertyId;
@@ -307,9 +310,24 @@ class _EmailInviteTenantDialogState extends ConsumerState<EmailInviteTenantDialo
   }
 
   Future<bool> _sendEmailInvitation(Map<String, dynamic> invitationData) async {
-    // This will be implemented to call the backend API for email invitations
-    // For now, we'll simulate the API call
-    await Future.delayed(const Duration(seconds: 2));
-    return true; // Return success for now
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/invitations/email-invite'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(invitationData),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else if (response.statusCode == 404) {
+        // Handle the case where user doesn't exist
+        final errorResponse = json.decode(response.body);
+        throw Exception(errorResponse['message'] ?? 'Benutzer mit dieser E-Mail-Adresse existiert nicht im System');
+      } else {
+        throw Exception('Fehler beim Senden der Einladung');
+      }
+    } catch (error) {
+      throw Exception('Fehler beim Senden der Einladung: $error');
+    }
   }
 }

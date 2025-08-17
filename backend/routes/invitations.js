@@ -14,11 +14,14 @@ router.get('/user/:userId', async (req, res) => {
     const userId = req.params.userId;
     
     // Find invitations for this user - both as tenant and landlord
+    // Handle both string and ObjectId formats for tenantId/landlordId
     const invitations = await db.collection('invitations')
       .find({ 
         $or: [
-          { tenantId: userId },     // Invitations received as tenant
-          { landlordId: userId }    // Invitations sent as landlord
+          { tenantId: userId },                    // String format
+          { tenantId: new ObjectId(userId) },      // ObjectId format
+          { landlordId: userId },                  // String format
+          { landlordId: new ObjectId(userId) }     // ObjectId format
         ],
         status: { $in: ['pending', 'accepted', 'declined'] }
       })
@@ -206,11 +209,15 @@ router.put('/:invitationId/accept', async (req, res) => {
     console.log(`Property ID type: ${typeof existingInvitation.propertyId}`);
     console.log(`Tenant ID type: ${typeof existingInvitation.tenantId}`);
     
+    // Convert tenantId to string to match schema validation requirements
+    const tenantIdString = existingInvitation.tenantId.toString();
+    console.log(`Tenant ID as string: ${tenantIdString}`);
+    
     try {
       const propertyUpdateResult = await db.collection('properties').updateOne(
         { _id: new ObjectId(existingInvitation.propertyId) },
         { 
-          $addToSet: { tenantIds: existingInvitation.tenantId },
+          $addToSet: { tenantIds: tenantIdString },
           $set: { status: 'rented' }
         }
       );
@@ -237,10 +244,10 @@ router.put('/:invitationId/accept', async (req, res) => {
       console.log(`Updated property status:`, updatedProperty?.status);
       
       // Double-check if tenant was actually added
-      if (updatedProperty && updatedProperty.tenantIds && updatedProperty.tenantIds.includes(existingInvitation.tenantId)) {
-        console.log(`✅ Tenant ${existingInvitation.tenantId} successfully added to property`);
+      if (updatedProperty && updatedProperty.tenantIds && updatedProperty.tenantIds.includes(tenantIdString)) {
+        console.log(`✅ Tenant ${tenantIdString} successfully added to property`);
       } else {
-        console.error(`❌ Tenant ${existingInvitation.tenantId} was NOT added to property despite update operation`);
+        console.error(`❌ Tenant ${tenantIdString} was NOT added to property despite update operation`);
         console.error(`Current tenantIds: [${updatedProperty?.tenantIds?.join(', ') || 'empty'}]`);
         return res.status(500).json({ message: 'Failed to assign tenant to property' });
       }
@@ -389,49 +396,39 @@ router.post('/email-invite', async (req, res) => {
     
     let tenantId = null;
     
-    if (tenant) {
-      // User exists, create direct invitation
-      tenantId = tenant._id.toString();
-      
-      const invitation = {
-        propertyId: new ObjectId(propertyId),
-        landlordId: new ObjectId(landlordId),
-        tenantId: new ObjectId(tenantId),
-        message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
-        status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        invitationType: 'email'
-      };
-      
-      await db.collection('invitations').insertOne(invitation);
-      
-      // TODO: Send push notification to existing user
-      console.log(`Invitation sent to existing user: ${tenantEmail}`);
-    } else {
-      // User doesn't exist, create email invitation record
-      const emailInvitation = {
-        propertyId: new ObjectId(propertyId),
-        landlordId: new ObjectId(landlordId),
-        tenantEmail: tenantEmail,
-        message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
-        status: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        invitationType: 'email_pending'
-      };
-      
-      await db.collection('emailInvitations').insertOne(emailInvitation);
-      
-      console.log(`Email invitation created for new user: ${tenantEmail}`);
+    if (!tenant) {
+      // User doesn't exist - return error as tenant needs a database ID
+      return res.status(404).json({ 
+        message: 'Cannot send invitation: User with this email address does not exist in the system',
+        tenantEmail: tenantEmail
+      });
     }
+    
+    // User exists, create direct invitation
+    tenantId = tenant._id.toString();
+    
+    const invitation = {
+      propertyId: new ObjectId(propertyId),
+      landlordId: new ObjectId(landlordId),
+      tenantId: new ObjectId(tenantId),
+      message: message || 'Sie wurden eingeladen, diese Immobilie zu mieten.',
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      invitationType: 'email'
+    };
+    
+    await db.collection('invitations').insertOne(invitation);
+    
+    // TODO: Send push notification to existing user
+    console.log(`Invitation sent to existing user: ${tenantEmail}`);
     
     // TODO: Send actual email notification
     // This would integrate with an email service like SendGrid, Mailgun, etc.
     
     res.status(201).json({ 
       message: 'Invitation sent successfully',
-      recipientExists: !!tenant,
+      recipientExists: true,
       tenantEmail: tenantEmail
     });
     
