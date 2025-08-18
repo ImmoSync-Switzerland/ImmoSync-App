@@ -31,9 +31,20 @@ class AuthService {
       requestBody['companyName'] = companyName;
       requestBody['companyAddress'] = companyAddress;
       requestBody['taxId'] = taxId;
+      // Companies don't have individual birth dates, use placeholder
+      requestBody['birthDate'] = '1900-01-01T00:00:00.000Z';
     } else {
-      requestBody['address'] = address;
-      requestBody['birthDate'] = birthDate?.toIso8601String();
+      // Format address as object to match MongoDB schema expectations
+      if (address != null && address.isNotEmpty) {
+        requestBody['address'] = {
+          'street': address, // Use the full address as street for now
+          'city': '', // Could be parsed from address in the future
+          'postalCode': '', // Could be parsed from address in the future
+          'country': 'Germany' // Default country
+        };
+      }
+      // Always send birthDate, use placeholder if not provided
+      requestBody['birthDate'] = birthDate?.toIso8601String() ?? '1900-01-01T00:00:00.000Z';
     }
 
     final response = await http.post(

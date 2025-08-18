@@ -1,6 +1,12 @@
 // Load environment variables first
 require('dotenv').config();
 
+// Debug: Log current working directory and environment variables
+console.log('Current working directory:', process.cwd());
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('SMTP_HOST from env:', process.env.SMTP_HOST);
+console.log('Environment variables loaded:', !!process.env.SMTP_HOST);
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -18,7 +24,7 @@ const uploadRoutes = require('./routes/upload');
 const imagesRoutes = require('./routes/images');
 const maintenanceRoutes = require('./routes/maintenance');
 const maintenanceRequestsRoutes = require('./routes/maintenance-requests');
-const emailRoutes = require('./routes/email');
+const { router: emailRoutes } = require('./routes/email');
 const notificationRoutes = require('./routes/notifications');
 const servicesRoutes = require('./routes/services');
 const ticketsRoutes = require('./routes/tickets');

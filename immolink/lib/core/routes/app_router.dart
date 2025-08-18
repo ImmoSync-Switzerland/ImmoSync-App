@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immolink/features/auth/presentation/pages/login_page.dart';
 import 'package:immolink/features/auth/presentation/pages/enhanced_register_page.dart';
+import 'package:immolink/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:immolink/features/auth/presentation/pages/reset_password_page.dart';
+import 'package:immolink/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/chat/presentation/pages/chat_page.dart';
 import 'package:immolink/features/chat/presentation/pages/conversations_tabbed_page.dart';
@@ -56,6 +59,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const EnhancedRegisterPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/reset-password/:token',
+        builder: (context, state) => ResetPasswordPage(
+          token: state.pathParameters['token']!,
+        ),
+      ),
+      GoRoute(
+        path: '/verify-email/:token',
+        builder: (context, state) => EmailVerificationPage(
+          token: state.pathParameters['token']!,
+        ),
       ),
       GoRoute(
         path: '/home',
@@ -314,8 +333,14 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
+      final isForgotPassword = state.matchedLocation == '/forgot-password';
+      final isResetPassword = state.matchedLocation.startsWith('/reset-password/');
+      final isEmailVerification = state.matchedLocation.startsWith('/verify-email/');
 
-      if (!authState.isAuthenticated && !isLoggingIn && !isRegistering) {
+      // Allow access to auth-related pages without being logged in
+      final isAuthPage = isLoggingIn || isRegistering || isForgotPassword || isResetPassword || isEmailVerification;
+
+      if (!authState.isAuthenticated && !isAuthPage) {
         return '/login';
       }
 

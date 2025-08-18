@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { MongoClient } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { sendVerificationEmail } = require('./email');
 
 router.post('/register', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -25,6 +27,22 @@ router.post('/register', async (req, res) => {
       birthDate
     } = req.body;
 
+    // Check if email already exists
+    const existingUser = await db.collection('users').findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ 
+        message: 'Registration failed', 
+        error: 'Email already registered' 
+      });
+    }
+
+    // Generate email verification token
+    const verificationToken = jwt.sign(
+      { email: email, type: 'email-verification' }, 
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
     // Create user document with enhanced fields
     const newUser = {
       email: email,
@@ -34,7 +52,9 @@ router.post('/register', async (req, res) => {
       phone: phone,
       isCompany: isCompany || false,
       isAdmin: false,
-      isValidated: true,
+      isValidated: false, // User must verify email first
+      emailVerified: false,
+      verificationToken: verificationToken,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -44,11 +64,12 @@ router.post('/register', async (req, res) => {
       newUser.companyName = companyName;
       newUser.companyAddress = companyAddress;
       newUser.taxId = taxId;
+      // Companies don't have birth dates, use a placeholder date
+      newUser.birthDate = new Date('1900-01-01');
     } else {
       newUser.address = address;
-      if (birthDate) {
-        newUser.birthDate = new Date(birthDate);
-      }
+      // Always set birthDate, use placeholder if not provided
+      newUser.birthDate = birthDate ? new Date(birthDate) : new Date('1900-01-01');
     }
 
     // Log document for verification
@@ -56,10 +77,33 @@ router.post('/register', async (req, res) => {
 
     const result = await db.collection('users').insertOne(newUser);
     
+    // Update the verification token with the actual user ID
+    const finalVerificationToken = jwt.sign(
+      { userId: result.insertedId.toString(), type: 'email-verification' }, 
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    // Update user with the final verification token
+    await db.collection('users').updateOne(
+      { _id: result.insertedId },
+      { $set: { verificationToken: finalVerificationToken } }
+    );
+    
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, finalVerificationToken);
+      console.log('Verification email sent to:', email);
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Don't fail registration if email fails, just log it
+    }
+    
     res.status(201).json({
       success: true,
       userId: result.insertedId,
-      message: 'Registration successful'
+      message: 'Registration successful! Please check your email to verify your account.',
+      emailSent: true
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -92,6 +136,14 @@ router.post('/login', async (req, res) => {
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (!validPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return res.status(403).json({ 
+        message: 'Please verify your email address before logging in',
+        emailVerificationRequired: true
+      });
     }
 
     // Create session or token

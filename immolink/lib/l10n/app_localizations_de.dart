@@ -9,7 +9,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appTitle => 'ImmoLink';
+  String get appTitle => 'ImmoSync';
 
   @override
   String get dashboard => 'Dashboard';

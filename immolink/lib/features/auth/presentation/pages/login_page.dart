@@ -76,6 +76,29 @@ class _LoginPageState extends ConsumerState<LoginPage>
           print('LoginPage: Showing error dialog for: ${current.error}');
           _isShowingErrorDialog = true;
           _showErrorDialog(context, current.error!);
+          
+          // Also show SnackBar as fallback
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _formatErrorMessage(current.error!),
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: const Color(0xFFDC2626),
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              action: SnackBarAction(
+                label: 'Dismiss',
+                textColor: Colors.white,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+              ),
+            ),
+          );
         }
       } else if (current.isLoading) {
         // Clear error when starting new login attempt
@@ -147,15 +170,19 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.home_work,
-                size: 40,
-                color: Color(0xFF2563EB), // Royal blue
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/icon/app_icon.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             const Text(
-              'ImmoLink',
+              'ImmoSync',
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
@@ -164,7 +191,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ),
             const Text(
-              'Your Property Management Solution',
+              'Property Management Made Simple',
               style: TextStyle(
                 color: Color(0xFF64748B), // Slate gray
                 fontSize: 16,
@@ -278,7 +305,44 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ],
             _buildForgotPassword(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            // Error display
+            if (_currentError != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFEF4444),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFDC2626),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _formatErrorMessage(_currentError!),
+                        style: const TextStyle(
+                          color: Color(0xFFDC2626),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
             if (authState.isLoading)
               Center(
                 child: CircularProgressIndicator(
@@ -444,7 +508,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
-        onPressed: () {},
+        onPressed: () => context.go('/forgot-password'),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 4),
           minimumSize: Size.zero,
@@ -669,12 +733,20 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   String _formatErrorMessage(String error) {
     // Clean up common error messages to be more user-friendly
+    print('LoginPage: Formatting error message: $error');
+    
     if (error.contains('Invalid credentials') || error.contains('401')) {
       return 'Invalid email or password. Please check your credentials and try again.';
-    } else if (error.contains('Network') || error.contains('connection')) {
+    } else if (error.contains('Invalid response') || error.contains('301') || error.contains('Moved Permanently')) {
+      return 'Server connection error. Please check your internet connection and try again.';
+    } else if (error.contains('Network') || error.contains('connection') || error.contains('Failed host lookup')) {
       return 'Network error. Please check your internet connection and try again.';
     } else if (error.contains('timeout')) {
       return 'Request timed out. Please try again.';
+    } else if (error.contains('Exception:')) {
+      // Clean up Exception: prefix
+      String cleanError = error.replaceFirst('Exception: ', '');
+      return cleanError.isEmpty ? 'Login failed. Please try again.' : cleanError;
     } else {
       return 'Login failed. Please try again.';
     }
