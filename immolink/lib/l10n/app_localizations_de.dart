@@ -1,0 +1,1513 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for German (`de`).
+class AppLocalizationsDe extends AppLocalizations {
+  AppLocalizationsDe([String locale = 'de']) : super(locale);
+
+  @override
+  String get appTitle => 'ImmoLink';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get properties => 'Immobilien';
+
+  @override
+  String get tenants => 'Mieter';
+
+  @override
+  String get services => 'Dienstleistungen';
+
+  @override
+  String get messages => 'Nachrichten';
+
+  @override
+  String get reports => 'Berichte';
+
+  @override
+  String get profile => 'Profil';
+
+  @override
+  String get settings => 'Einstellungen';
+
+  @override
+  String get language => 'Sprache';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get currency => 'Währung';
+
+  @override
+  String get preferences => 'Einstellungen';
+
+  @override
+  String get security => 'Sicherheit';
+
+  @override
+  String get notifications => 'Benachrichtigungen';
+
+  @override
+  String get about => 'Über';
+
+  @override
+  String get logout => 'Abmelden';
+
+  @override
+  String get light => 'Hell';
+
+  @override
+  String get dark => 'Dunkel';
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get english => 'Englisch';
+
+  @override
+  String get german => 'Deutsch';
+
+  @override
+  String get french => 'Französisch';
+
+  @override
+  String get italian => 'Italienisch';
+
+  @override
+  String get selectLanguage => 'Sprache auswählen';
+
+  @override
+  String get selectTheme => 'Theme auswählen';
+
+  @override
+  String get selectCurrency => 'Währung auswählen';
+
+  @override
+  String get cancel => 'Abbrechen';
+
+  @override
+  String languageChangedTo(Object language) {
+    return 'Sprache geändert zu $language';
+  }
+
+  @override
+  String themeChangedTo(Object theme) {
+    return 'Theme geändert zu $theme';
+  }
+
+  @override
+  String currencyChangedTo(Object currency) {
+    return 'Währung geändert zu $currency';
+  }
+
+  @override
+  String get welcome => 'Willkommen';
+
+  @override
+  String get totalProperties => 'Gesamte Immobilien';
+
+  @override
+  String get monthlyRevenue => 'Monatliche Einnahmen';
+
+  @override
+  String get occupancyRate => 'Auslastungsgrad';
+
+  @override
+  String get maintenanceRequests => 'Wartungsanfragen';
+
+  @override
+  String get search => 'Suchen';
+
+  @override
+  String get searchConversations => 'Unterhaltungen suchen...';
+
+  @override
+  String get searchProperties => 'Immobilien suchen...';
+
+  @override
+  String get noConversations => 'Keine Unterhaltungen gefunden';
+
+  @override
+  String get noProperties => 'Keine Immobilien gefunden';
+
+  @override
+  String get propertyDetails => 'Immobiliendetails';
+
+  @override
+  String get address => 'Adresse';
+
+  @override
+  String get type => 'Typ';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get rent => 'Miete';
+
+  @override
+  String get available => 'Verfügbar';
+
+  @override
+  String get occupied => 'Belegt';
+
+  @override
+  String get maintenance => 'Wartung';
+
+  @override
+  String get area => 'Fläche';
+
+  @override
+  String get mapNotAvailable => 'Karte nicht verfügbar';
+
+  @override
+  String get contactLandlord => 'Vermieter kontaktieren';
+
+  @override
+  String get statusAvailable => 'Verfügbar';
+
+  @override
+  String get statusRented => 'Vermietet';
+
+  @override
+  String get statusMaintenance => 'Wartung';
+
+  @override
+  String get newMessage => 'Neue Nachricht';
+
+  @override
+  String get typeMessage => 'Nachricht eingeben...';
+
+  @override
+  String get send => 'Senden';
+
+  @override
+  String get revenueReport => 'Umsatzbericht';
+
+  @override
+  String get occupancyReport => 'Auslastungsbericht';
+
+  @override
+  String get maintenanceReport => 'Wartungsbericht';
+
+  @override
+  String get generateReport => 'Bericht erstellen';
+
+  @override
+  String get emailNotifications => 'E-Mail-Benachrichtigungen';
+
+  @override
+  String get pushNotifications => 'Push-Benachrichtigungen';
+
+  @override
+  String get paymentReminders => 'Zahlungserinnerungen';
+
+  @override
+  String get changePassword => 'Passwort ändern';
+
+  @override
+  String get deleteAccount => 'Konto löschen';
+
+  @override
+  String get privacyPolicy => 'Datenschutzrichtlinie';
+
+  @override
+  String get termsOfService => 'Nutzungsbedingungen';
+
+  @override
+  String get version => 'Version';
+
+  @override
+  String get unknownProperty => 'Unbekannte Immobilie';
+
+  @override
+  String get user => 'Benutzer';
+
+  @override
+  String get tenantManagement => 'Mieterverwaltung';
+
+  @override
+  String get manageTenantDescription =>
+      'Verwalten Sie Ihre Mieter und deren Immobilienzuweisungen';
+
+  @override
+  String get totalTenants => 'Mieter insgesamt';
+
+  @override
+  String get activeTenants => 'Aktive Mieter';
+
+  @override
+  String get occupiedUnits => 'Belegte Einheiten';
+
+  @override
+  String get pendingIssues => 'Offene Probleme';
+
+  @override
+  String get propertiesAssigned => 'Zugewiesene Immobilien';
+
+  @override
+  String get empty => 'Leer';
+
+  @override
+  String get noTenantsFound => 'Keine Mieter gefunden';
+
+  @override
+  String get noTenantsYet => 'Noch keine Mieter';
+
+  @override
+  String get addPropertiesInviteTenants =>
+      'Fügen Sie Immobilien hinzu und laden Sie Mieter ein, um zu beginnen';
+
+  @override
+  String get addProperty => 'Immobilie hinzufügen';
+
+  @override
+  String get addTenant => 'Mieter hinzufügen';
+
+  @override
+  String get loadingTenants => 'Mieter werden geladen...';
+
+  @override
+  String get errorLoadingTenants => 'Fehler beim Laden der Mieter';
+
+  @override
+  String get pleaseTryAgainLater => 'Bitte versuchen Sie es später erneut';
+
+  @override
+  String get retryLoading => 'Wiederholen';
+
+  @override
+  String get editTenant => 'Mieter bearbeiten';
+
+  @override
+  String get deleteTenant => 'Mieter löschen';
+
+  @override
+  String get tenantDetails => 'Mieterdetails';
+
+  @override
+  String get email => 'E-Mail';
+
+  @override
+  String get phone => 'Telefon';
+
+  @override
+  String get viewDetails => 'Details anzeigen';
+
+  @override
+  String get searchTenants => 'Mieter suchen...';
+
+  @override
+  String get myProperties => 'Meine Immobilien';
+
+  @override
+  String get all => 'Alle';
+
+  @override
+  String get rented => 'VERMIETET';
+
+  @override
+  String get monthlyRent => 'Monatliche Miete';
+
+  @override
+  String get size => 'Größe';
+
+  @override
+  String get rooms => 'Zimmer';
+
+  @override
+  String get noPropertiesFound => 'Keine Immobilien gefunden';
+
+  @override
+  String get addFirstProperty =>
+      'Fügen Sie Ihre erste Immobilie hinzu, um zu beginnen';
+
+  @override
+  String get noPropertiesAssigned =>
+      'Diesem Mieter sind keine Immobilien zugewiesen';
+
+  @override
+  String get contactLandlordForAccess =>
+      'Kontaktieren Sie Ihren Vermieter für Zugang zu Ihrer Immobilie';
+
+  @override
+  String get somethingWentWrong => 'Etwas ist schief gelaufen';
+
+  @override
+  String get retry => 'Wiederholen';
+
+  @override
+  String get noConversationsYet => 'Noch keine Unterhaltungen';
+
+  @override
+  String get tryAdjustingSearch =>
+      'Versuchen Sie, Ihre Suchbegriffe anzupassen';
+
+  @override
+  String get startConversation =>
+      'Beginnen Sie eine Unterhaltung mit Ihren Immobilien';
+
+  @override
+  String get newConversation => 'Neue Unterhaltung';
+
+  @override
+  String get propertySelectionMessage =>
+      'Immobilienauswahl wird mit Datenbankintegration implementiert';
+
+  @override
+  String get create => 'Erstellen';
+
+  @override
+  String get landlords => 'Vermieter';
+
+  @override
+  String get errorLoadingContacts => 'Fehler beim Laden der Kontakte';
+
+  @override
+  String get noContactsFound => 'Keine Kontakte gefunden';
+
+  @override
+  String get noLandlordsFound => 'Keine Vermieter gefunden';
+
+  @override
+  String get addPropertiesToConnect =>
+      'Fügen Sie Immobilien hinzu, um sich mit Mietern zu verbinden';
+
+  @override
+  String get landlordContactsAppear =>
+      'Ihre Vermieter-Kontakte werden hier angezeigt';
+
+  @override
+  String get property => 'Immobilie';
+
+  @override
+  String get call => 'Anrufen';
+
+  @override
+  String get message => 'Nachricht';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get openChat => 'Chat öffnen';
+
+  @override
+  String get phoneCallFunctionality => 'Anruffunktion wird implementiert';
+
+  @override
+  String get contactInformation => 'Kontaktinformationen';
+
+  @override
+  String get assignedProperties => 'Zugewiesene Immobilien';
+
+  @override
+  String get filterOptions => 'Filteroptionen werden implementiert';
+
+  @override
+  String get active => 'Aktiv';
+
+  @override
+  String get editProfile => 'Profil bearbeiten';
+
+  @override
+  String get role => 'Rolle';
+
+  @override
+  String get disabled => 'deaktiviert';
+
+  @override
+  String get privacySettings => 'Datenschutzeinstellungen';
+
+  @override
+  String get privacySettingsMessage =>
+      'Datenschutzeinstellungen werden bald verfügbar sein';
+
+  @override
+  String get receiveUpdatesEmail => 'Updates per E-Mail erhalten';
+
+  @override
+  String get goodMorning => 'Guten Morgen';
+
+  @override
+  String get goodAfternoon => 'Guten Tag';
+
+  @override
+  String get goodEvening => 'Guten Abend';
+
+  @override
+  String get quickActions => 'Schnelle Aktionen';
+
+  @override
+  String get viewProperties => 'Immobilien anzeigen';
+
+  @override
+  String get outstanding => 'Ausstehend';
+
+  @override
+  String get description => 'Beschreibung';
+
+  @override
+  String get amenities => 'Ausstattung';
+
+  @override
+  String get balcony => 'Balkon';
+
+  @override
+  String get elevator => 'Aufzug';
+
+  @override
+  String get laundry => 'Wäscherei';
+
+  @override
+  String get location => 'Standort';
+
+  @override
+  String get financialDetails => 'Finanzielle Details';
+
+  @override
+  String get inviteTenant => 'Mieter einladen';
+
+  @override
+  String get outstandingPayments => 'Ausstehende Zahlungen';
+
+  @override
+  String get searchContacts => 'Kontakte suchen...';
+
+  @override
+  String get searchPropertiesTenantsMessages =>
+      'Immobilien, Mieter, Nachrichten suchen...';
+
+  @override
+  String get typeAMessage => 'Nachricht eingeben...';
+
+  @override
+  String get managePropertiesAndTenants =>
+      'Verwalten Sie Ihre Immobilien und Mieter';
+
+  @override
+  String get monthlyIncome => 'Monatliche Einnahmen';
+
+  @override
+  String get squareMeters => 'm²';
+
+  @override
+  String get chfPerMonth => 'CHF/Monat';
+
+  @override
+  String get propertyDescription =>
+      'Moderne Immobilie in bester Lage mit hervorragender Ausstattung und bequemer Anbindung an öffentliche Verkehrsmittel.';
+
+  @override
+  String get landlord => 'Vermieter';
+
+  @override
+  String get updateYourInformation =>
+      'Aktualisieren Sie Ihre persönlichen Informationen';
+
+  @override
+  String get appSettings => 'App-Einstellungen';
+
+  @override
+  String get updatePassword => 'Aktualisieren Sie Ihr Passwort';
+
+  @override
+  String get signOutOfAccount => 'Aus Ihrem Konto abmelden';
+
+  @override
+  String get confirmLogout => 'Abmeldung bestätigen';
+
+  @override
+  String get logoutConfirmation =>
+      'Sind Sie sicher, dass Sie sich abmelden möchten?';
+
+  @override
+  String get searchToFindResults =>
+      'Beginnen Sie zu tippen, um Ergebnisse zu finden';
+
+  @override
+  String get searchHint => 'Nach Immobilien, Mietern oder Nachrichten suchen';
+
+  @override
+  String get noResultsFound => 'Keine Ergebnisse gefunden';
+
+  @override
+  String get tryDifferentSearch => 'Versuchen Sie einen anderen Suchbegriff';
+
+  @override
+  String get filterProperties => 'Immobilien filtern';
+
+  @override
+  String get filterRequests => 'Anfragen filtern';
+
+  @override
+  String get pending => 'Ausstehend';
+
+  @override
+  String get inProgress => 'In Bearbeitung';
+
+  @override
+  String get completed => 'Abgeschlossen';
+
+  @override
+  String get cancelled => 'Storniert';
+
+  @override
+  String get priority => 'Priorität';
+
+  @override
+  String get low => 'Niedrig';
+
+  @override
+  String get medium => 'Mittel';
+
+  @override
+  String get high => 'Hoch';
+
+  @override
+  String get emergency => 'Notfall';
+
+  @override
+  String get noMaintenanceRequests => 'Keine Wartungsanfragen';
+
+  @override
+  String get noMaintenanceRequestsDescription =>
+      'Alle Wartungsanfragen werden hier angezeigt';
+
+  @override
+  String get getDirections => 'Route anzeigen';
+
+  @override
+  String get locationNotAvailable => 'Standort nicht verfügbar';
+
+  @override
+  String get addressDisplayOnly => 'Adresse nur zur Anzeige';
+
+  @override
+  String get twoFactorAuth => 'Zwei-Faktor-Authentifizierung';
+
+  @override
+  String get helpCenter => 'Hilfezentrum';
+
+  @override
+  String get contactSupport => 'Support kontaktieren';
+
+  @override
+  String get enabled => 'aktiviert';
+
+  @override
+  String get pushNotificationSubtitle => 'Updates auf Ihrem Gerät erhalten';
+
+  @override
+  String get paymentReminderSubtitle =>
+      'An anstehende Zahlungen erinnert werden';
+
+  @override
+  String get welcomeToHelpCenter => 'Willkommen im Hilfezentrum';
+
+  @override
+  String get helpCenterDescription =>
+      'Finden Sie Antworten auf häufige Fragen, lernen Sie, wie Sie ImmoLink-Funktionen nutzen, und erhalten Sie Unterstützung, wenn Sie sie benötigen.';
+
+  @override
+  String get quickLinks => 'Schnellzugriffe';
+
+  @override
+  String get gettingStarted => 'Erste Schritte';
+
+  @override
+  String get gettingStartedDescription =>
+      'Lernen Sie die Grundlagen der Nutzung von ImmoLink';
+
+  @override
+  String get accountSettings => 'Konto & Einstellungen';
+
+  @override
+  String get accountSettingsDescription =>
+      'Verwalten Sie Ihr Konto und Ihre Datenschutzeinstellungen';
+
+  @override
+  String get propertyManagement => 'Immobilienverwaltung';
+
+  @override
+  String get propertyManagementDescription =>
+      'Wie Sie Immobilien hinzufügen und verwalten';
+
+  @override
+  String get paymentsBilling => 'Zahlungen & Abrechnung';
+
+  @override
+  String get paymentsBillingDescription => 'Zahlungen und Abrechnung verstehen';
+
+  @override
+  String get frequentlyAskedQuestions => 'Häufig gestellte Fragen';
+
+  @override
+  String get howToAddProperty => 'Wie füge ich eine neue Immobilie hinzu?';
+
+  @override
+  String get howToAddPropertyAnswer =>
+      'Gehen Sie zum Immobilien-Tab und tippen Sie auf die \"+\"-Schaltfläche. Füllen Sie die Immobiliendetails aus, fügen Sie Fotos hinzu und speichern Sie.';
+
+  @override
+  String get howToInviteTenant => 'Wie lade ich einen Mieter ein?';
+
+  @override
+  String get howToInviteTenantAnswer =>
+      'Öffnen Sie eine Immobilie und tippen Sie auf \"Mieter einladen\". Geben Sie deren E-Mail-Adresse ein und sie erhalten eine Einladung.';
+
+  @override
+  String get howToChangeCurrency => 'Wie ändere ich meine Währung?';
+
+  @override
+  String get howToChangeCurrencyAnswer =>
+      'Gehen Sie zu Einstellungen > Präferenzen > Währung und wählen Sie Ihre bevorzugte Währung.';
+
+  @override
+  String get howToEnable2FA =>
+      'Wie aktiviere ich die Zwei-Faktor-Authentifizierung?';
+
+  @override
+  String get howToEnable2FAAnswer =>
+      'Gehen Sie zu Einstellungen > Sicherheit > Zwei-Faktor-Authentifizierung und befolgen Sie die Einrichtungsanweisungen.';
+
+  @override
+  String get howToExportData => 'Wie exportiere ich meine Daten?';
+
+  @override
+  String get howToExportDataAnswer =>
+      'Gehen Sie zu Einstellungen > Datenschutzeinstellungen > Datenverwaltung > Meine Daten exportieren.';
+
+  @override
+  String get userGuides => 'Benutzerhandbücher';
+
+  @override
+  String get landlordGuide => 'Vermieter-Handbuch';
+
+  @override
+  String get landlordGuideDescription => 'Vollständiges Handbuch für Vermieter';
+
+  @override
+  String get tenantGuide => 'Mieter-Handbuch';
+
+  @override
+  String get tenantGuideDescription => 'Vollständiges Handbuch für Mieter';
+
+  @override
+  String get securityBestPractices => 'Sicherheits-Best-Practices';
+
+  @override
+  String get securityBestPracticesDescription => 'Halten Sie Ihr Konto sicher';
+
+  @override
+  String get needMoreHelp => 'Benötigen Sie weitere Hilfe?';
+
+  @override
+  String get needMoreHelpDescription =>
+      'Können Sie nicht finden, wonach Sie suchen? Unser Support-Team hilft Ihnen gerne.';
+
+  @override
+  String get gotIt => 'Verstanden';
+
+  @override
+  String get gettingStartedWelcome =>
+      'Willkommen bei ImmoLink! So können Sie loslegen:';
+
+  @override
+  String get gettingStartedStep1 => '1. Vervollständigen Sie Ihr Profil';
+
+  @override
+  String get gettingStartedStep2 => '2. Fügen Sie Ihre erste Immobilie hinzu';
+
+  @override
+  String get gettingStartedStep3 =>
+      '3. Laden Sie Mieter ein oder verbinden Sie sich mit Vermietern';
+
+  @override
+  String get gettingStartedStep4 =>
+      '4. Beginnen Sie mit der Verwaltung Ihrer Immobilien';
+
+  @override
+  String get propertyManagementGuide =>
+      'Verwaltung von Immobilien in ImmoLink:';
+
+  @override
+  String get propertyManagementTip1 =>
+      '• Immobiliendetails und Fotos hinzufügen';
+
+  @override
+  String get propertyManagementTip2 => '• Mietpreise und Konditionen festlegen';
+
+  @override
+  String get propertyManagementTip3 =>
+      '• Mieter zur Besichtigung oder Anmietung einladen';
+
+  @override
+  String get propertyManagementTip4 => '• Wartungsanfragen verfolgen';
+
+  @override
+  String get propertyManagementTip5 => '• Zahlungsstatus überwachen';
+
+  @override
+  String get paymentsGuide => 'Zahlungen in ImmoLink verstehen:';
+
+  @override
+  String get paymentsTip1 => '• Zahlungshistorie und Status anzeigen';
+
+  @override
+  String get paymentsTip2 => '• Automatische Zahlungserinnerungen einrichten';
+
+  @override
+  String get paymentsTip3 => '• Ausstehende Zahlungen verfolgen';
+
+  @override
+  String get paymentsTip4 => '• Zahlungsberichte erstellen';
+
+  @override
+  String get paymentsTip5 => '• Zahlungsdaten exportieren';
+
+  @override
+  String get landlordGuideContent => 'Vollständiges Handbuch für Vermieter:';
+
+  @override
+  String get landlordTip1 => '• Immobilienportfolio-Management';
+
+  @override
+  String get landlordTip2 => '• Mieter-Screening und Onboarding';
+
+  @override
+  String get landlordTip3 => '• Mieterfassung und -verfolgung';
+
+  @override
+  String get landlordTip4 => '• Bearbeitung von Wartungsanfragen';
+
+  @override
+  String get landlordTip5 => '• Finanzberichterstattung und -analytik';
+
+  @override
+  String get landlordTip6 => '• Rechtliche Compliance und Dokumentation';
+
+  @override
+  String get tenantGuideContent => 'Vollständiges Handbuch für Mieter:';
+
+  @override
+  String get tenantTip1 => '• Immobiliensuche und -besichtigung';
+
+  @override
+  String get tenantTip2 => '• Mietantragsprozess';
+
+  @override
+  String get tenantTip3 => '• Mietverträge und Dokumentation';
+
+  @override
+  String get tenantTip4 => '• Mietzahlung und -historie';
+
+  @override
+  String get tenantTip5 => '• Wartungsanfragen einreichen';
+
+  @override
+  String get tenantTip6 => '• Kommunikation mit Vermietern';
+
+  @override
+  String get securityGuideContent => 'Halten Sie Ihr Konto sicher:';
+
+  @override
+  String get securityTip1 =>
+      '• Verwenden Sie ein starkes, einzigartiges Passwort';
+
+  @override
+  String get securityTip2 =>
+      '• Aktivieren Sie die Zwei-Faktor-Authentifizierung';
+
+  @override
+  String get securityTip3 =>
+      '• Überprüfen Sie regelmäßig die Datenschutzeinstellungen';
+
+  @override
+  String get securityTip4 =>
+      '• Seien Sie vorsichtig mit geteilten Informationen';
+
+  @override
+  String get securityTip5 => '• Melden Sie verdächtige Aktivitäten sofort';
+
+  @override
+  String get securityTip6 => '• Halten Sie die App aktuell';
+
+  @override
+  String get weAreHereToHelp => 'Wir sind hier, um zu helfen';
+
+  @override
+  String get supportTeamDescription =>
+      'Unser Support-Team steht bereit, Sie bei allen Fragen oder Problemen zu unterstützen. Wählen Sie, wie Sie Kontakt aufnehmen möchten.';
+
+  @override
+  String get quickContact => 'Schnellkontakt';
+
+  @override
+  String get emailUs => 'E-Mail senden';
+
+  @override
+  String get callUs => 'Anrufen';
+
+  @override
+  String get liveChat => 'Live-Chat';
+
+  @override
+  String get submitSupportRequest => 'Support-Anfrage senden';
+
+  @override
+  String get supportFormDescription =>
+      'Füllen Sie das folgende Formular aus und wir melden uns so schnell wie möglich bei Ihnen.';
+
+  @override
+  String get accountInformation => 'Kontoinformationen';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get notAvailable => 'Nicht verfügbar';
+
+  @override
+  String get category => 'Kategorie';
+
+  @override
+  String get general => 'Allgemein';
+
+  @override
+  String get accountAndSettings => 'Konto & Einstellungen';
+
+  @override
+  String get technicalIssues => 'Technische Probleme';
+
+  @override
+  String get securityConcerns => 'Sicherheitsbedenken';
+
+  @override
+  String get featureRequest => 'Feature-Anfrage';
+
+  @override
+  String get bugReport => 'Fehlerbericht';
+
+  @override
+  String get urgent => 'Dringend';
+
+  @override
+  String get subject => 'Betreff';
+
+  @override
+  String get subjectHint => 'Kurze Beschreibung Ihres Problems';
+
+  @override
+  String get pleaseEnterSubject => 'Bitte geben Sie einen Betreff ein';
+
+  @override
+  String get describeYourIssue => 'Beschreiben Sie Ihr Problem';
+
+  @override
+  String get issueDescriptionHint =>
+      'Bitte geben Sie so viele Details wie möglich an, um uns zu helfen, Ihnen besser zu helfen';
+
+  @override
+  String get pleaseDescribeIssue => 'Bitte beschreiben Sie Ihr Problem';
+
+  @override
+  String get provideMoreDetails =>
+      'Bitte geben Sie mehr Details an (mindestens 10 Zeichen)';
+
+  @override
+  String get submitRequest => 'Anfrage senden';
+
+  @override
+  String get supportInformation => 'Support-Informationen';
+
+  @override
+  String get responseTime => 'Antwortzeit';
+
+  @override
+  String get responseTimeInfo => 'Normalerweise innerhalb von 24 Stunden';
+
+  @override
+  String get languages => 'Sprachen';
+
+  @override
+  String get languagesSupported =>
+      'Deutsch, Englisch, Französisch, Italienisch';
+
+  @override
+  String get supportHours => 'Support-Zeiten';
+
+  @override
+  String get supportHoursInfo => 'Montag-Freitag, 9:00-18:00 MEZ';
+
+  @override
+  String get emergencyInfo =>
+      'Bei dringenden Problemen rufen Sie +41 800 123 456 an';
+
+  @override
+  String get couldNotOpenEmail => 'E-Mail-App konnte nicht geöffnet werden';
+
+  @override
+  String get couldNotOpenPhone => 'Telefon-App konnte nicht geöffnet werden';
+
+  @override
+  String get liveChatTitle => 'Live-Chat';
+
+  @override
+  String get liveChatAvailable =>
+      'Live-Chat ist derzeit während der Geschäftszeiten verfügbar (Montag-Freitag, 9:00-18:00 MEZ).';
+
+  @override
+  String get liveChatOutsideHours =>
+      'Für sofortige Hilfe außerhalb der Geschäftszeiten verwenden Sie bitte das Support-Formular oder senden Sie uns eine E-Mail.';
+
+  @override
+  String get close => 'Schließen';
+
+  @override
+  String get startChat => 'Chat starten';
+
+  @override
+  String get liveChatSoon => 'Live-Chat-Funktion wird bald verfügbar sein';
+
+  @override
+  String get supportRequestSubmitted =>
+      'Support-Anfrage erfolgreich gesendet! Wir melden uns bald bei Ihnen.';
+
+  @override
+  String get myTenants => 'Meine Mieter';
+
+  @override
+  String get myLandlords => 'Meine Vermieter';
+
+  @override
+  String get maintenanceRequestDetails => 'Details der Wartungsanfrage';
+
+  @override
+  String get blockUser => 'Benutzer blockieren';
+
+  @override
+  String get reportConversation => 'Unterhaltung melden';
+
+  @override
+  String get deleteConversation => 'Unterhaltung löschen';
+
+  @override
+  String get myMaintenanceRequests => 'Meine Wartungsanfragen';
+
+  @override
+  String get errorLoadingRequests => 'Fehler beim Laden der Anfragen';
+
+  @override
+  String get createRequest => 'Anfrage erstellen';
+
+  @override
+  String get created => 'Erstellt';
+
+  @override
+  String get updated => 'Aktualisiert';
+
+  @override
+  String get today => 'Heute';
+
+  @override
+  String get yesterday => 'Gestern';
+
+  @override
+  String get statusPending => 'Ausstehend';
+
+  @override
+  String get statusInProgress => 'In Bearbeitung';
+
+  @override
+  String get statusCompleted => 'Abgeschlossen';
+
+  @override
+  String get statusCancelled => 'Storniert';
+
+  @override
+  String get priorityHigh => 'Hoch';
+
+  @override
+  String get priorityMedium => 'Mittel';
+
+  @override
+  String get priorityLow => 'Niedrig';
+
+  @override
+  String get addNote => 'Notiz hinzufügen';
+
+  @override
+  String get invalid => 'Ungültig';
+
+  @override
+  String get failed => 'Fehlgeschlagen';
+
+  @override
+  String get success => 'Erfolgreich';
+
+  @override
+  String get loading => 'Lädt...';
+
+  @override
+  String get error => 'Fehler';
+
+  @override
+  String get update => 'Aktualisieren';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get edit => 'Bearbeiten';
+
+  @override
+  String get view => 'Anzeigen';
+
+  @override
+  String get back => 'Zurück';
+
+  @override
+  String get next => 'Weiter';
+
+  @override
+  String get previous => 'Zurück';
+
+  @override
+  String get confirm => 'Bestätigen';
+
+  @override
+  String get submit => 'Senden';
+
+  @override
+  String get upload => 'Hochladen';
+
+  @override
+  String get download => 'Herunterladen';
+
+  @override
+  String get share => 'Teilen';
+
+  @override
+  String get copy => 'Kopieren';
+
+  @override
+  String get paste => 'Einfügen';
+
+  @override
+  String get select => 'Auswählen';
+
+  @override
+  String get choose => 'Wählen';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String get sort => 'Sortieren';
+
+  @override
+  String get noData => 'Keine Daten';
+
+  @override
+  String get tryAgain => 'Erneut versuchen';
+
+  @override
+  String get searchServices => 'Services suchen...';
+
+  @override
+  String get confirmBooking => 'Buchung bestätigen';
+
+  @override
+  String get bookingConfirmed => 'Buchung bestätigt';
+
+  @override
+  String get unableToOpenChat =>
+      'Chat kann nicht geöffnet werden. Bitte versuchen Sie es erneut.';
+
+  @override
+  String get failedToSendMessage => 'Nachricht konnte nicht gesendet werden';
+
+  @override
+  String get chooseExportFormat => 'Exportformat wählen:';
+
+  @override
+  String get errorLoadingPayments => 'Fehler beim Laden der Zahlungen';
+
+  @override
+  String get errorLoadingProperties => 'Fehler beim Laden der Immobilien';
+
+  @override
+  String get errorLoadingPropertyMetrics =>
+      'Fehler beim Laden der Immobilienkennzahlen';
+
+  @override
+  String get errorLoadingMaintenanceData =>
+      'Fehler beim Laden der Wartungsdaten';
+
+  @override
+  String get errorLoadingPaymentSummary =>
+      'Fehler beim Laden der Zahlungsübersicht';
+
+  @override
+  String get errorLoadingMaintenanceRequests =>
+      'Fehler beim Laden der Wartungsanfragen';
+
+  @override
+  String get errorLoadingPaymentHistory =>
+      'Fehler beim Laden der Zahlungshistorie';
+
+  @override
+  String get searchConversationsHint => 'Unterhaltungen suchen...';
+
+  @override
+  String get searchContactsHint => 'Kontakte suchen...';
+
+  @override
+  String get failedToStartConversation =>
+      'Unterhaltung konnte nicht gestartet werden';
+
+  @override
+  String get searchPropertiesMaintenanceMessages =>
+      'Immobilien, Wartung, Nachrichten suchen...';
+
+  @override
+  String get errorGeneric => 'Fehler';
+
+  @override
+  String get pleaseSelectProperty => 'Bitte wählen Sie eine Immobilie';
+
+  @override
+  String get maintenanceRequestSubmittedSuccessfully =>
+      'Wartungsanfrage erfolgreich eingereicht';
+
+  @override
+  String get failedToSubmitRequest => 'Anfrage konnte nicht eingereicht werden';
+
+  @override
+  String get statusUpdatedTo => 'Status aktualisiert auf';
+
+  @override
+  String get failedToUpdateStatus => 'Status konnte nicht aktualisiert werden';
+
+  @override
+  String get noteAddedSuccessfully => 'Notiz erfolgreich hinzugefügt';
+
+  @override
+  String get failedToAddNote => 'Notiz konnte nicht hinzugefügt werden';
+
+  @override
+  String get filterOptionsWillBeImplemented =>
+      'Filteroptionen werden implementiert';
+
+  @override
+  String get imagesSelected => 'Bild(er) ausgewählt';
+
+  @override
+  String get noImagesSelected => 'Keine Bilder ausgewählt';
+
+  @override
+  String get errorSelectingImages => 'Fehler beim Auswählen der Bilder';
+
+  @override
+  String get propertyUpdatedSuccessfully =>
+      'Immobilie erfolgreich aktualisiert!';
+
+  @override
+  String get propertyCreatedSuccessfully => 'Immobilie erfolgreich erstellt!';
+
+  @override
+  String get deleteService => 'Service löschen';
+
+  @override
+  String get serviceDeleted => 'Service gelöscht';
+
+  @override
+  String get searchPropertiesLandlordsMessages =>
+      'Immobilien, Vermieter, Nachrichten suchen...';
+
+  @override
+  String get errorLoadingConversations =>
+      'Fehler beim Laden der Unterhaltungen';
+
+  @override
+  String get allowViewBasicProfile =>
+      'Anderen Benutzern erlauben, Ihre grundlegenden Profilinformationen anzuzeigen';
+
+  @override
+  String get letUsersFindsPropertiesInSearch =>
+      'Anderen Benutzern erlauben, Ihre Immobilien in Suchergebnissen zu finden';
+
+  @override
+  String get shareUsageAnalytics => 'Nutzungsanalytik teilen';
+
+  @override
+  String get getUpdatesAboutNewFeatures =>
+      'Updates über neue Funktionen, Tipps und Sonderangebote erhalten';
+
+  @override
+  String get downloadCopyPersonalData =>
+      'Eine Kopie Ihrer persönlichen Daten herunterladen';
+
+  @override
+  String get permanentlyDeleteAccount =>
+      'Konto und alle Daten dauerhaft löschen';
+
+  @override
+  String get dataExportRequestSubmitted =>
+      'Datenexport-Anfrage eingereicht. Sie erhalten eine E-Mail mit dem Download-Link.';
+
+  @override
+  String get accountDeletionRequestSubmitted =>
+      'Kontolöschungs-Anfrage eingereicht. Diese Funktion wird bald verfügbar sein.';
+
+  @override
+  String get confirmNewPassword => 'Neues Passwort bestätigen';
+
+  @override
+  String get passwordChangedSuccessfully => 'Passwort erfolgreich geändert';
+
+  @override
+  String get failedToChangePassword => 'Passwort konnte nicht geändert werden';
+
+  @override
+  String get profileImageUploadComingSoon => 'Profilbild-Upload kommt bald';
+
+  @override
+  String get invalidChatParameters => 'Ungültige Chat-Parameter';
+
+  @override
+  String get allowOtherUsersViewProfile =>
+      'Anderen Benutzern erlauben, Ihre grundlegenden Profilinformationen anzuzeigen';
+
+  @override
+  String get letOtherUsersFindProperties =>
+      'Anderen Benutzern erlauben, Ihre Immobilien in Suchergebnissen zu finden';
+
+  @override
+  String get shareUsageAnalyticsDesc =>
+      'Nutzungsanalytik teilen, um die App zu verbessern';
+
+  @override
+  String get getUpdatesNewFeatures =>
+      'Updates über neue Funktionen, Tipps und Sonderangebote erhalten';
+
+  @override
+  String get downloadPersonalData =>
+      'Eine Kopie Ihrer persönlichen Daten herunterladen';
+
+  @override
+  String get permanentlyDeleteAccountData =>
+      'Konto und alle Daten dauerhaft löschen';
+
+  @override
+  String get dataExportRequestSubmittedMessage =>
+      'Datenexport-Anfrage eingereicht. Sie erhalten eine E-Mail mit dem Download-Link.';
+
+  @override
+  String get accountDeletionRequestSubmittedMessage =>
+      'Kontolöschungs-Anfrage eingereicht. Diese Funktion wird bald verfügbar sein.';
+
+  @override
+  String get currentPassword => 'Aktuelles Passwort';
+
+  @override
+  String get newPassword => 'Neues Passwort';
+
+  @override
+  String get confirmPassword => 'Passwort bestätigen';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwörter stimmen nicht überein';
+
+  @override
+  String get pleaseEnterCurrentPassword =>
+      'Bitte geben Sie Ihr aktuelles Passwort ein';
+
+  @override
+  String get pleaseEnterNewPassword => 'Bitte geben Sie ein neues Passwort ein';
+
+  @override
+  String get passwordTooShort => 'Passwort muss mindestens 6 Zeichen lang sein';
+
+  @override
+  String get currentPasswordIncorrect => 'Aktuelles Passwort ist falsch';
+
+  @override
+  String get privacyVisibility => 'Datenschutz & Sichtbarkeit';
+
+  @override
+  String get publicProfile => 'Öffentliches Profil';
+
+  @override
+  String get searchVisibility => 'Suchsichtbarkeit';
+
+  @override
+  String get dataAndAnalytics => 'Daten & Analytik';
+
+  @override
+  String get communicationPreferences => 'Kommunikationspräferenzen';
+
+  @override
+  String get marketingEmails => 'Marketing-E-Mails';
+
+  @override
+  String get dataManagement => 'Datenverwaltung';
+
+  @override
+  String get exportMyData => 'Meine Daten exportieren';
+
+  @override
+  String get requestDataExport => 'Datenexport anfordern';
+
+  @override
+  String get dangerZone => 'Gefahrenzone';
+
+  @override
+  String get thisActionCannotBeUndone =>
+      'Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get pleaseTypeConfirmToDelete =>
+      'Bitte tippen Sie \'BESTÄTIGEN\', um das Konto zu löschen:';
+
+  @override
+  String get typeConfirmHere => 'Hier \'BESTÄTIGEN\' eingeben...';
+
+  @override
+  String get pleaseTypeConfirm => 'Bitte tippen Sie \'BESTÄTIGEN\'';
+
+  @override
+  String get accountDeletion => 'Kontolöschung';
+
+  @override
+  String get areYouSureDeleteAccount =>
+      'Sind Sie sicher, dass Sie Ihr Konto löschen möchten?';
+
+  @override
+  String get thisWillPermanentlyDelete =>
+      'Dies wird dauerhaft alle Ihre Daten löschen, einschließlich:';
+
+  @override
+  String get allProperties => '• Alle Immobilien';
+
+  @override
+  String get allConversations => '• Alle Unterhaltungen';
+
+  @override
+  String get allDocuments => '• Alle Dokumente';
+
+  @override
+  String get allPaymentHistory => '• Alle Zahlungshistorie';
+
+  @override
+  String get profileInformation => '• Profilinformationen';
+
+  @override
+  String get requestDeletion => 'Löschung anfordern';
+
+  @override
+  String get editProfileInfo => 'Bearbeiten Sie Ihre Profilinformationen';
+
+  @override
+  String get firstName => 'Vorname';
+
+  @override
+  String get lastName => 'Nachname';
+
+  @override
+  String get phoneNumber => 'Telefonnummer';
+
+  @override
+  String get bio => 'Biografie';
+
+  @override
+  String get bioHint => 'Erzählen Sie anderen etwas über sich...';
+
+  @override
+  String get pleaseEnterFirstName => 'Bitte geben Sie Ihren Vornamen ein';
+
+  @override
+  String get pleaseEnterLastName => 'Bitte geben Sie Ihren Nachnamen ein';
+
+  @override
+  String get pleaseEnterValidEmail =>
+      'Bitte geben Sie eine gültige E-Mail-Adresse ein';
+
+  @override
+  String get phoneNumberOptional => 'Telefonnummer (optional)';
+
+  @override
+  String get saveChanges => 'Änderungen speichern';
+
+  @override
+  String get profileUpdated => 'Profil aktualisiert';
+
+  @override
+  String get profileUpdatedSuccessfully => 'Profil erfolgreich aktualisiert';
+
+  @override
+  String get failedToUpdateProfile => 'Profil konnte nicht aktualisiert werden';
+
+  @override
+  String get uploadProfileImage => 'Profilbild hochladen';
+
+  @override
+  String get takePhoto => 'Foto aufnehmen';
+
+  @override
+  String get chooseFromGallery => 'Aus Galerie wählen';
+
+  @override
+  String get removePhoto => 'Foto entfernen';
+
+  @override
+  String get tenant => 'Mieter';
+
+  @override
+  String get propertyManager => 'Immobilienverwalter';
+
+  @override
+  String get profileImageUpload => 'Profilbild-Upload kommt bald';
+
+  @override
+  String get searchPropertiesLandlords =>
+      'Immobilien, Vermieter, Nachrichten suchen...';
+
+  @override
+  String get startTypingToFindResults =>
+      'Beginnen Sie zu tippen, um Ergebnisse zu finden';
+
+  @override
+  String get tryDifferentSearchTerm =>
+      'Versuchen Sie einen anderen Suchbegriff';
+
+  @override
+  String get twoFactorAuthentication => 'Zwei-Faktor-Authentifizierung';
+
+  @override
+  String get removeTenant => 'Mieter entfernen';
+
+  @override
+  String get removeTenantConfirmation =>
+      'Sind Sie sicher, dass Sie diesen Mieter von der Immobilie entfernen möchten?';
+
+  @override
+  String get tenantRemovedSuccessfully => 'Mieter erfolgreich entfernt';
+
+  @override
+  String get failedToRemoveTenant => 'Fehler beim Entfernen des Mieters';
+
+  @override
+  String get invitations => 'Einladungen';
+}

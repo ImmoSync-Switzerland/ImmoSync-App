@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../providers/conversations_provider.dart';
 import '../providers/invitation_provider.dart';
 import '../../domain/models/conversation.dart';

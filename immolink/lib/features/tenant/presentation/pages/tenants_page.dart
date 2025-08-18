@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../chat/domain/models/contact_user.dart';
@@ -1155,53 +1155,72 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
   }
 
   void _showFilterOptions() {
+    String selectedFilter = 'all';
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter Tenants'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('All Tenants'),
-              leading: Radio<String>(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Filter Tenants'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('All Tenants'),
                 value: 'all',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (String? value) {
+                  if (value == null) return;
+                  setState(() {
+                    selectedFilter = value;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
-            ),
-            ListTile(
-              title: const Text('Active Tenants'),
-              leading: Radio<String>(
+              RadioListTile<String>(
+                title: const Text('Active Tenants'),
                 value: 'active',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (String? value) {
+                  if (value == null) return;
+                  setState(() {
+                    selectedFilter = value;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
-            ),
-            ListTile(
-              title: const Text('Inactive Tenants'),
-              leading: Radio<String>(
+              RadioListTile<String>(
+                title: const Text('Inactive Tenants'),
                 value: 'inactive',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (String? value) {
+                  if (value == null) return;
+                  setState(() {
+                    selectedFilter = value;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
-            ),
-            ListTile(
-              title: const Text('By Property Type'),
-              leading: Radio<String>(
+              RadioListTile<String>(
+                title: const Text('By Property Type'),
                 value: 'property_type',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (String? value) {
+                  if (value == null) return;
+                  setState(() {
+                    selectedFilter = value;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }

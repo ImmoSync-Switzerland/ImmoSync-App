@@ -24,6 +24,7 @@ const servicesRoutes = require('./routes/services');
 const ticketsRoutes = require('./routes/tickets');
 const paymentsRoutes = require('./routes/payments');
 const subscriptionsRoutes = require('./routes/subscriptions');
+const connectRoutes = require('./routes/connect');
 const activitiesRoutes = require('./routes/activities');
 
 // Enable CORS for all routes
@@ -33,6 +34,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Special handling for Stripe webhook - needs raw body
+app.use('/api/payments/stripe-webhook', express.raw({type: 'application/json'}));
+
+// Regular JSON parsing for all other routes
 app.use(express.json());
 
 // Serve static files from uploads directory
@@ -71,6 +76,7 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/connect', connectRoutes);
 app.use('/api/activities', activitiesRoutes);
 
 // Add specific route for /api/tenants that points to users/tenants

@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -19,9 +19,9 @@ dependencies:
   mongo_dart: ^0.10.3
   shared_preferences: ^2.5.1
   font_awesome_flutter: ^10.8.0
-  firebase_auth: ^5.4.2
-  cloud_firestore: ^5.6.3
-  file_picker: ^8.3.3
+  firebase_auth: ^4.20.0
+  cloud_firestore: ^4.17.0
+  file_picker: ^6.2.1
   image_picker: ^1.1.2
   uuid: ^4.5.1
   google_fonts: ^6.1.0
@@ -30,13 +30,19 @@ dependencies:
   url_launcher: ^6.3.1
   http: ^1.1.0
   http_parser: ^4.0.2
-  firebase_messaging: ^15.1.6
+  firebase_messaging: ^14.9.0
   flutter_local_notifications: ^18.0.1
   flutter_stripe: ^11.1.0
   webview_flutter: ^4.10.0
+  js: ^0.6.7
+  flutter_gen: ^5.11.0
 
 flutter:
   uses-material-design: true
   generate: true
   assets:
     - .env
+
+dependency_overrides:
+  web:
+    path: ./packages/web

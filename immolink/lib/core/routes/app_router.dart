@@ -38,6 +38,9 @@ import 'package:immolink/features/landlord/presentation/pages/landlord_services_
 import 'package:immolink/features/subscription/presentation/pages/landlord_subscription_page.dart';
 import 'package:immolink/features/subscription/presentation/pages/subscription_payment_page.dart';
 import 'package:immolink/features/subscription/domain/models/subscription.dart';
+import 'package:immolink/features/payment/presentation/pages/tenant_payment_page.dart';
+import 'package:immolink/features/payment/presentation/pages/landlord_connect_setup_page.dart';
+import 'package:immolink/features/payment/presentation/pages/landlord_connect_dashboard_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -161,6 +164,34 @@ final routerProvider = Provider<GoRouter>((ref) {
             isYearly: planData['isYearly'] as bool,
           );
         },
+      ),
+      // Payment routes for tenants
+      GoRoute(
+        path: '/payments/tenant',
+        builder: (context, state) {
+          final property = state.extra as Property?;
+          
+          if (property == null) {
+            return const Scaffold(
+              body: Center(child: Text('Invalid payment parameters')),
+            );
+          }
+          
+          return TenantPaymentPage(
+            property: property,
+            paymentType: state.uri.queryParameters['type'] ?? 'rent',
+          );
+        },
+      ),
+      // Connect setup for landlords
+      GoRoute(
+        path: '/connect/setup',
+        builder: (context, state) => const LandlordConnectSetupPage(),
+      ),
+      // Connect dashboard for landlords
+      GoRoute(
+        path: '/connect/dashboard',
+        builder: (context, state) => const LandlordConnectDashboardPage(),
       ),
       // Settings route
       GoRoute(

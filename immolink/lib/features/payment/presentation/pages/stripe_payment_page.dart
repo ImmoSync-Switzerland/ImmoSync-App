@@ -8,7 +8,7 @@ import 'package:immolink/features/auth/presentation/providers/auth_provider.dart
 import 'package:immolink/features/payment/domain/models/payment.dart';
 import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immolink/features/property/presentation/providers/property_providers.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 
 class StripePaymentPage extends ConsumerStatefulWidget {
   final String? propertyId;

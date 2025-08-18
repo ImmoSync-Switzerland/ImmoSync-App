@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/property/domain/models/property.dart';
 import 'package:immolink/features/home/domain/services/dashboard_service.dart';
@@ -772,6 +772,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Row(
                       children: [
                         Expanded(
+                          flex: 2, // Make subscription button take up 2/3 width
                           child: _buildQuickAccessButton(
                             'Subscription',
                             Icons.payment_outlined,
@@ -783,9 +784,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(child: Container()), // Empty space
-                        const SizedBox(width: 12),
-                        Expanded(child: Container()), // Empty space
+                        Expanded(
+                          flex: 1, // Empty space takes 1/3 width
+                          child: Container(),
+                        ),
                       ],
                     ),
                   ],
@@ -877,6 +879,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Row(
                       children: [
                         Expanded(
+                          flex: 2, // Make subscription button take up 2/3 width
                           child: _buildQuickAccessButton(
                             'Subscription',
                             Icons.payment_outlined,
@@ -888,9 +891,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(child: Container()), // Empty space
-                        const SizedBox(width: 16),
-                        Expanded(child: Container()), // Empty space
+                        Expanded(
+                          flex: 1, // Empty space takes 1/3 width
+                          child: Container(),
+                        ),
                       ],
                     ),
                   ],
@@ -908,7 +912,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(14), // Reduced from 20
+        height: 120, // Fixed height for consistency
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -918,7 +923,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               iconColor.withValues(alpha: 0.08),
             ],
           ),
-          borderRadius: BorderRadius.circular(14), // Reduced from 16
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: iconColor.withValues(alpha: 0.2),
             width: 1,
@@ -926,25 +931,26 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           boxShadow: [
             BoxShadow(
               color: iconColor.withValues(alpha: 0.15),
-              blurRadius: 12, // Reduced from 16
-              offset: const Offset(0, 4), // Reduced from 6
+              blurRadius: 12,
+              offset: const Offset(0, 4),
               spreadRadius: 0,
             ),
             BoxShadow(
               color: colors.shadowColor,
-              blurRadius: 6, // Reduced from 8
+              blurRadius: 6,
               offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
           ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12), // Reduced from 16
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: colors.surfaceCards.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(10), // Reduced from 12
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: colors.surfaceCards.withValues(alpha: 0.6),
                   width: 1,
@@ -952,7 +958,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 boxShadow: [
                   BoxShadow(
                     color: colors.surfaceCards.withValues(alpha: 0.8),
-                    blurRadius: 6, // Reduced from 8
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                     spreadRadius: 0,
                   ),
@@ -960,15 +966,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
               child: Icon(
                 icon, 
-                size: 20, // Reduced from 24
+                size: 20,
                 color: iconColor,
               ),
             ),
-            const SizedBox(height: 12), // Reduced from 16
+            const SizedBox(height: 12),
             Text(
               label,
               style: TextStyle(
-                fontSize: 13, // Reduced from 14
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: colors.textPrimary,
                 letterSpacing: -0.2,
@@ -994,6 +1000,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
         return GestureDetector(
           onTap: hasActiveSubscription ? onPressed : () => _showSubscriptionRequiredDialog(),
           child: Container(
+            height: 120, // Fixed height for consistency
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -1028,6 +1035,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ],
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -1068,7 +1076,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8), // Reduced spacing to fit
                 Text(
                   label,
                   style: TextStyle(
@@ -1078,27 +1086,35 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     letterSpacing: -0.2,
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 1, // Reduced to 1 line to fit
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (!hasActiveSubscription)
                   Text(
                     'Subscription Required',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 9, // Smaller font size
                       fontWeight: FontWeight.w500,
                       color: colors.warning,
                       letterSpacing: -0.1,
                     ),
                     textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
               ],
             ),
           ),
         );
       },
-      loading: () => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
-      error: (_, __) => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+      loading: () => SizedBox(
+        height: 120,
+        child: _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+      ),
+      error: (_, __) => SizedBox(
+        height: 120,
+        child: _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+      ),
     );
   }
 

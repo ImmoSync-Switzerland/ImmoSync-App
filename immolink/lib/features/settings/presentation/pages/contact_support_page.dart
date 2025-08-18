@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -265,7 +265,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
 
               // Category dropdown
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   labelText: l10n.category,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -288,7 +288,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
 
               // Priority dropdown
               DropdownButtonFormField<String>(
-                value: _selectedPriority,
+                initialValue: _selectedPriority,
                 decoration: InputDecoration(
                   labelText: l10n.priority,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),

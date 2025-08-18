@@ -6,7 +6,7 @@ import 'package:immolink/core/providers/dynamic_colors_provider.dart';
 import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immolink/features/subscription/domain/models/subscription.dart';
 import 'package:immolink/features/subscription/presentation/providers/subscription_providers.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
@@ -1569,45 +1569,57 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   }
 
   void _showFilterDialog() {
+    String selectedFilter = 'all';
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter Options'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('All'),
-              leading: Radio<String>(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Filter Options'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('All'),
                 value: 'all',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (value) {
+                  setState(() {
+                    selectedFilter = value!;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
-            ),
-            ListTile(
-              title: const Text('Recent'),
-              leading: Radio<String>(
+              RadioListTile<String>(
+                title: const Text('Recent'),
                 value: 'recent',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (value) {
+                  setState(() {
+                    selectedFilter = value!;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
-            ),
-            ListTile(
-              title: const Text('Important'),
-              leading: Radio<String>(
+              RadioListTile<String>(
+                title: const Text('Important'),
                 value: 'important',
-                groupValue: 'all',
-                onChanged: (value) => Navigator.of(context).pop(),
+                groupValue: selectedFilter,
+                onChanged: (value) {
+                  setState(() {
+                    selectedFilter = value!;
+                  });
+                  Navigator.of(context).pop();
+                },
               ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }

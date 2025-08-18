@@ -11,6 +11,9 @@ if (process.env.STRIPE_SECRET_KEY) {
   console.warn('Warning: STRIPE_SECRET_KEY not found in environment variables');
 }
 
+// Webhook endpoint secret
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
 // Helper function to check if Stripe is available
 function requireStripe(res) {
   if (!stripe) {
@@ -19,6 +22,187 @@ function requireStripe(res) {
     });
   }
   return null;
+}
+
+// Stripe Webhook - Handle subscription events
+router.post('/stripe-webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    if (!endpointSecret) {
+      console.warn('Warning: STRIPE_WEBHOOK_SECRET not configured');
+      return res.status(400).send('Webhook secret not configured');
+    }
+
+    // Verify webhook signature
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    console.log(`Processing webhook event: ${event.type}`);
+    
+    switch (event.type) {
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+        await handleSubscriptionChange(db, event.data.object);
+        break;
+        
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(db, event.data.object);
+        break;
+        
+      case 'invoice.payment_succeeded':
+        await handlePaymentSucceeded(db, event.data.object);
+        break;
+        
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(db, event.data.object);
+        break;
+        
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+    
+    res.json({received: true});
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Helper function to handle subscription creation/updates
+async function handleSubscriptionChange(db, subscription) {
+  try {
+    console.log('Processing subscription change:', subscription.id);
+    
+    // Get customer details from Stripe
+    const customer = await stripe.customers.retrieve(subscription.customer);
+    
+    // Find user by email
+    const user = await db.collection('users').findOne({ email: customer.email });
+    if (!user) {
+      console.warn(`User not found for email: ${customer.email}`);
+      return;
+    }
+    
+    // Get the price details to determine plan type
+    const price = await stripe.prices.retrieve(subscription.items.data[0].price.id);
+    const product = await stripe.products.retrieve(price.product);
+    
+    // Map product name to plan type
+    let planType = 'basic';
+    const productName = product.name.toLowerCase();
+    if (productName.includes('pro')) {
+      planType = 'pro';
+    } else if (productName.includes('enterprise')) {
+      planType = 'enterprise';
+    }
+    
+    // Update user's subscription
+    const subscriptionData = {
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: subscription.customer,
+      status: subscription.status,
+      planType: planType,
+      startDate: new Date(subscription.created * 1000),
+      endDate: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+      lastUpdated: new Date()
+    };
+    
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      { 
+        $set: { 
+          subscription: subscriptionData,
+          stripeCustomerId: subscription.customer
+        }
+      }
+    );
+    
+    console.log(`Updated subscription for user ${user.email}: ${planType} plan`);
+  } catch (error) {
+    console.error('Error handling subscription change:', error);
+  }
+}
+
+// Helper function to handle subscription deletion
+async function handleSubscriptionDeleted(db, subscription) {
+  try {
+    console.log('Processing subscription deletion:', subscription.id);
+    
+    await db.collection('users').updateOne(
+      { 'subscription.stripeSubscriptionId': subscription.id },
+      { 
+        $set: { 
+          'subscription.status': 'canceled',
+          'subscription.lastUpdated': new Date()
+        }
+      }
+    );
+    
+    console.log(`Subscription canceled: ${subscription.id}`);
+  } catch (error) {
+    console.error('Error handling subscription deletion:', error);
+  }
+}
+
+// Helper function to handle successful payments
+async function handlePaymentSucceeded(db, invoice) {
+  try {
+    console.log('Processing successful payment:', invoice.id);
+    
+    if (invoice.subscription) {
+      // Update subscription status to active
+      await db.collection('users').updateOne(
+        { 'subscription.stripeSubscriptionId': invoice.subscription },
+        { 
+          $set: { 
+            'subscription.status': 'active',
+            'subscription.lastUpdated': new Date()
+          }
+        }
+      );
+      
+      console.log(`Payment succeeded for subscription: ${invoice.subscription}`);
+    }
+  } catch (error) {
+    console.error('Error handling payment success:', error);
+  }
+}
+
+// Helper function to handle failed payments
+async function handlePaymentFailed(db, invoice) {
+  try {
+    console.log('Processing failed payment:', invoice.id);
+    
+    if (invoice.subscription) {
+      // Update subscription status
+      await db.collection('users').updateOne(
+        { 'subscription.stripeSubscriptionId': invoice.subscription },
+        { 
+          $set: { 
+            'subscription.status': 'past_due',
+            'subscription.lastUpdated': new Date()
+          }
+        }
+      );
+      
+      console.log(`Payment failed for subscription: ${invoice.subscription}`);
+    }
+  } catch (error) {
+    console.error('Error handling payment failure:', error);
+  }
 }
 
 // Get payments by tenant
@@ -97,6 +281,93 @@ router.get('/landlord/:landlordId', async (req, res) => {
     res.status(500).json({ message: 'Error fetching payments' });
   } finally {
     await client.close();
+  }
+});
+
+// Get available subscription plans from Stripe
+router.get('/subscription-plans', async (req, res) => {
+  console.log('📋 Subscription plans endpoint called');
+  const stripeError = requireStripe(res);
+  if (stripeError) {
+    console.log('❌ Stripe not configured');
+    return stripeError;
+  }
+
+  try {
+    console.log('🔍 Fetching products from Stripe...');
+    // Fetch all active products from Stripe
+    const products = await stripe.products.list({
+      active: true,
+      limit: 100,
+    });
+    console.log(`✅ Found ${products.data.length} products`);
+
+    console.log('🔍 Fetching prices from Stripe...');
+    // Fetch prices for all products
+    const allPrices = await stripe.prices.list({
+      active: true,
+      limit: 100,
+    });
+    console.log(`✅ Found ${allPrices.data.length} prices`);
+
+    // Group prices by product and build plan structure
+    const plans = [];
+    
+    for (const product of products.data) {
+      console.log(`📦 Processing product: ${product.name}`);
+      // Filter prices for this product
+      const productPrices = allPrices.data.filter(price => 
+        price.product === product.id && price.recurring
+      );
+
+      if (productPrices.length > 0) {
+        // Find monthly and yearly prices
+        const monthlyPrice = productPrices.find(p => p.recurring.interval === 'month');
+        const yearlyPrice = productPrices.find(p => p.recurring.interval === 'year');
+
+        // Extract features from product description or metadata
+        let features = [];
+        if (product.description) {
+          features = product.description.split(',').map(f => f.trim());
+        }
+        if (product.metadata && product.metadata.features) {
+          features = product.metadata.features.split(',').map(f => f.trim());
+        }
+
+        const plan = {
+          id: product.metadata.planId || product.name.toLowerCase().replace(/\s+/g, '_'),
+          name: product.name,
+          description: product.description || '',
+          features: features,
+          monthlyPrice: monthlyPrice ? monthlyPrice.unit_amount / 100 : null,
+          yearlyPrice: yearlyPrice ? yearlyPrice.unit_amount / 100 : null,
+          currency: monthlyPrice?.currency || yearlyPrice?.currency || 'usd',
+          stripeProductId: product.id,
+          monthlyPriceId: monthlyPrice?.id,
+          yearlyPriceId: yearlyPrice?.id,
+        };
+
+        plans.push(plan);
+        console.log(`✅ Added plan: ${plan.name}`);
+      }
+    }
+
+    // Sort plans by price (lowest first)
+    plans.sort((a, b) => {
+      const priceA = a.monthlyPrice || a.yearlyPrice || 0;
+      const priceB = b.monthlyPrice || b.yearlyPrice || 0;
+      return priceA - priceB;
+    });
+
+    console.log(`🎉 Successfully returning ${plans.length} plans`);
+    res.json(plans);
+
+  } catch (error) {
+    console.error('❌ Error fetching subscription plans:', error);
+    res.status(500).json({ 
+      message: 'Error fetching subscription plans',
+      error: error.message 
+    });
   }
 });
 
@@ -621,54 +892,48 @@ router.post('/create-subscription-checkout', async (req, res) => {
       });
     }
 
-    // Define your subscription plans here
-    const plans = {
-      'basic': {
-        name: 'Basic Plan',
-        monthlyPrice: 999, // $9.99 in cents
-        yearlyPrice: 9999, // $99.99 in cents
-        features: ['Up to 5 properties', 'Basic support', 'Mobile app access']
-      },
-      'pro': {
-        name: 'Pro Plan',
-        monthlyPrice: 1999, // $19.99 in cents
-        yearlyPrice: 19999, // $199.99 in cents
-        features: ['Up to 20 properties', 'Priority support', 'Advanced analytics', 'Mobile app access']
-      },
-      'enterprise': {
-        name: 'Enterprise Plan',
-        monthlyPrice: 4999, // $49.99 in cents
-        yearlyPrice: 49999, // $499.99 in cents
-        features: ['Unlimited properties', 'Premium support', 'Advanced analytics', 'Custom integrations', 'Mobile app access']
-      }
-    };
+    // Fetch all products from Stripe
+    const products = await stripe.products.list({
+      active: true,
+      limit: 100,
+    });
 
-    const selectedPlan = plans[planId];
-    if (!selectedPlan) {
-      return res.status(400).json({ message: 'Invalid plan ID' });
+    // Find the product by name (planId should match product name in Stripe)
+    const product = products.data.find(p => 
+      p.name.toLowerCase().includes(planId.toLowerCase()) ||
+      p.metadata.planId === planId
+    );
+
+    if (!product) {
+      return res.status(400).json({ 
+        message: `Plan '${planId}' not found in Stripe. Please create the product in Stripe Dashboard first.` 
+      });
     }
 
-    const price = isYearly ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice;
-    const interval = isYearly ? 'year' : 'month';
-
-    // Create or retrieve the price in Stripe
-    const stripePrice = await stripe.prices.create({
-      unit_amount: price,
-      currency: 'usd',
-      recurring: {
-        interval: interval,
-      },
-      product_data: {
-        name: selectedPlan.name,
-      },
+    // Fetch prices for this product
+    const prices = await stripe.prices.list({
+      product: product.id,
+      active: true,
     });
+
+    // Find the appropriate price based on billing interval
+    const targetInterval = isYearly ? 'year' : 'month';
+    const price = prices.data.find(p => 
+      p.recurring && p.recurring.interval === targetInterval
+    );
+
+    if (!price) {
+      return res.status(400).json({ 
+        message: `No ${targetInterval}ly price found for plan '${planId}'. Please create the price in Stripe Dashboard.` 
+      });
+    }
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
-          price: stripePrice.id,
+          price: price.id,
           quantity: 1,
         },
       ],
@@ -680,12 +945,18 @@ router.post('/create-subscription-checkout', async (req, res) => {
         planId: planId,
         userId: userId,
         isYearly: isYearly.toString(),
+        productId: product.id,
+        priceId: price.id,
       },
     });
 
     res.json({ 
       checkoutUrl: session.url,
-      sessionId: session.id 
+      sessionId: session.id,
+      productName: product.name,
+      priceAmount: price.unit_amount,
+      currency: price.currency,
+      interval: price.recurring.interval,
     });
 
   } catch (error) {

@@ -9,7 +9,7 @@ class SubscriptionService {
   Future<List<SubscriptionPlan>> getAvailablePlans() async {
     try {
       final response = await http.get(
-        Uri.parse('$_apiUrl/subscriptions/plans'),
+        Uri.parse('$_apiUrl/payments/subscription-plans'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -17,11 +17,14 @@ class SubscriptionService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => SubscriptionPlan.fromMap(json)).toList();
       } else {
-        throw Exception('Failed to load subscription plans');
+        print('Failed to load plans from Stripe: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to load subscription plans from Stripe');
       }
     } catch (e) {
-      print('Error getting subscription plans: $e');
-      // Return default plans for offline mode
+      print('Error getting subscription plans from Stripe: $e');
+      // Return default plans as fallback
+      print('Falling back to default plans...');
       return _getDefaultPlans();
     }
   }
@@ -35,10 +38,21 @@ class SubscriptionService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data != null ? UserSubscription.fromMap(data) : null;
+        if (data != null) {
+          try {
+            return UserSubscription.fromMap(data);
+          } catch (e) {
+            print('Error parsing subscription data: $e');
+            print('Raw subscription data: $data');
+            return null;
+          }
+        }
+        return null;
       } else if (response.statusCode == 404) {
         return null; // No subscription found
       } else {
+        print('Failed to get user subscription: ${response.statusCode}');
+        print('Response body: ${response.body}');
         throw Exception('Failed to load user subscription');
       }
     } catch (e) {

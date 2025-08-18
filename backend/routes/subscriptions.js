@@ -493,4 +493,110 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 });
 
+// Sync user subscriptions from Stripe
+router.post('/sync/:userId', async (req, res) => {
+  const stripeError = requireStripe(res);
+  if (stripeError) return stripeError;
+
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const userId = req.params.userId;
+    console.log(`🔄 Syncing subscriptions for user: ${userId}`);
+    
+    // Get user from database to find their email or Stripe customer ID
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    console.log(`👤 Found user: ${user.email}`);
+    
+    // Search for customers by email in Stripe
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 10,
+    });
+    
+    console.log(`🔍 Found ${customers.data.length} customers in Stripe`);
+    
+    if (customers.data.length === 0) {
+      return res.status(404).json({ message: 'No Stripe customer found for this user' });
+    }
+    
+    const customer = customers.data[0];
+    console.log(`✅ Using Stripe customer: ${customer.id}`);
+    
+    // Get active subscriptions for this customer
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      status: 'active',
+      limit: 10,
+    });
+    
+    console.log(`📋 Found ${subscriptions.data.length} active subscriptions in Stripe`);
+    
+    if (subscriptions.data.length === 0) {
+      return res.status(404).json({ message: 'No active subscriptions found in Stripe' });
+    }
+    
+    // Sync each subscription to local database
+    const syncedSubscriptions = [];
+    
+    for (const stripeSubscription of subscriptions.data) {
+      console.log(`🔄 Processing subscription: ${stripeSubscription.id}`);
+      
+      // Get the product information
+      const priceId = stripeSubscription.items.data[0].price.id;
+      const price = await stripe.prices.retrieve(priceId);
+      const product = await stripe.products.retrieve(price.product);
+      
+      const planId = product.metadata.planId || product.name.toLowerCase().replace(/\s+/g, '_');
+      
+      const subscriptionData = {
+        userId: userId,
+        stripeSubscriptionId: stripeSubscription.id,
+        stripeCustomerId: customer.id,
+        planId: planId,
+        status: stripeSubscription.status,
+        billingInterval: price.recurring.interval,
+        amount: price.unit_amount / 100,
+        currency: price.currency,
+        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        createdAt: new Date(stripeSubscription.created * 1000),
+        updatedAt: new Date(),
+      };
+      
+      // Upsert subscription in database
+      await db.collection('subscriptions').updateOne(
+        { stripeSubscriptionId: stripeSubscription.id },
+        { $set: subscriptionData },
+        { upsert: true }
+      );
+      
+      syncedSubscriptions.push(subscriptionData);
+      console.log(`✅ Synced subscription: ${planId} (${stripeSubscription.status})`);
+    }
+    
+    res.json({
+      message: 'Subscriptions synced successfully',
+      syncedCount: syncedSubscriptions.length,
+      subscriptions: syncedSubscriptions,
+    });
+    
+  } catch (error) {
+    console.error('❌ Error syncing subscriptions:', error);
+    res.status(500).json({ 
+      message: 'Error syncing subscriptions',
+      error: error.message 
+    });
+  } finally {
+    await client.close();
+  }
+});
+
 module.exports = router;
