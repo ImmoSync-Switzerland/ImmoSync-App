@@ -26,6 +26,7 @@ const paymentsRoutes = require('./routes/payments');
 const subscriptionsRoutes = require('./routes/subscriptions');
 const connectRoutes = require('./routes/connect');
 const activitiesRoutes = require('./routes/activities');
+const documentsRoutes = require('./routes/documents');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -36,6 +37,7 @@ app.use(cors({
 
 // Special handling for Stripe webhook - needs raw body
 app.use('/api/payments/stripe-webhook', express.raw({type: 'application/json'}));
+app.use('/api/connect/webhook', express.raw({type: 'application/json'}));
 
 // Regular JSON parsing for all other routes
 app.use(express.json());
@@ -78,6 +80,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/connect', connectRoutes);
 app.use('/api/activities', activitiesRoutes);
+app.use('/api/documents', documentsRoutes);
 
 // Add specific route for /api/tenants that points to users/tenants
 app.use('/api/tenants', (req, res, next) => {

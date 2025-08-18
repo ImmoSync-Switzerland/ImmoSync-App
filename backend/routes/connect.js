@@ -443,4 +443,102 @@ router.get('/payment-methods/:country', async (req, res) => {
   res.json(paymentMethods[country] || paymentMethods['default']);
 });
 
+// Webhook endpoint for Stripe events
+router.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  const stripeError = requireStripe(res);
+  if (stripeError) return stripeError;
+
+  const client = new MongoClient(dbUri);
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!endpointSecret) {
+    console.error('Stripe webhook secret not configured');
+    return res.status(400).send('Webhook secret not configured');
+  }
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        console.log('Payment succeeded:', paymentIntent.id);
+        
+        // Update payment record in database
+        await db.collection('payments').updateOne(
+          { stripePaymentIntentId: paymentIntent.id },
+          { 
+            $set: { 
+              status: 'completed',
+              completedAt: new Date(),
+              updatedAt: new Date()
+            }
+          }
+        );
+        break;
+        
+      case 'payment_intent.payment_failed':
+        const failedPayment = event.data.object;
+        console.log('Payment failed:', failedPayment.id);
+        
+        // Update payment record in database
+        await db.collection('payments').updateOne(
+          { stripePaymentIntentId: failedPayment.id },
+          { 
+            $set: { 
+              status: 'failed',
+              failureReason: failedPayment.last_payment_error?.message || 'Unknown error',
+              updatedAt: new Date()
+            }
+          }
+        );
+        break;
+        
+      case 'account.updated':
+        const account = event.data.object;
+        console.log('Connect account updated:', account.id);
+        
+        // Update landlord account status
+        await db.collection('users').updateOne(
+          { stripeConnectAccountId: account.id },
+          { 
+            $set: { 
+              connectAccountStatus: account.charges_enabled ? 'active' : 'pending',
+              connectAccountDetails: {
+                chargesEnabled: account.charges_enabled,
+                payoutsEnabled: account.payouts_enabled,
+                country: account.country,
+                updatedAt: new Date()
+              },
+              updatedAt: new Date()
+            }
+          }
+        );
+        break;
+        
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({received: true});
+  } catch (error) {
+    console.error('Error handling webhook:', error);
+    res.status(500).json({ error: 'Webhook handling failed' });
+  } finally {
+    await client.close();
+  }
+});
+
 module.exports = router;

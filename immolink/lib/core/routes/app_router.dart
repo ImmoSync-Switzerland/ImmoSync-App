@@ -35,6 +35,7 @@ import 'package:immolink/features/tenant/presentation/pages/tenants_page.dart';
 import 'package:immolink/features/search/presentation/pages/universal_search_page.dart';
 import 'package:immolink/features/tenant/presentation/pages/tenant_services_booking_page.dart';
 import 'package:immolink/features/landlord/presentation/pages/landlord_services_booking_page.dart';
+import 'package:immolink/features/landlord/presentation/pages/landlord_documents_page.dart';
 import 'package:immolink/features/subscription/presentation/pages/landlord_subscription_page.dart';
 import 'package:immolink/features/subscription/presentation/pages/subscription_payment_page.dart';
 import 'package:immolink/features/subscription/domain/models/subscription.dart';
@@ -142,6 +143,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/landlord/services',
         builder: (context, state) => const LandlordServicesBookingPage(),
+      ),
+      // Landlord documents management route
+      GoRoute(
+        path: '/landlord/documents',
+        builder: (context, state) => const LandlordDocumentsPage(),
       ),
       // Subscription routes
       GoRoute(

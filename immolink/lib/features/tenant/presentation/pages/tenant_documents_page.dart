@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../documents/presentation/providers/document_providers.dart';
+import '../../../documents/presentation/widgets/document_card.dart';
+import '../../../documents/domain/models/document_model.dart';
 
 class TenantDocumentsPage extends ConsumerStatefulWidget {
   const TenantDocumentsPage({super.key});
@@ -17,11 +21,26 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  Map<String, int> _categoryCounts = {};
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
+    _loadCategoryCounts();
+  }
+
+  void _loadCategoryCounts() async {
+    final authState = ref.read(authProvider);
+    if (authState.userId != null) {
+      final documentService = ref.read(documentServiceProvider);
+      final counts = await documentService.getDocumentCountsByCategory(authState.userId!);
+      if (mounted) {
+        setState(() {
+          _categoryCounts = counts;
+        });
+      }
+    }
   }
 
   void _setupAnimations() {
@@ -47,6 +66,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
+    final documentsAsync = ref.watch(tenantDocumentsProvider);
+    final recentDocuments = ref.watch(recentDocumentsProvider);
+    final documentStats = ref.watch(documentStatsProvider);
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -54,19 +76,29 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildWelcomeSection(currentUser?.fullName ?? 'Mieter', colors),
-                const SizedBox(height: 32),
-                _buildDocumentCategories(l10n, colors),
-                const SizedBox(height: 24),
-                _buildQuickActions(l10n, colors),
-                const SizedBox(height: 24),
-                _buildRecentActivity(l10n, colors),
-              ],
+          child: RefreshIndicator(
+            onRefresh: () async {
+              ref.read(tenantDocumentsProvider.notifier).refresh();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildWelcomeSection(currentUser?.fullName ?? 'Mieter', colors),
+                  const SizedBox(height: 24),
+                  _buildDocumentStats(documentStats, colors),
+                  const SizedBox(height: 32),
+                  _buildDocumentCategories(l10n, colors),
+                  const SizedBox(height: 24),
+                  _buildQuickActions(l10n, colors),
+                  const SizedBox(height: 24),
+                  _buildRecentDocuments(recentDocuments, l10n, colors),
+                  const SizedBox(height: 24),
+                  _buildAllDocuments(documentsAsync, l10n, colors),
+                ],
+              ),
             ),
           ),
         ),
@@ -164,28 +196,28 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         'subtitle': 'Ihr aktueller Mietvertrag',
         'icon': Icons.description,
         'color': Colors.blue,
-        'count': '1 Dokument',
+        'count': '${_categoryCounts['Mietvertrag'] ?? 0} Dokument${(_categoryCounts['Mietvertrag'] ?? 0) == 1 ? '' : 'e'}',
       },
       {
         'title': 'Nebenkosten',
         'subtitle': 'Abrechnungen und Belege',
         'icon': Icons.receipt_long,
         'color': Colors.green,
-        'count': '3 Dokumente',
+        'count': '${_categoryCounts['Nebenkosten'] ?? 0} Dokument${(_categoryCounts['Nebenkosten'] ?? 0) == 1 ? '' : 'e'}',
       },
       {
         'title': 'Protokolle',
         'subtitle': 'Übergabe- und Abnahmeprotokolle',
         'icon': Icons.checklist,
         'color': Colors.orange,
-        'count': '2 Dokumente',
+        'count': '${_categoryCounts['Protokolle'] ?? 0} Dokument${(_categoryCounts['Protokolle'] ?? 0) == 1 ? '' : 'e'}',
       },
       {
         'title': 'Korrespondenz',
         'subtitle': 'E-Mails und Briefe',
         'icon': Icons.email,
         'color': Colors.purple,
-        'count': '5 Dokumente',
+        'count': '${_categoryCounts['Korrespondenz'] ?? 0} Dokument${(_categoryCounts['Korrespondenz'] ?? 0) == 1 ? '' : 'e'}',
       },
     ];
 
@@ -201,19 +233,31 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           ),
         ),
         const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.1,
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return _buildCategoryCard(category, colors);
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate optimal grid layout based on screen width
+            final screenWidth = constraints.maxWidth;
+            final crossAxisCount = screenWidth > 600 ? 3 : 2;
+            final crossAxisSpacing = 12.0;
+            final mainAxisSpacing = 12.0;
+            final itemWidth = (screenWidth - (crossAxisSpacing * (crossAxisCount - 1))) / crossAxisCount;
+            final childAspectRatio = itemWidth / 120; // Fixed height of 120
+            
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossAxisSpacing,
+                mainAxisSpacing: mainAxisSpacing,
+                childAspectRatio: childAspectRatio,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                return _buildCategoryCard(category, colors);
+              },
+            );
           },
         ),
       ],
@@ -227,7 +271,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         _showComingSoonDialog();
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        height: 120, // Fixed height to prevent overflow
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: colors.surfaceCards,
           borderRadius: BorderRadius.circular(16),
@@ -242,45 +287,59 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: (category['color'] as Color).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                category['icon'] as IconData,
-                color: category['color'] as Color,
-                size: 28,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (category['color'] as Color).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    category['icon'] as IconData,
+                    color: category['color'] as Color,
+                    size: 20,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  category['count'] as String,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: category['color'] as Color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              category['title'] as String,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              category['subtitle'] as String,
-              style: TextStyle(
-                fontSize: 12,
-                color: colors.textSecondary,
-                height: 1.3,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              category['count'] as String,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: category['color'] as Color,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category['title'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  category['subtitle'] as String,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colors.textSecondary,
+                    height: 1.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ],
             ),
           ],
         ),
@@ -308,7 +367,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                 'Dokument hochladen',
                 Icons.cloud_upload,
                 colors.primaryAccent,
-                () => _showComingSoonDialog(),
+                () => _uploadDocument(),
                 colors,
               ),
             ),
@@ -381,113 +440,49 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  Widget _buildRecentActivity(AppLocalizations l10n, DynamicAppColors colors) {
-    final activities = [
-      {
-        'title': 'Nebenkostenabrechnung 2024',
-        'subtitle': 'Vor 2 Tagen hinzugefügt',
-        'icon': Icons.receipt,
-        'status': 'Neu',
-      },
-      {
-        'title': 'Mietvertrag aktualisiert',
-        'subtitle': 'Vor 1 Woche aktualisiert',
-        'icon': Icons.description,
-        'status': 'Aktualisiert',
-      },
-      {
-        'title': 'Übergabeprotokoll',
-        'subtitle': 'Vor 2 Wochen hinzugefügt',
-        'icon': Icons.checklist,
-        'status': 'Archiviert',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Letzte Aktivitäten',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: colors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: activities.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final activity = activities[index];
-            return _buildActivityItem(activity, colors);
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActivityItem(Map<String, dynamic> activity, DynamicAppColors colors) {
+  Widget _buildDocumentStats(Map<String, int> stats, DynamicAppColors colors) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.borderLight),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: colors.primaryAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              activity['icon'] as IconData,
-              color: colors.primaryAccent,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity['title'] as String,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  activity['subtitle'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colors.textSecondary,
-                  ),
-                ),
-              ],
+            child: _buildStatItem(
+              'Total', 
+              '${stats['total'] ?? 0}', 
+              Icons.folder, 
+              colors.primaryAccent,
+              colors,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _getStatusColor(activity['status'] as String).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+          Container(width: 1, height: 40, color: colors.dividerSeparator),
+          Expanded(
+            child: _buildStatItem(
+              'Expiring', 
+              '${stats['expiring'] ?? 0}', 
+              Icons.warning, 
+              Colors.orange,
+              colors,
             ),
-            child: Text(
-              activity['status'] as String,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _getStatusColor(activity['status'] as String),
-              ),
+          ),
+          Container(width: 1, height: 40, color: colors.dividerSeparator),
+          Expanded(
+            child: _buildStatItem(
+              'Expired', 
+              '${stats['expired'] ?? 0}', 
+              Icons.error, 
+              Colors.red,
+              colors,
             ),
           ),
         ],
@@ -495,17 +490,327 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Neu':
-        return Colors.green;
-      case 'Aktualisiert':
-        return Colors.blue;
-      case 'Archiviert':
-        return Colors.grey;
-      default:
-        return Colors.grey;
+  Widget _buildStatItem(String label, String value, IconData icon, Color color, DynamicAppColors colors) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: colors.textPrimary,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: colors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentDocuments(List<DocumentModel> documents, AppLocalizations l10n, DynamicAppColors colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Documents',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
+              ),
+            ),
+            if (documents.isNotEmpty)
+              TextButton(
+                onPressed: () {
+                  // Show all documents
+                },
+                child: Text(
+                  'View All',
+                  style: TextStyle(color: colors.primaryAccent),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (documents.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: colors.surfaceCards,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.folder_open,
+                    size: 48,
+                    color: colors.textSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No recent documents',
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...documents.take(3).map((document) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: DocumentCard(
+              document: document,
+              onTap: () => _viewDocument(document),
+              onDownload: () => _downloadDocument(document),
+              onDelete: null, // Tenants can't delete documents
+              showActions: true,
+            ),
+          )),
+      ],
+    );
+  }
+
+  Widget _buildAllDocuments(AsyncValue<List<DocumentModel>> documentsAsync, AppLocalizations l10n, DynamicAppColors colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'All Documents',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: colors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        documentsAsync.when(
+          data: (documents) {
+            if (documents.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: colors.surfaceCards,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.folder_open,
+                        size: 64,
+                        color: colors.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No documents available',
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Documents shared by your landlord will appear here',
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              children: documents.map((document) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: DocumentCard(
+                  document: document,
+                  onTap: () => _viewDocument(document),
+                  onDownload: () => _downloadDocument(document),
+                  onDelete: null, // Tenants can't delete documents
+                  showActions: true,
+                ),
+              )).toList(),
+            );
+          },
+          loading: () => Center(
+            child: Column(
+              children: [
+                CircularProgressIndicator(color: colors.primaryAccent),
+                const SizedBox(height: 16),
+                Text(
+                  'Loading documents...',
+                  style: TextStyle(color: colors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          error: (error, stack) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: colors.errorLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.error,
+                    size: 48,
+                    color: colors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading documents',
+                    style: TextStyle(
+                      color: colors.error,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: TextStyle(
+                      color: colors.error,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.read(tenantDocumentsProvider.notifier).refresh(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.error,
+                      foregroundColor: colors.textOnAccent,
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _viewDocument(DocumentModel document) {
+    // Implement document viewing functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening ${document.name}...'),
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
+  void _downloadDocument(DocumentModel document) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Downloading ${document.name}...'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      final documentService = ref.read(documentServiceProvider);
+      await documentService.downloadDocument(document);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${document.name} downloaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to download ${document.name}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
+  }
+
+  // Removed unused _buildRecentActivity method
+
+  Future<void> _uploadDocument() async {
+    final colors = ref.read(dynamicColorsProvider);
+    final authState = ref.read(authProvider);
+    
+    if (authState.userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please log in to upload documents'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => _UploadDocumentDialog(
+        onUpload: (name, description, category, file) async {
+          try {
+            final documentService = ref.read(documentServiceProvider);
+            await documentService.uploadDocument(
+              file: file,
+              name: name,
+              description: description,
+              category: category,
+              uploadedBy: authState.userId!,
+            );
+            
+            // Refresh the documents and category counts
+            _loadCategoryCounts();
+            ref.invalidate(tenantDocumentsProvider);
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Document "$name" uploaded successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to upload document: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+        colors: colors,
+      ),
+    );
   }
 
   void _showComingSoonDialog() {
@@ -533,6 +838,279 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           ),
         ],
       ),
+    );
+  }
+}
+
+class _UploadDocumentDialog extends StatefulWidget {
+  final Function(String name, String description, String category, PlatformFile file) onUpload;
+  final DynamicAppColors colors;
+
+  const _UploadDocumentDialog({
+    required this.onUpload,
+    required this.colors,
+  });
+
+  @override
+  State<_UploadDocumentDialog> createState() => _UploadDocumentDialogState();
+}
+
+class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  String _selectedCategory = 'Lease Agreement';
+  PlatformFile? _selectedFile;
+  bool _isUploading = false;
+
+  final List<String> _categories = [
+    'Lease Agreement',
+    'Utility Bills', 
+    'Inspection Reports',
+    'Correspondence',
+    'Other'
+  ];
+
+  final Map<String, String> _categoryTranslations = {
+    'Lease Agreement': 'Mietvertrag',
+    'Utility Bills': 'Nebenkosten',
+    'Inspection Reports': 'Protokolle',
+    'Correspondence': 'Korrespondenz',
+    'Other': 'Sonstiges',
+  };
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'txt', 'png', 'jpg', 'jpeg'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _selectedFile = result.files.first;
+          _nameController.text = _selectedFile!.name;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking file: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _upload() async {
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a file'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a name'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      await widget.onUpload(
+        _nameController.text.trim(),
+        _descriptionController.text.trim(),
+        _selectedCategory,
+        _selectedFile!,
+      );
+      
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      // Error is handled by parent
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: widget.colors.surfaceCards,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        'Dokument hochladen',
+        style: TextStyle(color: widget.colors.textPrimary),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // File picker
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: widget.colors.borderLight),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    _selectedFile != null ? Icons.check_circle : Icons.cloud_upload,
+                    size: 48,
+                    color: _selectedFile != null ? Colors.green : widget.colors.textSecondary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _selectedFile?.name ?? 'Datei auswählen',
+                    style: TextStyle(color: widget.colors.textPrimary),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _pickFile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.colors.primaryAccent,
+                    ),
+                    child: const Text('Durchsuchen'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Document name
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Dokumentname',
+                labelStyle: TextStyle(color: widget.colors.textSecondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: widget.colors.borderLight),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: widget.colors.primaryAccent),
+                ),
+              ),
+              style: TextStyle(color: widget.colors.textPrimary),
+            ),
+            const SizedBox(height: 16),
+            
+            // Category dropdown
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: 'Kategorie',
+                labelStyle: TextStyle(color: widget.colors.textSecondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: widget.colors.borderLight),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: widget.colors.primaryAccent),
+                ),
+              ),
+              dropdownColor: widget.colors.surfaceCards,
+              style: TextStyle(color: widget.colors.textPrimary),
+              items: _categories.map((category) {
+                return DropdownMenuItem(
+                  value: category,
+                  child: Text(_categoryTranslations[category] ?? category),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            
+            // Description
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Beschreibung (optional)',
+                labelStyle: TextStyle(color: widget.colors.textSecondary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: widget.colors.borderLight),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: widget.colors.primaryAccent),
+                ),
+              ),
+              style: TextStyle(color: widget.colors.textPrimary),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
+          child: Text(
+            'Abbrechen',
+            style: TextStyle(color: widget.colors.textSecondary),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: _isUploading ? null : _upload,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: widget.colors.primaryAccent,
+          ),
+          child: _isUploading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('Hochladen'),
+        ),
+      ],
     );
   }
 }

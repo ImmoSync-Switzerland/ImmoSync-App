@@ -772,7 +772,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Row(
                       children: [
                         Expanded(
-                          flex: 2, // Make subscription button take up 2/3 width
+                          child: _buildQuickAccessButton(
+                            'Documents',
+                            Icons.folder_outlined,
+                            colors.success,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/landlord/documents');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
                           child: _buildQuickAccessButton(
                             'Subscription',
                             Icons.payment_outlined,
@@ -782,11 +793,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                               context.push('/subscription/landlord');
                             },
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 1, // Empty space takes 1/3 width
-                          child: Container(),
                         ),
                       ],
                     ),
@@ -879,7 +885,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Row(
                       children: [
                         Expanded(
-                          flex: 2, // Make subscription button take up 2/3 width
+                          child: _buildQuickAccessButton(
+                            'Documents',
+                            Icons.folder_outlined,
+                            colors.success,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/landlord/documents');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
                           child: _buildQuickAccessButton(
                             'Subscription',
                             Icons.payment_outlined,
@@ -889,11 +906,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                               context.push('/subscription/landlord');
                             },
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 1, // Empty space takes 1/3 width
-                          child: Container(),
                         ),
                       ],
                     ),
