@@ -70,7 +70,7 @@ router.get('/tenant/:tenantId', async (req, res) => {
     const tenantId = req.params.tenantId;
     console.log(`\n=== Fetching documents for tenant: ${tenantId} ===`);
     
-    // First, get the tenant's information
+    // First, get the tenant's property information
     const tenant = await db.collection('users')
       .findOne({ _id: new ObjectId(tenantId) });
     
@@ -82,32 +82,16 @@ router.get('/tenant/:tenantId', async (req, res) => {
     } : 'null');
     
     let propertyIds = [];
-    
-    // Method 1: Check if tenant has propertyId field
     if (tenant && tenant.propertyId) {
+      // Handle both string and ObjectId formats
       const propertyId = tenant.propertyId.toString();
       propertyIds.push(propertyId);
-      propertyIds.push(tenant.propertyId);
+      propertyIds.push(tenant.propertyId); // Also try the original format
     }
     
-    // Method 2: Find properties where this tenant is in tenantIds array
-    const propertiesWithTenant = await db.collection('properties')
-      .find({ tenantIds: { $in: [tenantId] } })
-      .toArray();
+    console.log('Property IDs to search for:', propertyIds);
     
-    console.log(`Found ${propertiesWithTenant.length} properties where tenant is assigned:`);
-    propertiesWithTenant.forEach(prop => {
-      const propId = prop._id.toString();
-      if (!propertyIds.includes(propId)) {
-        propertyIds.push(propId);
-        propertyIds.push(prop._id); // Also add ObjectId format
-      }
-      console.log(`- Property: ${prop.address?.street || prop._id} (${propId})`);
-    });
-    
-    console.log('All property IDs to search for:', propertyIds);
-    
-    // Find documents assigned to this tenant, their properties, or global documents
+    // Find documents assigned to this tenant, their property, or global documents
     const documents = await db.collection('documents')
       .find({
         $or: [

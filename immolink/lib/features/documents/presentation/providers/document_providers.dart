@@ -10,8 +10,7 @@ final documentServiceProvider = Provider<DocumentService>((ref) {
 
 // All documents provider
 final documentsProvider = StateNotifierProvider<DocumentsNotifier, AsyncValue<List<DocumentModel>>>((ref) {
-  final authState = ref.watch(authProvider);
-  return DocumentsNotifier(ref.watch(documentServiceProvider), tenantId: authState.userId);
+  return DocumentsNotifier(ref.watch(documentServiceProvider));
 });
 
 // Landlord documents provider (for documents uploaded by the current landlord)
@@ -96,23 +95,16 @@ final documentStatsProvider = Provider<Map<String, int>>((ref) {
 });
 
 class DocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentModel>>> {
-  DocumentsNotifier(this._documentService, {this.tenantId}) : super(const AsyncValue.loading()) {
+  DocumentsNotifier(this._documentService) : super(const AsyncValue.loading()) {
     _loadDocuments();
   }
 
   final DocumentService _documentService;
-  final String? tenantId;
 
   Future<void> _loadDocuments() async {
     try {
       state = const AsyncValue.loading();
-      List<DocumentModel> documents = const [];
-      if (tenantId != null && tenantId!.isNotEmpty) {
-        documents = await _documentService.getDocumentsForTenant(tenantId!);
-      } else {
-        // Fallback: keep empty to avoid deprecated call and confusion
-        documents = const [];
-      }
+      final documents = await _documentService.getAllDocuments();
       state = AsyncValue.data(documents);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
