@@ -97,82 +97,27 @@ class DocumentModel {
   }
 
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
-    String _parseId(dynamic value) {
-      if (value is String) return value;
-      if (value is Map) {
-        final dynamic oid = value['\$oid'];
-        if (oid is String) return oid;
-      }
-      return value?.toString() ?? '';
-    }
-
-    int _parseInt(dynamic value) {
-      if (value is int) return value;
-      if (value is String) {
-        final parsed = int.tryParse(value);
-        if (parsed != null) return parsed;
-      }
-      return 0;
-    }
-
-    DateTime _parseDate(dynamic value) {
-      if (value == null) return DateTime.fromMillisecondsSinceEpoch(0);
-      if (value is DateTime) return value;
-      if (value is String) {
-        final dt = DateTime.tryParse(value);
-        if (dt != null) return dt;
-      }
-      if (value is int) {
-        try { return DateTime.fromMillisecondsSinceEpoch(value); } catch (_) {}
-      }
-      if (value is Map) {
-        final dynamic dateVal = value['\$date'];
-        if (dateVal is String) {
-          final dt = DateTime.tryParse(dateVal);
-          if (dt != null) return dt;
-        }
-        if (dateVal is int) {
-          try { return DateTime.fromMillisecondsSinceEpoch(dateVal); } catch (_) {}
-        }
-      }
-      // Fallback
-      return DateTime.fromMillisecondsSinceEpoch(0);
-    }
-
-    DateTime? _parseNullableDate(dynamic value) {
-      if (value == null) return null;
-      final dt = _parseDate(value);
-      // Treat epoch 0 fallback as null when original was non-null but unparsable
-      return dt.millisecondsSinceEpoch == 0 && value is! int ? null : dt;
-    }
-
-    List<String> _parseIdList(dynamic value) {
-      final list = <String>[];
-      if (value is List) {
-        for (final e in value) {
-          list.add(_parseId(e));
-        }
-      }
-      return list;
-    }
-
     return DocumentModel(
-      id: _parseId(json['_id'] ?? json['id']),
-      name: (json['name'] ?? '') as String,
-      description: (json['description'] ?? '') as String,
-      category: (json['category'] ?? 'other') as String,
-      filePath: (json['filePath'] ?? '') as String,
-      mimeType: (json['mimeType'] ?? 'application/octet-stream') as String,
-      fileSize: _parseInt(json['fileSize']),
-      uploadDate: _parseDate(json['uploadDate']),
-      lastModified: _parseNullableDate(json['lastModified']),
-      uploadedBy: (json['uploadedBy'] ?? '') as String,
-      assignedTenantIds: _parseIdList(json['assignedTenantIds'] ?? const []),
-      propertyIds: _parseIdList(json['propertyIds'] ?? const []),
-      metadata: json['metadata'] is Map<String, dynamic> ? json['metadata'] as Map<String, dynamic> : null,
-      status: (json['status'] ?? 'active') as String,
-      isRequired: (json['isRequired'] ?? false) as bool,
-      expiryDate: _parseNullableDate(json['expiryDate']),
+      id: json['_id']?['\$oid'] ?? json['_id'] ?? json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      category: json['category'] as String,
+      filePath: json['filePath'] as String,
+      mimeType: json['mimeType'] as String,
+      fileSize: json['fileSize'] as int,
+      uploadDate: DateTime.parse(json['uploadDate'] as String),
+      lastModified: json['lastModified'] != null 
+          ? DateTime.parse(json['lastModified'] as String) 
+          : null,
+      uploadedBy: json['uploadedBy'] as String,
+      assignedTenantIds: List<String>.from(json['assignedTenantIds'] as List? ?? []),
+      propertyIds: List<String>.from(json['propertyIds'] as List? ?? []),
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      status: json['status'] as String? ?? 'active',
+      isRequired: json['isRequired'] as bool? ?? false,
+      expiryDate: json['expiryDate'] != null 
+          ? DateTime.parse(json['expiryDate'] as String) 
+          : null,
     );
   }
 

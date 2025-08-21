@@ -21,7 +21,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tenants => 'Inquilini';
 
   @override
-  String get services => 'Services';
+  String get services => 'Servizi';
 
   @override
   String get messages => 'Messaggi';

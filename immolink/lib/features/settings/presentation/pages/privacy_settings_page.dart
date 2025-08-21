@@ -169,7 +169,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 ref.read(privacySettingsProvider.notifier).updateShowProfile(value);
               },
               secondary: Icon(Icons.person, color: colors.primaryAccent),
-              activeColor: colors.primaryAccent,
+              activeThumbColor: colors.primaryAccent,
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
@@ -180,7 +180,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 ref.read(privacySettingsProvider.notifier).updateShowContactInfo(value);
               },
               secondary: Icon(Icons.contact_mail, color: colors.primaryAccent),
-              activeColor: colors.primaryAccent,
+              activeThumbColor: colors.primaryAccent,
             ),
           ],
         ),
@@ -231,7 +231,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 ref.read(privacySettingsProvider.notifier).updateAllowPropertySearch(value);
               },
               secondary: Icon(Icons.search, color: colors.primaryAccent),
-              activeColor: colors.primaryAccent,
+              activeThumbColor: colors.primaryAccent,
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
@@ -242,7 +242,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 ref.read(privacySettingsProvider.notifier).updateShareAnalytics(value);
               },
               secondary: Icon(Icons.analytics, color: colors.primaryAccent),
-              activeColor: colors.primaryAccent,
+              activeThumbColor: colors.primaryAccent,
             ),
           ],
         ),
@@ -293,7 +293,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 ref.read(privacySettingsProvider.notifier).updateReceiveMarketing(value);
               },
               secondary: Icon(Icons.email, color: colors.primaryAccent),
-              activeColor: colors.primaryAccent,
+              activeThumbColor: colors.primaryAccent,
             ),
           ],
         ),

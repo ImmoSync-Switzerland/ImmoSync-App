@@ -30,14 +30,10 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
   final _taxIdController = TextEditingController();
   
   DateTime? _selectedBirthDate;
-  String _selectedRole = 'tenant'; // Default to tenant as it's more common
+  String _selectedRole = 'landlord';
   bool _isCompany = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  
-  // State tracking for enhanced feedback
-  String? _currentError;
-  bool _isShowingDialog = false;
 
   @override
   void initState() {
@@ -81,31 +77,6 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    final registerState = ref.watch(registerProvider);
-    
-    // Listen for registration state changes
-    ref.listen<RegisterState>(registerProvider, (previous, current) {
-      if (current.isSuccess && !current.isLoading && !_isShowingDialog) {
-        print('RegisterPage: Registration successful, showing success dialog');
-        _isShowingDialog = true;
-        _showSuccessDialog(context);
-      } else if (current.error != null && !current.isLoading) {
-        print('RegisterPage: Registration failed with error: ${current.error}');
-        setState(() {
-          _currentError = current.error;
-        });
-        
-        if (mounted && !_isShowingDialog) {
-          _isShowingDialog = true;
-          _showErrorSnackBar(context, current.error!);
-        }
-      } else if (current.isLoading) {
-        // Clear error when starting new registration attempt
-        setState(() {
-          _currentError = null;
-        });
-      }
-    });
     
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -190,8 +161,6 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
           children: [
             _buildEntityTypeSwitcher(colors),
             const SizedBox(height: 24),
-            _buildRoleSelector(colors),
-            const SizedBox(height: 24),
             
             if (_isCompany) ...[
               _buildCompanyFields(l10n, colors),
@@ -201,44 +170,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
             
             const SizedBox(height: 24),
             _buildCommonFields(l10n, colors),
-            const SizedBox(height: 24),
-            // Error display
-            if (_currentError != null) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEE2E2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFEF4444),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Color(0xFFDC2626),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _formatErrorMessage(_currentError!),
-                        style: const TextStyle(
-                          color: Color(0xFFDC2626),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 8),
+            const SizedBox(height: 32),
             _buildRegisterButton(l10n, colors),
             const SizedBox(height: 24),
             _buildLoginLink(l10n, colors),
@@ -305,102 +237,6 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRoleSelector(DynamicAppColors colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'I am registering as',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.primaryBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.borderLight),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedRole = 'landlord'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: _selectedRole == 'landlord' ? colors.primaryAccent : Colors.transparent,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.home_work,
-                          size: 20,
-                          color: _selectedRole == 'landlord' ? Colors.white : colors.textPrimary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Landlord',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _selectedRole == 'landlord' ? Colors.white : colors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedRole = 'tenant'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: _selectedRole == 'tenant' ? colors.primaryAccent : Colors.transparent,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 20,
-                          color: _selectedRole == 'tenant' ? Colors.white : colors.textPrimary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Tenant',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _selectedRole == 'tenant' ? Colors.white : colors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -735,162 +571,40 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
 
     final notifier = ref.read(registerProvider.notifier);
     
-    await notifier.register(
-      fullName: _fullNameController.text.trim(),
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      role: _selectedRole,
-      phone: _phoneController.text.trim(),
-      isCompany: _isCompany,
-      companyName: _isCompany ? _companyNameController.text.trim() : null,
-      companyAddress: _isCompany ? _companyAddressController.text.trim() : null,
-      taxId: _isCompany ? _taxIdController.text.trim() : null,
-      address: !_isCompany ? _addressController.text.trim() : null,
-      birthDate: !_isCompany ? _selectedBirthDate : null,
-    );
-    // State changes are handled by the listener in build()
-  }
-
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 10,
-          backgroundColor: Colors.white,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFFFFFFF),
-                  Color(0xFFF0F9FF),
-                ],
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_outline,
-                    color: Color(0xFF16A34A),
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Registration Successful!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Your account has been created successfully. You can now log in with your credentials.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF64748B),
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _isShowingDialog = false;
-                      Navigator.of(context).pop();
-                      context.go('/login');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A34A),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Go to Login',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    try {
+      await notifier.register(
+        fullName: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        role: _selectedRole,
+        phone: _phoneController.text.trim(),
+        isCompany: _isCompany,
+        companyName: _isCompany ? _companyNameController.text.trim() : null,
+        companyAddress: _isCompany ? _companyAddressController.text.trim() : null,
+        taxId: _isCompany ? _taxIdController.text.trim() : null,
+        address: !_isCompany ? _addressController.text.trim() : null,
+        birthDate: !_isCompany ? _selectedBirthDate : null,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registrierung erfolgreich! Sie können sich jetzt anmelden.'),
+            backgroundColor: Colors.green,
           ),
         );
-      },
-    );
-  }
-
-  void _showErrorSnackBar(BuildContext context, String error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _formatErrorMessage(error),
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFFDC2626),
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        action: SnackBarAction(
-          label: 'Dismiss',
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            _isShowingDialog = false;
-          },
-        ),
-      ),
-    ).closed.then((_) {
-      _isShowingDialog = false;
-    });
-  }
-
-  String _formatErrorMessage(String error) {
-    print('RegisterPage: Formatting error message: $error');
-    
-    if (error.contains('Email already exists') || error.contains('already registered')) {
-      return 'This email is already registered. Please use a different email or try logging in.';
-    } else if (error.contains('Invalid email')) {
-      return 'Please enter a valid email address.';
-    } else if (error.contains('Password') && error.contains('weak')) {
-      return 'Password is too weak. Please use a stronger password.';
-    } else if (error.contains('Invalid response') || error.contains('301') || error.contains('Moved Permanently')) {
-      return 'Server connection error. Please check your internet connection and try again.';
-    } else if (error.contains('Network') || error.contains('connection') || error.contains('Failed host lookup')) {
-      return 'Network error. Please check your internet connection and try again.';
-    } else if (error.contains('timeout')) {
-      return 'Request timed out. Please try again.';
-    } else if (error.contains('Exception:')) {
-      String cleanError = error.replaceFirst('Exception: ', '');
-      return cleanError.isEmpty ? 'Registration failed. Please try again.' : cleanError;
-    } else {
-      return 'Registration failed. Please check your information and try again.';
+        context.go('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        final error = ref.read(registerProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registrierung fehlgeschlagen: ${error ?? "Unbekannter Fehler"}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

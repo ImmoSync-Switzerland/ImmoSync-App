@@ -639,7 +639,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: category,
+                  initialValue: category,
                   decoration: InputDecoration(
                     labelText: 'Category',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),

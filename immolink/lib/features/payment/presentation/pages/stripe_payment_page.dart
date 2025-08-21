@@ -211,7 +211,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
           child: Column(
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedPropertyId,
+                initialValue: _selectedPropertyId,
                 decoration: InputDecoration(
                   labelText: 'Select Property',
                   border: OutlineInputBorder(
@@ -281,7 +281,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
           child: Column(
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedPaymentType,
+                initialValue: _selectedPaymentType,
                 decoration: InputDecoration(
                   labelText: 'Payment Type',
                   border: OutlineInputBorder(

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'ImmoSync';
+  String get appTitle => 'ImmoLink';
 
   @override
   String get dashboard => 'Dashboard';

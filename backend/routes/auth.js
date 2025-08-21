@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { MongoClient } = require('mongodb');
+const crypto = require('crypto');
+const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
-const { sendVerificationEmail } = require('./email');
 
 router.post('/register', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -27,22 +26,6 @@ router.post('/register', async (req, res) => {
       birthDate
     } = req.body;
 
-    // Check if email already exists
-    const existingUser = await db.collection('users').findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ 
-        message: 'Registration failed', 
-        error: 'Email already registered' 
-      });
-    }
-
-    // Generate email verification token
-    const verificationToken = jwt.sign(
-      { email: email, type: 'email-verification' }, 
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
-    );
-
     // Create user document with enhanced fields
     const newUser = {
       email: email,
@@ -52,9 +35,7 @@ router.post('/register', async (req, res) => {
       phone: phone,
       isCompany: isCompany || false,
       isAdmin: false,
-      isValidated: false, // User must verify email first
-      emailVerified: false,
-      verificationToken: verificationToken,
+      isValidated: true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -64,12 +45,11 @@ router.post('/register', async (req, res) => {
       newUser.companyName = companyName;
       newUser.companyAddress = companyAddress;
       newUser.taxId = taxId;
-      // Companies don't have birth dates, use a placeholder date
-      newUser.birthDate = new Date('1900-01-01');
     } else {
       newUser.address = address;
-      // Always set birthDate, use placeholder if not provided
-      newUser.birthDate = birthDate ? new Date(birthDate) : new Date('1900-01-01');
+      if (birthDate) {
+        newUser.birthDate = new Date(birthDate);
+      }
     }
 
     // Log document for verification
@@ -77,33 +57,53 @@ router.post('/register', async (req, res) => {
 
     const result = await db.collection('users').insertOne(newUser);
     
-    // Update the verification token with the actual user ID
-    const finalVerificationToken = jwt.sign(
-      { userId: result.insertedId.toString(), type: 'email-verification' }, 
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
-    );
-    
-    // Update user with the final verification token
-    await db.collection('users').updateOne(
-      { _id: result.insertedId },
-      { $set: { verificationToken: finalVerificationToken } }
-    );
-    
-    // Send verification email
+    // Send registration confirmation email
     try {
-      await sendVerificationEmail(email, finalVerificationToken);
-      console.log('Verification email sent to:', email);
+      const emailEndpoint = `${process.env.API_URL || 'http://localhost:3000/api'}/email/send-registration-confirmation`;
+      const emailData = {
+        userEmail: email,
+        userName: fullName
+      };
+      
+      // Use fetch or http to call the email endpoint
+      const http = require('http');
+      const https = require('https');
+      const url = require('url');
+      
+      const parsedUrl = url.parse(emailEndpoint);
+      const httpModule = parsedUrl.protocol === 'https:' ? https : http;
+      
+      const postData = JSON.stringify(emailData);
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+        path: parsedUrl.path,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+      
+      const req = httpModule.request(options, (res) => {
+        console.log('Registration email sent, status:', res.statusCode);
+      });
+      
+      req.on('error', (e) => {
+        console.error('Error sending registration email:', e.message);
+      });
+      
+      req.write(postData);
+      req.end();
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Don't fail registration if email fails, just log it
+      console.error('Failed to send registration email:', emailError);
+      // Don't fail registration if email fails
     }
     
     res.status(201).json({
       success: true,
       userId: result.insertedId,
-      message: 'Registration successful! Please check your email to verify your account.',
-      emailSent: true
+      message: 'Registration successful'
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -138,14 +138,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      return res.status(403).json({ 
-        message: 'Please verify your email address before logging in',
-        emailVerificationRequired: true
-      });
-    }
-
     // Create session or token
     const sessionData = {
       userId: user._id,
@@ -161,6 +153,191 @@ router.post('/login', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Forgot password endpoint
+router.post('/forgot-password', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        message: 'Email is required' 
+      });
+    }
+    
+    // Find user by email
+    const user = await db.collection('users').findOne({ email: email });
+    
+    // Always return success for security (don't reveal if email exists)
+    if (!user) {
+      return res.status(200).json({ 
+        message: 'If an account with this email exists, you will receive a password reset link.' 
+      });
+    }
+    
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+    
+    // Save reset token to user
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      { 
+        $set: { 
+          resetPasswordToken: resetToken,
+          resetPasswordExpiry: resetTokenExpiry,
+          updatedAt: new Date()
+        } 
+      }
+    );
+    
+    // Send password reset email
+    try {
+      const emailEndpoint = `${process.env.API_URL || 'http://localhost:3000/api'}/email/send-password-reset`;
+      
+      const emailData = {
+        userEmail: email,
+        resetToken: resetToken
+      };
+      
+      console.log('🔐 Attempting to send password reset email...');
+      console.log('📧 Email endpoint:', emailEndpoint);
+      console.log('📩 Email data:', JSON.stringify(emailData, null, 2));
+      
+      const http = require('http');
+      const https = require('https');
+      const url = require('url');
+      
+      const parsedUrl = url.parse(emailEndpoint);
+      const httpModule = parsedUrl.protocol === 'https:' ? https : http;
+      
+      const postData = JSON.stringify(emailData);
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+        path: parsedUrl.path,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+      
+      console.log('🌐 HTTP request options:', JSON.stringify(options, null, 2));
+      
+      const req = httpModule.request(options, (emailRes) => {
+        let responseData = '';
+        
+        emailRes.on('data', (chunk) => {
+          responseData += chunk;
+        });
+        
+        emailRes.on('end', () => {
+          console.log('📨 Password reset email response status:', emailRes.statusCode);
+          console.log('📨 Password reset email response headers:', emailRes.headers);
+          console.log('📨 Password reset email response body:', responseData);
+          
+          if (emailRes.statusCode >= 400) {
+            console.error('❌ Password reset email failed with status:', emailRes.statusCode);
+            console.error('❌ Response body:', responseData);
+          } else {
+            console.log('✅ Password reset email sent successfully');
+          }
+        });
+      });
+      
+      req.on('error', (e) => {
+        console.error('❌ Error sending password reset email:', e.message);
+        console.error('❌ Full error:', e);
+      });
+      
+      req.write(postData);
+      req.end();
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+    }
+    
+    res.status(200).json({ 
+      message: 'If an account with this email exists, you will receive a password reset link.' 
+    });
+    
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Error processing forgot password request' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Reset password endpoint
+router.post('/reset-password', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ 
+        message: 'Reset token and new password are required' 
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        message: 'Password must be at least 6 characters long' 
+      });
+    }
+    
+    // Find user with valid reset token
+    const user = await db.collection('users').findOne({ 
+      resetPasswordToken: token,
+      resetPasswordExpiry: { $gt: new Date() }
+    });
+    
+    if (!user) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired reset token' 
+      });
+    }
+    
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password and clear reset token
+    await db.collection('users').updateOne(
+      { _id: user._id },
+      { 
+        $set: { 
+          password: hashedPassword,
+          passwordChangedAt: new Date(),
+          updatedAt: new Date()
+        },
+        $unset: {
+          resetPasswordToken: 1,
+          resetPasswordExpiry: 1
+        }
+      }
+    );
+    
+    res.status(200).json({ 
+      message: 'Password reset successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: 'Error resetting password' });
   } finally {
     await client.close();
   }

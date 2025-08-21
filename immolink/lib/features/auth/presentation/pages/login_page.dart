@@ -67,38 +67,28 @@ class _LoginPageState extends ConsumerState<LoginPage>
       } else if (current.error != null && !current.isLoading) {
         // Set error state to display inline
         print('LoginPage: Setting error state: ${current.error}');
+        print('LoginPage: _currentError before setState: $_currentError');
         setState(() {
           _currentError = current.error;
         });
+        print('LoginPage: _currentError after setState: $_currentError');
         
         // Also try dialog if mounted and not already showing
         if (mounted && !_isShowingErrorDialog) {
           print('LoginPage: Showing error dialog for: ${current.error}');
           _isShowingErrorDialog = true;
-          _showErrorDialog(context, current.error!);
           
-          // Also show SnackBar as fallback
+          // Show a SnackBar as a fallback if dialog doesn't work
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                _formatErrorMessage(current.error!),
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFFDC2626),
+              content: Text('Login failed: ${current.error}'),
+              backgroundColor: Colors.red,
               duration: const Duration(seconds: 4),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              action: SnackBarAction(
-                label: 'Dismiss',
-                textColor: Colors.white,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                },
-              ),
             ),
           );
+          
+          _showErrorDialog(context, current.error!);
         }
       } else if (current.isLoading) {
         // Clear error when starting new login attempt
@@ -176,13 +166,20 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   'assets/icon/app_icon.png',
                   width: 80,
                   height: 80,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.home_work,
+                      size: 40,
+                      color: Color(0xFF2563EB),
+                    );
+                  },
                 ),
               ),
             ),
             const SizedBox(height: 16),
             const Text(
-              'ImmoSync',
+              'ImmoLink',
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
@@ -191,7 +188,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ),
             const Text(
-              'Property Management Made Simple',
+              'Your Property Management Solution',
               style: TextStyle(
                 color: Color(0xFF64748B), // Slate gray
                 fontSize: 16,
@@ -278,26 +275,47 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.red.shade200,
-                    width: 1,
+                    color: Colors.red.shade400,
+                    width: 2,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.shade200.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.error_outline,
                       color: Colors.red.shade600,
-                      size: 20,
+                      size: 24,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        _currentError!,
-                        style: TextStyle(
-                          color: Colors.red.shade700,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Login Failed',
+                            style: TextStyle(
+                              color: Colors.red.shade800,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatErrorMessage(_currentError!),
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -305,44 +323,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ],
             _buildForgotPassword(),
-            const SizedBox(height: 24),
-            // Error display
-            if (_currentError != null) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEE2E2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFEF4444),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Color(0xFFDC2626),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _formatErrorMessage(_currentError!),
-                        style: const TextStyle(
-                          color: Color(0xFFDC2626),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 8),
+            const SizedBox(height: 32),
             if (authState.isLoading)
               Center(
                 child: CircularProgressIndicator(
@@ -508,7 +489,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
-        onPressed: () => context.go('/forgot-password'),
+        onPressed: () {
+          context.push('/forgot-password');
+        },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 4),
           minimumSize: Size.zero,
@@ -732,23 +715,22 @@ class _LoginPageState extends ConsumerState<LoginPage>
   }
 
   String _formatErrorMessage(String error) {
-    // Clean up common error messages to be more user-friendly
-    print('LoginPage: Formatting error message: $error');
+    // Remove "Exception: " prefix if present
+    String cleanError = error.replaceFirst('Exception: ', '');
     
-    if (error.contains('Invalid credentials') || error.contains('401')) {
+    // Clean up common error messages to be more user-friendly
+    if (cleanError.contains('Invalid credentials') || cleanError.contains('401')) {
       return 'Invalid email or password. Please check your credentials and try again.';
-    } else if (error.contains('Invalid response') || error.contains('301') || error.contains('Moved Permanently')) {
-      return 'Server connection error. Please check your internet connection and try again.';
-    } else if (error.contains('Network') || error.contains('connection') || error.contains('Failed host lookup')) {
+    } else if (cleanError.contains('Network') || cleanError.contains('connection') || cleanError.contains('Connection refused')) {
       return 'Network error. Please check your internet connection and try again.';
-    } else if (error.contains('timeout')) {
+    } else if (cleanError.contains('timeout')) {
       return 'Request timed out. Please try again.';
-    } else if (error.contains('Exception:')) {
-      // Clean up Exception: prefix
-      String cleanError = error.replaceFirst('Exception: ', '');
-      return cleanError.isEmpty ? 'Login failed. Please try again.' : cleanError;
+    } else if (cleanError.contains('SocketException')) {
+      return 'Unable to connect to server. Please check your internet connection.';
+    } else if (cleanError.toLowerCase().contains('login failed')) {
+      return 'Login failed. Please check your email and password.';
     } else {
-      return 'Login failed. Please try again.';
+      return cleanError.isNotEmpty ? cleanError : 'Login failed. Please try again.';
     }
   }
 

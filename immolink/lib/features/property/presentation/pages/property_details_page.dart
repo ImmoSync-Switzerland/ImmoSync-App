@@ -13,6 +13,7 @@ import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../core/config/db_config.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/currency_provider.dart';
 
@@ -31,14 +32,15 @@ class PropertyDetailsPage extends ConsumerWidget {
     
     // If it looks like a MongoDB ObjectId (24 hex characters), construct MongoDB image URL
     if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-      final mongoUrl = 'https://backend.immosync.ch/api/images/$imageIdOrPath';
+      final mongoUrl = '${DbConfig.apiUrl}/images/$imageIdOrPath';
       print('Image looks like MongoDB ID, using: $mongoUrl');
       return mongoUrl;
     }
     
     // Fallback: if it's a local file, construct backend URL
     final filename = imageIdOrPath.split('/').last.split('\\').last;
-    final fallbackUrl = 'https://backend.immosync.ch/uploads/$filename';
+    final baseUrl = DbConfig.apiUrl.replaceAll('/api', '');
+    final fallbackUrl = '$baseUrl/uploads/$filename';
     print('Image fallback URL: $fallbackUrl');
     return fallbackUrl;
   }

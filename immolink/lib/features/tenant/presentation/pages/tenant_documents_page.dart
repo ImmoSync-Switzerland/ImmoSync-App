@@ -1028,7 +1028,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
             
             // Category dropdown
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: InputDecoration(
                 labelText: 'Kategorie',
                 labelStyle: TextStyle(color: widget.colors.textSecondary),

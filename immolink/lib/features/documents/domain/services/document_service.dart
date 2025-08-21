@@ -2,54 +2,151 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/document_model.dart';
+import '../../../../core/config/db_config.dart';
 
 class DocumentService {
-  static const String _baseUrl = 'http://localhost:3000/api/documents';
+  static String get _baseUrl => '${DbConfig.apiUrl}/documents';
+  static const String _documentsKey = 'stored_documents';
   
   // Mock storage for documents - replace with actual database/storage implementation
   static final List<DocumentModel> _documents = [];
+  static bool _isInitialized = false;
 
-  /// Get all documents (deprecated - use getDocumentsForTenant instead)
-  @Deprecated('Use getDocumentsForTenant with specific tenant ID instead')
-  Future<List<DocumentModel>> getAllDocuments() async {
+  /// Initialize the service and load persisted documents
+  Future<void> _initialize() async {
+    if (_isInitialized) return;
+    
+    await _loadPersistedDocuments();
+    if (_documents.isEmpty) {
+      initializeSampleData();
+    }
+    _isInitialized = true;
+  }
+
+  /// Load documents from SharedPreferences
+  Future<void> _loadPersistedDocuments() async {
     try {
-      // This method is deprecated and should not be used for tenant-specific data
-      // Return empty list to avoid confusion
-      print('Warning: getAllDocuments() is deprecated. Use getDocumentsForTenant() instead.');
-      return [];
+      final prefs = await SharedPreferences.getInstance();
+      final documentsJson = prefs.getString(_documentsKey);
+      
+      if (documentsJson != null) {
+        final List<dynamic> jsonList = json.decode(documentsJson);
+        _documents.clear();
+        _documents.addAll(
+          jsonList.map((json) => DocumentModel.fromJson(json)).toList()
+        );
+        print('Loaded ${_documents.length} documents from local storage');
+      }
     } catch (e) {
-      print('Error in deprecated getAllDocuments: $e');
-      return [];
+      print('Error loading persisted documents: $e');
+    }
+  }
+
+  /// Save documents to SharedPreferences
+  Future<void> _saveDocuments() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final documentsJson = json.encode(
+        _documents.map((doc) => doc.toJson()).toList()
+      );
+      await prefs.setString(_documentsKey, documentsJson);
+      print('Saved ${_documents.length} documents to local storage');
+    } catch (e) {
+      print('Error saving documents: $e');
+    }
+  }
+
+  /// Get all documents
+  Future<List<DocumentModel>> getAllDocuments() async {
+    await _initialize();
+    
+    try {
+      // For now, use a placeholder tenant ID - this should come from auth state
+      final response = await http.get(Uri.parse('$_baseUrl/tenant/placeholder_tenant_id'));
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = json.decode(response.body);
+        return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+      } else {
+        print('Failed to fetch documents: ${response.statusCode}');
+        // Return local documents instead of empty list
+        return List.from(_documents);
+      }
+    } catch (e) {
+      print('Error fetching documents: $e');
+      // Return local documents instead of empty list
+      return List.from(_documents);
     }
   }
 
   /// Get documents by category
   Future<List<DocumentModel>> getDocumentsByCategory(String category) async {
+    await _initialize();
     await Future.delayed(const Duration(milliseconds: 300));
     return _documents.where((doc) => doc.category == category).toList();
   }
 
   /// Get documents for a specific tenant
   Future<List<DocumentModel>> getDocumentsForTenant(String tenantId) async {
+    await _initialize();
+    
     try {
       final response = await http.get(Uri.parse('$_baseUrl/tenant/$tenantId'));
       
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
-        return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+        final documents = jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+        print('Fetched ${documents.length} documents for tenant $tenantId from API');
+        return documents;
       } else {
         print('Failed to fetch tenant documents: ${response.statusCode}');
-        return [];
+        // Return documents assigned to this tenant from local storage with property filtering
+        return await _getLocalTenantDocuments(tenantId);
       }
     } catch (e) {
       print('Error fetching tenant documents: $e');
-      return [];
+      // Return documents assigned to this tenant from local storage with property filtering
+      return await _getLocalTenantDocuments(tenantId);
     }
+  }
+
+  /// Get tenant documents from local storage with property-based filtering
+  Future<List<DocumentModel>> _getLocalTenantDocuments(String tenantId) async {
+    // Get tenant's assigned property IDs (this would normally come from user service)
+    // For now, we'll check all documents assigned to this tenant or with no specific assignment
+    final tenantDocuments = _documents.where((doc) {
+      // Document is assigned to this specific tenant
+      if (doc.assignedTenantIds.contains(tenantId)) {
+        return true;
+      }
+      
+      // Document has no tenant assignment (global documents)
+      if (doc.assignedTenantIds.isEmpty) {
+        return true;
+      }
+      
+      // Document is assigned to properties that this tenant might be assigned to
+      // This is a simplified check - in a real app, you'd fetch the tenant's propertyId
+      // and check if any of doc.propertyIds match the tenant's property
+      if (doc.propertyIds.isNotEmpty) {
+        // For now, we'll include property-assigned documents for all tenants
+        // This should be enhanced with actual property-tenant relationship lookup
+        return true;
+      }
+      
+      return false;
+    }).toList();
+    
+    print('Returning ${tenantDocuments.length} documents for tenant $tenantId from local storage');
+    return tenantDocuments;
   }
 
   /// Get documents for a specific landlord
   Future<List<DocumentModel>> getLandlordDocuments(String landlordId) async {
+    await _initialize();
+    
     try {
       final response = await http.get(Uri.parse('$_baseUrl/landlord/$landlordId'));
       
@@ -137,6 +234,7 @@ class DocumentService {
       );
       
       _documents.add(document);
+      await _saveDocuments(); // Save to local storage
       return document;
     }
   }
@@ -150,17 +248,21 @@ class DocumentService {
 
   /// Add a new document
   Future<DocumentModel> addDocument(DocumentModel document) async {
+    await _initialize();
     await Future.delayed(const Duration(milliseconds: 500));
     _documents.add(document);
+    await _saveDocuments(); // Save to local storage
     return document;
   }
 
   /// Update an existing document
   Future<DocumentModel> updateDocument(DocumentModel document) async {
+    await _initialize();
     await Future.delayed(const Duration(milliseconds: 500));
     final index = _documents.indexWhere((doc) => doc.id == document.id);
     if (index != -1) {
       _documents[index] = document;
+      await _saveDocuments(); // Save to local storage
       return document;
     }
     throw Exception('Document not found');
@@ -210,18 +312,22 @@ class DocumentService {
 
   /// Delete a document
   Future<void> deleteDocument(String documentId) async {
+    await _initialize();
     await Future.delayed(const Duration(milliseconds: 500));
     _documents.removeWhere((doc) => doc.id == documentId);
+    await _saveDocuments(); // Save to local storage
   }
 
   /// Assign document to tenants
   Future<void> assignDocumentToTenants(String documentId, List<String> tenantIds) async {
+    await _initialize();
     await Future.delayed(const Duration(milliseconds: 300));
     final index = _documents.indexWhere((doc) => doc.id == documentId);
     if (index != -1) {
       final document = _documents[index];
       final updatedDocument = document.copyWith(assignedTenantIds: tenantIds);
       _documents[index] = updatedDocument;
+      await _saveDocuments(); // Save to local storage
     } else {
       throw Exception('Document not found');
     }
@@ -229,12 +335,14 @@ class DocumentService {
 
   /// Assign document to properties
   Future<void> assignDocumentToProperties(String documentId, List<String> propertyIds) async {
+    await _initialize();
     await Future.delayed(const Duration(milliseconds: 300));
     final index = _documents.indexWhere((doc) => doc.id == documentId);
     if (index != -1) {
       final document = _documents[index];
       final updatedDocument = document.copyWith(propertyIds: propertyIds);
       _documents[index] = updatedDocument;
+      await _saveDocuments(); // Save to local storage
     } else {
       throw Exception('Document not found');
     }
@@ -409,8 +517,37 @@ class DocumentService {
           fileSize: 1024000, // 1MB
           mimeType: 'application/pdf',
           uploadDate: DateTime.now().subtract(const Duration(days: 15)),
-          assignedTenantIds: [],
-          propertyIds: ['property_1', 'property_2'],
+          assignedTenantIds: [], // No specific tenant assignment
+          propertyIds: ['property_1', 'property_2'], // Assigned to properties
+          uploadedBy: 'landlord_1',
+          expiryDate: DateTime.now().add(const Duration(days: 365)),
+          status: 'active',
+        ),
+        DocumentModel(
+          id: 'doc_4',
+          name: 'Building Safety Guidelines',
+          description: 'Important safety information for all tenants',
+          category: DocumentCategory.other.id,
+          filePath: '/documents/safety_guidelines.pdf',
+          fileSize: 750000, // 750KB
+          mimeType: 'application/pdf',
+          uploadDate: DateTime.now().subtract(const Duration(days: 2)),
+          assignedTenantIds: [], // Global document - no specific tenant
+          propertyIds: [], // Global document - applies to all properties
+          uploadedBy: 'landlord_1',
+          status: 'active',
+        ),
+        DocumentModel(
+          id: 'doc_5',
+          name: 'Property Insurance Certificate',
+          description: 'Insurance coverage details for the property',
+          category: DocumentCategory.other.id,
+          filePath: '/documents/insurance_certificate.pdf',
+          fileSize: 890000, // 890KB
+          mimeType: 'application/pdf',
+          uploadDate: DateTime.now().subtract(const Duration(days: 7)),
+          assignedTenantIds: [], // No specific tenant assignment
+          propertyIds: ['property_1'], // Only for property_1
           uploadedBy: 'landlord_1',
           expiryDate: DateTime.now().add(const Duration(days: 365)),
           status: 'active',
@@ -418,6 +555,7 @@ class DocumentService {
       ];
       
       _documents.addAll(sampleDocs);
+      print('Initialized ${sampleDocs.length} sample documents');
     }
   }
 }

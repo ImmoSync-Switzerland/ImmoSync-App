@@ -237,7 +237,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 ),
               ),
               child: DropdownButtonFormField<String>(
-                value: _selectedPropertyId,
+                initialValue: _selectedPropertyId,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
@@ -359,7 +359,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           ),
                         ),
                         child: DropdownButtonFormField<String>(
-                          value: _selectedPaymentType,
+                          initialValue: _selectedPaymentType,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -412,7 +412,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           ),
                         ),
                         child: DropdownButtonFormField<String>(
-                          value: _selectedPaymentMethod,
+                          initialValue: _selectedPaymentMethod,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(

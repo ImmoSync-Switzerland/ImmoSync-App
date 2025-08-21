@@ -1,5 +1,5 @@
 // Native (non-web) stub for Stripe Connect JS service.
-// Provides the same API surface but no JS interop.
+// Provides the API surface but no JS interop.
 
 /// Lightweight stub for a Stripe Connect component on non-web platforms.
 class StripeConnectComponent {
@@ -32,7 +32,6 @@ class StripeConnectConfig {
 /// Service for managing Stripe Connect JavaScript integration on non-web.
 class StripeConnectJSService {
   static bool _isInitialized = false;
-  static StripeConnectConfig? _config;
 
   static bool get isInitialized => _isInitialized;
 
@@ -62,17 +61,7 @@ class StripeConnectJSService {
   }
 
   static void cleanup() {
-    _config = null;
     _isInitialized = false;
-  }
-
-  static Future<void> _waitForStripeConnect() async {}
-
-  static StripeConnectAppearance _createAppearance(Map<String, String> appearance) {
-    return StripeConnectAppearance(
-      overlays: appearance['overlays'] ?? 'dialog',
-      variables: appearance.map((k, v) => MapEntry(k, v)),
-    );
   }
 }
 

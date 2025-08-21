@@ -1578,8 +1578,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<String>(
-                title: const Text('All'),
+              Radio<String>(
                 value: 'all',
                 groupValue: selectedFilter,
                 onChanged: (value) {
@@ -1589,8 +1588,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   Navigator.of(context).pop();
                 },
               ),
-              RadioListTile<String>(
-                title: const Text('Recent'),
+              const Text('All'),
+              Radio<String>(
                 value: 'recent',
                 groupValue: selectedFilter,
                 onChanged: (value) {
@@ -1600,8 +1599,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   Navigator.of(context).pop();
                 },
               ),
-              RadioListTile<String>(
-                title: const Text('Important'),
+              const Text('Recent'),
+              Radio<String>(
                 value: 'important',
                 groupValue: selectedFilter,
                 onChanged: (value) {
@@ -1611,6 +1610,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   Navigator.of(context).pop();
                 },
               ),
+              const Text('Important'),
             ],
           ),
           actions: [

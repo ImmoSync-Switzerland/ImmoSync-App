@@ -199,7 +199,7 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,

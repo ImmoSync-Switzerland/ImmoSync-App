@@ -228,7 +228,7 @@ class TenantDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentMode
     try {
       state = const AsyncValue.loading();
       if (_tenantId != null) {
-        final documents = await _documentService.getDocumentsForTenant(_tenantId!);
+        final documents = await _documentService.getDocumentsForTenant(_tenantId);
         state = AsyncValue.data(documents);
       } else {
         state = const AsyncValue.data([]);

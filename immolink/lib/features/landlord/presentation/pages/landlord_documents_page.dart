@@ -355,7 +355,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           const SizedBox(height: 8),
           propertiesAsync.when(
             data: (properties) => DropdownButtonFormField<String>(
-              value: _selectedPropertyId,
+              initialValue: _selectedPropertyId,
               decoration: InputDecoration(
                 hintText: 'All Properties',
                 border: OutlineInputBorder(
@@ -624,7 +624,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 const SizedBox(height: 16),
                 
                 DropdownButtonFormField<String>(
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   decoration: const InputDecoration(
                     labelText: 'Category',
                     border: OutlineInputBorder(),
@@ -638,7 +638,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 
                 propertiesAsync.when(
                   data: (properties) => DropdownButtonFormField<String>(
-                    value: selectedPropertyId,
+                    initialValue: selectedPropertyId,
                     decoration: const InputDecoration(
                       labelText: 'Assign to Property (Optional)',
                       border: OutlineInputBorder(),

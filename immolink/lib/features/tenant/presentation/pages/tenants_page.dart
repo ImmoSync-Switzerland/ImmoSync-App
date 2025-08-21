@@ -1164,50 +1164,82 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<String>(
+              ListTile(
+                leading: Radio<String>(
+                  value: 'all',
+                  groupValue: selectedFilter,
+                  onChanged: (String? value) {
+                    if (value == null) return;
+                    setState(() {
+                      selectedFilter = value;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
                 title: const Text('All Tenants'),
-                value: 'all',
-                groupValue: selectedFilter,
-                onChanged: (String? value) {
-                  if (value == null) return;
+                onTap: () {
                   setState(() {
-                    selectedFilter = value;
+                    selectedFilter = 'all';
                   });
                   Navigator.of(context).pop();
                 },
               ),
-              RadioListTile<String>(
+              ListTile(
+                leading: Radio<String>(
+                  value: 'active',
+                  groupValue: selectedFilter,
+                  onChanged: (String? value) {
+                    if (value == null) return;
+                    setState(() {
+                      selectedFilter = value;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
                 title: const Text('Active Tenants'),
-                value: 'active',
-                groupValue: selectedFilter,
-                onChanged: (String? value) {
-                  if (value == null) return;
+                onTap: () {
                   setState(() {
-                    selectedFilter = value;
+                    selectedFilter = 'active';
                   });
                   Navigator.of(context).pop();
                 },
               ),
-              RadioListTile<String>(
+              ListTile(
+                leading: Radio<String>(
+                  value: 'inactive',
+                  groupValue: selectedFilter,
+                  onChanged: (String? value) {
+                    if (value == null) return;
+                    setState(() {
+                      selectedFilter = value;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
                 title: const Text('Inactive Tenants'),
-                value: 'inactive',
-                groupValue: selectedFilter,
-                onChanged: (String? value) {
-                  if (value == null) return;
+                onTap: () {
                   setState(() {
-                    selectedFilter = value;
+                    selectedFilter = 'inactive';
                   });
                   Navigator.of(context).pop();
                 },
               ),
-              RadioListTile<String>(
+              ListTile(
+                leading: Radio<String>(
+                  value: 'property_type',
+                  groupValue: selectedFilter,
+                  onChanged: (String? value) {
+                    if (value == null) return;
+                    setState(() {
+                      selectedFilter = value;
+                  });
+                  Navigator.of(context).pop();
+                },
+                ),
                 title: const Text('By Property Type'),
-                value: 'property_type',
-                groupValue: selectedFilter,
-                onChanged: (String? value) {
-                  if (value == null) return;
+                onTap: () {
                   setState(() {
-                    selectedFilter = value;
+                    selectedFilter = 'property_type';
                   });
                   Navigator.of(context).pop();
                 },

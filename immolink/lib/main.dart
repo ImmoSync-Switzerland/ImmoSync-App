@@ -66,7 +66,7 @@ class ImmoLink extends ConsumerWidget {
     
     return MaterialApp.router(
       routerConfig: router,
-      title: 'ImmoSync',
+      title: 'ImmoLink',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: appThemeMode,

@@ -119,13 +119,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       print('AuthProvider: Login state updated - authenticated: true');
     } catch (e) {
       print('AuthProvider: Login failed with error: $e');
-      final errorMessage = e.toString();
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
       state = state.copyWith(
         isLoading: false,
         error: errorMessage,
         isAuthenticated: false
       );
       print('AuthProvider: Error state set - error: $errorMessage, loading: false, authenticated: false');
+      
+      // Add a small delay to ensure the error state is processed
+      await Future.delayed(const Duration(milliseconds: 100));
+      print('AuthProvider: Error state after delay - error: ${state.error}, loading: ${state.isLoading}');
     }
   }
 

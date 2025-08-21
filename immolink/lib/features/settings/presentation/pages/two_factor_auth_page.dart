@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/config/db_config.dart';
 
 class TwoFactorAuthPage extends ConsumerStatefulWidget {
   const TwoFactorAuthPage({super.key});
@@ -48,7 +49,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://backend.immosync.ch/api/auth/2fa/status/${currentUser.id}'),
+        Uri.parse('${DbConfig.apiUrl}/auth/2fa/status/${currentUser.id}'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -89,7 +90,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://backend.immosync.ch/api/auth/2fa/setup-2fa'),
+        Uri.parse('${DbConfig.apiUrl}/auth/2fa/setup-2fa'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,
@@ -139,7 +140,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://backend.immosync.ch/api/auth/2fa/verify-2fa-setup'),
+        Uri.parse('${DbConfig.apiUrl}/auth/2fa/verify-2fa-setup'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,
@@ -186,7 +187,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://backend.immosync.ch/api/auth/2fa/disable'),
+        Uri.parse('${DbConfig.apiUrl}/auth/2fa/disable'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,
@@ -235,7 +236,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://backend.immosync.ch/api/auth/2fa/disable'),
+        Uri.parse('${DbConfig.apiUrl}/auth/2fa/disable'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'userId': currentUser.id,

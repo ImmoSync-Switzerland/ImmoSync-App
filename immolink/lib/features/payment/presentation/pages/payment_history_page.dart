@@ -332,7 +332,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                       ),
                     ),
                     child: DropdownButtonFormField<String>(
-                      value: _selectedStatus,
+                      initialValue: _selectedStatus,
                       decoration: InputDecoration(
                         labelText: 'Status',
                         labelStyle: TextStyle(
@@ -379,7 +379,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                       ),
                     ),
                     child: DropdownButtonFormField<String>(
-                      value: _selectedType,
+                      initialValue: _selectedType,
                       decoration: InputDecoration(
                         labelText: 'Type',
                         labelStyle: TextStyle(

@@ -31,20 +31,9 @@ class AuthService {
       requestBody['companyName'] = companyName;
       requestBody['companyAddress'] = companyAddress;
       requestBody['taxId'] = taxId;
-      // Companies don't have individual birth dates, use placeholder
-      requestBody['birthDate'] = '1900-01-01T00:00:00.000Z';
     } else {
-      // Format address as object to match MongoDB schema expectations
-      if (address != null && address.isNotEmpty) {
-        requestBody['address'] = {
-          'street': address, // Use the full address as street for now
-          'city': '', // Could be parsed from address in the future
-          'postalCode': '', // Could be parsed from address in the future
-          'country': 'Germany' // Default country
-        };
-      }
-      // Always send birthDate, use placeholder if not provided
-      requestBody['birthDate'] = birthDate?.toIso8601String() ?? '1900-01-01T00:00:00.000Z';
+      requestBody['address'] = address;
+      requestBody['birthDate'] = birthDate?.toIso8601String();
     }
 
     final response = await http.post(
@@ -133,6 +122,30 @@ class AuthService {
     } catch (e) {
       print('AuthService: Change password error: $e');
       throw Exception('Failed to change password');
+    }
+  }
+
+  Future<void> forgotPassword({
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/auth/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Password reset request failed');
+      }
+    } catch (e) {
+      print('AuthService: Forgot password error: $e');
+      throw Exception('Failed to send password reset email');
     }
   }
 }

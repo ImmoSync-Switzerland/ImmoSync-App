@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../config/db_config.dart';
 
 class MongoImage extends StatefulWidget {
   final String imageId;
@@ -71,7 +72,7 @@ class _MongoImageState extends State<MongoImage> {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     final response = await http.get(
-      Uri.parse('https://backend.immosync.ch/api/images/base64/${widget.imageId}?v=$cacheBuster'),
+      Uri.parse('${DbConfig.apiUrl}/images/base64/${widget.imageId}?v=$cacheBuster'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -92,7 +93,7 @@ class _MongoImageState extends State<MongoImage> {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     final response = await http.get(
-      Uri.parse('https://backend.immosync.ch/api/images/${widget.imageId}?v=$cacheBuster'),
+      Uri.parse('${DbConfig.apiUrl}/images/${widget.imageId}?v=$cacheBuster'),
     );
 
     print('Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
