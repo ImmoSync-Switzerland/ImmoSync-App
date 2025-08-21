@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
-import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
-import 'package:immolink/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
+import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class MaintenanceRequestPage extends ConsumerStatefulWidget {

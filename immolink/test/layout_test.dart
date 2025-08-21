@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/property/domain/models/property.dart';
-import 'package:immolink/features/property/presentation/widgets/property_card.dart';
-import 'package:immolink/core/widgets/app_button.dart';
-import 'package:immolink/core/theme/app_spacing.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/features/property/presentation/widgets/property_card.dart';
+import 'package:immosync/core/widgets/app_button.dart';
+import 'package:immosync/core/theme/app_spacing.dart';
 
 void main() {
   group('Layout Tests', () {

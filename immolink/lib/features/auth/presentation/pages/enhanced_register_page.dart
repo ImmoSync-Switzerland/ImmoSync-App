@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
-import 'package:immolink/features/auth/presentation/providers/register_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/register_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class EnhancedRegisterPage extends ConsumerStatefulWidget {

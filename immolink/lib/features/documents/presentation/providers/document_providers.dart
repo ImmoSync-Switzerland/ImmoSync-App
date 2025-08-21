@@ -177,6 +177,11 @@ class LandlordDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentMo
       }
       
       state = const AsyncValue.loading();
+      
+      // First, try to refresh from database
+      await _documentService.refreshFromDatabase(_currentUser.id, 'landlord');
+      
+      // Then get the documents (which should now include fresh data from database)
       final documents = await _documentService.getLandlordDocuments(_currentUser.id);
       state = AsyncValue.data(documents);
     } catch (error, stackTrace) {
@@ -228,6 +233,10 @@ class TenantDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentMode
     try {
       state = const AsyncValue.loading();
       if (_tenantId != null) {
+        // First, try to refresh from database
+        await _documentService.refreshFromDatabase(_tenantId, 'tenant');
+        
+        // Then get the documents (which should now include fresh data from database)
         final documents = await _documentService.getDocumentsForTenant(_tenantId);
         state = AsyncValue.data(documents);
       } else {

@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'ImmoLink';
+  String get appTitle => 'ImmoSync';
 
   @override
   String get dashboard => 'Tableau de bord';
@@ -612,7 +612,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get helpCenterDescription =>
-      'Trouvez des réponses aux questions fréquentes, apprenez les fonctionnalités d\'ImmoLink et obtenez de l\'aide quand vous en avez besoin.';
+      'Trouvez des réponses aux questions fréquentes, apprenez les fonctionnalités d\'ImmoSync et obtenez de l\'aide quand vous en avez besoin.';
 
   @override
   String get quickLinks => 'Liens rapides';
@@ -622,7 +622,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gettingStartedDescription =>
-      'Apprenez les bases de l\'utilisation d\'ImmoLink';
+      'Apprenez les bases de l\'utilisation d\'ImmoSync';
 
   @override
   String get accountSettings => 'Compte et paramètres';
@@ -717,7 +717,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gettingStartedWelcome =>
-      'Bienvenue sur ImmoLink ! Voici comment commencer :';
+      'Bienvenue sur ImmoSync ! Voici comment commencer :';
 
   @override
   String get gettingStartedStep1 => '1. Complétez votre profil';
@@ -734,7 +734,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get propertyManagementGuide =>
-      'Gestion des propriétés dans ImmoLink :';
+      'Gestion des propriétés dans ImmoSync :';
 
   @override
   String get propertyManagementTip1 =>
@@ -755,7 +755,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get propertyManagementTip5 => '• Surveiller le statut des paiements';
 
   @override
-  String get paymentsGuide => 'Comprendre les paiements dans ImmoLink :';
+  String get paymentsGuide => 'Comprendre les paiements dans ImmoSync :';
 
   @override
   String get paymentsTip1 => '• Voir l\'historique et le statut des paiements';

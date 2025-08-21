@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
-import 'package:immolink/features/home/presentation/pages/landlord_dashboard.dart';
-import 'package:immolink/features/home/presentation/pages/tenant_dashboard.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/features/home/presentation/pages/landlord_dashboard.dart';
+import 'package:immosync/features/home/presentation/pages/tenant_dashboard.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});

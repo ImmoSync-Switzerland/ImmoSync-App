@@ -1,4 +1,4 @@
-import 'package:immolink/features/property/domain/models/property.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
 
 class User {
   final String id;

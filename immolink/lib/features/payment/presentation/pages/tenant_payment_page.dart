@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' hide PaymentMethod;
-import 'package:immolink/core/providers/dynamic_colors_provider.dart';
-import 'package:immolink/features/payment/domain/services/connect_service.dart';
-import 'package:immolink/features/property/domain/models/property.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/features/payment/domain/services/connect_service.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 

@@ -14,15 +14,31 @@ class DocumentService {
   static final List<DocumentModel> _documents = [];
   static bool _isInitialized = false;
 
+  /// Reset initialization state (for testing/debugging)
+  static void resetInitialization() {
+    _isInitialized = false;
+    _documents.clear();
+    print('DocumentService: Initialization state reset');
+  }
+
   /// Initialize the service and load persisted documents
   Future<void> _initialize() async {
-    if (_isInitialized) return;
+    print('DocumentService: Initialize called - _isInitialized: $_isInitialized');
+    if (_isInitialized) {
+      print('DocumentService: Already initialized, current document count: ${_documents.length}');
+      return;
+    }
     
+    print('DocumentService: Initializing...');
     await _loadPersistedDocuments();
     if (_documents.isEmpty) {
+      print('DocumentService: No persisted documents found, initializing sample data');
       initializeSampleData();
+    } else {
+      print('DocumentService: Loaded ${_documents.length} persisted documents');
     }
     _isInitialized = true;
+    print('DocumentService: Initialization complete, total documents: ${_documents.length}');
   }
 
   /// Load documents from SharedPreferences
@@ -31,16 +47,24 @@ class DocumentService {
       final prefs = await SharedPreferences.getInstance();
       final documentsJson = prefs.getString(_documentsKey);
       
+      print('DocumentService: Loading from SharedPreferences key: $_documentsKey');
+      print('DocumentService: Stored JSON length: ${documentsJson?.length ?? 0}');
+      
       if (documentsJson != null) {
         final List<dynamic> jsonList = json.decode(documentsJson);
         _documents.clear();
         _documents.addAll(
           jsonList.map((json) => DocumentModel.fromJson(json)).toList()
         );
-        print('Loaded ${_documents.length} documents from local storage');
+        print('DocumentService: Successfully loaded ${_documents.length} documents from local storage');
+        for (var doc in _documents) {
+          print('  - ${doc.name} (${doc.id})');
+        }
+      } else {
+        print('DocumentService: No documents found in SharedPreferences');
       }
     } catch (e) {
-      print('Error loading persisted documents: $e');
+      print('DocumentService: Error loading persisted documents: $e');
     }
   }
 
@@ -52,9 +76,13 @@ class DocumentService {
         _documents.map((doc) => doc.toJson()).toList()
       );
       await prefs.setString(_documentsKey, documentsJson);
-      print('Saved ${_documents.length} documents to local storage');
+      print('DocumentService: Successfully saved ${_documents.length} documents to local storage');
+      print('DocumentService: Saved JSON length: ${documentsJson.length}');
+      for (var doc in _documents) {
+        print('  - Saved: ${doc.name} (${doc.id})');
+      }
     } catch (e) {
-      print('Error saving documents: $e');
+      print('DocumentService: Error saving documents: $e');
     }
   }
 
@@ -63,20 +91,15 @@ class DocumentService {
     await _initialize();
     
     try {
-      // For now, use a placeholder tenant ID - this should come from auth state
-      final response = await http.get(Uri.parse('$_baseUrl/tenant/placeholder_tenant_id'));
+      print('DocumentService: Fetching all documents from local storage first');
+      print('DocumentService: Current local documents count: ${_documents.length}');
       
-      if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body);
-        return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
-      } else {
-        print('Failed to fetch documents: ${response.statusCode}');
-        // Return local documents instead of empty list
-        return List.from(_documents);
-      }
+      // For now, return local documents since there's no general "get all documents" endpoint
+      // The backend has landlord-specific and tenant-specific endpoints
+      // This method should be used primarily for local/cached documents
+      return List.from(_documents);
     } catch (e) {
-      print('Error fetching documents: $e');
-      // Return local documents instead of empty list
+      print('DocumentService: Error in getAllDocuments: $e');
       return List.from(_documents);
     }
   }
@@ -143,25 +166,91 @@ class DocumentService {
     return tenantDocuments;
   }
 
+  /// Force refresh documents from database (call this on app start)
+  Future<void> refreshFromDatabase(String userId, String userRole) async {
+    await _initialize();
+    
+    try {
+      print('DocumentService: Refreshing documents from database for user: $userId, role: $userRole');
+      
+      List<DocumentModel> freshDocuments = [];
+      
+      if (userRole == 'landlord') {
+        freshDocuments = await _fetchLandlordDocumentsFromAPI(userId);
+      } else if (userRole == 'tenant') {
+        freshDocuments = await _fetchTenantDocumentsFromAPI(userId);
+      }
+      
+      if (freshDocuments.isNotEmpty) {
+        print('DocumentService: Loaded ${freshDocuments.length} documents from database');
+        _documents.clear();
+        _documents.addAll(freshDocuments);
+        await _saveDocuments();
+        print('DocumentService: Documents synced to local storage');
+      } else {
+        print('DocumentService: No documents found in database, keeping local documents');
+      }
+    } catch (e) {
+      print('DocumentService: Error refreshing from database: $e');
+      print('DocumentService: Keeping existing local documents');
+    }
+  }
+
+  /// Internal method to fetch landlord documents from API
+  Future<List<DocumentModel>> _fetchLandlordDocumentsFromAPI(String landlordId) async {
+    final response = await http.get(Uri.parse('$_baseUrl/landlord/$landlordId'));
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = json.decode(response.body);
+      return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch landlord documents: ${response.statusCode}');
+    }
+  }
+
+  /// Internal method to fetch tenant documents from API
+  Future<List<DocumentModel>> _fetchTenantDocumentsFromAPI(String tenantId) async {
+    final response = await http.get(Uri.parse('$_baseUrl/tenant/$tenantId'));
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = json.decode(response.body);
+      return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch tenant documents: ${response.statusCode}');
+    }
+  }
+
   /// Get documents for a specific landlord
   Future<List<DocumentModel>> getLandlordDocuments(String landlordId) async {
     await _initialize();
     
     try {
+      print('DocumentService: Fetching landlord documents from API for landlord: $landlordId');
       final response = await http.get(Uri.parse('$_baseUrl/landlord/$landlordId'));
       
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
-        return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+        final apiDocuments = jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+        
+        print('DocumentService: Successfully fetched ${apiDocuments.length} documents from API');
+        
+        // Update local storage with landlord documents from API
+        // Remove old landlord documents and add fresh ones
+        _documents.removeWhere((doc) => doc.uploadedBy == landlordId);
+        _documents.addAll(apiDocuments);
+        await _saveDocuments();
+        
+        return apiDocuments;
       } else {
-        // Fallback to mock data if API fails
-        await Future.delayed(const Duration(milliseconds: 300));
+        print('DocumentService: API call failed with status ${response.statusCode}, using local storage');
         return _documents.where((doc) => doc.uploadedBy == landlordId).toList();
       }
     } catch (e) {
-      // Fallback to mock data if API fails
-      await Future.delayed(const Duration(milliseconds: 300));
-      return _documents.where((doc) => doc.uploadedBy == landlordId).toList();
+      print('DocumentService: Error fetching landlord documents from API: $e');
+      // Fallback to local documents
+      final localDocs = _documents.where((doc) => doc.uploadedBy == landlordId).toList();
+      print('DocumentService: Using local storage (${localDocs.length} documents for landlord)');
+      return localDocs;
     }
   }
 
@@ -176,6 +265,8 @@ class DocumentService {
     List<String> tenantIds = const [],
     DateTime? expiryDate,
   }) async {
+    print('DocumentService: Starting upload to ${_baseUrl}/upload');
+    
     try {
       final request = http.MultipartRequest('POST', Uri.parse('$_baseUrl/upload'));
       
@@ -202,21 +293,43 @@ class DocumentService {
         request.fields['expiryDate'] = expiryDate.toIso8601String();
       }
       
+      print('DocumentService: Sending request with fields: ${request.fields}');
+      print('DocumentService: Request URL: ${request.url}');
+      print('DocumentService: File info - Name: ${file.name}, Size: ${file.size}');
+      
       final response = await request.send();
       final responseData = await response.stream.bytesToString();
       
+      print('DocumentService: Upload response - Status: ${response.statusCode}');
+      print('DocumentService: Upload response - Headers: ${response.headers}');
+      print('DocumentService: Upload response - Data: $responseData');
+      
       if (response.statusCode == 201) {
         final jsonData = json.decode(responseData);
-        return DocumentModel.fromJson(jsonData['document']);
+        final document = DocumentModel.fromJson(jsonData['document']);
+        
+        print('DocumentService: Document successfully uploaded to database with ID: ${document.id}');
+        
+        // Also save to local storage for offline access
+        await _initialize();
+        _documents.add(document);
+        await _saveDocuments();
+        
+        print('DocumentService: Document also saved to local storage');
+        return document;
       } else {
-        throw Exception('Failed to upload document: ${response.statusCode}');
+        print('DocumentService: Upload failed - Status: ${response.statusCode}, Response: $responseData');
+        throw Exception('Failed to upload document: ${response.statusCode} - $responseData');
       }
     } catch (e) {
-      print('Error uploading document: $e');
-      // Fallback to mock behavior for development
-      await Future.delayed(const Duration(seconds: 2));
+      print('DocumentService: Upload failed with error: $e');
+      print('DocumentService: Falling back to local storage only');
       
-      final documentId = 'doc_${DateTime.now().millisecondsSinceEpoch}';
+      // Fallback to local storage only (this should be temporary until backend is fixed)
+      await _initialize();
+      await Future.delayed(const Duration(seconds: 1)); // Simulate upload time
+      
+      final documentId = 'local_${DateTime.now().millisecondsSinceEpoch}';
       final document = DocumentModel(
         id: documentId,
         name: name,
@@ -246,12 +359,24 @@ class DocumentService {
     return Uint8List(0);
   }
 
-  /// Add a new document
+  /// Add a new document (primarily for local/temporary documents)
+  /// For file uploads, use uploadDocument() instead
   Future<DocumentModel> addDocument(DocumentModel document) async {
+    print('DocumentService: Adding document: ${document.name} (${document.id})');
     await _initialize();
+    
+    // Note: This method is primarily for local documents since the backend
+    // expects documents to be uploaded via the /upload endpoint with actual files
+    // Real documents should be created via uploadDocument() method
+    
     await Future.delayed(const Duration(milliseconds: 500));
     _documents.add(document);
+    print('DocumentService: Document added to local storage, total count: ${_documents.length}');
     await _saveDocuments(); // Save to local storage
+    print('DocumentService: Document persisted to local storage successfully');
+    
+    // TODO: If needed, implement backend API call for metadata-only documents
+    
     return document;
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
-import 'package:immolink/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';

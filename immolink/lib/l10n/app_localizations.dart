@@ -105,7 +105,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'ImmoLink'**
+  /// **'ImmoSync'**
   String get appTitle;
 
   /// No description provided for @dashboard.
@@ -1263,7 +1263,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpCenterDescription.
   ///
   /// In en, this message translates to:
-  /// **'Find answers to common questions, learn how to use ImmoLink features, and get support when you need it.'**
+  /// **'Find answers to common questions, learn how to use ImmoSync features, and get support when you need it.'**
   String get helpCenterDescription;
 
   /// No description provided for @quickLinks.
@@ -1281,7 +1281,7 @@ abstract class AppLocalizations {
   /// No description provided for @gettingStartedDescription.
   ///
   /// In en, this message translates to:
-  /// **'Learn the basics of using ImmoLink'**
+  /// **'Learn the basics of using ImmoSync'**
   String get gettingStartedDescription;
 
   /// No description provided for @accountSettings.
@@ -1449,7 +1449,7 @@ abstract class AppLocalizations {
   /// No description provided for @gettingStartedWelcome.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to ImmoLink! Here\'s how to get started:'**
+  /// **'Welcome to ImmoSync! Here\'s how to get started:'**
   String get gettingStartedWelcome;
 
   /// No description provided for @gettingStartedStep1.
@@ -1479,7 +1479,7 @@ abstract class AppLocalizations {
   /// No description provided for @propertyManagementGuide.
   ///
   /// In en, this message translates to:
-  /// **'Managing properties in ImmoLink:'**
+  /// **'Managing properties in ImmoSync:'**
   String get propertyManagementGuide;
 
   /// No description provided for @propertyManagementTip1.
@@ -1515,7 +1515,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentsGuide.
   ///
   /// In en, this message translates to:
-  /// **'Understanding payments in ImmoLink:'**
+  /// **'Understanding payments in ImmoSync:'**
   String get paymentsGuide;
 
   /// No description provided for @paymentsTip1.

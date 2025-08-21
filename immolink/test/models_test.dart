@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:immolink/features/property/domain/models/property.dart';
-import 'package:immolink/features/auth/domain/models/user.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/features/auth/domain/models/user.dart';
 
 void main() {
   group('Model Tests', () {

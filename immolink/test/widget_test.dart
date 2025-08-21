@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/main.dart';
-import 'package:immolink/features/chat/presentation/pages/conversations_list_page.dart';
+import 'package:immosync/main.dart';
+import 'package:immosync/features/chat/presentation/pages/conversations_list_page.dart';
 
 void main() {
   testWidgets('Initial app test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
       const ProviderScope(
-        child: ImmoLink(),
+        child: ImmoSync(),
       ),
     );
 

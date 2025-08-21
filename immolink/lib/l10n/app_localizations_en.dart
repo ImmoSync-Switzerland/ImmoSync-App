@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'ImmoLink';
+  String get appTitle => 'ImmoSync';
 
   @override
   String get dashboard => 'Dashboard';
@@ -605,7 +605,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpCenterDescription =>
-      'Find answers to common questions, learn how to use ImmoLink features, and get support when you need it.';
+      'Find answers to common questions, learn how to use ImmoSync features, and get support when you need it.';
 
   @override
   String get quickLinks => 'Quick Links';
@@ -614,7 +614,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gettingStarted => 'Getting Started';
 
   @override
-  String get gettingStartedDescription => 'Learn the basics of using ImmoLink';
+  String get gettingStartedDescription => 'Learn the basics of using ImmoSync';
 
   @override
   String get accountSettings => 'Account & Settings';
@@ -707,7 +707,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gettingStartedWelcome =>
-      'Welcome to ImmoLink! Here\'s how to get started:';
+      'Welcome to ImmoSync! Here\'s how to get started:';
 
   @override
   String get gettingStartedStep1 => '1. Complete your profile';
@@ -723,7 +723,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gettingStartedStep4 => '4. Start managing your properties';
 
   @override
-  String get propertyManagementGuide => 'Managing properties in ImmoLink:';
+  String get propertyManagementGuide => 'Managing properties in ImmoSync:';
 
   @override
   String get propertyManagementTip1 => '• Add property details and photos';
@@ -741,7 +741,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get propertyManagementTip5 => '• Monitor payment status';
 
   @override
-  String get paymentsGuide => 'Understanding payments in ImmoLink:';
+  String get paymentsGuide => 'Understanding payments in ImmoSync:';
 
   @override
   String get paymentsTip1 => '• View payment history and status';

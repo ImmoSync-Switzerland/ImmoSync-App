@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
-import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
-import 'package:immolink/features/payment/presentation/providers/payment_providers.dart';
-import 'package:immolink/features/property/presentation/providers/property_providers.dart';
-import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
-import 'package:immolink/core/widgets/common_bottom_nav.dart';
-import 'package:immolink/core/providers/currency_provider.dart';
-import 'package:immolink/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
+import 'package:immosync/core/widgets/common_bottom_nav.dart';
+import 'package:immosync/core/providers/currency_provider.dart';
+import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {

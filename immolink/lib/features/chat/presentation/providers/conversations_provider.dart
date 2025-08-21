@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/chat/domain/models/conversation.dart';
-import 'package:immolink/features/chat/presentation/providers/chat_provider.dart';
+import 'package:immosync/features/chat/domain/models/conversation.dart';
+import 'package:immosync/features/chat/presentation/providers/chat_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 final conversationsProvider = StreamProvider<List<Conversation>>((ref) async* {

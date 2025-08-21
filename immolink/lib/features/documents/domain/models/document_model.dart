@@ -97,14 +97,32 @@ class DocumentModel {
   }
 
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
+    // Handle different ID formats from API vs local storage
+    String documentId;
+    if (json['_id'] is Map) {
+      documentId = json['_id']['\$oid'] as String;
+    } else {
+      documentId = json['_id'] ?? json['id'] as String;
+    }
+
+    // Handle fileSize which might be null or a different type
+    int documentFileSize;
+    if (json['fileSize'] is int) {
+      documentFileSize = json['fileSize'] as int;
+    } else if (json['fileSize'] is String) {
+      documentFileSize = int.tryParse(json['fileSize'] as String) ?? 0;
+    } else {
+      documentFileSize = 0;
+    }
+
     return DocumentModel(
-      id: json['_id']?['\$oid'] ?? json['_id'] ?? json['id'] as String,
+      id: documentId,
       name: json['name'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String? ?? '',
       category: json['category'] as String,
       filePath: json['filePath'] as String,
       mimeType: json['mimeType'] as String,
-      fileSize: json['fileSize'] as int,
+      fileSize: documentFileSize,
       uploadDate: DateTime.parse(json['uploadDate'] as String),
       lastModified: json['lastModified'] != null 
           ? DateTime.parse(json['lastModified'] as String) 

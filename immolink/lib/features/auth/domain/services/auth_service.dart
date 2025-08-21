@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:immolink/core/config/db_config.dart';
+import 'package:immosync/core/config/db_config.dart';
 
 class AuthService {
   final String _apiUrl = DbConfig.apiUrl;

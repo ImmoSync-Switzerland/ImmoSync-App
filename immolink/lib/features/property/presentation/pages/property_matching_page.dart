@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
-import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
-import 'package:immolink/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import '../widgets/property_card.dart';
 import '../widgets/property_details_sheet.dart';
 import '../../domain/models/property.dart';

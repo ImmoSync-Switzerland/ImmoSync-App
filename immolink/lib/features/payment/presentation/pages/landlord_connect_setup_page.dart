@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:immolink/core/providers/dynamic_colors_provider.dart';
-import 'package:immolink/features/payment/domain/services/connect_service.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/payment/presentation/widgets/stripe_connect_onboarding_widget.dart';
+import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/features/payment/domain/services/connect_service.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/payment/presentation/widgets/stripe_connect_onboarding_widget.dart';
 import '../../../../../l10n/app_localizations.dart';
 
 class LandlordConnectSetupPage extends ConsumerStatefulWidget {

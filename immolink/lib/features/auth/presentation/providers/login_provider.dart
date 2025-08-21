@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/domain/services/auth_service.dart';
-import 'package:immolink/features/auth/presentation/providers/register_provider.dart';
+import 'package:immosync/features/auth/domain/services/auth_service.dart';
+import 'package:immosync/features/auth/presentation/providers/register_provider.dart';
 
 class LoginState {
   final bool isLoading;

@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
-import 'package:immolink/core/routes/app_router.dart';
-import 'package:immolink/core/services/database_service.dart';
-import 'package:immolink/core/theme/app_theme.dart';
-import 'package:immolink/core/providers/theme_provider.dart';
-import 'package:immolink/core/providers/locale_provider.dart';
-import 'package:immolink/features/settings/providers/settings_provider.dart';
-import 'package:immolink/l10n_helper.dart';
+import 'package:immosync/core/routes/app_router.dart';
+import 'package:immosync/core/services/database_service.dart';
+import 'package:immosync/core/theme/app_theme.dart';
+import 'package:immosync/core/providers/theme_provider.dart';
+import 'package:immosync/core/providers/locale_provider.dart';
+import 'package:immosync/features/settings/providers/settings_provider.dart';
+import 'package:immosync/l10n_helper.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
-import 'package:immolink/core/config/db_config.dart';
+import 'package:immosync/core/config/db_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,11 +34,11 @@ void main() async {
     print('App will run in offline mode');
   }
   
-  runApp(const ProviderScope(child: ImmoLink()));
+  runApp(const ProviderScope(child: ImmoSync()));
 }
 
-class ImmoLink extends ConsumerWidget {
-  const ImmoLink({super.key});
+class ImmoSync extends ConsumerWidget {
+  const ImmoSync({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
@@ -66,7 +66,7 @@ class ImmoLink extends ConsumerWidget {
     
     return MaterialApp.router(
       routerConfig: router,
-      title: 'ImmoLink',
+      title: 'ImmoSync',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: appThemeMode,

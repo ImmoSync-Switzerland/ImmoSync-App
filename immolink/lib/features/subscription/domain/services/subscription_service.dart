@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:immolink/core/config/db_config.dart';
-import 'package:immolink/features/subscription/domain/models/subscription.dart';
+import 'package:immosync/core/config/db_config.dart';
+import 'package:immosync/features/subscription/domain/models/subscription.dart';
 
 class SubscriptionService {
   final String _apiUrl = DbConfig.apiUrl;

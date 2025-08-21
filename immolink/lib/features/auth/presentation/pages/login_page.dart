@@ -179,7 +179,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ),
             const SizedBox(height: 16),
             const Text(
-              'ImmoLink',
+              'ImmoSync',
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,

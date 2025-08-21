@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/chat/domain/models/chat_message.dart';
-import 'package:immolink/features/chat/domain/services/chat_service.dart';
+import 'package:immosync/features/chat/domain/models/chat_message.dart';
+import 'package:immosync/features/chat/domain/services/chat_service.dart';
 
 final chatServiceProvider = Provider((ref) => ChatService());
 

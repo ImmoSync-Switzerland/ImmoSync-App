@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:immolink/features/property/domain/models/property.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';

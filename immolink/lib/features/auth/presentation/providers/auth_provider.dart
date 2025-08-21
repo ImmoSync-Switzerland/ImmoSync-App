@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/domain/models/user.dart';
-import 'package:immolink/features/auth/domain/services/auth_service.dart';
-import 'package:immolink/features/auth/presentation/providers/user_role_provider.dart';
-import 'package:immolink/features/property/domain/models/property.dart';
+import 'package:immosync/features/auth/domain/models/user.dart';
+import 'package:immosync/features/auth/domain/services/auth_service.dart';
+import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthState {

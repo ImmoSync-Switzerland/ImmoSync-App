@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import '../../domain/models/property.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 

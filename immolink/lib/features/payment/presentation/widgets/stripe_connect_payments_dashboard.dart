@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/core/providers/dynamic_colors_provider.dart';
-import 'package:immolink/features/payment/domain/services/stripe_connect_js_service.dart';
-import 'package:immolink/features/payment/domain/services/connect_service.dart';
+import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/features/payment/domain/services/stripe_connect_js_service.dart';
+import 'package:immosync/features/payment/domain/services/connect_service.dart';
 import '../../../../core/web_wrapper.dart' as web;
 
 class StripeConnectPaymentsDashboard extends ConsumerStatefulWidget {

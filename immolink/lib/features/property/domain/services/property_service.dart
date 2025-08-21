@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import '../models/property.dart';
-import 'package:immolink/core/config/db_config.dart';
+import 'package:immosync/core/config/db_config.dart';
 import '../../../chat/domain/services/chat_service.dart';
 
 class PropertyService {

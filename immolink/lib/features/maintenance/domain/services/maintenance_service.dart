@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
-import 'package:immolink/core/config/db_config.dart';
+import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
+import 'package:immosync/core/config/db_config.dart';
 
 class MaintenanceService {
   final String _apiUrl = DbConfig.apiUrl;

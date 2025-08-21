@@ -9,7 +9,7 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
-  String get appTitle => 'ImmoLink';
+  String get appTitle => 'ImmoSync';
 
   @override
   String get dashboard => 'Dashboard';
@@ -611,7 +611,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get helpCenterDescription =>
-      'Trova risposte alle domande frequenti, impara le funzionalità di ImmoLink e ottieni aiuto quando ne hai bisogno.';
+      'Trova risposte alle domande frequenti, impara le funzionalità di ImmoSync e ottieni aiuto quando ne hai bisogno.';
 
   @override
   String get quickLinks => 'Collegamenti rapidi';
@@ -621,7 +621,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gettingStartedDescription =>
-      'Impara le basi dell\'utilizzo di ImmoLink';
+      'Impara le basi dell\'utilizzo di ImmoSync';
 
   @override
   String get accountSettings => 'Account e impostazioni';
@@ -717,7 +717,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gettingStartedWelcome =>
-      'Benvenuto su ImmoLink! Ecco come iniziare:';
+      'Benvenuto su ImmoSync! Ecco come iniziare:';
 
   @override
   String get gettingStartedStep1 => '1. Completa il tuo profilo';
@@ -733,7 +733,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gettingStartedStep4 => '4. Inizia a gestire le tue proprietà';
 
   @override
-  String get propertyManagementGuide => 'Gestione proprietà in ImmoLink:';
+  String get propertyManagementGuide => 'Gestione proprietà in ImmoSync:';
 
   @override
   String get propertyManagementTip1 =>
@@ -754,7 +754,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get propertyManagementTip5 => '• Monitorare stato dei pagamenti';
 
   @override
-  String get paymentsGuide => 'Comprendere i pagamenti in ImmoLink:';
+  String get paymentsGuide => 'Comprendere i pagamenti in ImmoSync:';
 
   @override
   String get paymentsTip1 => '• Visualizzare cronologia e stato pagamenti';

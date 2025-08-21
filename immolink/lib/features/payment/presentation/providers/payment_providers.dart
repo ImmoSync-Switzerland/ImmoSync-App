@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/payment/domain/models/payment.dart';
-import 'package:immolink/features/payment/domain/services/payment_service.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/payment/domain/models/payment.dart';
+import 'package:immosync/features/payment/domain/services/payment_service.dart';
 
 // Provider for the payment service
 final paymentServiceProvider = Provider<PaymentService>((ref) {

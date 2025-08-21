@@ -1,7 +1,7 @@
-import 'package:immolink/features/chat/domain/services/chat_service.dart';
-import 'package:immolink/features/maintenance/domain/services/maintenance_service.dart';
-import 'package:immolink/features/chat/domain/models/conversation.dart';
-import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
+import 'package:immosync/features/chat/domain/services/chat_service.dart';
+import 'package:immosync/features/maintenance/domain/services/maintenance_service.dart';
+import 'package:immosync/features/chat/domain/models/conversation.dart';
+import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 
 class DashboardService {
   final ChatService _chatService = ChatService();

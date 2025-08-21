@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/domain/services/auth_service.dart';
+import 'package:immosync/features/auth/domain/services/auth_service.dart';
 
 class RegisterState {
   final bool isLoading;

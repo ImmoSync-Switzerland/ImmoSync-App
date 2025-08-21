@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/domain/models/user.dart';
-import 'package:immolink/features/property/domain/services/property_service.dart';
+import 'package:immosync/features/auth/domain/models/user.dart';
+import 'package:immosync/features/property/domain/services/property_service.dart';
 import '../../domain/models/property.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/providers/user_service_provider.dart';

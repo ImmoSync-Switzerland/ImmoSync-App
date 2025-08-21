@@ -88,9 +88,9 @@ class PushNotificationService {
 
     // Create notification channel for Android
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'immolink_notifications',
-      'ImmoLink Notifications',
-      description: 'Notifications for ImmoLink app',
+      'immosync_notifications',
+      'ImmoSync Notifications',
+      description: 'Notifications for ImmoSync app',
       importance: Importance.high,
     );
 
@@ -102,9 +102,9 @@ class PushNotificationService {
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'immolink_notifications',
-      'ImmoLink Notifications',
-      channelDescription: 'Notifications for ImmoLink app',
+      'immosync_notifications',
+      'ImmoSync Notifications',
+      channelDescription: 'Notifications for ImmoSync app',
       importance: Importance.high,
       priority: Priority.high,
       showWhen: true,
@@ -125,7 +125,7 @@ class PushNotificationService {
 
     await _localNotifications.show(
       message.hashCode,
-      message.notification?.title ?? 'ImmoLink',
+      message.notification?.title ?? 'ImmoSync',
       message.notification?.body ?? 'You have a new notification',
       platformChannelSpecifics,
       payload: message.data.toString(),
@@ -224,9 +224,9 @@ class PushNotificationService {
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'immolink_scheduled',
+      'immosync_scheduled',
       'Scheduled Notifications',
-      channelDescription: 'Scheduled notifications for ImmoLink',
+      channelDescription: 'Scheduled notifications for ImmoSync',
       importance: Importance.high,
       priority: Priority.high,
     );

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/subscription/domain/models/subscription.dart';
-import 'package:immolink/features/subscription/domain/services/subscription_service.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/subscription/domain/models/subscription.dart';
+import 'package:immosync/features/subscription/domain/services/subscription_service.dart';
 
 // Provider for the subscription service
 final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
-import 'package:immolink/features/maintenance/domain/services/maintenance_service.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
+import 'package:immosync/features/maintenance/domain/services/maintenance_service.dart';
 
 // Provider for the maintenance service
 final maintenanceServiceProvider = Provider<MaintenanceService>((ref) {

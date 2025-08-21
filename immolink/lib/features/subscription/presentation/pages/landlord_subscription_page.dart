@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/core/providers/dynamic_colors_provider.dart';
-import 'package:immolink/features/subscription/domain/models/subscription.dart';
-import 'package:immolink/features/subscription/presentation/providers/subscription_providers.dart';
+import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/features/subscription/domain/models/subscription.dart';
+import 'package:immosync/features/subscription/presentation/providers/subscription_providers.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:immolink/features/auth/domain/services/auth_service.dart';
-import 'package:immolink/features/property/domain/services/property_service.dart';
-import 'package:immolink/features/payment/domain/services/payment_service.dart';
-import 'package:immolink/features/maintenance/domain/services/maintenance_service.dart';
-import 'package:immolink/features/chat/domain/services/chat_service.dart';
-import 'package:immolink/core/services/database_service.dart';
+import 'package:immosync/features/auth/domain/services/auth_service.dart';
+import 'package:immosync/features/property/domain/services/property_service.dart';
+import 'package:immosync/features/payment/domain/services/payment_service.dart';
+import 'package:immosync/features/maintenance/domain/services/maintenance_service.dart';
+import 'package:immosync/features/chat/domain/services/chat_service.dart';
+import 'package:immosync/core/services/database_service.dart';
 
 void main() {
   group('Service Instantiation Tests', () {

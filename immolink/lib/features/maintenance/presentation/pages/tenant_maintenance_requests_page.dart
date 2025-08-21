@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
-import 'package:immolink/features/maintenance/domain/models/maintenance_request.dart';
-import 'package:immolink/features/maintenance/presentation/providers/maintenance_providers.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
+import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 
 class TenantMaintenanceRequestsPage extends ConsumerWidget {
   const TenantMaintenanceRequestsPage({super.key});

@@ -1,8 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:immolink/core/config/db_config.dart';
-import 'package:immolink/features/chat/domain/models/chat_message.dart';
-import 'package:immolink/features/chat/domain/models/conversation.dart';
+import 'package:immosync/core/config/db_config.dart';
+import 'package:immosync/features/chat/domain/models/chat_message.dart';
+import 'package:immosync/features/chat/domain/models/conversation.dart';
 
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;

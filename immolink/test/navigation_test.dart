@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immolink/core/providers/navigation_provider.dart';
+import 'package:immosync/core/providers/navigation_provider.dart';
 
 void main() {
   group('Navigation Provider Tests', () {

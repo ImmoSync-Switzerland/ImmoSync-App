@@ -1,11 +1,11 @@
 {
-    "name": "immolink",
-    "short_name": "immolink",
+    "name": "ImmoSync",
+    "short_name": "ImmoSync",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "ImmoSync - Property Management App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

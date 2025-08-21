@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:immolink/core/theme/app_colors.dart';
-import 'package:immolink/features/auth/domain/services/auth_service.dart';
+import 'package:immosync/core/theme/app_colors.dart';
+import 'package:immosync/features/auth/domain/services/auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});

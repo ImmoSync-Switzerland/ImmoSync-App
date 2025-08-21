@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
-import 'package:immolink/features/property/domain/models/property.dart';
-import 'package:immolink/features/property/presentation/providers/property_providers.dart';
-import 'package:immolink/features/chat/domain/models/conversation.dart';
-import 'package:immolink/features/chat/presentation/providers/conversations_provider.dart';
-import 'package:immolink/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/chat/domain/models/conversation.dart';
+import 'package:immosync/features/chat/presentation/providers/conversations_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class TenantSearchPage extends ConsumerStatefulWidget {

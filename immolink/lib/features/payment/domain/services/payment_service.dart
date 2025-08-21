@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:immolink/features/payment/domain/models/payment.dart';
-import 'package:immolink/core/config/db_config.dart';
+import 'package:immosync/features/payment/domain/models/payment.dart';
+import 'package:immosync/core/config/db_config.dart';
 
 class PaymentService {
   final String _apiUrl = DbConfig.apiUrl;
