@@ -112,6 +112,7 @@ class ConnectService {
     String currency = 'chf',
     String paymentType = 'rent',
     String? description,
+    String? preferredPaymentMethod,
   }) async {
     try {
       final response = await http.post(
@@ -124,6 +125,7 @@ class ConnectService {
           'currency': currency,
           'paymentType': paymentType,
           'description': description,
+          'preferredPaymentMethod': preferredPaymentMethod,
         }),
       );
 

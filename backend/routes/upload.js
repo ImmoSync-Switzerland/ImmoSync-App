@@ -36,7 +36,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }    // Return the file URL
-    const fileUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+    const fileUrl = `http://backend.immosync.ch/uploads/${req.file.filename}`;
     res.json({ 
       message: 'File uploaded successfully',
       url: fileUrl,
@@ -54,7 +54,7 @@ router.post('/upload-multiple', upload.array('images', 10), (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
     }    const fileUrls = req.files.map(file => ({
-      url: `http://localhost:3000/uploads/${file.filename}`,
+      url: `http://backend.immosync.ch/uploads/${file.filename}`,
       filename: file.filename
     }));
 

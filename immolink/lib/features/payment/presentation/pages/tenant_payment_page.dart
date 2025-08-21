@@ -435,19 +435,25 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         amount: _amount,
         paymentType: widget.paymentType,
         description: '${widget.paymentType} payment for ${widget.property.address.street}',
+        preferredPaymentMethod: _selectedPaymentMethod,
+      );
+
+      // Configure payment sheet parameters based on payment method
+      final paymentSheetParams = SetupPaymentSheetParameters(
+        paymentIntentClientSecret: paymentData['clientSecret'],
+        merchantDisplayName: 'ImmoSync',
+        style: ThemeMode.system,
+        billingDetails: BillingDetails(
+          email: user.email,
+          name: user.fullName,
+        ),
+        // Allow delayed payment methods like bank transfers
+        allowsDelayedPaymentMethods: _selectedPaymentMethod != 'card',
       );
 
       // Initialize payment sheet
       await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentData['clientSecret'],
-          merchantDisplayName: 'ImmoLink',
-          style: ThemeMode.system,
-          billingDetails: BillingDetails(
-            email: user.email,
-            name: user.fullName,
-          ),
-        ),
+        paymentSheetParameters: paymentSheetParams,
       );
 
       // Present payment sheet
@@ -457,7 +463,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment successful!'),
+            content: Text(_getSuccessMessage()),
             backgroundColor: Colors.green,
           ),
         );
@@ -479,6 +485,20 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  String _getSuccessMessage() {
+    switch (_selectedPaymentMethod) {
+      case 'bank_transfer':
+      case 'sepa_debit':
+        return 'Payment initiated! It will be processed within 1-3 business days.';
+      case 'sofort':
+      case 'ideal':
+        return 'Payment completed successfully!';
+      case 'card':
+      default:
+        return 'Payment successful!';
     }
   }
 }

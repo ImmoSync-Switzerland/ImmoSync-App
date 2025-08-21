@@ -59,7 +59,7 @@ router.post('/register', async (req, res) => {
     
     // Send registration confirmation email
     try {
-      const emailEndpoint = `${process.env.API_URL || 'http://localhost:3000/api'}/email/send-registration-confirmation`;
+      const emailEndpoint = `${process.env.API_URL || 'http://backend.immosync.ch/api'}/email/send-registration-confirmation`;
       const emailData = {
         userEmail: email,
         userName: fullName
@@ -202,7 +202,7 @@ router.post('/forgot-password', async (req, res) => {
     
     // Send password reset email
     try {
-      const emailEndpoint = `${process.env.API_URL || 'http://localhost:3000/api'}/email/send-password-reset`;
+      const emailEndpoint = `${process.env.API_URL || 'http://backend.immosync.ch/api'}/email/send-password-reset`;
       
       const emailData = {
         userEmail: email,

@@ -9,6 +9,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../documents/presentation/providers/document_providers.dart';
 import '../../../documents/presentation/widgets/document_card.dart';
 import '../../../documents/domain/models/document_model.dart';
+import '../../../documents/presentation/pages/document_viewer_page.dart';
 
 class TenantDocumentsPage extends ConsumerStatefulWidget {
   const TenantDocumentsPage({super.key});
@@ -714,11 +715,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   }
 
   void _viewDocument(DocumentModel document) {
-    // Implement document viewing functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${document.name}...'),
-        backgroundColor: Colors.blue,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DocumentViewerPage(document: document),
       ),
     );
   }

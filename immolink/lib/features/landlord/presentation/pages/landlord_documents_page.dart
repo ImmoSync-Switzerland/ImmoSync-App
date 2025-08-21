@@ -9,6 +9,7 @@ import '../../../property/presentation/providers/property_providers.dart';
 import '../../../documents/domain/models/document_model.dart';
 import '../../../documents/presentation/providers/document_providers.dart';
 import '../../../documents/presentation/widgets/document_card.dart';
+import '../../../documents/presentation/pages/document_viewer_page.dart';
 
 class LandlordDocumentsPage extends ConsumerStatefulWidget {
   const LandlordDocumentsPage({super.key});
@@ -737,7 +738,11 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   }
 
   void _viewDocument(DocumentModel document) {
-    _showInfoSnackBar('Opening ${document.name}...');
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DocumentViewerPage(document: document),
+      ),
+    );
   }
 
   void _downloadDocument(DocumentModel document) async {

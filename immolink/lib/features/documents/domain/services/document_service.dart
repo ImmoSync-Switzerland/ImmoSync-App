@@ -536,10 +536,37 @@ class DocumentService {
 
   /// Get document file as bytes (for viewing)
   Future<Uint8List?> getDocumentBytes(DocumentModel document) async {
-    // In a real implementation, this would fetch the file bytes from storage
-    // For now, return null to indicate file not available
-    await Future.delayed(const Duration(milliseconds: 500));
-    return null;
+    try {
+      print('DocumentService: Fetching document bytes for: ${document.name}');
+      
+      // Try multiple URL patterns to find the document
+      const baseUrl = 'https://backend.immosync.ch/api';
+      final urlCandidates = [
+        '$baseUrl/documents/file/${document.id}',
+        '$baseUrl/${document.filePath}',
+        '$baseUrl/documents/download/${document.id}',
+      ];
+      
+      // Try each URL until we find one that works
+      for (final url in urlCandidates) {
+        try {
+          print('DocumentService: Trying URL: $url');
+          final response = await http.get(Uri.parse(url));
+          if (response.statusCode == 200) {
+            print('DocumentService: Successfully loaded ${response.bodyBytes.length} bytes from $url');
+            return response.bodyBytes;
+          }
+        } catch (e) {
+          print('DocumentService: Failed to load from $url: $e');
+          continue;
+        }
+      }
+      
+      throw Exception('Document not accessible from any URL');
+    } catch (e) {
+      print('DocumentService: Error fetching document bytes: $e');
+      return null;
+    }
   }
 
   /// Check if document exists

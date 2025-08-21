@@ -267,7 +267,8 @@ router.post('/create-tenant-payment', async (req, res) => {
       amount, 
       currency = 'chf',
       paymentType = 'rent',
-      description 
+      description,
+      preferredPaymentMethod = 'card'
     } = req.body;
     
     if (!tenantId || !propertyId || !amount) {
@@ -295,6 +296,28 @@ router.post('/create-tenant-payment', async (req, res) => {
       });
     }
 
+    // Get payment method types based on preference
+    let paymentMethodTypes = ['card']; // Default
+    
+    switch (preferredPaymentMethod) {
+      case 'bank_transfer':
+        paymentMethodTypes = ['customer_balance', 'us_bank_account'];
+        break;
+      case 'sepa_debit':
+        paymentMethodTypes = ['sepa_debit'];
+        break;
+      case 'sofort':
+        paymentMethodTypes = ['sofort'];
+        break;
+      case 'ideal':
+        paymentMethodTypes = ['ideal'];
+        break;
+      case 'card':
+      default:
+        paymentMethodTypes = ['card'];
+        break;
+    }
+    
     // Calculate application fee (e.g., 2.9% + 30 cents)
     const applicationFeeAmount = Math.round((amount * 0.029) + 30);
     
@@ -306,18 +329,13 @@ router.post('/create-tenant-payment', async (req, res) => {
       transfer_data: {
         destination: landlord.stripeConnectAccountId,
       },
-      payment_method_types: [
-        'card',
-        'bank_transfer', // For bank transfers
-        'sofort',       // For instant bank payments in Europe
-        'ideal',        // For Netherlands
-        'sepa_debit',   // For SEPA Direct Debit
-      ],
+      payment_method_types: paymentMethodTypes,
       metadata: {
         tenantId: tenantId,
         propertyId: propertyId,
         landlordId: property.landlordId,
         paymentType: paymentType,
+        preferredPaymentMethod: preferredPaymentMethod,
         description: description || `${paymentType} payment for ${property.address.street}`
       }
     });
