@@ -140,6 +140,27 @@ class ConnectService {
     }
   }
 
+  // Create setup intent for recurring payments
+  Future<Map<String, dynamic>> createSetupIntent(String paymentMethodType) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_apiUrl/connect/create-setup-intent'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'payment_method_type': paymentMethodType,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to create setup intent: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error creating setup intent: $e');
+    }
+  }
+
   // Get available payment methods for region
   Future<List<PaymentMethod>> getAvailablePaymentMethods(String countryCode) async {
     try {

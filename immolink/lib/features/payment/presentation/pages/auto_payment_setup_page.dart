@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../domain/services/connect_service.dart';
 
 class AutoPaymentSetupPage extends ConsumerStatefulWidget {
   const AutoPaymentSetupPage({super.key});
@@ -16,6 +18,7 @@ class AutoPaymentSetupPage extends ConsumerStatefulWidget {
 class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   String _selectedPaymentMethod = 'bank';
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
   
   // Form controllers
   final _bankAccountController = TextEditingController();
@@ -443,12 +446,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          HapticFeedback.mediumImpact();
-          if (_formKey.currentState?.validate() ?? false) {
-            _showSetupConfirmation(context, colors);
-          }
-        },
+        onPressed: _isLoading ? null : () => _setupAutoPayment(l10n, colors),
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.primaryAccent,
           foregroundColor: Colors.white,
@@ -458,13 +456,22 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           ),
           elevation: 0,
         ),
-        child: Text(
-          'Set Up Auto Payment',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: _isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : Text(
+              'Set Up Auto Payment',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
       ),
     );
   }
@@ -527,7 +534,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           ],
         ),
         content: Text(
-          'Your automatic payment has been set up successfully. You will receive a confirmation email shortly.',
+          'Your automatic payment has been set up successfully with Stripe. You will receive a confirmation email shortly.',
           style: TextStyle(color: colors.textSecondary),
         ),
         actions: [
@@ -538,6 +545,96 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             },
             child: Text(
               'Done',
+              style: TextStyle(color: colors.primaryAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setupAutoPayment(AppLocalizations l10n, DynamicAppColors colors) async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    
+    setState(() => _isLoading = true);
+    HapticFeedback.mediumImpact();
+    
+    try {
+      // Create setup intent for recurring payments
+      final connectService = ConnectService();
+      final setupResponse = await connectService.createSetupIntent(_selectedPaymentMethod);
+      
+      if (setupResponse['client_secret'] == null) {
+        throw Exception('Failed to create setup intent');
+      }
+      
+      if (_selectedPaymentMethod == 'bank') {
+        // For bank transfers, we need to collect bank account details
+        await _setupBankAccount(setupResponse['client_secret'], connectService);
+      } else {
+        // For cards, use Stripe's payment method collection
+        await _setupCardPayment(setupResponse['client_secret']);
+      }
+      
+      _showSetupConfirmation(context, colors);
+      
+    } catch (e) {
+      _showErrorDialog(context, colors, 'Setup failed: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+  
+  Future<void> _setupBankAccount(String clientSecret, ConnectService connectService) async {
+    // For bank transfers, we need to collect the account details
+    // and create a setup intent with bank account payment method
+    await Stripe.instance.initPaymentSheet(
+      paymentSheetParameters: SetupPaymentSheetParameters(
+        setupIntentClientSecret: clientSecret,
+        merchantDisplayName: 'ImmoSync',
+        allowsDelayedPaymentMethods: true,
+      ),
+    );
+    
+    await Stripe.instance.presentPaymentSheet();
+    // Payment sheet handles the setup - if we get here, it was successful
+  }
+  
+  Future<void> _setupCardPayment(String clientSecret) async {
+    await Stripe.instance.initPaymentSheet(
+      paymentSheetParameters: SetupPaymentSheetParameters(
+        setupIntentClientSecret: clientSecret,
+        merchantDisplayName: 'ImmoSync',
+      ),
+    );
+    
+    await Stripe.instance.presentPaymentSheet();
+    // Payment sheet handles the setup - if we get here, it was successful
+  }
+  
+  void _showErrorDialog(BuildContext context, DynamicAppColors colors, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: colors.error),
+            const SizedBox(width: 8),
+            Text('Setup Failed'),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: colors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
               style: TextStyle(color: colors.primaryAccent),
             ),
           ),

@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../l10n/app_localizations.dart';
 import 'package:immosync/core/routes/app_router.dart';
 import 'package:immosync/core/services/database_service.dart';
@@ -13,28 +16,76 @@ import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:immosync/core/config/db_config.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  try {
-    await dotenv.dotenv.load(fileName: ".env");
-    print('Environment file loaded successfully');
-  } catch (e) {
-    print('Failed to load .env file: $e');
-    print('Using default configuration');
-  }
-  
-  // Print configuration for debugging
-  DbConfig.printConfig();
-  
-  try {
-    await DatabaseService.instance.connect();
-    print('Database connected successfully');
-  } catch (e) {
-    print('Database connection failed: $e');
-    print('App will run in offline mode');
-  }
-  
-  runApp(const ProviderScope(child: ImmoSync()));
+  // Wrap everything in a try-catch to prevent immediate crashes
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Initialize Firebase
+    try {
+      await Firebase.initializeApp();
+      print('Firebase initialized successfully');
+    } catch (e) {
+      print('Firebase initialization failed: $e');
+      // Don't crash the app, just log the error
+    }
+    
+    // Environment loading with fallback
+    bool envLoaded = false;
+    try {
+      await dotenv.dotenv.load(fileName: ".env");
+      envLoaded = true;
+      print('Environment file loaded successfully');
+    } catch (e) {
+      print('Failed to load .env file: $e');
+      print('Using default configuration');
+    }
+    
+    // Initialize Stripe with more robust error handling
+    try {
+      final stripeKey = envLoaded ? dotenv.dotenv.env['STRIPE_PUBLISHABLE_KEY'] : null;
+      if (stripeKey != null && stripeKey.isNotEmpty) {
+        Stripe.publishableKey = stripeKey;
+        await Stripe.instance.applySettings();
+        print('Stripe initialized successfully');
+      } else {
+        print('Stripe key not found in environment, payment features disabled');
+      }
+    } catch (e) {
+      print('Stripe initialization failed: $e');
+      // Don't crash the app, just log the error
+    }
+    
+    // Print configuration for debugging
+    try {
+      DbConfig.printConfig();
+    } catch (e) {
+      print('DbConfig error: $e');
+    }
+    
+    // Database connection with error handling
+    try {
+      await DatabaseService.instance.connect();
+      print('Database connected successfully');
+    } catch (e) {
+      print('Database connection failed: $e');
+      print('App will run in offline mode');
+    }
+    
+    runApp(const ProviderScope(child: ImmoSync()));
+  }, (error, stack) {
+    print('Uncaught error in main: $error');
+    print('Stack trace: $stack');
+    // Try to run a minimal version of the app
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text('App initialization failed: $error'),
+          ),
+        ),
+      ),
+    );
+  });
 }
 
 class ImmoSync extends ConsumerWidget {

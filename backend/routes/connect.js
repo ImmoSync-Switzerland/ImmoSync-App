@@ -559,4 +559,51 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req, res
   }
 });
 
+// Create setup intent for recurring payments
+router.post('/create-setup-intent', async (req, res) => {
+  const stripeError = requireStripe(res);
+  if (stripeError) return stripeError;
+
+  try {
+    const { payment_method_type } = req.body;
+    
+    if (!payment_method_type) {
+      return res.status(400).json({ 
+        message: 'Payment method type is required' 
+      });
+    }
+
+    // Define payment method types based on the selection
+    let paymentMethodTypes = ['card']; // Default to card
+    
+    if (payment_method_type === 'bank') {
+      paymentMethodTypes = [
+        'us_bank_account',
+        'sepa_debit',
+        'ach_debit',
+        'bacs_debit'
+      ];
+    }
+
+    // Create setup intent for future payments
+    const setupIntent = await stripe.setupIntents.create({
+      payment_method_types: paymentMethodTypes,
+      usage: 'off_session', // For recurring payments
+      metadata: {
+        payment_method_type: payment_method_type,
+        created_for: 'auto_payment_setup'
+      }
+    });
+
+    res.json({
+      client_secret: setupIntent.client_secret,
+      setup_intent_id: setupIntent.id
+    });
+    
+  } catch (error) {
+    console.error('Error creating setup intent:', error);
+    res.status(500).json({ message: 'Error creating setup intent' });
+  }
+});
+
 module.exports = router;
