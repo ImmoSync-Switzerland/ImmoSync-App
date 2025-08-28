@@ -340,7 +340,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 8),
           Text(
-            _errorMessage ?? 'Dashboard components require web browser',
+            _errorMessage ?? AppLocalizations.of(context)!.dashboardComponentsRequireBrowser,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -378,7 +378,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 16),
           Text(
-            'Dashboard Available on Web',
+            AppLocalizations.of(context)!.dashboardAvailableOnWeb,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -387,7 +387,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 8),
           Text(
-            'Visit the web version to access the full ${_getComponentTitle().toLowerCase()} dashboard',
+            AppLocalizations.of(context)!.visitWebForFullDashboard(_getComponentTitle().toLowerCase()),
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,

@@ -23,8 +23,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  String _selectedPeriod = 'This Month';
-  final List<String> _periods = ['This Week', 'This Month', 'This Quarter', 'This Year'];
+  String _selectedPeriod = '';
+  List<String> _periods = const [];
 
   // Helper method for responsive font sizes
   double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
@@ -40,7 +40,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+  _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
@@ -52,6 +52,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       curve: Curves.easeOutCubic,
     ));
     _animationController.forward();
+    // Initialize localized period labels after first frame to access context
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l10n = AppLocalizations.of(context)!;
+      setState(() {
+        _periods = [
+          l10n.thisWeek,
+          l10n.thisMonth,
+          l10n.thisQuarter,
+          l10n.thisYear,
+        ];
+        _selectedPeriod = l10n.thisMonth;
+      });
+    });
   }
 
   @override
@@ -96,7 +109,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           ),
         ),
         title: Text(
-          'Analytics & Reports',
+          l10n.analyticsAndReports,
           style: TextStyle(
             fontSize: _getResponsiveFontSize(context, 22),
             fontWeight: FontWeight.w800,
@@ -773,7 +786,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Revenue Analytics',
+                l10n.revenueAnalytics,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -796,7 +809,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             ),
             child: Center(
               child: Text(
-                'Revenue Chart Coming Soon',
+                l10n.revenueChartComingSoon,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 16),
                   fontWeight: FontWeight.w500,

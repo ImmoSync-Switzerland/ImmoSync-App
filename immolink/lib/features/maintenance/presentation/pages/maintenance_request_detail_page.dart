@@ -37,7 +37,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ),
       ),
       body: requestAsync.when(
-        data: (request) => _buildRequestDetails(context, request, l10n, ref, colors),
+  data: (request) => _buildRequestDetails(context, request, l10n, ref, colors),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -50,7 +50,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Error loading maintenance request',
+                l10n.errorLoadingMaintenanceRequest,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -69,7 +69,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => context.pop(),
-                child: const Text('Go Back'),
+                child: Text(l10n.goBack),
               ),
             ],
           ),
@@ -257,7 +257,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Description',
+                        l10n.description,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -310,7 +310,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Details',
+                        l10n.details,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -320,7 +320,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _buildModernDetailGrid(request, colors),
+                  _buildModernDetailGrid(request, colors, l10n),
                 ],
               ),
             ),
@@ -357,7 +357,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Contractor Information',
+                          l10n.contractorInformation,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -368,11 +368,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 20),
                     if (request.contractorInfo!.name != null)
-                      _buildModernDetailRow(Icons.person, 'Name', request.contractorInfo!.name!, colors),
+                      _buildModernDetailRow(Icons.person, l10n.name, request.contractorInfo!.name!, colors),
                     if (request.contractorInfo!.contact != null)
-                      _buildModernDetailRow(Icons.phone, 'Contact', request.contractorInfo!.contact!, colors),
+                      _buildModernDetailRow(Icons.phone, l10n.contact, request.contractorInfo!.contact!, colors),
                     if (request.contractorInfo!.company != null)
-                      _buildModernDetailRow(Icons.business, 'Company', request.contractorInfo!.company!, colors),
+                      _buildModernDetailRow(Icons.business, l10n.company, request.contractorInfo!.company!, colors),
                   ],
                 ),
               ),
@@ -409,7 +409,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Notes',
+                          l10n.notes,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -462,7 +462,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.all(20),
-            child: _buildModernActionButtons(context, ref, request, colors),
+            child: _buildModernActionButtons(context, ref, request, colors, l10n),
           ),
         ),
 
@@ -474,7 +474,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailGrid(MaintenanceRequest request, DynamicAppColors colors) {
+  Widget _buildModernDetailGrid(MaintenanceRequest request, DynamicAppColors colors, AppLocalizations l10n) {
     return Column(
       children: [
         Row(
@@ -482,7 +482,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             Expanded(
               child: _buildModernDetailCard(
                 Icons.category_outlined,
-                'Category',
+                l10n.category,
                 request.categoryDisplayText,
                 CategoryUtils.getCategoryColor(request.category),
                 colors,
@@ -492,7 +492,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             Expanded(
               child: _buildModernDetailCard(
                 Icons.location_on_outlined,
-                'Location',
+                l10n.location,
                 request.location,
                 colors.info,
                 colors,
@@ -506,7 +506,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             Expanded(
               child: _buildModernDetailCard(
                 Icons.access_time,
-                'Reported',
+                l10n.reported,
                 DateFormat('MMM d').format(request.requestedDate),
                 colors.textSecondary,
                 colors,
@@ -516,7 +516,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             Expanded(
               child: _buildModernDetailCard(
                 Icons.priority_high,
-                'Urgency',
+                l10n.urgency,
                 '${request.urgencyLevel}/5',
                 _getPriorityColor(request.priority, colors),
                 colors,
@@ -532,7 +532,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Expanded(
                   child: _buildModernDetailCard(
                     Icons.schedule,
-                    'Scheduled',
+                    l10n.scheduled,
                     DateFormat('MMM d').format(request.scheduledDate!),
                     colors.warning,
                     colors,
@@ -544,7 +544,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Expanded(
                   child: _buildModernDetailCard(
                     Icons.check_circle_outline,
-                    'Completed',
+                    l10n.completed,
                     DateFormat('MMM d').format(request.completedDate!),
                     colors.success,
                     colors,
@@ -561,7 +561,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Expanded(
                   child: _buildModernDetailCard(
                     Icons.attach_money,
-                    'Estimated',
+                    l10n.estimated,
                     '\$${request.cost!.estimated!.toStringAsFixed(2)}',
                     colors.warning,
                     colors,
@@ -573,7 +573,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 Expanded(
                   child: _buildModernDetailCard(
                     Icons.money,
-                    'Actual Cost',
+                    l10n.actualCost,
                     '\$${request.cost!.actual!.toStringAsFixed(2)}',
                     colors.success,
                     colors,
@@ -678,7 +678,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernActionButtons(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors) {
+  Widget _buildModernActionButtons(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors, AppLocalizations l10n) {
     // Only landlords and property managers can update maintenance request status
     final userRole = ref.watch(userRoleProvider);
     if (userRole == 'tenant') {
@@ -728,8 +728,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Mark as In Progress',
+                  Text(
+                    l10n.markAsInProgress,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -778,8 +778,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Mark as Completed',
+                  Text(
+                    l10n.markAsCompleted,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -819,7 +819,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Add Note',
+                  l10n.addNote,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -973,7 +973,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                   controller: noteController,
                   maxLines: 4,
                   decoration: InputDecoration(
-                    hintText: 'Enter your note here...',
+                    hintText: l10n.enterNoteHint,
                     hintStyle: TextStyle(
                       color: colors.textSecondary.withValues(alpha: 0.6),
                     ),
@@ -1019,8 +1019,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
-              child: const Text(
-                'Add Note',
+              child: Text(
+                l10n.addNote,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1034,6 +1034,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
   }
 
   Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId, String noteContent, DynamicAppColors colors) async {
+  final l10n = AppLocalizations.of(context)!;
     try {
       // Show loading indicator
       showDialog(
@@ -1054,7 +1055,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Adding note...',
+                  l10n.addingNote,
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 16,

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/document_model.dart';
 
 class DocumentViewerPage extends ConsumerStatefulWidget {
@@ -113,10 +114,10 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Document downloaded to: $filePath'),
+            content: Text(AppLocalizations.of(context)!.documentDownloadedTo(filePath)),
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
-              label: 'Open Folder',
+              label: AppLocalizations.of(context)!.openFolder,
               onPressed: () => _openFolder(downloadsDir!.path),
             ),
           ),
@@ -125,7 +126,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Download failed: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.downloadFailed}: $e')),
         );
       }
     }
@@ -168,7 +169,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to open: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.failedToOpen}: $e')),
         );
       }
     }
@@ -196,12 +197,12 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
           IconButton(
             icon: const Icon(Icons.open_in_new),
             onPressed: _openInExternalApp,
-            tooltip: 'Open in external app',
+            tooltip: AppLocalizations.of(context)!.openInExternalApp,
           ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: _downloadDocument,
-            tooltip: 'Download',
+            tooltip: AppLocalizations.of(context)!.download,
           ),
         ],
       ),
@@ -220,7 +221,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Loading document...',
+              AppLocalizations.of(context)!.loadingDocument,
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 16,
@@ -243,7 +244,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Unable to Load Document',
+              AppLocalizations.of(context)!.unableToLoadDocument,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -266,7 +267,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
             ElevatedButton.icon(
               onPressed: _downloadDocument,
               icon: const Icon(Icons.download),
-              label: const Text('Download Instead'),
+              label: Text(AppLocalizations.of(context)!.downloadInstead),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: colors.textOnAccent,
@@ -342,7 +343,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                   child: ElevatedButton.icon(
                     onPressed: () => _showImagePreview(colors),
                     icon: const Icon(Icons.visibility),
-                    label: const Text('View Image'),
+                    label: Text(AppLocalizations.of(context)!.viewImage),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryAccent,
                       foregroundColor: colors.textOnAccent,
@@ -359,7 +360,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                   child: ElevatedButton.icon(
                     onPressed: _loadDocument,
                     icon: const Icon(Icons.visibility),
-                    label: const Text('Load Preview'),
+                    label: Text(AppLocalizations.of(context)!.loadPreview),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryAccent,
                       foregroundColor: colors.textOnAccent,
@@ -375,7 +376,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                 child: ElevatedButton.icon(
                   onPressed: _openInExternalApp,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Open in External App'),
+                  label: Text(AppLocalizations.of(context)!.openInExternalApp),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryAccent,
                     foregroundColor: colors.textOnAccent,
@@ -391,7 +392,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                 child: OutlinedButton.icon(
                   onPressed: _downloadDocument,
                   icon: const Icon(Icons.download),
-                  label: const Text('Download to Device'),
+                  label: Text(AppLocalizations.of(context)!.downloadToDevice),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.primaryAccent,
                     side: BorderSide(color: colors.primaryAccent),
@@ -434,7 +435,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                 errorBuilder: (context, error, stackTrace) {
                   return Center(
                     child: Text(
-                      'Failed to display image',
+                      AppLocalizations.of(context)!.failedToDisplayImage,
                       style: TextStyle(color: colors.textPrimary),
                     ),
                   );
@@ -485,19 +486,19 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     final mimeType = widget.document.mimeType.toLowerCase();
 
     if (mimeType.contains('pdf') || fileName.endsWith('.pdf')) {
-      return 'PDF Document';
+  return AppLocalizations.of(context)!.pdfDocument;
     } else if (mimeType.startsWith('image/')) {
-      return 'Image File';
+  return AppLocalizations.of(context)!.imageFile;
     } else if (mimeType.startsWith('text/')) {
-      return 'Text File';
+  return AppLocalizations.of(context)!.textFile;
     } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-      return 'Word Document';
+  return AppLocalizations.of(context)!.wordDocument;
     } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-      return 'Excel Spreadsheet';
+  return AppLocalizations.of(context)!.excelSpreadsheet;
     } else if (fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
-      return 'PowerPoint Presentation';
+  return AppLocalizations.of(context)!.powerPointPresentation;
     } else {
-      return 'Document File';
+  return AppLocalizations.of(context)!.documentFile;
     }
   }
 }

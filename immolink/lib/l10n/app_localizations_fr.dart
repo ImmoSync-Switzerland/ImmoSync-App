@@ -1190,6 +1190,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get documents => 'Documents';
 
   @override
+  String get autoPayment => 'Paiement automatique';
+
+  @override
+  String get paymentHistory => 'Historique des paiements';
+
+  @override
   String get searchPropertiesMaintenanceMessages =>
       'Rechercher propriétés, maintenance, messages...';
 
@@ -1518,4 +1524,394 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get invitations => 'Invitations';
+
+  @override
+  String get analyticsAndReports => 'Analyses & Rapports';
+
+  @override
+  String get revenueAnalytics => 'Analyses des revenus';
+
+  @override
+  String get revenueChartComingSoon =>
+      'Graphique des revenus bientôt disponible';
+
+  @override
+  String get thisWeek => 'Cette semaine';
+
+  @override
+  String get thisMonth => 'Ce mois-ci';
+
+  @override
+  String get thisQuarter => 'Ce trimestre';
+
+  @override
+  String get thisYear => 'Cette année';
+
+  @override
+  String get reportPeriod => 'Période du rapport';
+
+  @override
+  String get financialSummary => 'Résumé financier';
+
+  @override
+  String get totalIncome => 'Revenu total';
+
+  @override
+  String get paymentSummary => 'Résumé des paiements';
+
+  @override
+  String get dashboardComponentsRequireBrowser =>
+      'Les composants du tableau de bord nécessitent un navigateur web';
+
+  @override
+  String get dashboardAvailableOnWeb => 'Tableau de bord disponible sur le web';
+
+  @override
+  String visitWebForFullDashboard(Object component) {
+    return 'Visitez la version web pour accéder au tableau de bord complet $component';
+  }
+
+  @override
+  String get planBasic => 'Basic';
+
+  @override
+  String get planProfessional => 'Professionnel';
+
+  @override
+  String get planEnterprise => 'Entreprise';
+
+  @override
+  String get planBasicDescription =>
+      'Parfait pour les propriétaires individuels';
+
+  @override
+  String get planProfessionalDescription =>
+      'Idéal pour les portefeuilles immobiliers en croissance';
+
+  @override
+  String get planEnterpriseDescription =>
+      'Pour les grandes sociétés de gestion immobilière';
+
+  @override
+  String get featureUpToThreeProperties => 'Jusqu\'à 3 propriétés';
+
+  @override
+  String get featureBasicTenantManagement => 'Gestion de locataires basique';
+
+  @override
+  String get featurePaymentTracking => 'Suivi des paiements';
+
+  @override
+  String get featureEmailSupport => 'Support e-mail';
+
+  @override
+  String get featureUpToFifteenProperties => 'Jusqu\'à 15 propriétés';
+
+  @override
+  String get featureAdvancedTenantManagement =>
+      'Gestion avancée des locataires';
+
+  @override
+  String get featureAutomatedRentCollection => 'Collecte de loyer automatisée';
+
+  @override
+  String get featureMaintenanceRequestTracking =>
+      'Suivi des demandes de maintenance';
+
+  @override
+  String get featureFinancialReports => 'Rapports financiers';
+
+  @override
+  String get featurePrioritySupport => 'Support prioritaire';
+
+  @override
+  String get featureUnlimitedProperties => 'Propriétés illimitées';
+
+  @override
+  String get featureMultiUserAccounts => 'Comptes multi-utilisateurs';
+
+  @override
+  String get featureAdvancedAnalytics => 'Analyses avancées';
+
+  @override
+  String get featureApiAccess => 'Accès API';
+
+  @override
+  String get featureCustomIntegrations => 'Intégrations personnalisées';
+
+  @override
+  String get featureDedicatedSupport => 'Support dédié';
+
+  @override
+  String documentDownloadedTo(Object path) {
+    return 'Document téléchargé dans : $path';
+  }
+
+  @override
+  String get openFolder => 'Ouvrir le dossier';
+
+  @override
+  String get downloadFailed => 'Échec du téléchargement';
+
+  @override
+  String get failedToOpen => 'Échec de l\'ouverture';
+
+  @override
+  String get openInExternalApp => 'Ouvrir dans une application externe';
+
+  @override
+  String get loadingDocument => 'Chargement du document...';
+
+  @override
+  String get unableToLoadDocument => 'Impossible de charger le document';
+
+  @override
+  String get downloadInstead => 'Télécharger à la place';
+
+  @override
+  String get viewImage => 'Voir l\'image';
+
+  @override
+  String get loadPreview => 'Charger l\'aperçu';
+
+  @override
+  String get downloadToDevice => 'Télécharger sur l\'appareil';
+
+  @override
+  String get failedToDisplayImage => 'Impossible d\'afficher l\'image';
+
+  @override
+  String get pdfDocument => 'Document PDF';
+
+  @override
+  String get imageFile => 'Fichier image';
+
+  @override
+  String get textFile => 'Fichier texte';
+
+  @override
+  String get wordDocument => 'Document Word';
+
+  @override
+  String get excelSpreadsheet => 'Feuille de calcul Excel';
+
+  @override
+  String get powerPointPresentation => 'Présentation PowerPoint';
+
+  @override
+  String get documentFile => 'Fichier document';
+
+  @override
+  String get expiringSoon => 'Expire bientôt';
+
+  @override
+  String get expired => 'Expiré';
+
+  @override
+  String expiresOn(Object date) {
+    return 'Expire le $date';
+  }
+
+  @override
+  String tenantsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'locataires',
+      one: 'locataire',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
+  String propertiesCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'propriétés',
+      one: 'propriété',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
+  String daysAgo(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count jours',
+      one: 'Il y a 1 jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeksAgo(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count semaines',
+      one: 'Il y a 1 semaine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get financialOverview => 'Aperçu financier';
+
+  @override
+  String get subscriptionRequired => 'Abonnement requis';
+
+  @override
+  String get subscriptionRequiredMessage =>
+      'Cette fonctionnalité est disponible avec un abonnement.';
+
+  @override
+  String get subscriptionChoosePlanMessage =>
+      'Choisissez un plan pour débloquer toutes les fonctionnalités.';
+
+  @override
+  String get viewPlans => 'Voir les plans';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get viewAllProperties => 'Voir toutes les propriétés';
+
+  @override
+  String get noRecentMessages => 'Aucun message récent';
+
+  @override
+  String get noPendingMaintenanceRequests =>
+      'Aucune demande de maintenance en attente';
+
+  @override
+  String get errorLoadingMaintenanceRequest =>
+      'Erreur de chargement de la demande de maintenance';
+
+  @override
+  String get goBack => 'Retour';
+
+  @override
+  String get contractorInformation => 'Informations du prestataire';
+
+  @override
+  String get contact => 'Contact';
+
+  @override
+  String get company => 'Entreprise';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get reported => 'Signalé';
+
+  @override
+  String get urgency => 'Urgence';
+
+  @override
+  String get scheduled => 'Planifié';
+
+  @override
+  String get estimated => 'Estimé';
+
+  @override
+  String get actualCost => 'Coût réel';
+
+  @override
+  String get markAsInProgress => 'Marquer en cours';
+
+  @override
+  String get markAsCompleted => 'Marquer terminé';
+
+  @override
+  String get enterNoteHint => 'Entrer une note...';
+
+  @override
+  String get addingNote => 'Ajout de la note...';
+
+  @override
+  String get completePayment => 'Finaliser le paiement';
+
+  @override
+  String get perYearSuffix => 'par an';
+
+  @override
+  String get perMonthSuffix => 'par mois';
+
+  @override
+  String youSavePerYear(Object savings) {
+    return 'Vous économisez $savings par an';
+  }
+
+  @override
+  String get includedFeatures => 'Fonctionnalités incluses';
+
+  @override
+  String get paymentMethod => 'Méthode de paiement';
+
+  @override
+  String get paymentInfoSecure =>
+      'Vos informations de paiement sont sécurisées';
+
+  @override
+  String get desktopPaymentNotSupported =>
+      'Paiement sur bureau non pris en charge';
+
+  @override
+  String get desktopPaymentUseWebOrMobile =>
+      'Veuillez utiliser le web ou l\'application mobile pour payer.';
+
+  @override
+  String get openWebVersion => 'Ouvrir la version web';
+
+  @override
+  String get redirectingToSecurePaymentPage =>
+      'Redirection vers la page de paiement sécurisée...';
+
+  @override
+  String get subscriptionTerms => 'Conditions d\'abonnement';
+
+  @override
+  String subscriptionBulletAutoRenews(Object interval) {
+    return 'Renouvellement automatique chaque $interval';
+  }
+
+  @override
+  String get yearlyInterval => 'an';
+
+  @override
+  String get monthlyInterval => 'mois';
+
+  @override
+  String get subscriptionBulletCancelAnytime => 'Annulation à tout moment';
+
+  @override
+  String get subscriptionBulletRefundPolicy =>
+      'Non remboursable après le début de la période de facturation';
+
+  @override
+  String get subscriptionBulletAgreeTerms =>
+      'En vous abonnant vous acceptez nos conditions';
+
+  @override
+  String get subscribeNow => 'S\'abonner maintenant';
+
+  @override
+  String get continueOnWeb => 'Continuer sur le web';
+
+  @override
+  String paymentFailed(Object error) {
+    return 'Paiement échoué : $error';
+  }
+
+  @override
+  String subscriptionActivated(Object planName) {
+    return 'Votre abonnement $planName est actif !';
+  }
+
+  @override
+  String get getStarted => 'Commencer';
 }

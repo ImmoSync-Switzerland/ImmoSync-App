@@ -375,6 +375,8 @@
   "recentMessages": "Messaggi recenti",
   "propertyManager": "Gestore proprietà",
   "documents": "Documenti",
+  "autoPayment": "Pagamento automatico",
+  "paymentHistory": "Storico pagamenti",
   "searchPropertiesMaintenanceMessages": "Cerca proprietà, manutenzione, messaggi...",
   "errorGeneric": "Errore",
   "pleaseSelectProperty": "Seleziona una proprietà",
@@ -611,5 +613,114 @@
   "removeTenant": "Rimuovi inquilino",
   "removeTenantConfirmation": "Sei sicuro di voler rimuovere questo inquilino dalla proprietà?",
   "tenantRemovedSuccessfully": "Inquilino rimosso con successo",
-  "failedToRemoveTenant": "Rimozione inquilino fallita"
+  "failedToRemoveTenant": "Rimozione inquilino fallita",
+  "analyticsAndReports": "Analisi e Rapporti",
+  "revenueAnalytics": "Analisi dei ricavi",
+  "revenueChartComingSoon": "Grafico dei ricavi in arrivo",
+  "thisWeek": "Questa settimana",
+  "thisMonth": "Questo mese",
+  "thisQuarter": "Questo trimestre",
+  "thisYear": "Quest'anno",
+  "reportPeriod": "Periodo del rapporto",
+  "financialSummary": "Riepilogo finanziario",
+  "totalIncome": "Entrate totali",
+  "paymentSummary": "Riepilogo pagamenti",
+  "dashboardComponentsRequireBrowser": "I componenti del dashboard richiedono un browser web",
+  "dashboardAvailableOnWeb": "Dashboard disponibile sul web",
+  "visitWebForFullDashboard": "Visita la versione web per accedere al dashboard completo {component}",
+  "planBasic": "Basic",
+  "planProfessional": "Professional",
+  "planEnterprise": "Enterprise",
+  "planBasicDescription": "Perfetto per proprietari individuali",
+  "planProfessionalDescription": "Ideale per portafogli immobiliari in crescita",
+  "planEnterpriseDescription": "Per grandi società di gestione immobiliare",
+  "featureUpToThreeProperties": "Fino a 3 proprietà",
+  "featureBasicTenantManagement": "Gestione inquilini di base",
+  "featurePaymentTracking": "Tracciamento pagamenti",
+  "featureEmailSupport": "Supporto email",
+  "featureUpToFifteenProperties": "Fino a 15 proprietà",
+  "featureAdvancedTenantManagement": "Gestione avanzata inquilini",
+  "featureAutomatedRentCollection": "Riscossione affitto automatizzata",
+  "featureMaintenanceRequestTracking": "Tracciamento richieste di manutenzione",
+  "featureFinancialReports": "Report finanziari",
+  "featurePrioritySupport": "Supporto prioritario",
+  "featureUnlimitedProperties": "Proprietà illimitate",
+  "featureMultiUserAccounts": "Account multi-utente",
+  "featureAdvancedAnalytics": "Analisi avanzate",
+  "featureApiAccess": "Accesso API",
+  "featureCustomIntegrations": "Integrazioni personalizzate",
+  "featureDedicatedSupport": "Supporto dedicato"
+  ,"documentDownloadedTo":"Documento scaricato in: {path}"
+  ,"openFolder":"Apri cartella"
+  ,"downloadFailed":"Download fallito"
+  ,"failedToOpen":"Apertura non riuscita"
+  ,"openInExternalApp":"Apri in app esterna"
+  ,"loadingDocument":"Caricamento documento..."
+  ,"unableToLoadDocument":"Impossibile caricare il documento"
+  ,"downloadInstead":"Scarica invece"
+  ,"viewImage":"Visualizza immagine"
+  ,"loadPreview":"Carica anteprima"
+  ,"downloadToDevice":"Scarica sul dispositivo"
+  ,"failedToDisplayImage":"Impossibile visualizzare l'immagine"
+  ,"pdfDocument":"Documento PDF"
+  ,"imageFile":"File immagine"
+  ,"textFile":"File di testo"
+  ,"wordDocument":"Documento Word"
+  ,"excelSpreadsheet":"Foglio di calcolo Excel"
+  ,"powerPointPresentation":"Presentazione PowerPoint"
+  ,"documentFile":"File documento"
+  ,"expiringSoon":"In scadenza"
+  ,"expired":"Scaduto"
+  ,"expiresOn":"Scade il {date}"
+  ,"tenantsCount":"{count} {count, plural, =1{inquilino} other{inquilini}}"
+  ,"propertiesCount":"{count} {count, plural, =1{proprietà} other{proprietà}}"
+  ,"daysAgo":"{count, plural, =1{1 giorno fa} other{{count} giorni fa}}"
+  ,"weeksAgo":"{count, plural, =1{1 settimana fa} other{{count} settimane fa}}"
+  ,"financialOverview":"Panoramica finanziaria"
+  ,"subscriptionRequired":"Abbonamento richiesto"
+  ,"subscriptionRequiredMessage":"Questa funzione è disponibile con un abbonamento."
+  ,"subscriptionChoosePlanMessage":"Scegli un piano per sbloccare tutte le funzionalità."
+  ,"viewPlans":"Vedi piani"
+  ,"total":"Totale"
+  ,"viewAllProperties":"Vedi tutte le proprietà"
+  ,"noRecentMessages":"Nessun messaggio recente"
+  ,"noPendingMaintenanceRequests":"Nessuna richiesta di manutenzione in sospeso"
+  ,"errorLoadingMaintenanceRequest":"Errore nel caricamento della richiesta di manutenzione"
+  ,"goBack":"Torna indietro"
+  ,"contractorInformation":"Informazioni appaltatore"
+  ,"contact":"Contatto"
+  ,"company":"Azienda"
+  ,"notes":"Note"
+  ,"reported":"Segnalato"
+  ,"urgency":"Urgenza"
+  ,"scheduled":"Programmato"
+  ,"estimated":"Stimato"
+  ,"actualCost":"Costo effettivo"
+  ,"markAsInProgress":"Segna in corso"
+  ,"markAsCompleted":"Segna completato"
+  ,"enterNoteHint":"Inserisci una nota..."
+  ,"addingNote":"Aggiunta nota..."
+  ,"completePayment":"Completa pagamento"
+  ,"perYearSuffix":"all'anno"
+  ,"perMonthSuffix":"al mese"
+  ,"youSavePerYear":"Risparmi {savings} all'anno"
+  ,"includedFeatures":"Funzionalità incluse"
+  ,"paymentMethod":"Metodo di pagamento"
+  ,"paymentInfoSecure":"Le tue informazioni di pagamento sono sicure"
+  ,"desktopPaymentNotSupported":"Pagamento desktop non supportato"
+  ,"desktopPaymentUseWebOrMobile":"Utilizza il web o l'app mobile per completare il pagamento."
+  ,"openWebVersion":"Apri versione web"
+  ,"redirectingToSecurePaymentPage":"Reindirizzamento alla pagina di pagamento sicura..."
+  ,"subscriptionTerms":"Termini di abbonamento"
+  ,"subscriptionBulletAutoRenews":"Si rinnova automaticamente ogni {interval}"
+  ,"yearlyInterval":"anno"
+  ,"monthlyInterval":"mese"
+  ,"subscriptionBulletCancelAnytime":"Annulla in qualsiasi momento"
+  ,"subscriptionBulletRefundPolicy":"Non rimborsabile dopo l'inizio del periodo di fatturazione"
+  ,"subscriptionBulletAgreeTerms":"Abbonandoti accetti i nostri termini"
+  ,"subscribeNow":"Abbonati ora"
+  ,"continueOnWeb":"Continua sul web"
+  ,"paymentFailed":"Pagamento non riuscito: {error}"
+  ,"subscriptionActivated":"Il tuo abbonamento {planName} è attivo!"
+  ,"getStarted":"Inizia"
 }

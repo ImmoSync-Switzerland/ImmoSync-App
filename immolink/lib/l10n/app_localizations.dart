@@ -2340,6 +2340,18 @@ abstract class AppLocalizations {
   /// **'Documents'**
   String get documents;
 
+  /// No description provided for @autoPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Payment'**
+  String get autoPayment;
+
+  /// No description provided for @paymentHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment History'**
+  String get paymentHistory;
+
   /// No description provided for @searchPropertiesMaintenanceMessages.
   ///
   /// In en, this message translates to:
@@ -2939,6 +2951,660 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invitations'**
   String get invitations;
+
+  /// No description provided for @analyticsAndReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics & Reports'**
+  String get analyticsAndReports;
+
+  /// No description provided for @revenueAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Analytics'**
+  String get revenueAnalytics;
+
+  /// No description provided for @revenueChartComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Chart Coming Soon'**
+  String get revenueChartComingSoon;
+
+  /// No description provided for @thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get thisWeek;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @thisQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'This Quarter'**
+  String get thisQuarter;
+
+  /// No description provided for @thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This Year'**
+  String get thisYear;
+
+  /// No description provided for @reportPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Period'**
+  String get reportPeriod;
+
+  /// No description provided for @financialSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Summary'**
+  String get financialSummary;
+
+  /// No description provided for @totalIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Income'**
+  String get totalIncome;
+
+  /// No description provided for @paymentSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Summary'**
+  String get paymentSummary;
+
+  /// No description provided for @dashboardComponentsRequireBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard components require web browser'**
+  String get dashboardComponentsRequireBrowser;
+
+  /// No description provided for @dashboardAvailableOnWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard Available on Web'**
+  String get dashboardAvailableOnWeb;
+
+  /// No description provided for @visitWebForFullDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit the web version to access the full {component} dashboard'**
+  String visitWebForFullDashboard(Object component);
+
+  /// No description provided for @planBasic.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic'**
+  String get planBasic;
+
+  /// No description provided for @planProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional'**
+  String get planProfessional;
+
+  /// No description provided for @planEnterprise.
+  ///
+  /// In en, this message translates to:
+  /// **'Enterprise'**
+  String get planEnterprise;
+
+  /// No description provided for @planBasicDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect for individual landlords'**
+  String get planBasicDescription;
+
+  /// No description provided for @planProfessionalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Best for growing property portfolios'**
+  String get planProfessionalDescription;
+
+  /// No description provided for @planEnterpriseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'For large property management companies'**
+  String get planEnterpriseDescription;
+
+  /// No description provided for @featureUpToThreeProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 3 properties'**
+  String get featureUpToThreeProperties;
+
+  /// No description provided for @featureBasicTenantManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic tenant management'**
+  String get featureBasicTenantManagement;
+
+  /// No description provided for @featurePaymentTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment tracking'**
+  String get featurePaymentTracking;
+
+  /// No description provided for @featureEmailSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Email support'**
+  String get featureEmailSupport;
+
+  /// No description provided for @featureUpToFifteenProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 15 properties'**
+  String get featureUpToFifteenProperties;
+
+  /// No description provided for @featureAdvancedTenantManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced tenant management'**
+  String get featureAdvancedTenantManagement;
+
+  /// No description provided for @featureAutomatedRentCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Automated rent collection'**
+  String get featureAutomatedRentCollection;
+
+  /// No description provided for @featureMaintenanceRequestTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance request tracking'**
+  String get featureMaintenanceRequestTracking;
+
+  /// No description provided for @featureFinancialReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial reports'**
+  String get featureFinancialReports;
+
+  /// No description provided for @featurePrioritySupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority support'**
+  String get featurePrioritySupport;
+
+  /// No description provided for @featureUnlimitedProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited properties'**
+  String get featureUnlimitedProperties;
+
+  /// No description provided for @featureMultiUserAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-user accounts'**
+  String get featureMultiUserAccounts;
+
+  /// No description provided for @featureAdvancedAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced analytics'**
+  String get featureAdvancedAnalytics;
+
+  /// No description provided for @featureApiAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'API access'**
+  String get featureApiAccess;
+
+  /// No description provided for @featureCustomIntegrations.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom integrations'**
+  String get featureCustomIntegrations;
+
+  /// No description provided for @featureDedicatedSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Dedicated support'**
+  String get featureDedicatedSupport;
+
+  /// No description provided for @documentDownloadedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Document downloaded to: {path}'**
+  String documentDownloadedTo(Object path);
+
+  /// No description provided for @openFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Folder'**
+  String get openFolder;
+
+  /// No description provided for @downloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed'**
+  String get downloadFailed;
+
+  /// No description provided for @failedToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open'**
+  String get failedToOpen;
+
+  /// No description provided for @openInExternalApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in External App'**
+  String get openInExternalApp;
+
+  /// No description provided for @loadingDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading document...'**
+  String get loadingDocument;
+
+  /// No description provided for @unableToLoadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load document'**
+  String get unableToLoadDocument;
+
+  /// No description provided for @downloadInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Instead'**
+  String get downloadInstead;
+
+  /// No description provided for @viewImage.
+  ///
+  /// In en, this message translates to:
+  /// **'View Image'**
+  String get viewImage;
+
+  /// No description provided for @loadPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Load Preview'**
+  String get loadPreview;
+
+  /// No description provided for @downloadToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Download to Device'**
+  String get downloadToDevice;
+
+  /// No description provided for @failedToDisplayImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to display image'**
+  String get failedToDisplayImage;
+
+  /// No description provided for @pdfDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF Document'**
+  String get pdfDocument;
+
+  /// No description provided for @imageFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Image File'**
+  String get imageFile;
+
+  /// No description provided for @textFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Text File'**
+  String get textFile;
+
+  /// No description provided for @wordDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Word Document'**
+  String get wordDocument;
+
+  /// No description provided for @excelSpreadsheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel Spreadsheet'**
+  String get excelSpreadsheet;
+
+  /// No description provided for @powerPointPresentation.
+  ///
+  /// In en, this message translates to:
+  /// **'PowerPoint Presentation'**
+  String get powerPointPresentation;
+
+  /// No description provided for @documentFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Document File'**
+  String get documentFile;
+
+  /// No description provided for @expiringSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring Soon'**
+  String get expiringSoon;
+
+  /// No description provided for @expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expired;
+
+  /// No description provided for @expiresOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String expiresOn(Object date);
+
+  /// No description provided for @tenantsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, =1{tenant} other{tenants}}'**
+  String tenantsCount(num count);
+
+  /// No description provided for @propertiesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, =1{property} other{properties}}'**
+  String propertiesCount(num count);
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String daysAgo(num count);
+
+  /// No description provided for @weeksAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week ago} other{{count} weeks ago}}'**
+  String weeksAgo(num count);
+
+  /// No description provided for @financialOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Overview'**
+  String get financialOverview;
+
+  /// No description provided for @subscriptionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Required'**
+  String get subscriptionRequired;
+
+  /// No description provided for @subscriptionRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is available with a subscription.'**
+  String get subscriptionRequiredMessage;
+
+  /// No description provided for @subscriptionChoosePlanMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a plan to unlock all features.'**
+  String get subscriptionChoosePlanMessage;
+
+  /// No description provided for @viewPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View Plans'**
+  String get viewPlans;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @viewAllProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'View All Properties'**
+  String get viewAllProperties;
+
+  /// No description provided for @noRecentMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent messages'**
+  String get noRecentMessages;
+
+  /// No description provided for @noPendingMaintenanceRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending maintenance requests'**
+  String get noPendingMaintenanceRequests;
+
+  /// No description provided for @errorLoadingMaintenanceRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading maintenance request'**
+  String get errorLoadingMaintenanceRequest;
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// No description provided for @contractorInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Contractor Information'**
+  String get contractorInformation;
+
+  /// No description provided for @contact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get contact;
+
+  /// No description provided for @company.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get company;
+
+  /// No description provided for @notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// No description provided for @reported.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get reported;
+
+  /// No description provided for @urgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgency'**
+  String get urgency;
+
+  /// No description provided for @scheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get scheduled;
+
+  /// No description provided for @estimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated'**
+  String get estimated;
+
+  /// No description provided for @actualCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual Cost'**
+  String get actualCost;
+
+  /// No description provided for @markAsInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as In Progress'**
+  String get markAsInProgress;
+
+  /// No description provided for @markAsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Completed'**
+  String get markAsCompleted;
+
+  /// No description provided for @enterNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a note...'**
+  String get enterNoteHint;
+
+  /// No description provided for @addingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding note...'**
+  String get addingNote;
+
+  /// No description provided for @completePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Payment'**
+  String get completePayment;
+
+  /// No description provided for @perYearSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'per year'**
+  String get perYearSuffix;
+
+  /// No description provided for @perMonthSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'per month'**
+  String get perMonthSuffix;
+
+  /// No description provided for @youSavePerYear.
+  ///
+  /// In en, this message translates to:
+  /// **'You save {savings} per year'**
+  String youSavePerYear(Object savings);
+
+  /// No description provided for @includedFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Included Features'**
+  String get includedFeatures;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethod;
+
+  /// No description provided for @paymentInfoSecure.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment information is secure'**
+  String get paymentInfoSecure;
+
+  /// No description provided for @desktopPaymentNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop payment not supported'**
+  String get desktopPaymentNotSupported;
+
+  /// No description provided for @desktopPaymentUseWebOrMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Please use the web or mobile app to complete your payment.'**
+  String get desktopPaymentUseWebOrMobile;
+
+  /// No description provided for @openWebVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Web Version'**
+  String get openWebVersion;
+
+  /// No description provided for @redirectingToSecurePaymentPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Redirecting to secure payment page...'**
+  String get redirectingToSecurePaymentPage;
+
+  /// No description provided for @subscriptionTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Terms'**
+  String get subscriptionTerms;
+
+  /// No description provided for @subscriptionBulletAutoRenews.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews automatically every {interval}'**
+  String subscriptionBulletAutoRenews(Object interval);
+
+  /// No description provided for @yearlyInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'year'**
+  String get yearlyInterval;
+
+  /// No description provided for @monthlyInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'month'**
+  String get monthlyInterval;
+
+  /// No description provided for @subscriptionBulletCancelAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel anytime'**
+  String get subscriptionBulletCancelAnytime;
+
+  /// No description provided for @subscriptionBulletRefundPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-refundable once the billing period starts'**
+  String get subscriptionBulletRefundPolicy;
+
+  /// No description provided for @subscriptionBulletAgreeTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'By subscribing you agree to our terms'**
+  String get subscriptionBulletAgreeTerms;
+
+  /// No description provided for @subscribeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe Now'**
+  String get subscribeNow;
+
+  /// No description provided for @continueOnWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue on Web'**
+  String get continueOnWeb;
+
+  /// No description provided for @paymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed: {error}'**
+  String paymentFailed(Object error);
+
+  /// No description provided for @subscriptionActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {planName} subscription is active!'**
+  String subscriptionActivated(Object planName);
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get getStarted;
 }
 
 class _AppLocalizationsDelegate

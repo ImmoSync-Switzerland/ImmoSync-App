@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/document_model.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class DocumentCard extends ConsumerWidget {
   final DocumentModel document;
@@ -22,6 +23,7 @@ class DocumentCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
+  final l10n = AppLocalizations.of(context)!;
     final category = DocumentCategory.values.firstWhere(
       (c) => c.id == document.category,
       orElse: () => DocumentCategory.other,
@@ -81,7 +83,7 @@ class DocumentCard extends ConsumerWidget {
                     ),
                   ),
                   if (showActions) ...[
-                    if (document.isExpiringSoon)
+        if (document.isExpiringSoon)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -89,7 +91,7 @@ class DocumentCard extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Expiring Soon',
+          l10n.expiringSoon,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.orange,
                             fontWeight: FontWeight.w600,
@@ -104,7 +106,7 @@ class DocumentCard extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Expired',
+          l10n.expired,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.red,
                             fontWeight: FontWeight.w600,
@@ -129,7 +131,7 @@ class DocumentCard extends ConsumerWidget {
                             children: [
                               Icon(Icons.download, size: 20, color: colors.primaryAccent),
                               const SizedBox(width: 8),
-                              const Text('Download'),
+                              Text(l10n.download),
                             ],
                           ),
                         ),
@@ -139,7 +141,7 @@ class DocumentCard extends ConsumerWidget {
                             children: [
                               const Icon(Icons.delete, size: 20, color: Colors.red),
                               const SizedBox(width: 8),
-                              const Text('Delete'),
+                              Text(l10n.delete),
                             ],
                           ),
                         ),
@@ -190,7 +192,7 @@ class DocumentCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _formatDate(document.uploadDate),
+                    _formatDate(context, document.uploadDate),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colors.textSecondary,
                     ),
@@ -208,7 +210,7 @@ class DocumentCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Expires ${_formatDate(document.expiryDate!)}',
+                      l10n.expiresOn(_formatDate(context, document.expiryDate!)),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: document.isExpired 
                           ? Colors.red 
@@ -245,7 +247,7 @@ class DocumentCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${document.assignedTenantIds.length} tenant${document.assignedTenantIds.length > 1 ? 's' : ''}',
+                              l10n.tenantsCount(document.assignedTenantIds.length),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: colors.primaryAccent,
                                 fontWeight: FontWeight.w500,
@@ -271,7 +273,7 @@ class DocumentCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${document.propertyIds.length} property${document.propertyIds.length > 1 ? 'ies' : 'y'}',
+                              l10n.propertiesCount(document.propertyIds.length),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: colors.luxuryGold,
                                 fontWeight: FontWeight.w500,
@@ -307,19 +309,20 @@ class DocumentCard extends ConsumerWidget {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Today';
+      return l10n.today;
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return l10n.yesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return l10n.daysAgo(difference.inDays);
     } else if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
-      return '$weeks week${weeks > 1 ? 's' : ''} ago';
+      return l10n.weeksAgo(weeks);
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

@@ -203,7 +203,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   Widget _buildLoginCard() {
     final authState = ref.watch(authProvider);
-    
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       decoration: BoxDecoration(
@@ -224,7 +223,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
             color: Colors.white.withValues(alpha: 0.8),
             blurRadius: 24,
             offset: const Offset(0, -8),
-            spreadRadius: 0,
           ),
         ],
       ),
@@ -234,7 +232,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome Back',
+              'Willkommen zurück',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 28,
@@ -244,7 +242,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ),
             const SizedBox(height: 8),
             Text(
-              'Sign in to your account',
+              'Melden Sie sich bei Ihrem Konto an',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 16,
@@ -255,17 +253,16 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _buildTextField(
               controller: _emailController,
               icon: Icons.email_outlined,
-              label: 'Email',
+              label: 'E-Mail',
             ),
             const SizedBox(height: 24),
             _buildTextField(
               controller: _passwordController,
               icon: Icons.lock_outline,
-              label: 'Password',
+              label: 'Passwort',
               isPassword: true,
             ),
             const SizedBox(height: 16),
-            // Show error banner if there's an error
             if (_currentError != null) ...[
               Container(
                 width: double.infinity,
@@ -299,7 +296,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Login Failed',
+                            'Anmeldung fehlgeschlagen',
                             style: TextStyle(
                               color: Colors.red.shade800,
                               fontSize: 16,
@@ -360,10 +357,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'This field is required';
+          return 'Dieses Feld ist erforderlich';
         }
-        if (label == 'Email' && !value.contains('@')) {
-          return 'Please enter a valid email';
+        if (label == 'E-Mail' && !value.contains('@')) {
+          return 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
         }
         return null;
       },
@@ -473,7 +470,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           elevation: 0,
         ),
         child: const Text(
-          'Sign In',
+          'Anmelden',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -498,7 +495,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         child: Text(
-          'Forgot Password?',
+          'Passwort vergessen?',
           style: TextStyle(
             color: AppColors.primaryAccent,
             fontSize: 14,
@@ -516,7 +513,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Or continue with',
+            'Oder fortfahren mit',
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
@@ -581,7 +578,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Don\'t have an account?',
+          'Noch kein Konto?',
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,
@@ -596,7 +593,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: Text(
-            'Register',
+            'Registrieren',
             style: TextStyle(
               color: AppColors.primaryAccent,
               fontSize: 14,
@@ -659,7 +656,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Login Failed',
+                  'Anmeldung fehlgeschlagen',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -694,7 +691,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       ),
                     ),
                     child: const Text(
-                      'Try Again',
+                      'Erneut versuchen',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -720,17 +717,17 @@ class _LoginPageState extends ConsumerState<LoginPage>
     
     // Clean up common error messages to be more user-friendly
     if (cleanError.contains('Invalid credentials') || cleanError.contains('401')) {
-      return 'Invalid email or password. Please check your credentials and try again.';
+      return 'Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Zugangsdaten und versuchen Sie es erneut.';
     } else if (cleanError.contains('Network') || cleanError.contains('connection') || cleanError.contains('Connection refused')) {
-      return 'Network error. Please check your internet connection and try again.';
+      return 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.';
     } else if (cleanError.contains('timeout')) {
-      return 'Request timed out. Please try again.';
+      return 'Zeitüberschreitung der Anfrage. Bitte versuchen Sie es erneut.';
     } else if (cleanError.contains('SocketException')) {
-      return 'Unable to connect to server. Please check your internet connection.';
+      return 'Verbindung zum Server fehlgeschlagen. Bitte überprüfen Sie Ihre Internetverbindung.';
     } else if (cleanError.toLowerCase().contains('login failed')) {
-      return 'Login failed. Please check your email and password.';
+      return 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.';
     } else {
-      return cleanError.isNotEmpty ? cleanError : 'Login failed. Please try again.';
+      return cleanError.isNotEmpty ? cleanError : 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.';
     }
   }
 

@@ -2,6 +2,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/subscription/domain/models/subscription.dart';
+import 'package:flutter/widgets.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SubscriptionService {
   final String _apiUrl = DbConfig.apiUrl;
@@ -160,36 +162,38 @@ class SubscriptionService {
     }
   }
 
-  List<SubscriptionPlan> _getDefaultPlans() {
+  List<SubscriptionPlan> _getDefaultPlans({BuildContext? context}) {
+    final l10n = context != null ? AppLocalizations.of(context) : null;
+  String t(String Function(AppLocalizations l) selector, String fallback) => l10n != null ? selector(l10n) : fallback;
     return [
       SubscriptionPlan(
         id: 'basic',
-        name: 'Basic',
-        description: 'Perfect for individual landlords',
+        name: t((l)=>l.planBasic, 'Basic'),
+        description: t((l)=>l.planBasicDescription, 'Perfect for individual landlords'),
         monthlyPrice: 9.99,
         yearlyPrice: 99.99,
         features: [
-          'Up to 3 properties',
-          'Basic tenant management',
-          'Payment tracking',
-          'Email support',
+          t((l)=>l.featureUpToThreeProperties, 'Up to 3 properties'),
+          t((l)=>l.featureBasicTenantManagement, 'Basic tenant management'),
+          t((l)=>l.featurePaymentTracking, 'Payment tracking'),
+          t((l)=>l.featureEmailSupport, 'Email support'),
         ],
         stripePriceIdMonthly: 'price_basic_monthly',
         stripePriceIdYearly: 'price_basic_yearly',
       ),
       SubscriptionPlan(
         id: 'pro',
-        name: 'Professional',
-        description: 'Best for growing property portfolios',
+        name: t((l)=>l.planProfessional, 'Professional'),
+        description: t((l)=>l.planProfessionalDescription, 'Best for growing property portfolios'),
         monthlyPrice: 19.99,
         yearlyPrice: 199.99,
         features: [
-          'Up to 15 properties',
-          'Advanced tenant management',
-          'Automated rent collection',
-          'Maintenance request tracking',
-          'Financial reports',
-          'Priority support',
+          t((l)=>l.featureUpToFifteenProperties, 'Up to 15 properties'),
+          t((l)=>l.featureAdvancedTenantManagement, 'Advanced tenant management'),
+          t((l)=>l.featureAutomatedRentCollection, 'Automated rent collection'),
+          t((l)=>l.featureMaintenanceRequestTracking, 'Maintenance request tracking'),
+          t((l)=>l.featureFinancialReports, 'Financial reports'),
+          t((l)=>l.featurePrioritySupport, 'Priority support'),
         ],
         isPopular: true,
         stripePriceIdMonthly: 'price_pro_monthly',
@@ -197,17 +201,17 @@ class SubscriptionService {
       ),
       SubscriptionPlan(
         id: 'enterprise',
-        name: 'Enterprise',
-        description: 'For large property management companies',
+        name: t((l)=>l.planEnterprise, 'Enterprise'),
+        description: t((l)=>l.planEnterpriseDescription, 'For large property management companies'),
         monthlyPrice: 49.99,
         yearlyPrice: 499.99,
         features: [
-          'Unlimited properties',
-          'Multi-user accounts',
-          'Advanced analytics',
-          'API access',
-          'Custom integrations',
-          'Dedicated support',
+          t((l)=>l.featureUnlimitedProperties, 'Unlimited properties'),
+          t((l)=>l.featureMultiUserAccounts, 'Multi-user accounts'),
+          t((l)=>l.featureAdvancedAnalytics, 'Advanced analytics'),
+          t((l)=>l.featureApiAccess, 'API access'),
+          t((l)=>l.featureCustomIntegrations, 'Custom integrations'),
+          t((l)=>l.featureDedicatedSupport, 'Dedicated support'),
         ],
         stripePriceIdMonthly: 'price_enterprise_monthly',
         stripePriceIdYearly: 'price_enterprise_yearly',

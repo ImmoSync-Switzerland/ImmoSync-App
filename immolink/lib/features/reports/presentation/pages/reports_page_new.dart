@@ -5,6 +5,7 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:intl/intl.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -15,7 +16,8 @@ class ReportsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
+  final currentUser = ref.watch(currentUserProvider);
+  final l10n = AppLocalizations.of(context)!;
     final isLandlord = currentUser?.role == 'landlord';
 
     // Set navigation index to Reports (3) when this page is loaded
@@ -29,7 +31,7 @@ class ReportsPage extends ConsumerWidget {
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
         title: Text(
-          'Reports & Analytics',
+          l10n.analyticsAndReports,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
@@ -58,7 +60,7 @@ class ReportsPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildReportPeriod(),
+              _buildReportPeriod(context),
               const SizedBox(height: 24),
               isLandlord
                   ? _buildLandlordReports(context, ref)
@@ -70,7 +72,7 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildReportPeriod() {
+  Widget _buildReportPeriod(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -100,7 +102,7 @@ class ReportsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Report Period',
+            AppLocalizations.of(context)!.reportPeriod,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
@@ -124,7 +126,7 @@ class ReportsPage extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'This Month',
+                  AppLocalizations.of(context)!.thisMonth,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 16,
@@ -151,9 +153,9 @@ class ReportsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFinancialSummary(properties, payments, ref),
+  _buildFinancialSummary(context, properties, payments, ref),
         const SizedBox(height: 24),
-        _buildOccupancySection(properties),
+  _buildOccupancySection(context, properties),
       ],
     );
   }
@@ -164,14 +166,14 @@ class ReportsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPaymentSummary(payments, ref),
+  _buildPaymentSummary(context, payments, ref),
         const SizedBox(height: 24),
-        _buildPaymentHistory(payments, ref),
+  _buildPaymentHistory(payments, ref),
       ],
     );
   }
 
-  Widget _buildFinancialSummary(AsyncValue properties, AsyncValue payments, WidgetRef ref) {
+  Widget _buildFinancialSummary(BuildContext context, AsyncValue properties, AsyncValue payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -200,7 +202,7 @@ class ReportsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Financial Summary',
+            AppLocalizations.of(context)!.financialSummary,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
@@ -210,7 +212,7 @@ class ReportsPage extends ConsumerWidget {
           const SizedBox(height: 20),
           _buildFinancialMetric(
             icon: Icons.attach_money,
-            title: 'Total Income',
+            title: AppLocalizations.of(context)!.totalIncome,
             value: ref.read(currencyProvider.notifier).formatAmount(0.00),
             color: Colors.green,
             iconColor: Colors.green,
@@ -218,7 +220,7 @@ class ReportsPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildFinancialMetric(
             icon: Icons.money_off,
-            title: 'Outstanding Payments',
+            title: AppLocalizations.of(context)!.outstandingPayments,
             value: ref.read(currencyProvider.notifier).formatAmount(0.00),
             color: Colors.red,
             iconColor: Colors.red,
@@ -226,7 +228,7 @@ class ReportsPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildFinancialMetric(
             icon: Icons.home,
-            title: 'Occupancy Rate',
+            title: AppLocalizations.of(context)!.occupancyRate,
             value: '100.0%',
             color: Colors.blue,
             iconColor: Colors.blue,
@@ -234,7 +236,7 @@ class ReportsPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildFinancialMetric(
             icon: Icons.apartment,
-            title: 'Total Properties',
+            title: AppLocalizations.of(context)!.totalProperties,
             value: '1',
             color: Colors.purple,
             iconColor: Colors.purple,
@@ -288,7 +290,7 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOccupancySection(AsyncValue properties) {
+  Widget _buildOccupancySection(BuildContext context, AsyncValue properties) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -317,7 +319,7 @@ class ReportsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Occupancy Rate',
+            AppLocalizations.of(context)!.occupancyRate,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
@@ -366,7 +368,7 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentSummary(AsyncValue<List<dynamic>> payments, WidgetRef ref) {
+  Widget _buildPaymentSummary(BuildContext context, AsyncValue<List<dynamic>> payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -395,7 +397,7 @@ class ReportsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Payment Summary',
+            AppLocalizations.of(context)!.paymentSummary,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,

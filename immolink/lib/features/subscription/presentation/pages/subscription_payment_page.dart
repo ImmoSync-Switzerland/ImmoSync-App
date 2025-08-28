@@ -44,7 +44,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         title: Text(
-          'Complete Payment',
+          l10n.completePayment,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 20,
@@ -126,7 +126,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                     ),
                   ),
                   Text(
-                    widget.isYearly ? '/year' : '/month',
+                    widget.isYearly ? l10n.perYearSuffix : l10n.perMonthSuffix,
                     style: TextStyle(
                       fontSize: 12,
                       color: colors.textSecondary,
@@ -154,7 +154,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'You save \$${savings.toStringAsFixed(2)} per year',
+                    l10n.youSavePerYear(savings.toStringAsFixed(2)),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -168,7 +168,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           
           const SizedBox(height: 20),
           Text(
-            'Included features:',
+            l10n.includedFeatures,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -208,7 +208,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Payment Method',
+          l10n.paymentMethod,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -238,7 +238,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Your payment information is encrypted and secure',
+                      l10n.paymentInfoSecure,
                       style: TextStyle(
                         fontSize: 12,
                         color: colors.textSecondary,
@@ -278,6 +278,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   Widget _buildDesktopPaymentUI(DynamicAppColors colors) {
+  final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -294,7 +295,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           ),
           const SizedBox(height: 16),
           Text(
-            'Desktop Payment Not Supported',
+            l10n.desktopPaymentNotSupported,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -304,7 +305,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           ),
           const SizedBox(height: 8),
           Text(
-            'For the best payment experience, please use our web version or mobile app to complete your subscription.',
+            l10n.desktopPaymentUseWebOrMobile,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -319,7 +320,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                 child: ElevatedButton.icon(
                   onPressed: () => _openWebVersion(),
                   icon: const Icon(Icons.web, size: 18),
-                  label: const Text('Open Web Version'),
+                  label: Text(l10n.openWebVersion),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryAccent,
                     foregroundColor: Colors.white,
@@ -332,7 +333,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                 child: OutlinedButton.icon(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.arrow_back, size: 18),
-                  label: const Text('Go Back'),
+                  label: Text(l10n.back),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.textSecondary,
                     side: BorderSide(color: colors.borderLight),
@@ -348,6 +349,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   void _openWebVersion() async {
+  final l10n = AppLocalizations.of(context)!;
     setState(() => _isProcessing = true);
     
     try {
@@ -380,8 +382,8 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           // Show message to user
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Redirecting to secure payment page...'),
+              SnackBar(
+                content: Text(l10n.redirectingToSecurePaymentPage),
                 backgroundColor: Colors.blue,
                 duration: Duration(seconds: 3),
               ),
@@ -421,7 +423,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Subscription Terms',
+            l10n.subscriptionTerms,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -430,10 +432,10 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           ),
           const SizedBox(height: 8),
           Text(
-            '• Your subscription will automatically renew ${widget.isYearly ? 'yearly' : 'monthly'}\n'
-            '• You can cancel anytime from your account settings\n'
-            '• Refunds are available within 30 days of purchase\n'
-            '• By subscribing, you agree to our Terms of Service',
+            '${l10n.subscriptionBulletAutoRenews(widget.isYearly ? l10n.yearlyInterval : l10n.monthlyInterval)}\n'
+            '${l10n.subscriptionBulletCancelAnytime}\n'
+            '${l10n.subscriptionBulletRefundPolicy}\n'
+            '${l10n.subscriptionBulletAgreeTerms}',
             style: TextStyle(
               fontSize: 12,
               color: colors.textSecondary,
@@ -466,7 +468,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total',
+                l10n.total,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -506,8 +508,8 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : Text(
-                      _isPlatformSupported() ? 'Subscribe Now' : 'Continue on Web',
+          : Text(
+            _isPlatformSupported() ? l10n.subscribeNow : l10n.continueOnWeb,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -527,6 +529,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   void _handlePayment() async {
+  final l10n = AppLocalizations.of(context)!;
     // For unsupported platforms, redirect to web
     if (!_isPlatformSupported()) {
       _openWebVersion();
@@ -574,7 +577,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Payment failed: ${e.toString()}'),
+          content: Text(l10n.paymentFailed(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -584,6 +587,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   void _showSuccessDialog() {
+  final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -592,11 +596,11 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           children: [
             Icon(Icons.check_circle, color: Colors.green),
             const SizedBox(width: 8),
-            Text('Welcome!'),
+            Text(l10n.welcome),
           ],
         ),
         content: Text(
-          'Your subscription to ${widget.plan.name} has been activated successfully. You can now access all premium features.',
+          l10n.subscriptionActivated(widget.plan.name),
         ),
         actions: [
           ElevatedButton(
@@ -604,7 +608,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
               Navigator.of(context).pop();
               context.go('/home');
             },
-            child: const Text('Get Started'),
+            child: Text(l10n.getStarted),
           ),
         ],
       ),

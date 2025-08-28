@@ -106,6 +106,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
+  final l10n = AppLocalizations.of(context)!;
     
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -148,11 +149,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                           const SizedBox(height: 32),
                           _buildSearchBar(),
                           const SizedBox(height: 32),
-                          _buildFinancialOverview(properties),
+                          _buildFinancialOverview(properties, l10n),
                           const SizedBox(height: 24),
                           _buildQuickAccess(),
                           const SizedBox(height: 24),
-                          _buildPropertyOverview(properties),
+                          _buildPropertyOverview(properties, l10n),
                           const SizedBox(height: 24),
                           _buildRecentMessages(),
                           const SizedBox(height: 24),
@@ -473,7 +474,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildFinancialOverview(List<Property> properties) {
+  Widget _buildFinancialOverview(List<Property> properties, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     final totalRevenue = properties
         .where((p) => p.status == 'rented')
@@ -523,7 +524,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               const SizedBox(width: 20),
               Expanded(
                 child: Text(
-                  'Financial Overview',
+                  l10n.financialOverview,
                   style: TextStyle(
                     fontSize: _getResponsiveFontSize(context, 22),
                     fontWeight: FontWeight.w800,
@@ -538,14 +539,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           Column(
             children: [
               _buildFinancialCard(
-                AppLocalizations.of(context)!.monthlyRevenue,
+                l10n.monthlyRevenue,
                 ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
                 Icons.trending_up_outlined,
                 colors.success,
               ),
               const SizedBox(height: 16),
               _buildFinancialCard(
-                AppLocalizations.of(context)!.outstanding,
+                l10n.outstanding,
                 ref.read(currencyProvider.notifier).formatAmount(outstanding),
                 Icons.warning_outlined,
                 colors.warning,
@@ -1118,7 +1119,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 ),
                 if (!hasActiveSubscription)
                   Text(
-                    'Subscription Required',
+                    AppLocalizations.of(context)!.subscriptionRequired,
                     style: TextStyle(
                       fontSize: 9, // Smaller font size
                       fontWeight: FontWeight.w500,
@@ -1147,6 +1148,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   void _showSubscriptionRequiredDialog() {
     final colors = ref.read(dynamicColorsProvider);
+  final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1158,7 +1160,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Subscription Required',
+                l10n.subscriptionRequired,
                 style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: 18,
@@ -1173,7 +1175,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'To add properties, you need an active subscription plan.',
+              l10n.subscriptionRequiredMessage,
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 14,
@@ -1194,7 +1196,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Choose a plan that fits your needs and start managing your properties today!',
+                      l10n.subscriptionChoosePlanMessage,
                       style: TextStyle(
                         color: colors.primaryAccent,
                         fontSize: 13,
@@ -1211,7 +1213,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'Cancel',
+              l10n.cancel,
               style: TextStyle(color: colors.textTertiary),
             ),
           ),
@@ -1225,7 +1227,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('View Plans'),
+            child: Text(l10n.viewPlans),
           ),
         ],
       ),
@@ -1233,15 +1235,16 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   String _getFilterDisplayName() {
+    final l10n = AppLocalizations.of(context)!;
     switch (_propertyFilter) {
       case 'available':
-        return 'Available';
+        return l10n.available;
       case 'occupied':
-        return 'Occupied';
+        return l10n.occupied;
       case 'maintenance':
-        return 'Maintenance';
+        return l10n.maintenance;
       default:
-        return 'All';
+        return l10n.all;
     }
   }
 
@@ -1259,7 +1262,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     }
   }
 
-  Widget _buildPropertyOverview(List<Property> properties) {
+  Widget _buildPropertyOverview(List<Property> properties, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     final filteredProperties = _filterProperties(properties);
     return Container(
@@ -1329,8 +1332,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Expanded(
                       child: Text(
                         _propertyFilter == 'all' 
-                          ? 'Properties' 
-                          : 'Properties (${_getFilterDisplayName()})',
+                          ? l10n.properties 
+                          : '${l10n.properties} (${_getFilterDisplayName()})',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -1350,7 +1353,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
                 ),
                 child: Text(
-                  '${filteredProperties.length} Total',
+                  '${filteredProperties.length} ${l10n.total}',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1391,7 +1394,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'View All Properties',
+                      l10n.viewAllProperties,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -1620,7 +1623,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             Container(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'No recent messages',
+                AppLocalizations.of(context)!.noRecentMessages,
                 style: TextStyle(
                   fontSize: 14,
                   color: colors.textSecondary,
@@ -1900,7 +1903,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             Container(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'No pending maintenance requests',
+                AppLocalizations.of(context)!.noPendingMaintenanceRequests,
                 style: TextStyle(
                   fontSize: 14,
                   color: colors.textSecondary,

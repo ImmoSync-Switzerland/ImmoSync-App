@@ -52,11 +52,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginPage(),
+  builder: (context, state) => const _GermanOnly(child: LoginPage()),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const EnhancedRegisterPage(),
+  builder: (context, state) => const _GermanOnly(child: EnhancedRegisterPage()),
       ),
       GoRoute(
         path: '/forgot-password',
@@ -333,4 +333,19 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+// Wraps a subtree forcing locale to German regardless of global app locale.
+class _GermanOnly extends StatelessWidget {
+  final Widget child;
+  const _GermanOnly({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Localizations.override(
+      context: context,
+      locale: const Locale('de'),
+      child: child,
+    );
+  }
+}
 

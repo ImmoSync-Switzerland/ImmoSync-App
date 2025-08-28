@@ -623,7 +623,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                             Icon(Icons.lock, size: 16),
                             const SizedBox(width: 8),
                           ],
-                          Text(hasActiveSubscription ? l10n.addProperty : 'Subscription Required'),
+                          Text(hasActiveSubscription ? l10n.addProperty : l10n.subscriptionRequired),
                         ],
                       ),
                     );
@@ -750,6 +750,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   void _showSubscriptionRequiredDialog() {
     final colors = ref.read(dynamicColorsProvider);
+  final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -761,7 +762,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Subscription Required',
+                l10n.subscriptionRequired,
                 style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: 18,
@@ -776,7 +777,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'To add properties, you need an active subscription plan.',
+              l10n.subscriptionRequiredMessage,
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 14,
@@ -797,7 +798,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Choose a plan that fits your needs and start managing your properties today!',
+                      l10n.subscriptionChoosePlanMessage,
                       style: TextStyle(
                         color: colors.primaryAccent,
                         fontSize: 13,
@@ -814,7 +815,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'Cancel',
+              l10n.cancel,
               style: TextStyle(color: colors.textTertiary),
             ),
           ),
@@ -828,7 +829,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('View Plans'),
+            child: Text(l10n.viewPlans),
           ),
         ],
       ),

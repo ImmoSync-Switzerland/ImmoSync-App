@@ -914,7 +914,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               const SizedBox(width: 20),
               Expanded(
                 child: Text(
-                  'Quick Actions',
+                  AppLocalizations.of(context)!.quickActions,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
@@ -938,7 +938,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       children: [
                         Expanded(
                           child: _buildActionCard(
-                            'Maintenance',
+                            AppLocalizations.of(context)!.maintenance,
                             Icons.build_circle_outlined,
                             colors.error,
                             () {
@@ -951,7 +951,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildActionCard(
-                            'Messages',
+                            AppLocalizations.of(context)!.messages,
                             Icons.chat_bubble_outline,
                             colors.success,
                             () {
@@ -968,7 +968,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       children: [
                         Expanded(
                           child: _buildActionCard(
-                            'Auto Payment',
+                            AppLocalizations.of(context)!.autoPayment,
                             Icons.payment_outlined,
                             colors.primaryAccent,
                             () {
@@ -998,7 +998,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       children: [
                         Expanded(
                           child: _buildActionCard(
-                            'Payment History',
+                            AppLocalizations.of(context)!.paymentHistory,
                             Icons.history_outlined,
                             colors.warning,
                             () {
@@ -1011,7 +1011,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildActionCard(
-                            'Settings',
+                            AppLocalizations.of(context)!.settings,
                             Icons.settings_outlined,
                             colors.luxuryGold,
                             () {
@@ -1059,7 +1059,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildActionCard(
-                            'Auto Payment',
+                            AppLocalizations.of(context)!.autoPayment,
                             Icons.payment_outlined,
                             colors.primaryAccent,
                             () {
@@ -1089,7 +1089,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildActionCard(
-                            'Payment History',
+                            AppLocalizations.of(context)!.paymentHistory,
                             Icons.history_outlined,
                             colors.warning,
                             () {
@@ -1102,7 +1102,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildActionCard(
-                            'Settings',
+                            AppLocalizations.of(context)!.settings,
                             Icons.settings_outlined,
                             colors.luxuryGold,
                             () {
