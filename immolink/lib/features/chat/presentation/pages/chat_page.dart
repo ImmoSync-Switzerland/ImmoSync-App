@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
@@ -119,7 +119,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
-                      'Failed to load messages',
+                      AppLocalizations.of(context)!.failedToLoadImage, // TODO: replace with dedicated failedToLoadMessages key
                       style: AppTypography.subhead.copyWith(
                         color: colors.error,
                         inherit: true,
@@ -128,7 +128,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.invalidate(conversationMessagesProvider(widget.conversationId)),
-                      child: const Text('Retry'),
+                      child: Text(AppLocalizations.of(context)!.retry),
                     ),
                   ],
                 ),

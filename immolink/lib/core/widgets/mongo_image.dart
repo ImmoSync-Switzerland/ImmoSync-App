@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/db_config.dart';
@@ -139,7 +140,7 @@ class _MongoImageState extends State<MongoImage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Failed to load image',
+                  AppLocalizations.of(context)!.failedToLoadImage,
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,

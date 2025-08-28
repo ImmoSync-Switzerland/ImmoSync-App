@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui'; // For PlatformDispatcher
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,75 +17,116 @@ import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:immosync/core/config/db_config.dart';
 
 void main() async {
-  // Wrap everything in a try-catch to prevent immediate crashes
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    
-    // Initialize Firebase
-    try {
-      await Firebase.initializeApp();
-      print('Firebase initialized successfully');
-    } catch (e) {
-      print('Firebase initialization failed: $e');
-      // Don't crash the app, just log the error
+  bool _appStarted = false; // track if primary runApp already executed
+  // Global Flutter error hooks for richer diagnostics
+  FlutterError.onError = (FlutterErrorDetails details) {
+    debugPrint('FlutterError caught: ${details.exceptionAsString()}');
+    if (details.stack != null) {
+      debugPrint(details.stack.toString());
     }
-    
-    // Environment loading with fallback
+    Zone.current.handleUncaughtError(details.exception, details.stack ?? StackTrace.empty);
+  };
+  // Platform dispatcher errors (async / isolates)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('PlatformDispatcher error: $error');
+    debugPrint(stack.toString());
+    return false; // allow default handling too
+  };
+
+  runZonedGuarded(() async {
+    final stopwatch = Stopwatch()..start();
+    debugPrint('--- App startup sequence begin ---');
+    WidgetsFlutterBinding.ensureInitialized();
+    debugPrint('[Startup] Widgets binding ensured');
+
+    // Step 1: Load environment
     bool envLoaded = false;
     try {
       await dotenv.dotenv.load(fileName: ".env");
       envLoaded = true;
-      print('Environment file loaded successfully');
-    } catch (e) {
-      print('Failed to load .env file: $e');
-      print('Using default configuration');
+      debugPrint('[Startup] .env loaded');
+    } catch (e, st) {
+      debugPrint('[Startup][WARN] .env load failed: $e');
+      debugPrint(st.toString());
     }
-    
-    // Initialize Stripe with more robust error handling
+
+    // Step 2: Firebase (deferred errors tolerated)
+    try {
+      await Firebase.initializeApp();
+      debugPrint('[Startup] Firebase initialized');
+    } catch (e, st) {
+      debugPrint('[Startup][WARN] Firebase init failed: $e');
+      debugPrint(st.toString());
+    }
+
+    // Step 3: Stripe (guard nulls carefully) – run after bindings ready
     try {
       final stripeKey = envLoaded ? dotenv.dotenv.env['STRIPE_PUBLISHABLE_KEY'] : null;
-      if (stripeKey != null && stripeKey.isNotEmpty) {
-        Stripe.publishableKey = stripeKey;
-        await Stripe.instance.applySettings();
-        print('Stripe initialized successfully');
+      if ((stripeKey ?? '').isEmpty) {
+        debugPrint('[Startup][INFO] Stripe key missing – skipping Stripe init');
       } else {
-        print('Stripe key not found in environment, payment features disabled');
+        Stripe.publishableKey = stripeKey!;
+        await Stripe.instance.applySettings();
+        debugPrint('[Startup] Stripe initialized');
       }
-    } catch (e) {
-      print('Stripe initialization failed: $e');
-      // Don't crash the app, just log the error
+    } catch (e, st) {
+      debugPrint('[Startup][WARN] Stripe init failed: $e');
+      debugPrint(st.toString());
     }
-    
-    // Print configuration for debugging
+
+    // Step 4: Config print
     try {
       DbConfig.printConfig();
-    } catch (e) {
-      print('DbConfig error: $e');
+    } catch (e, st) {
+      debugPrint('[Startup][WARN] DbConfig print failed: $e');
+      debugPrint(st.toString());
     }
-    
-    // Database connection with error handling
+
+    // Step 5: Database connect (non‑fatal)
     try {
       await DatabaseService.instance.connect();
-      print('Database connected successfully');
-    } catch (e) {
-      print('Database connection failed: $e');
-      print('App will run in offline mode');
+      debugPrint('[Startup] Database connect success');
+    } catch (e, st) {
+      debugPrint('[Startup][WARN] Database connect failed: $e');
+      debugPrint(st.toString());
     }
-    
-    runApp(const ProviderScope(child: ImmoSync()));
+
+    // Run app – heavy providers will lazy load AFTER first frame
+    try {
+      runApp(const ProviderScope(child: ImmoSync()));
+      _appStarted = true;
+      debugPrint('[Startup] runApp completed in ${stopwatch.elapsedMilliseconds} ms');
+    } catch (e, st) {
+      debugPrint('[Startup][FATAL] runApp threw: $e');
+      debugPrint(st.toString());
+      rethrow; // allow zone to show fallback UI (before UI exists)
+    }
   }, (error, stack) {
-    print('Uncaught error in main: $error');
-    print('Stack trace: $stack');
-    // Try to run a minimal version of the app
-    runApp(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: Text('App initialization failed: $error'),
+    debugPrint('--- Uncaught during startup ---');
+    debugPrint('Error: $error');
+    debugPrint(stack.toString());
+    if (!_appStarted) {
+      // Only show fallback UI if primary app not started yet
+      runApp(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: SingleChildScrollView(
+                child: Text(
+                  'App initialization failed:\n$error\n\nStack trace (truncated):\n${stack.toString().split("\n").take(12).join("\n")}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      // After app started just log; optionally could update an error notifier
+      debugPrint('[Post-startup error] $error');
+    }
   });
 }
 

@@ -125,7 +125,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(currentUser?.fullName ?? 'Tenant', colors),
+  appBar: _buildAppBar(currentUser?.fullName ?? AppLocalizations.of(context)!.tenant, colors),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -161,7 +161,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildWelcomeSection(currentUser?.fullName ?? 'Tenant', colors),
+                            _buildWelcomeSection(currentUser?.fullName ?? AppLocalizations.of(context)!.tenant, colors),
                             const SizedBox(height: 24),
                             _buildSearchBar(colors),
                             const SizedBox(height: 24),

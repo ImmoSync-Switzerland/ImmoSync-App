@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../l10n/app_localizations.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,38 +20,38 @@ import '../../../../core/providers/currency_provider.dart';
 class PropertyDetailsPage extends ConsumerWidget {
   final String propertyId;
 
-  const PropertyDetailsPage({required this.propertyId, super.key});  // Helper method to convert image IDs to MongoDB URLs
+  const PropertyDetailsPage({required this.propertyId, super.key});
+
   String _getImageUrl(String imageIdOrPath) {
-    print('Processing image path/ID: $imageIdOrPath');
-    
-    // If it's already a full URL, return as is
+    if (imageIdOrPath.isEmpty) return '';
+    debugPrint('PropertyDetailsPage: processing image ref "$imageIdOrPath"');
     if (imageIdOrPath.startsWith('http://') || imageIdOrPath.startsWith('https://')) {
-      print('Image is already a full URL: $imageIdOrPath');
       return imageIdOrPath;
     }
-    
-    // If it looks like a MongoDB ObjectId (24 hex characters), construct MongoDB image URL
-    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-      final mongoUrl = '${DbConfig.apiUrl}/images/$imageIdOrPath';
-      print('Image looks like MongoDB ID, using: $mongoUrl');
-      return mongoUrl;
+    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(imageIdOrPath)) {
+      return '${DbConfig.apiUrl}/images/$imageIdOrPath';
     }
-    
-    // Fallback: if it's a local file, construct backend URL
-    final filename = imageIdOrPath.split('/').last.split('\\').last;
-    final baseUrl = DbConfig.apiUrl.replaceAll('/api', '');
-    final fallbackUrl = '$baseUrl/uploads/$filename';
-    print('Image fallback URL: $fallbackUrl');
-    return fallbackUrl;
+    if (imageIdOrPath.startsWith('file:')) {
+      return '';
+    }
+    final api = DbConfig.apiUrl;
+    final base = api.endsWith('/api') ? api.substring(0, api.length - 4) : api;
+    String path = imageIdOrPath;
+    if (!path.startsWith('/')) path = '/$path';
+    if (path.startsWith('/uploads')) {
+    } else if (path.contains('uploads/')) {
+      final idx = path.indexOf('uploads/');
+      path = '/' + path.substring(idx);
+    }
+    final url = '$base$path';
+    if (Uri.tryParse(url)?.hasAuthority == true) return url;
+    return '';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final propertyAsync = ref.watch(propertyProvider(propertyId));
-    final colors = ref.watch(dynamicColorsProvider);
-
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
       body: propertyAsync.when(
         data: (property) => CustomScrollView(
           slivers: [
@@ -71,14 +71,24 @@ class PropertyDetailsPage extends ConsumerWidget {
                   _buildLocation(context, property, ref),
                   const SizedBox(height: 24),
                   _buildFinancialDetails(context, property, ref),
-                  const SizedBox(height: 100), // Bottom padding for FAB
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        error: (err, st) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              // Fallback generic error message key (adjust if specific key exists)
+              AppLocalizations.of(context)!.error,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red),
+            ),
+          ),
+        ),
       ),
       floatingActionButton: propertyAsync.when(
         data: (property) => _buildContactButton(context, property, ref),
@@ -91,7 +101,7 @@ class PropertyDetailsPage extends ConsumerWidget {
   void _showInviteTenantDialog(BuildContext context, Property property) {
     showDialog(
       context: context,
-      builder: (context) => EmailInviteTenantDialog(propertyId: property.id),
+      builder: (ctx) => EmailInviteTenantDialog(propertyId: property.id),
     );
   }
 
@@ -707,7 +717,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Failed to load image',
+                              AppLocalizations.of(context)!.failedToLoadImage,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,
@@ -722,10 +732,18 @@ class PropertyDetailsPage extends ConsumerWidget {
                   } else {
                     // Fallback for old image paths
                     final imageUrl = _getImageUrl(imageIdOrPath);
+                    if (imageUrl.isEmpty) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
+                        ),
+                      );
+                    }
                     return Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
-                      headers: {
+                      headers: const {
                         'Cache-Control': 'no-cache',
                       },
                       loadingBuilder: (context, child, loadingProgress) {
@@ -749,14 +767,14 @@ class PropertyDetailsPage extends ConsumerWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.broken_image,
                                 size: 64,
                                 color: Colors.grey,
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
-                                'Failed to load image',
+                                AppLocalizations.of(context)!.failedToLoadImage,
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 14,

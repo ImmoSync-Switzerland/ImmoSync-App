@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../l10n/app_localizations.dart';
 import '../providers/conversations_provider.dart';
 import '../providers/invitation_provider.dart';
 import '../../domain/models/conversation.dart';
@@ -480,7 +480,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           Icon(Icons.error_outline, size: 48, color: colors.error),
           const SizedBox(height: 16),
           Text(
-            'Something went wrong',
+            AppLocalizations.of(context)!.somethingWentWrong,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -490,7 +490,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           ),
           const SizedBox(height: 8),
           Text(
-            'Please try again later',
+            AppLocalizations.of(context)!.pleaseTryAgainLater,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,

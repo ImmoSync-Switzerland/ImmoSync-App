@@ -1168,6 +1168,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get failedToStartConversation => 'Avvio conversazione fallito';
 
   @override
+  String get failedToLoadImage => 'Caricamento immagine fallito';
+
+  @override
+  String get recentMessages => 'Messaggi recenti';
+
+  @override
+  String get propertyManager => 'Gestore immobiliare';
+
+  @override
+  String get documents => 'Documenti';
+
+  @override
   String get searchPropertiesMaintenanceMessages =>
       'Cerca proprietà, manutenzione, messaggi...';
 
@@ -1459,9 +1471,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tenant => 'Inquilino';
-
-  @override
-  String get propertyManager => 'Gestore immobiliare';
 
   @override
   String get profileImageUpload => 'Caricamento immagine profilo';

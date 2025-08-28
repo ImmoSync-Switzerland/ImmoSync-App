@@ -2316,6 +2316,30 @@ abstract class AppLocalizations {
   /// **'Failed to start conversation'**
   String get failedToStartConversation;
 
+  /// No description provided for @failedToLoadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load image'**
+  String get failedToLoadImage;
+
+  /// No description provided for @recentMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Messages'**
+  String get recentMessages;
+
+  /// No description provided for @propertyManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Manager'**
+  String get propertyManager;
+
+  /// No description provided for @documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents;
+
   /// No description provided for @searchPropertiesMaintenanceMessages.
   ///
   /// In en, this message translates to:
@@ -2855,12 +2879,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tenant'**
   String get tenant;
-
-  /// No description provided for @propertyManager.
-  ///
-  /// In en, this message translates to:
-  /// **'Property Manager'**
-  String get propertyManager;
 
   /// No description provided for @profileImageUpload.
   ///

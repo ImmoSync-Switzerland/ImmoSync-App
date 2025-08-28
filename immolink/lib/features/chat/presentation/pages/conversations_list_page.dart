@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../l10n/app_localizations.dart';
 import '../providers/conversations_provider.dart';
 import '../../domain/models/conversation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -110,11 +110,11 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: AppColors.error),
                     const SizedBox(height: 16),
-                    Text('Error loading conversations: $error'),
+                    Text('${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.invalidate(conversationsProvider),
-                      child: const Text('Retry'),
+                      child: Text(AppLocalizations.of(context)!.retry),
                     ),
                   ],
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/payment/domain/models/payment.dart';
@@ -275,7 +276,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.retry),
                       ),
                     ],
                   ),

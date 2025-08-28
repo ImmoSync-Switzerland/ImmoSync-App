@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -92,7 +93,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                     Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
-                      'Error loading contacts',
+                      AppLocalizations.of(context)!.errorLoadingContacts,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -102,7 +103,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Please try again later',
+                      AppLocalizations.of(context)!.pleaseTryAgainLater,
                       style: TextStyle(
                         fontSize: 14,
                         color: colors.textSecondary,
@@ -116,7 +117,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                         backgroundColor: colors.primaryAccent,
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text('Retry'),
+                      child: Text(AppLocalizations.of(context)!.retry),
                     ),
                   ],
                 ),

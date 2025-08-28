@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/features/payment/domain/services/stripe_connect_js_service.dart';
@@ -330,7 +331,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 16),
           Text(
-            'Unable to load dashboard',
+            AppLocalizations.of(context)!.errorLoadingProperties, // placeholder mapping
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -357,7 +358,7 @@ class _StripeConnectPaymentsDashboardState
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Retry'),
+            child: Text(AppLocalizations.of(context)!.retry),
           ),
         ],
       ),

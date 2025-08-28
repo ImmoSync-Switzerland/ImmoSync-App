@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/dynamic_colors_provider.dart';
 import '../../features/auth/presentation/providers/user_role_provider.dart';
@@ -45,7 +46,7 @@ class CommonBottomNav extends ConsumerWidget {
           ),
         ],
       ),
-      child: BottomNavigationBar(
+  child: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: (index) {
           HapticFeedback.lightImpact();
@@ -81,22 +82,22 @@ class CommonBottomNav extends ConsumerWidget {
         unselectedItemColor: colors.textTertiary,
         selectedFontSize: 12,
         unselectedFontSize: 12,
-        items: _buildNavigationItems(userRole, selectedIndex, colors),
+        items: _buildNavigationItems(context, userRole, selectedIndex, colors),
       ),
     );
   }
 
-  List<BottomNavigationBarItem> _buildNavigationItems(String userRole, int selectedIndex, dynamic colors) {
+  List<BottomNavigationBarItem> _buildNavigationItems(BuildContext context, String userRole, int selectedIndex, dynamic colors) {
+    final l10n = AppLocalizations.of(context)!;
     return [
-      _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, 'Dashboard', 0, selectedIndex, colors),
-      // Role-based second tab
+      _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, l10n.dashboard, 0, selectedIndex, colors),
       if (userRole == 'tenant')
-        _buildBottomNavItem(Icons.folder_outlined, Icons.folder, 'Documents', 1, selectedIndex, colors)
+        _buildBottomNavItem(Icons.folder_outlined, Icons.folder, l10n.documents, 1, selectedIndex, colors)
       else
-        _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, 'Properties', 1, selectedIndex, colors),
-      _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', 2, selectedIndex, colors),
-      _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, 'Reports', 3, selectedIndex, colors),
-      _buildBottomNavItem(Icons.person_outline, Icons.person, 'Profile', 4, selectedIndex, colors),
+        _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, l10n.properties, 1, selectedIndex, colors),
+      _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, l10n.messages, 2, selectedIndex, colors),
+      _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, l10n.reports, 3, selectedIndex, colors),
+      _buildBottomNavItem(Icons.person_outline, Icons.person, l10n.profile, 4, selectedIndex, colors),
     ];
   }
 

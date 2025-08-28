@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -8,7 +9,6 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
-import '../../../../../l10n/app_localizations.dart';
 
 class StripePaymentPage extends ConsumerStatefulWidget {
   final String? propertyId;
@@ -116,7 +116,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () => ref.refresh(tenantPropertiesProvider),
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),

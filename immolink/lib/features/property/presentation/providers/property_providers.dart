@@ -17,31 +17,16 @@ final propertiesProvider = StreamProvider<List<Property>>((ref) {
   return propertyService.getAllProperties();
 });
 
-// Real-time refresh timer provider
-final propertyRefreshTimerProvider = StreamProvider<int>((ref) async* {
-  // Create a timer that emits every 30 seconds
-  var counter = 0;
-  final timer = Timer.periodic(const Duration(seconds: 30), (timer) {});
-  
-  // Keep the provider alive
-  ref.onDispose(() {
-    timer.cancel();
-  });
-  
-  yield counter++;
-  
-  await for (final _ in Stream.periodic(const Duration(seconds: 30))) {
-    yield counter++;
-  }
-});
+// Manual refresh trigger: call ref.read(propertyRefreshTriggerProvider.notifier).state++ to force reload
+final propertyRefreshTriggerProvider = StateProvider<int>((_) => 0);
 
 // Landlord-specific properties provider with real-time refresh
 final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
   print('LandlordPropertiesProvider initialized');
   final currentUser = ref.watch(currentUserProvider);
   
-  // Watch the refresh timer to trigger updates
-  ref.watch(propertyRefreshTimerProvider);
+  // Watch the manual refresh trigger (increments cause rebuild)
+  ref.watch(propertyRefreshTriggerProvider);
   
   print('Current user in provider: ${currentUser?.id}');
 
@@ -66,8 +51,8 @@ final tenantPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
   print('TenantPropertiesProvider initialized');
   final currentUser = ref.watch(currentUserProvider);
   
-  // Watch the refresh timer to trigger updates
-  ref.watch(propertyRefreshTimerProvider);
+  // Watch the manual refresh trigger (increments cause rebuild)
+  ref.watch(propertyRefreshTriggerProvider);
   
   // Early return empty list if no user
   if (currentUser == null) {

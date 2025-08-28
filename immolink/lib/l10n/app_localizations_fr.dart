@@ -1178,6 +1178,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Échec du démarrage de la conversation';
 
   @override
+  String get failedToLoadImage => 'Échec du chargement de l\'image';
+
+  @override
+  String get recentMessages => 'Messages récents';
+
+  @override
+  String get propertyManager => 'Gestionnaire immobilier';
+
+  @override
+  String get documents => 'Documents';
+
+  @override
   String get searchPropertiesMaintenanceMessages =>
       'Rechercher propriétés, maintenance, messages...';
 
@@ -1472,9 +1484,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tenant => 'Locataire';
-
-  @override
-  String get propertyManager => 'Gestionnaire immobilier';
 
   @override
   String get profileImageUpload => 'Téléchargement d\'image de profil';

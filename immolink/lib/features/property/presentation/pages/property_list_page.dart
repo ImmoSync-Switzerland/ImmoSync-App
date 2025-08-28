@@ -7,6 +7,7 @@ import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/core/config/db_config.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/currency_provider.dart';
 import '../../../auth/presentation/providers/user_role_provider.dart';
@@ -904,6 +905,38 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   }
 
   Widget _buildPropertyImage(String imageIdOrPath) {
+    // Normalize image reference similar to details page
+    String normalize(String input) {
+      if (input.isEmpty) return '';
+      if (input.startsWith('http://') || input.startsWith('https://')) return input;
+      if (input.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(input)) {
+        return '${DbConfig.apiUrl}/images/$input';
+      }
+      if (input.startsWith('file:')) return '';
+      final api = DbConfig.apiUrl;
+      final base = api.endsWith('/api') ? api.substring(0, api.length - 4) : api;
+      String path = input;
+      if (!path.startsWith('/')) path = '/$path';
+      if (path.startsWith('/uploads')) {
+      } else if (path.contains('uploads/')) {
+        final idx = path.indexOf('uploads/');
+        path = '/' + path.substring(idx);
+      }
+      final url = '$base$path';
+      if (Uri.tryParse(url)?.hasAuthority == true) return url;
+      return '';
+    }
+    final resolved = normalize(imageIdOrPath);
+    if (resolved.isEmpty) {
+      return Container(
+        color: Colors.grey[200],
+        child: const Icon(
+          Icons.home_outlined,
+          color: Colors.grey,
+          size: 32,
+        ),
+      );
+    }
     // Check if it's a MongoDB ObjectId (24 hex characters)
     if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
       return MongoImage(
@@ -933,7 +966,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     } else {
       // Regular network image
       return Image.network(
-        imageIdOrPath,
+        resolved,
         fit: BoxFit.cover,
         width: 80,
         height: 80,
@@ -951,6 +984,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           );
         },
         errorBuilder: (context, error, stackTrace) {
+          debugPrint('Property list image load failed for $resolved: $error');
           return Container(
             color: Colors.grey[200],
             child: const Icon(

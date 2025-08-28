@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../l10n/app_localizations.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/features/home/domain/services/dashboard_service.dart';
@@ -15,6 +15,7 @@ import '../../../../features/property/presentation/providers/property_providers.
 import '../../../../core/providers/currency_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/mongo_image.dart';
+import 'package:immosync/core/config/db_config.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -109,7 +110,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(currentUser?.fullName ?? 'Property Manager'),
+  appBar: _buildAppBar(currentUser?.fullName ?? AppLocalizations.of(context)!.propertyManager),
       body: Container(
         decoration: BoxDecoration(
           gradient: colors.createGradient(
@@ -129,7 +130,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   child: RefreshIndicator(
                     onRefresh: () async {
                       HapticFeedback.lightImpact();
-                      await Future.delayed(const Duration(seconds: 1));
+                      // Manually trigger property refresh
+                      final t = ref.read(propertyRefreshTriggerProvider.notifier);
+                      t.state = t.state + 1;
+                      // Also reload dashboard-specific aggregates
+                      await _loadDashboardData();
                     },
                     color: colors.primaryAccent,
                     backgroundColor: colors.primaryBackground,
@@ -139,7 +144,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildWelcomeSection(currentUser?.fullName ?? 'Property Manager'),
+                          _buildWelcomeSection(currentUser?.fullName ?? AppLocalizations.of(context)!.propertyManager),
                           const SizedBox(height: 32),
                           _buildSearchBar(),
                           const SizedBox(height: 32),
@@ -186,7 +191,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
-                      'Something went wrong',
+                      AppLocalizations.of(context)!.somethingWentWrong,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -196,7 +201,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Please try again later',
+                      AppLocalizations.of(context)!.pleaseTryAgainLater,
                       style: TextStyle(
                         fontSize: 14,
                         color: colors.textTertiary,
@@ -225,6 +230,16 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       centerTitle: true,
       actions: [
+        IconButton(
+          tooltip: 'Refresh',
+          icon: Icon(Icons.refresh, color: colors.primaryAccent, size: 22),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            final t = ref.read(propertyRefreshTriggerProvider.notifier);
+            t.state = t.state + 1;
+            _loadDashboardData();
+          },
+        ),
         Container(
           margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
           decoration: BoxDecoration(
@@ -1587,7 +1602,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
               const SizedBox(width: 18),
               Text(
-                'Recent Messages',
+                AppLocalizations.of(context)!.recentMessages,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -1867,7 +1882,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
               const SizedBox(width: 18),
               Text(
-                'Maintenance Requests',
+                AppLocalizations.of(context)!.maintenanceRequests,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -2178,6 +2193,34 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildPropertyImage(String imageIdOrPath) {
+    String normalize(String input) {
+      if (input.isEmpty) return '';
+      if (input.startsWith('http://') || input.startsWith('https://')) return input;
+      if (input.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(input)) {
+        return '${DbConfig.apiUrl}/images/$input';
+      }
+      if (input.startsWith('file:')) return '';
+      final api = DbConfig.apiUrl;
+      final base = api.endsWith('/api') ? api.substring(0, api.length - 4) : api;
+      String path = input;
+      if (!path.startsWith('/')) path = '/$path';
+      if (path.startsWith('/uploads')) {
+      } else if (path.contains('uploads/')) {
+        final idx = path.indexOf('uploads/');
+        path = '/' + path.substring(idx);
+      }
+      final url = '$base$path';
+      if (Uri.tryParse(url)?.hasAuthority == true) return url;
+      return '';
+    }
+    final resolved = normalize(imageIdOrPath);
+    if (resolved.isEmpty) {
+      return Container(
+        color: Colors.grey[200],
+        alignment: Alignment.center,
+        child: const Icon(Icons.home_outlined, color: Colors.grey, size: 24),
+      );
+    }
     // Check if it's a MongoDB ObjectId (24 hex characters)
     if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
       return MongoImage(
@@ -2207,7 +2250,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     } else {
       // Regular network image
       return Image.network(
-        imageIdOrPath,
+        resolved,
         fit: BoxFit.cover,
         width: 60,
         height: 60,
@@ -2225,6 +2268,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           );
         },
         errorBuilder: (context, error, stackTrace) {
+          debugPrint('Dashboard image load failed for $resolved: $error');
           return Container(
             color: Colors.grey[200],
             child: const Icon(

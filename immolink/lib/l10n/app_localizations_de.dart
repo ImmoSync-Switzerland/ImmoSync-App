@@ -1178,6 +1178,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Unterhaltung konnte nicht gestartet werden';
 
   @override
+  String get failedToLoadImage => 'Bild konnte nicht geladen werden';
+
+  @override
+  String get recentMessages => 'Neueste Nachrichten';
+
+  @override
+  String get propertyManager => 'Immobilienverwalter';
+
+  @override
+  String get documents => 'Dokumente';
+
+  @override
   String get searchPropertiesMaintenanceMessages =>
       'Immobilien, Wartung, Nachrichten suchen...';
 
@@ -1473,9 +1485,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tenant => 'Mieter';
-
-  @override
-  String get propertyManager => 'Immobilienverwalter';
 
   @override
   String get profileImageUpload => 'Profilbild-Upload kommt bald';
