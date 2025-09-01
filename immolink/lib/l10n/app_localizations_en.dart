@@ -1495,6 +1495,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsAndReports => 'Analytics & Reports';
 
   @override
+  String get exportReportsTitle => 'Export Reports';
+
+  @override
+  String get exportFormatPrompt => 'Select export format';
+
+  @override
+  String get exportPdf => 'Export PDF';
+
+  @override
+  String get generatingPdfReport => 'Generating PDF report...';
+
+  @override
+  String get pdfExportInfo =>
+      'PDF export feature will be implemented with pdf package';
+
+  @override
+  String get propertyOverview => 'Property Overview';
+
+  @override
+  String get financialOverview => 'Financial Overview';
+
+  @override
+  String get maintenanceOverview => 'Maintenance Overview';
+
+  @override
+  String get recentPayments => 'Recent Payments';
+
+  @override
+  String get noPaymentsFound => 'No payments found';
+
+  @override
+  String get collected => 'Collected';
+
+  @override
+  String get totalPaid => 'Total Paid';
+
+  @override
+  String get totalPayments => 'Total Payments';
+
+  @override
+  String get totalRequests => 'Total Requests';
+
+  @override
   String get revenueAnalytics => 'Revenue Analytics';
 
   @override
@@ -1720,9 +1763,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get financialOverview => 'Financial Overview';
-
-  @override
   String get subscriptionRequired => 'Subscription Required';
 
   @override
@@ -1769,6 +1809,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reported => 'Reported';
+
+  @override
+  String get loadingAddress => 'Loading address...';
+
+  @override
+  String get propertyIdLabel => 'Property ID';
 
   @override
   String get urgency => 'Urgency';
@@ -1874,4 +1920,283 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get getStarted => 'Get Started';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get manageSubscriptionTitle => 'Manage Subscription';
+
+  @override
+  String get chooseYourPlanTitle => 'Choose Your Plan';
+
+  @override
+  String get subscriptionLoadError => 'Failed to load subscription data';
+
+  @override
+  String get upgradeUnlockFeaturesMessage =>
+      'Upgrade to unlock more features and property limits';
+
+  @override
+  String get selectPlanIntro =>
+      'Select the perfect plan for your property management needs';
+
+  @override
+  String get highestPlanTitle => 'You\'re on the highest plan!';
+
+  @override
+  String get highestPlanDescription =>
+      'You have access to all premium features and unlimited property management capabilities.';
+
+  @override
+  String get premiumThanksMessage =>
+      'Thank you for being a premium subscriber!';
+
+  @override
+  String get billingMonthly => 'Monthly';
+
+  @override
+  String get billingYearly => 'Yearly';
+
+  @override
+  String savePercent(Object percent) {
+    return 'Save $percent%';
+  }
+
+  @override
+  String get currentPlanLabel => 'Current Plan';
+
+  @override
+  String get statusLabel => 'Status';
+
+  @override
+  String get nextBillingLabel => 'Next billing';
+
+  @override
+  String get popularBadge => 'Popular';
+
+  @override
+  String get upgradeBadge => 'Upgrade';
+
+  @override
+  String get upgradePlanButton => 'Upgrade Plan';
+
+  @override
+  String get continueToPayment => 'Continue to Payment';
+
+  @override
+  String get yourProperty => 'Your Property';
+
+  @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
+  String get statusActiveUpper => 'ACTIVE';
+
+  @override
+  String get myDocuments => 'My Documents';
+
+  @override
+  String welcomeUser(Object userName) {
+    return 'Welcome, $userName';
+  }
+
+  @override
+  String get tenantDocumentsIntro =>
+      'Manage all your rental documents, contracts and important papers here.';
+
+  @override
+  String get documentCategories => 'Document Categories';
+
+  @override
+  String get leaseAgreement => 'Lease Agreement';
+
+  @override
+  String get leaseAgreementSubtitle => 'Your current rental contract';
+
+  @override
+  String get operatingCosts => 'Operating Costs';
+
+  @override
+  String get operatingCostsSubtitle => 'Statements and receipts';
+
+  @override
+  String get protocols => 'Protocols';
+
+  @override
+  String get protocolsSubtitle => 'Handover and inspection reports';
+
+  @override
+  String get correspondence => 'Correspondence';
+
+  @override
+  String get correspondenceSubtitle => 'Emails and letters';
+
+  @override
+  String documentsCount(Object count, Object pluralSuffix) {
+    return '$count document$pluralSuffix';
+  }
+
+  @override
+  String get enterSearchTerm => 'Enter a search term';
+
+  @override
+  String get noDocumentsFound => 'No documents found';
+
+  @override
+  String get documentSearch => 'Document Search';
+
+  @override
+  String get useDocumentsTabForDetailedSearch =>
+      'Use the documents tab for a detailed search';
+
+  @override
+  String get recentDocuments => 'Recent Documents';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get noRecentDocuments => 'No recent documents';
+
+  @override
+  String get allDocumentsHeader => 'All Documents';
+
+  @override
+  String get noDocumentsAvailable => 'No documents available';
+
+  @override
+  String get documentsSharedByLandlord =>
+      'Documents shared by your landlord will appear here';
+
+  @override
+  String get loadingDocuments => 'Loading documents...';
+
+  @override
+  String get errorLoadingDocuments => 'Error loading documents';
+
+  @override
+  String get pleaseLoginToUploadDocuments =>
+      'Please log in to upload documents';
+
+  @override
+  String downloadingDocument(Object name) {
+    return 'Downloading $name...';
+  }
+
+  @override
+  String documentDownloadedSuccessfully(Object name) {
+    return '$name downloaded successfully';
+  }
+
+  @override
+  String failedToDownloadDocument(Object name) {
+    return 'Failed to download $name';
+  }
+
+  @override
+  String documentUploadedSuccessfully(Object name) {
+    return 'Document \"$name\" uploaded successfully';
+  }
+
+  @override
+  String failedToUploadDocument(Object error) {
+    return 'Failed to upload document: $error';
+  }
+
+  @override
+  String get featureComingSoonTitle => 'Coming Soon';
+
+  @override
+  String get featureComingSoonMessage =>
+      'This feature will be available in a future update.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get expiring => 'Expiring';
+
+  @override
+  String get uploadDocument => 'Upload Document';
+
+  @override
+  String get noSpecificProperty => 'No specific property';
+
+  @override
+  String failedToUploadDocumentGeneric(Object error) {
+    return 'Failed to upload document: $error';
+  }
+
+  @override
+  String get insurance => 'Insurance';
+
+  @override
+  String get inspectionReports => 'Inspection Reports';
+
+  @override
+  String get legalDocuments => 'Legal Documents';
+
+  @override
+  String get otherCategory => 'Other';
+
+  @override
+  String get documentManagement => 'Document Management';
+
+  @override
+  String welcomeBack(Object name) {
+    return 'Welcome back, $name';
+  }
+
+  @override
+  String get quickUpload => 'Quick Upload';
+
+  @override
+  String get notice => 'Notice';
+
+  @override
+  String get receipt => 'Receipt';
+
+  @override
+  String get filterDocuments => 'Filter Documents';
+
+  @override
+  String get loadingProperties => 'Loading properties...';
+
+  @override
+  String get documentLibrary => 'Document Library';
+
+  @override
+  String get uploadFirstDocument => 'Upload your first document to get started';
+
+  @override
+  String get fileLabel => 'File';
+
+  @override
+  String get sizeLabel => 'Size';
+
+  @override
+  String get documentName => 'Document Name';
+
+  @override
+  String get descriptionOptional => 'Description (optional)';
+
+  @override
+  String get assignToPropertyOptional => 'Assign to Property (optional)';
+
+  @override
+  String get areYouSure => 'Are you sure?';
+
+  @override
+  String documentDeletedSuccessfully(Object name) {
+    return 'Document \"$name\" deleted successfully';
+  }
+
+  @override
+  String failedToDeleteDocument(Object error) {
+    return 'Failed to delete document: $error';
+  }
+
+  @override
+  String get noAppToOpenFile => 'No app found to open this file';
 }

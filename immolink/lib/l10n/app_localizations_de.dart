@@ -341,7 +341,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get somethingWentWrong => 'Etwas ist schief gelaufen';
 
   @override
-  String get retry => 'Wiederholen';
+  String get retry => 'Erneut versuchen';
 
   @override
   String get noConversationsYet => 'Noch keine Unterhaltungen';
@@ -1530,6 +1530,49 @@ class AppLocalizationsDe extends AppLocalizations {
   String get analyticsAndReports => 'Analysen & Berichte';
 
   @override
+  String get exportReportsTitle => 'Berichte exportieren';
+
+  @override
+  String get exportFormatPrompt => 'Exportformat wählen';
+
+  @override
+  String get exportPdf => 'PDF exportieren';
+
+  @override
+  String get generatingPdfReport => 'PDF-Bericht wird erstellt...';
+
+  @override
+  String get pdfExportInfo =>
+      'PDF-Exportfunktion wird mit dem pdf-Paket implementiert';
+
+  @override
+  String get propertyOverview => 'Immobilienübersicht';
+
+  @override
+  String get financialOverview => 'Finanzübersicht';
+
+  @override
+  String get maintenanceOverview => 'Wartungsübersicht';
+
+  @override
+  String get recentPayments => 'Letzte Zahlungen';
+
+  @override
+  String get noPaymentsFound => 'Keine Zahlungen gefunden';
+
+  @override
+  String get collected => 'Eingezogen';
+
+  @override
+  String get totalPaid => 'Gesamt bezahlt';
+
+  @override
+  String get totalPayments => 'Gesamtzahlungen';
+
+  @override
+  String get totalRequests => 'Gesamtanfragen';
+
+  @override
   String get revenueAnalytics => 'Umsatzanalysen';
 
   @override
@@ -1755,9 +1798,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get financialOverview => 'Finanzübersicht';
-
-  @override
   String get subscriptionRequired => 'Abonnement erforderlich';
 
   @override
@@ -1804,6 +1844,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reported => 'Gemeldet';
+
+  @override
+  String get loadingAddress => 'Adresse wird geladen...';
+
+  @override
+  String get propertyIdLabel => 'Objekt-ID';
 
   @override
   String get urgency => 'Dringlichkeit';
@@ -1909,4 +1955,284 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get getStarted => 'Loslegen';
+
+  @override
+  String get subscription => 'Abonnement';
+
+  @override
+  String get manageSubscriptionTitle => 'Abonnement verwalten';
+
+  @override
+  String get chooseYourPlanTitle => 'Wählen Sie Ihren Plan';
+
+  @override
+  String get subscriptionLoadError =>
+      'Abonnementdaten konnten nicht geladen werden';
+
+  @override
+  String get upgradeUnlockFeaturesMessage =>
+      'Upgrade für mehr Funktionen und Immobilienlimits';
+
+  @override
+  String get selectPlanIntro =>
+      'Wählen Sie den perfekten Plan für Ihre Immobilienverwaltung';
+
+  @override
+  String get highestPlanTitle => 'Sie sind auf dem höchsten Plan!';
+
+  @override
+  String get highestPlanDescription =>
+      'Sie haben Zugriff auf alle Premium-Funktionen und unbegrenzte Immobilienverwaltung.';
+
+  @override
+  String get premiumThanksMessage => 'Danke, dass Sie Premium-Abonnent sind!';
+
+  @override
+  String get billingMonthly => 'Monatlich';
+
+  @override
+  String get billingYearly => 'Jährlich';
+
+  @override
+  String savePercent(Object percent) {
+    return 'Sparen Sie $percent%';
+  }
+
+  @override
+  String get currentPlanLabel => 'Aktueller Plan';
+
+  @override
+  String get statusLabel => 'Status';
+
+  @override
+  String get nextBillingLabel => 'Nächste Abrechnung';
+
+  @override
+  String get popularBadge => 'Beliebt';
+
+  @override
+  String get upgradeBadge => 'Upgrade';
+
+  @override
+  String get upgradePlanButton => 'Plan upgraden';
+
+  @override
+  String get continueToPayment => 'Weiter zur Zahlung';
+
+  @override
+  String get yourProperty => 'Ihre Immobilie';
+
+  @override
+  String get recentActivity => 'Letzte Aktivitäten';
+
+  @override
+  String get statusActiveUpper => 'AKTIV';
+
+  @override
+  String get myDocuments => 'Meine Dokumente';
+
+  @override
+  String welcomeUser(Object userName) {
+    return 'Willkommen, $userName';
+  }
+
+  @override
+  String get tenantDocumentsIntro =>
+      'Verwalten Sie hier alle Ihre Mietdokumente, Verträge und wichtigen Unterlagen.';
+
+  @override
+  String get documentCategories => 'Dokumentenkategorien';
+
+  @override
+  String get leaseAgreement => 'Mietvertrag';
+
+  @override
+  String get leaseAgreementSubtitle => 'Ihr aktueller Mietvertrag';
+
+  @override
+  String get operatingCosts => 'Nebenkosten';
+
+  @override
+  String get operatingCostsSubtitle => 'Abrechnungen und Belege';
+
+  @override
+  String get protocols => 'Protokolle';
+
+  @override
+  String get protocolsSubtitle => 'Übergabe- und Abnahmeprotokolle';
+
+  @override
+  String get correspondence => 'Korrespondenz';
+
+  @override
+  String get correspondenceSubtitle => 'E-Mails und Briefe';
+
+  @override
+  String documentsCount(Object count, Object pluralSuffix) {
+    return '$count Dokument$pluralSuffix';
+  }
+
+  @override
+  String get enterSearchTerm => 'Geben Sie einen Suchbegriff ein';
+
+  @override
+  String get noDocumentsFound => 'Keine Dokumente gefunden';
+
+  @override
+  String get documentSearch => 'Dokumentensuche';
+
+  @override
+  String get useDocumentsTabForDetailedSearch =>
+      'Verwenden Sie die Dokumente-Registerkarte für eine detaillierte Suche';
+
+  @override
+  String get recentDocuments => 'Aktuelle Dokumente';
+
+  @override
+  String get viewAll => 'Alle anzeigen';
+
+  @override
+  String get noRecentDocuments => 'Keine aktuellen Dokumente';
+
+  @override
+  String get allDocumentsHeader => 'Alle Dokumente';
+
+  @override
+  String get noDocumentsAvailable => 'Keine Dokumente verfügbar';
+
+  @override
+  String get documentsSharedByLandlord =>
+      'Vom Vermieter geteilte Dokumente erscheinen hier';
+
+  @override
+  String get loadingDocuments => 'Dokumente werden geladen...';
+
+  @override
+  String get errorLoadingDocuments => 'Fehler beim Laden der Dokumente';
+
+  @override
+  String get pleaseLoginToUploadDocuments =>
+      'Bitte melden Sie sich an, um Dokumente hochzuladen';
+
+  @override
+  String downloadingDocument(Object name) {
+    return 'Lade $name herunter...';
+  }
+
+  @override
+  String documentDownloadedSuccessfully(Object name) {
+    return '$name erfolgreich heruntergeladen';
+  }
+
+  @override
+  String failedToDownloadDocument(Object name) {
+    return 'Fehler beim Herunterladen von $name';
+  }
+
+  @override
+  String documentUploadedSuccessfully(Object name) {
+    return 'Dokument \"$name\" erfolgreich hochgeladen';
+  }
+
+  @override
+  String failedToUploadDocument(Object error) {
+    return 'Fehler beim Hochladen des Dokuments: $error';
+  }
+
+  @override
+  String get featureComingSoonTitle => 'Bald verfügbar';
+
+  @override
+  String get featureComingSoonMessage =>
+      'Diese Funktion wird in einem zukünftigen Update verfügbar sein.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get expiring => 'Läuft bald ab';
+
+  @override
+  String get uploadDocument => 'Dokument hochladen';
+
+  @override
+  String get noSpecificProperty => 'Keine spezifische Immobilie';
+
+  @override
+  String failedToUploadDocumentGeneric(Object error) {
+    return 'Fehler beim Hochladen des Dokuments: $error';
+  }
+
+  @override
+  String get insurance => 'Versicherung';
+
+  @override
+  String get inspectionReports => 'Inspektionsberichte';
+
+  @override
+  String get legalDocuments => 'Rechtliche Dokumente';
+
+  @override
+  String get otherCategory => 'Sonstige';
+
+  @override
+  String get documentManagement => 'Dokumentenverwaltung';
+
+  @override
+  String welcomeBack(Object name) {
+    return 'Willkommen zurück, $name';
+  }
+
+  @override
+  String get quickUpload => 'Schnell-Upload';
+
+  @override
+  String get notice => 'Mitteilung';
+
+  @override
+  String get receipt => 'Beleg';
+
+  @override
+  String get filterDocuments => 'Dokumente filtern';
+
+  @override
+  String get loadingProperties => 'Lade Objekte...';
+
+  @override
+  String get documentLibrary => 'Dokumentbibliothek';
+
+  @override
+  String get uploadFirstDocument =>
+      'Laden Sie Ihr erstes Dokument hoch, um zu beginnen';
+
+  @override
+  String get fileLabel => 'Datei';
+
+  @override
+  String get sizeLabel => 'Größe';
+
+  @override
+  String get documentName => 'Dokumentname';
+
+  @override
+  String get descriptionOptional => 'Beschreibung (optional)';
+
+  @override
+  String get assignToPropertyOptional => 'Objekt zuweisen (optional)';
+
+  @override
+  String get areYouSure => 'Sind Sie sicher?';
+
+  @override
+  String documentDeletedSuccessfully(Object name) {
+    return 'Dokument \"$name\" erfolgreich gelöscht';
+  }
+
+  @override
+  String failedToDeleteDocument(Object error) {
+    return 'Dokument konnte nicht gelöscht werden: $error';
+  }
+
+  @override
+  String get noAppToOpenFile => 'Keine App zum Öffnen dieser Datei gefunden';
 }

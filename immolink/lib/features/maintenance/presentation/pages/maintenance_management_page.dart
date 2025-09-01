@@ -76,7 +76,7 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Error loading maintenance requests',
+                          l10n.errorLoadingMaintenanceRequests,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -448,7 +448,7 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                               overflow: TextOverflow.ellipsis,
                             ),
                             loading: () => Text(
-                              'Loading address...',
+                              l10n.loadingAddress,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colors.textTertiary,
@@ -456,7 +456,7 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                               ),
                             ),
                             error: (error, stack) => Text(
-                              'Property ID: ${request.propertyId}',
+                              '${l10n.propertyIdLabel}: ${request.propertyId}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colors.textTertiary,
@@ -500,7 +500,7 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      'Reported: ${DateFormat('MMM d, yyyy').format(request.requestedDate)}',
+                      '${l10n.reported}: ${DateFormat('MMM d, yyyy').format(request.requestedDate)}',
                       style: TextStyle(
                         fontSize: 12,
                         color: colors.textTertiary,

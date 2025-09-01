@@ -641,34 +641,40 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 ),
                 const SizedBox(width: 20),
                 Expanded(
-                  child: Text(
-                    'Your Property',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: colors.textPrimary,
-                      letterSpacing: -0.6,
-                      inherit: true,
-                    ),
-                  ),
+                  child: Builder(builder: (context) {
+                    final l10n = AppLocalizations.of(context)!;
+                    return Text(
+                      l10n.yourProperty,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: colors.textPrimary,
+                        letterSpacing: -0.6,
+                        inherit: true,
+                      ),
+                    );
+                  }),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: colors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'ACTIVE',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: colors.success,
-                      letterSpacing: 0.5,
-                      inherit: true,
+                Builder(builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                ),
+                    child: Text(
+                      l10n.statusActiveUpper,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: colors.success,
+                        letterSpacing: 0.5,
+                        inherit: true,
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
             const SizedBox(height: 28),
@@ -1239,15 +1245,18 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Recent Activity',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: colors.textPrimary,
-                inherit: true,
-              ),
-            ),
+            Builder(builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return Text(
+                l10n.recentActivity,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                  inherit: true,
+                ),
+              );
+            }),
             const SizedBox(height: 20),
             Consumer(
               builder: (context, ref, child) {

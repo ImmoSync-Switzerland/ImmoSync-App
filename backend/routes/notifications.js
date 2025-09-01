@@ -1,54 +1,111 @@
 const express = require('express');
 const router = express.Router();
 
-// Mock push notification service - in production, integrate with Firebase Admin SDK
+// Firebase Admin initialization (with graceful fallback to mock)
+let admin = null;
+try {
+  // Only initialize if credentials are provided
+  if (process.env.FIREBASE_PROJECT_ID && !admin) {
+    admin = require('firebase-admin');
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+      });
+      console.log('Firebase Admin initialized for notifications');
+    }
+  }
+} catch (e) {
+  console.warn('Firebase Admin not initialized, using mock notification service:', e.message);
+  admin = null;
+}
+
 class PushNotificationService {
   static async sendNotification(token, title, body, data = {}) {
-    // Mock implementation - replace with actual Firebase Admin SDK
-    console.log(`
-=== PUSH NOTIFICATION SENT ===
-Token: ${token}
-Title: ${title}
-Body: ${body}
-Data: ${JSON.stringify(data)}
-==============================
-    `);
-    return { success: true, messageId: `push_${Date.now()}` };
+    if (admin) {
+      try {
+        const message = {
+          token,
+            notification: { title, body },
+          data: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])),
+        };
+        const messageId = await admin.messaging().send(message);
+        return { success: true, messageId };
+      } catch (err) {
+        console.error('Firebase sendNotification error:', err);
+        return { success: false, error: err.message };
+      }
+    }
+    console.log(`\n=== MOCK PUSH NOTIFICATION SENT ===\nToken: ${token}\nTitle: ${title}\nBody: ${body}\nData: ${JSON.stringify(data)}\n==================================\n`);
+    return { success: true, messageId: `mock_${Date.now()}` };
   }
 
   static async sendToMultipleTokens(tokens, title, body, data = {}) {
-    // Mock implementation for sending to multiple devices
-    console.log(`
-=== BULK PUSH NOTIFICATION ===
-Tokens: ${tokens.length} devices
-Title: ${title}
-Body: ${body}
-Data: ${JSON.stringify(data)}
-==============================
-    `);
-    return { 
-      success: true, 
-      results: tokens.map(token => ({ token, success: true, messageId: `push_${Date.now()}` }))
-    };
+    if (admin) {
+      try {
+        const message = {
+          tokens,
+            notification: { title, body },
+          data: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])),
+        };
+        const response = await admin.messaging().sendEachForMulticast(message);
+        const results = response.responses.map((r, idx) => ({
+          token: tokens[idx],
+          success: r.success,
+          messageId: r.messageId,
+          error: r.success ? undefined : r.error?.message,
+        }));
+        return { success: true, results };
+      } catch (err) {
+        console.error('Firebase sendToMultipleTokens error:', err);
+        return { success: false, error: err.message };
+      }
+    }
+    console.log(`\n=== MOCK BULK PUSH ===\nTokens: ${tokens.length}\nTitle: ${title}\nBody: ${body}\nData: ${JSON.stringify(data)}\n======================\n`);
+    return { success: true, results: tokens.map(t => ({ token: t, success: true, messageId: `mock_${Date.now()}` })) };
   }
 
   static async sendToTopic(topic, title, body, data = {}) {
-    // Mock implementation for topic-based notifications
-    console.log(`
-=== TOPIC NOTIFICATION ===
-Topic: ${topic}
-Title: ${title}
-Body: ${body}
-Data: ${JSON.stringify(data)}
-=========================
-    `);
-    return { success: true, messageId: `topic_${Date.now()}` };
+    if (admin) {
+      try {
+        const message = {
+          topic,
+            notification: { title, body },
+          data: Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])),
+        };
+        const messageId = await admin.messaging().send(message);
+        return { success: true, messageId };
+      } catch (err) {
+        console.error('Firebase sendToTopic error:', err);
+        return { success: false, error: err.message };
+      }
+    }
+    console.log(`\n=== MOCK TOPIC NOTIFICATION ===\nTopic: ${topic}\nTitle: ${title}\nBody: ${body}\nData: ${JSON.stringify(data)}\n================================\n`);
+    return { success: true, messageId: `mock_topic_${Date.now()}` };
   }
 }
 
 // In-memory storage for demo - use database in production
 const userTokens = new Map(); // userId -> [tokens]
 const notificationSettings = new Map(); // userId -> settings
+const userNotifications = new Map(); // userId -> [{id,title,body,type,data,timestamp,read:false}]
+
+function addNotification(userId, { title, body, type='general', data={} }) {
+  if (!userNotifications.has(userId)) userNotifications.set(userId, []);
+  const list = userNotifications.get(userId);
+  const record = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
+    title,
+    body,
+    type,
+    data,
+    timestamp: new Date().toISOString(),
+    read: false,
+  };
+  list.unshift(record); // latest first
+  // Trim to last 200 to avoid unbounded growth
+  if (list.length > 200) list.splice(200);
+  return record;
+}
 
 // Register FCM token for a user
 router.post('/register-token', async (req, res) => {
@@ -150,12 +207,14 @@ router.post('/send-to-user', async (req, res) => {
       ...data
     };
 
-    let results;
+  let results;
     if (tokens.length === 1) {
       results = await PushNotificationService.sendNotification(tokens[0], title, body, notificationData);
     } else {
       results = await PushNotificationService.sendToMultipleTokens(tokens, title, body, notificationData);
     }
+
+  addNotification(userId, { title, body, type: notificationData.type, data: notificationData });
 
     res.json({
       success: true,
@@ -197,6 +256,7 @@ router.post('/send-to-users', async (req, res) => {
       if (tokens && tokens.length > 0 && settings.pushNotifications) {
         try {
           const result = await PushNotificationService.sendToMultipleTokens(tokens, title, body, notificationData);
+          addNotification(userId, { title, body, type: notificationData.type, data: notificationData });
           results.push({ userId, success: true, result });
         } catch (error) {
           results.push({ userId, success: false, error: error.message });
@@ -352,6 +412,7 @@ router.post('/send-payment-reminders', async (req, res) => {
           };
 
           const result = await PushNotificationService.sendToMultipleTokens(tokens, title, body, data);
+          addNotification(userId, { title, body, type: 'payment_reminder', data });
           results.push({ userId, success: true, result });
         } catch (error) {
           results.push({ userId, success: false, error: error.message });
@@ -408,6 +469,7 @@ router.post('/send-maintenance-notifications', async (req, res) => {
           };
 
           const result = await PushNotificationService.sendToMultipleTokens(tokens, title, body, data);
+          addNotification(userId, { title, body, type: 'maintenance_request', data });
           results.push({ userId, success: true, result });
         } catch (error) {
           results.push({ userId, success: false, error: error.message });
@@ -435,3 +497,33 @@ router.post('/send-maintenance-notifications', async (req, res) => {
 });
 
 module.exports = router;
+
+// Fetch notifications for a user (latest first)
+router.get('/list/:userId', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const limit = parseInt(req.query.limit || '50', 10);
+    const list = (userNotifications.get(userId) || []).slice(0, limit);
+    res.json({ success: true, notifications: list });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Failed to fetch notifications', details: e.message });
+  }
+});
+
+// Mark notifications as read
+router.post('/mark-read', (req, res) => {
+  try {
+    const { userId, ids, all } = req.body;
+    if (!userId) return res.status(400).json({ success: false, error: 'userId required' });
+    const list = userNotifications.get(userId) || [];
+    if (all) {
+      list.forEach(n => n.read = true);
+    } else if (Array.isArray(ids)) {
+      const idSet = new Set(ids);
+      list.forEach(n => { if (idSet.has(n.id)) n.read = true; });
+    }
+    res.json({ success: true, updated: list.filter(n => n.read).length });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Failed to mark read', details: e.message });
+  }
+});

@@ -87,6 +87,45 @@ router.get('/plans', async (req, res) => {
   }
 });
 
+// Root endpoint – previously returned 404 ("Cannot GET /api/subscriptions").
+// This now provides two behaviors:
+// 1) If a ?userId= query param is supplied, it returns that user's active subscription (same logic as /user/:userId).
+// 2) Otherwise it returns a small help payload documenting available endpoints.
+router.get('/', async (req, res) => {
+  const { userId } = req.query;
+  if (userId) {
+    const client = new MongoClient(dbUri);
+    try {
+      await client.connect();
+      const db = client.db(dbName);
+      const subscription = await db.collection('subscriptions')
+        .findOne({ userId: String(userId), status: { $ne: 'canceled' } });
+      if (!subscription) {
+        return res.status(404).json({ message: 'No active subscription found' });
+      }
+      return res.json(subscription);
+    } catch (error) {
+      console.error('Error fetching user subscription (root):', error);
+      return res.status(500).json({ message: 'Error fetching user subscription' });
+    } finally {
+      try { await client.close(); } catch (_) {}
+    }
+  }
+  return res.json({
+    message: 'Subscriptions API root',
+    note: 'Provide ?userId= to fetch a specific user subscription or use /api/subscriptions/user/:userId',
+    endpoints: {
+      plans: '/api/subscriptions/plans',
+      getUser: '/api/subscriptions/user/:userId',
+      create: 'POST /api/subscriptions/create',
+      update: 'PUT /api/subscriptions/:subscriptionId',
+      cancel: 'DELETE /api/subscriptions/:subscriptionId/cancel',
+      sync: 'POST /api/subscriptions/sync/:userId',
+      webhook: 'POST /api/subscriptions/webhook'
+    }
+  });
+});
+
 // Get user's current subscription
 router.get('/user/:userId', async (req, res) => {
   const client = new MongoClient(dbUri);

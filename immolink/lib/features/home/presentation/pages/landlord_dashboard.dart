@@ -773,7 +773,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildQuickAccessButton(
-                            'Services',
+                            AppLocalizations.of(context)!.services,
                             Icons.room_service_outlined,
                             colors.info,
                             () {
@@ -789,7 +789,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       children: [
                         Expanded(
                           child: _buildQuickAccessButton(
-                            'Documents',
+                            AppLocalizations.of(context)!.documents,
                             Icons.folder_outlined,
                             colors.success,
                             () {
@@ -801,7 +801,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildQuickAccessButton(
-                            'Subscription',
+                            AppLocalizations.of(context)!.subscription,
                             Icons.payment_outlined,
                             colors.luxuryGold,
                             () {
@@ -886,7 +886,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildQuickAccessButton(
-                            'Services',
+                            AppLocalizations.of(context)!.services,
                             Icons.room_service_outlined,
                             colors.info,
                             () {
@@ -902,7 +902,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                       children: [
                         Expanded(
                           child: _buildQuickAccessButton(
-                            'Documents',
+                            AppLocalizations.of(context)!.documents,
                             Icons.folder_outlined,
                             colors.success,
                             () {
@@ -914,7 +914,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildQuickAccessButton(
-                            'Subscription',
+                            AppLocalizations.of(context)!.subscription,
                             Icons.payment_outlined,
                             colors.luxuryGold,
                             () {

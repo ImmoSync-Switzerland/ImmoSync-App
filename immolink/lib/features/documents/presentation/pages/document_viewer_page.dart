@@ -164,7 +164,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        throw Exception('No application found to open this file type');
+  throw Exception(AppLocalizations.of(context)!.noAppToOpenFile);
       }
     } catch (e) {
       if (mounted) {

@@ -1,11 +1,13 @@
+// CLEAN REWRITE OF CORRUPTED FILE
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/features/subscription/domain/models/subscription.dart';
 import 'package:immosync/features/subscription/presentation/providers/subscription_providers.dart';
 import '../../../../../l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
 
 class LandlordSubscriptionPage extends ConsumerStatefulWidget {
   const LandlordSubscriptionPage({super.key});
@@ -32,8 +34,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
         title: userSubscription.when(
           data: (subscription) => Text(
             subscription != null && subscription.status == 'active'
-                ? 'Manage Subscription'
-                : 'Choose Your Plan',
+                ? l10n.manageSubscriptionTitle
+                : l10n.chooseYourPlanTitle,
             style: TextStyle(
               color: colors.textPrimary,
               fontSize: 20,
@@ -41,7 +43,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             ),
           ),
           loading: () => Text(
-            'Choose Your Plan',
+            l10n.chooseYourPlanTitle,
             style: TextStyle(
               color: colors.textPrimary,
               fontSize: 20,
@@ -49,7 +51,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             ),
           ),
           error: (_, __) => Text(
-            'Choose Your Plan',
+            l10n.chooseYourPlanTitle,
             style: TextStyle(
               color: colors.textPrimary,
               fontSize: 20,
@@ -63,42 +65,31 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
       ),
       body: userSubscription.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _buildErrorView(colors, error),
+        error: (error, _) => _buildErrorView(colors, error, l10n),
         data: (subscription) => plansAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => _buildErrorView(colors, error),
+          error: (error, _) => _buildErrorView(colors, error, l10n),
           data: (plans) => _buildSubscriptionView(subscription, plans, colors, l10n),
         ),
       ),
     );
   }
 
-  Widget _buildErrorView(DynamicAppColors colors, Object error) {
+  Widget _buildErrorView(DynamicAppColors colors, Object error, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: colors.error,
-          ),
+          Icon(Icons.error_outline, size: 64, color: colors.error),
           const SizedBox(height: 16),
           Text(
-            'Failed to load subscription data',
-            style: TextStyle(
-              fontSize: 18,
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+            l10n.subscriptionLoadError,
+            style: TextStyle(fontSize: 18, color: colors.textPrimary, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: TextStyle(
-              fontSize: 14,
-              color: colors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 14, color: colors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -107,80 +98,78 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
               ref.invalidate(subscriptionPlansProvider);
               ref.invalidate(userSubscriptionProvider);
             },
-            child: const Text('Retry'),
+            child: Text(l10n.retry),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSubscriptionView(UserSubscription? subscription, List<SubscriptionPlan> plans, DynamicAppColors colors, AppLocalizations l10n) {
-    final bool hasActiveSubscription = subscription != null && subscription.status == 'active';
-    
-    // If user has active subscription, filter plans to show only upgrade options
-    List<SubscriptionPlan> availablePlans = plans;
+  Widget _buildSubscriptionView(
+    UserSubscription? subscription,
+    List<SubscriptionPlan> plans,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
+    final hasActiveSubscription = subscription != null && subscription.status == 'active';
+    var availablePlans = plans;
     if (hasActiveSubscription) {
       availablePlans = _getUpgradeOptions(subscription, plans);
     }
 
     return Column(
       children: [
-        // Show current subscription card at the top if active
-        if (hasActiveSubscription) 
+        if (hasActiveSubscription)
           _buildCurrentSubscriptionHeader(subscription, colors, l10n),
-        
-        // Billing toggle (only if there are plans to show)
-        if (availablePlans.isNotEmpty)
-          _buildBillingToggle(colors),
-        
-        // Plans list or upgrade message
+        if (availablePlans.isNotEmpty) _buildBillingToggle(colors, l10n),
         Expanded(
-          child: availablePlans.isNotEmpty 
-            ? ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  const SizedBox(height: 16),
-                  Text(
-                    hasActiveSubscription 
-                      ? 'Upgrade to unlock more features and property limits'
-                      : 'Select the perfect plan for your property management needs',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colors.textSecondary,
-                      height: 1.4,
+          child: availablePlans.isNotEmpty
+              ? ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    const SizedBox(height: 16),
+                    Text(
+                      hasActiveSubscription
+                          ? l10n.upgradeUnlockFeaturesMessage
+                          : l10n.selectPlanIntro,
+                      style: TextStyle(fontSize: 16, color: colors.textSecondary, height: 1.4),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  ...availablePlans.map((plan) => _buildPlanCard(plan, colors, l10n, hasActiveSubscription)),
-                  const SizedBox(height: 32),
-                ],
-              )
-            : _buildNoUpgradesAvailable(colors, l10n),
+                    const SizedBox(height: 32),
+                    ...availablePlans.map(
+                      (plan) => _buildPlanCard(
+                        plan,
+                        colors,
+                        l10n,
+                        isUpgrade: hasActiveSubscription,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                )
+              : _buildNoUpgradesAvailable(colors, l10n),
         ),
-        
-        // Continue button
         if (_selectedPlan != null)
-          _buildContinueButton(colors, l10n, hasActiveSubscription),
+          _buildContinueButton(colors, l10n, isUpgrade: hasActiveSubscription),
       ],
     );
   }
 
-  List<SubscriptionPlan> _getUpgradeOptions(UserSubscription currentSubscription, List<SubscriptionPlan> allPlans) {
-    // Define plan hierarchy
-    const planHierarchy = ['basic', 'pro', 'enterprise'];
-    
-    final currentPlanIndex = planHierarchy.indexOf(currentSubscription.planId.toLowerCase());
-    if (currentPlanIndex == -1) return allPlans; // Unknown plan, show all
-    
-    // Return only plans that are higher in the hierarchy
-    return allPlans.where((plan) {
-      final planIndex = planHierarchy.indexOf(plan.id.toLowerCase());
-      return planIndex > currentPlanIndex;
-    }).toList();
+  List<SubscriptionPlan> _getUpgradeOptions(
+    UserSubscription current,
+    List<SubscriptionPlan> allPlans,
+  ) {
+    const hierarchy = ['basic', 'pro', 'enterprise'];
+    final currentIndex = hierarchy.indexOf(current.planId.toLowerCase());
+    if (currentIndex == -1) return allPlans;
+    return allPlans.where((p) => hierarchy.indexOf(p.id.toLowerCase()) > currentIndex).toList();
   }
 
-  Widget _buildCurrentSubscriptionHeader(UserSubscription subscription, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildCurrentSubscriptionHeader(
+    UserSubscription subscription,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
     return Container(
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(24),
@@ -207,7 +196,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                   color: colors.success,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_circle,
                   color: Colors.white,
                   size: 20,
@@ -219,7 +208,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Current Plan: ${subscription.planId.toUpperCase()}',
+                      '${l10n.currentPlanLabel}: ${subscription.planId.toUpperCase()}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -227,7 +216,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                       ),
                     ),
                     Text(
-                      'Status: ${subscription.status.toUpperCase()}',
+                      '${l10n.statusLabel}: ${subscription.status.toUpperCase()}',
                       style: TextStyle(
                         fontSize: 14,
                         color: colors.success,
@@ -259,7 +248,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                 Icon(Icons.schedule, color: colors.textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  'Next billing: ${subscription.nextBillingDate.toLocal().toString().split(' ')[0]}',
+                  '${l10n.nextBillingLabel}: ${subscription.nextBillingDate.toLocal().toString().split(' ')[0]}',
                   style: TextStyle(
                     fontSize: 14,
                     color: colors.textSecondary,
@@ -291,8 +280,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            'You\'re on the highest plan!',
+              Text(
+                l10n.highestPlanTitle,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w700,
@@ -301,8 +290,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          Text(
-            'You have access to all premium features and unlimited property management capabilities.',
+              Text(
+                l10n.highestPlanDescription,
             style: TextStyle(
               fontSize: 16,
               color: colors.textSecondary,
@@ -323,8 +312,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
               children: [
                 Icon(Icons.star, color: colors.success, size: 20),
                 const SizedBox(width: 8),
-                Text(
-                  'Thank you for being a premium subscriber!',
+                    Text(
+                      l10n.premiumThanksMessage,
                   style: TextStyle(
                     color: colors.success,
                     fontWeight: FontWeight.w600,
@@ -338,7 +327,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
     );
   }
 
-  Widget _buildBillingToggle(DynamicAppColors colors) {
+  Widget _buildBillingToggle(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(4),
@@ -362,7 +351,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Monthly',
+                      l10n.billingMonthly,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -388,7 +377,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                 child: Column(
                   children: [
                     Text(
-                      'Yearly',
+                          l10n.billingYearly,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -397,7 +386,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                     ),
                     if (_isYearlyBilling)
                       Text(
-                        'Save 17%',
+                        l10n.savePercent('17'),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
@@ -414,7 +403,12 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
     );
   }
 
-  Widget _buildPlanCard(SubscriptionPlan plan, DynamicAppColors colors, AppLocalizations l10n, [bool isUpgrade = false]) {
+  Widget _buildPlanCard(
+    SubscriptionPlan plan,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    bool isUpgrade = false,
+  }) {
     final isSelected = _selectedPlan?.id == plan.id;
     final price = _isYearlyBilling ? plan.yearlyPrice : plan.monthlyPrice;
     final monthlyPrice = _isYearlyBilling ? plan.yearlyPrice / 12 : plan.monthlyPrice;
@@ -434,13 +428,15 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             color: isSelected ? colors.primaryAccent : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: colors.primaryAccent.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colors.primaryAccent.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,8 +466,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Popular',
-                                style: TextStyle(
+                                l10n.popularBadge,
+                                style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
@@ -488,8 +484,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Upgrade',
-                                style: TextStyle(
+                                l10n.upgradeBadge,
+                                style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
@@ -502,10 +498,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                       const SizedBox(height: 4),
                       Text(
                         plan.description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colors.textSecondary,
-                        ),
+                        style: TextStyle(fontSize: 14, color: colors.textSecondary),
                       ),
                     ],
                   ),
@@ -514,7 +507,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '\$${price.toStringAsFixed(2)}',
+                      '${price.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -522,54 +515,47 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                       ),
                     ),
                     Text(
-                      _isYearlyBilling ? '/year' : '/month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colors.textSecondary,
-                      ),
+                      _isYearlyBilling ? l10n.perYearSuffix : l10n.perMonthSuffix,
+                      style: TextStyle(fontSize: 12, color: colors.textSecondary),
                     ),
                     if (_isYearlyBilling)
                       Text(
-                        '\$${monthlyPrice.toStringAsFixed(2)}/month',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: colors.textTertiary,
-                        ),
+                        '${monthlyPrice.toStringAsFixed(2)} ${l10n.perMonthSuffix}',
+                        style: TextStyle(fontSize: 10, color: colors.textTertiary),
                       ),
                   ],
                 ),
               ],
             ),
             const SizedBox(height: 20),
-            ...plan.features.map((feature) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 16,
-                    color: colors.success,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      feature,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textPrimary,
+            ...plan.features.map(
+              (feature) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, size: 16, color: colors.success),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: TextStyle(fontSize: 14, color: colors.textPrimary),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContinueButton(DynamicAppColors colors, AppLocalizations l10n, [bool isUpgrade = false]) {
+  Widget _buildContinueButton(
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    bool isUpgrade = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(24),
       child: SizedBox(
@@ -580,9 +566,7 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             backgroundColor: isUpgrade ? colors.luxuryGold : colors.primaryAccent,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
           child: _isProcessing
@@ -597,14 +581,11 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (isUpgrade) Icon(Icons.upgrade, size: 20),
+                    if (isUpgrade) const Icon(Icons.upgrade, size: 20),
                     if (isUpgrade) const SizedBox(width: 8),
                     Text(
-                      isUpgrade ? 'Upgrade Plan' : 'Continue to Payment',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      isUpgrade ? l10n.upgradePlanButton : l10n.continueToPayment,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -615,11 +596,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
 
   void _handleSubscription() async {
     if (_selectedPlan == null) return;
-
     setState(() => _isProcessing = true);
-
     try {
-      // Navigate to payment page with selected plan
       context.push('/subscription/payment', extra: {
         'plan': _selectedPlan!,
         'isYearly': _isYearlyBilling,

@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'core/notifications/fcm_service.dart';
 import '../l10n/app_localizations.dart';
 import 'package:immosync/core/routes/app_router.dart';
 import 'package:immosync/core/services/database_service.dart';
@@ -52,7 +54,9 @@ void main() async {
 
     // Step 2: Firebase (deferred errors tolerated)
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       debugPrint('[Startup] Firebase initialized');
     } catch (e, st) {
       debugPrint('[Startup][WARN] Firebase init failed: $e');
@@ -134,6 +138,8 @@ class ImmoSync extends ConsumerWidget {
   const ImmoSync({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+  // Start FCM service side effects
+  ref.watch(fcmServiceProvider);
     final router = ref.watch(routerProvider);
     final currentLocale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
@@ -157,7 +163,7 @@ class ImmoSync extends ConsumerWidget {
         appThemeMode = ThemeMode.light;
     }
     
-    return MaterialApp.router(
+  return MaterialApp.router(
       routerConfig: router,
       title: 'ImmoSync',
       theme: AppTheme.lightTheme,

@@ -1514,6 +1514,49 @@ class AppLocalizationsIt extends AppLocalizations {
   String get analyticsAndReports => 'Analisi e Rapporti';
 
   @override
+  String get exportReportsTitle => 'Esporta report';
+
+  @override
+  String get exportFormatPrompt => 'Seleziona il formato di esportazione';
+
+  @override
+  String get exportPdf => 'Esporta PDF';
+
+  @override
+  String get generatingPdfReport => 'Generazione del report PDF...';
+
+  @override
+  String get pdfExportInfo =>
+      'La funzione di esportazione PDF sarà implementata con il pacchetto pdf';
+
+  @override
+  String get propertyOverview => 'Panoramica proprietà';
+
+  @override
+  String get financialOverview => 'Panoramica finanziaria';
+
+  @override
+  String get maintenanceOverview => 'Panoramica manutenzione';
+
+  @override
+  String get recentPayments => 'Pagamenti recenti';
+
+  @override
+  String get noPaymentsFound => 'Nessun pagamento trovato';
+
+  @override
+  String get collected => 'Incassato';
+
+  @override
+  String get totalPaid => 'Totale pagato';
+
+  @override
+  String get totalPayments => 'Pagamenti totali';
+
+  @override
+  String get totalRequests => 'Richieste totali';
+
+  @override
   String get revenueAnalytics => 'Analisi dei ricavi';
 
   @override
@@ -1740,9 +1783,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get financialOverview => 'Panoramica finanziaria';
-
-  @override
   String get subscriptionRequired => 'Abbonamento richiesto';
 
   @override
@@ -1790,6 +1830,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get reported => 'Segnalato';
+
+  @override
+  String get loadingAddress => 'Caricamento indirizzo...';
+
+  @override
+  String get propertyIdLabel => 'ID Proprietà';
 
   @override
   String get urgency => 'Urgenza';
@@ -1896,4 +1942,284 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get getStarted => 'Inizia';
+
+  @override
+  String get subscription => 'Abbonamento';
+
+  @override
+  String get manageSubscriptionTitle => 'Gestisci abbonamento';
+
+  @override
+  String get chooseYourPlanTitle => 'Scegli il tuo piano';
+
+  @override
+  String get subscriptionLoadError =>
+      'Impossibile caricare i dati dell\'abbonamento';
+
+  @override
+  String get upgradeUnlockFeaturesMessage =>
+      'Esegui l\'upgrade per sbloccare più funzionalità e limiti';
+
+  @override
+  String get selectPlanIntro =>
+      'Seleziona il piano perfetto per le tue esigenze di gestione immobiliare';
+
+  @override
+  String get highestPlanTitle => 'Sei nel piano più alto!';
+
+  @override
+  String get highestPlanDescription =>
+      'Hai accesso a tutte le funzionalità premium e gestione illimitata.';
+
+  @override
+  String get premiumThanksMessage => 'Grazie per essere un abbonato premium!';
+
+  @override
+  String get billingMonthly => 'Mensile';
+
+  @override
+  String get billingYearly => 'Annuale';
+
+  @override
+  String savePercent(Object percent) {
+    return 'Risparmia $percent%';
+  }
+
+  @override
+  String get currentPlanLabel => 'Piano attuale';
+
+  @override
+  String get statusLabel => 'Stato';
+
+  @override
+  String get nextBillingLabel => 'Prossima fatturazione';
+
+  @override
+  String get popularBadge => 'Popolare';
+
+  @override
+  String get upgradeBadge => 'Upgrade';
+
+  @override
+  String get upgradePlanButton => 'Upgrade piano';
+
+  @override
+  String get continueToPayment => 'Continua al pagamento';
+
+  @override
+  String get yourProperty => 'La tua proprietà';
+
+  @override
+  String get recentActivity => 'Attività recente';
+
+  @override
+  String get statusActiveUpper => 'ATTIVO';
+
+  @override
+  String get myDocuments => 'I miei documenti';
+
+  @override
+  String welcomeUser(Object userName) {
+    return 'Benvenuto, $userName';
+  }
+
+  @override
+  String get tenantDocumentsIntro =>
+      'Gestisci qui tutti i tuoi documenti di affitto, contratti e documenti importanti.';
+
+  @override
+  String get documentCategories => 'Categorie di documenti';
+
+  @override
+  String get leaseAgreement => 'Contratto di locazione';
+
+  @override
+  String get leaseAgreementSubtitle => 'Il tuo contratto di affitto attuale';
+
+  @override
+  String get operatingCosts => 'Spese';
+
+  @override
+  String get operatingCostsSubtitle => 'Estratti conto e ricevute';
+
+  @override
+  String get protocols => 'Verbali';
+
+  @override
+  String get protocolsSubtitle => 'Verbali di consegna e ispezione';
+
+  @override
+  String get correspondence => 'Corrispondenza';
+
+  @override
+  String get correspondenceSubtitle => 'Email e lettere';
+
+  @override
+  String documentsCount(Object count, Object pluralSuffix) {
+    return '$count documento$pluralSuffix';
+  }
+
+  @override
+  String get enterSearchTerm => 'Inserisci un termine di ricerca';
+
+  @override
+  String get noDocumentsFound => 'Nessun documento trovato';
+
+  @override
+  String get documentSearch => 'Ricerca documenti';
+
+  @override
+  String get useDocumentsTabForDetailedSearch =>
+      'Usa la scheda documenti per una ricerca dettagliata';
+
+  @override
+  String get recentDocuments => 'Documenti recenti';
+
+  @override
+  String get viewAll => 'Vedi tutto';
+
+  @override
+  String get noRecentDocuments => 'Nessun documento recente';
+
+  @override
+  String get allDocumentsHeader => 'Tutti i documenti';
+
+  @override
+  String get noDocumentsAvailable => 'Nessun documento disponibile';
+
+  @override
+  String get documentsSharedByLandlord =>
+      'I documenti condivisi dal tuo proprietario appariranno qui';
+
+  @override
+  String get loadingDocuments => 'Caricamento documenti...';
+
+  @override
+  String get errorLoadingDocuments =>
+      'Errore durante il caricamento dei documenti';
+
+  @override
+  String get pleaseLoginToUploadDocuments => 'Accedi per caricare documenti';
+
+  @override
+  String downloadingDocument(Object name) {
+    return 'Download di $name...';
+  }
+
+  @override
+  String documentDownloadedSuccessfully(Object name) {
+    return '$name scaricato con successo';
+  }
+
+  @override
+  String failedToDownloadDocument(Object name) {
+    return 'Download di $name non riuscito';
+  }
+
+  @override
+  String documentUploadedSuccessfully(Object name) {
+    return 'Documento \"$name\" caricato con successo';
+  }
+
+  @override
+  String failedToUploadDocument(Object error) {
+    return 'Caricamento del documento non riuscito: $error';
+  }
+
+  @override
+  String get featureComingSoonTitle => 'Prossimamente';
+
+  @override
+  String get featureComingSoonMessage =>
+      'Questa funzione sarà disponibile in un prossimo aggiornamento.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get expiring => 'In scadenza';
+
+  @override
+  String get uploadDocument => 'Carica documento';
+
+  @override
+  String get noSpecificProperty => 'Nessuna proprietà specifica';
+
+  @override
+  String failedToUploadDocumentGeneric(Object error) {
+    return 'Caricamento del documento non riuscito: $error';
+  }
+
+  @override
+  String get insurance => 'Assicurazione';
+
+  @override
+  String get inspectionReports => 'Rapporti di ispezione';
+
+  @override
+  String get legalDocuments => 'Documenti legali';
+
+  @override
+  String get otherCategory => 'Altro';
+
+  @override
+  String get documentManagement => 'Gestione documenti';
+
+  @override
+  String welcomeBack(Object name) {
+    return 'Bentornato, $name';
+  }
+
+  @override
+  String get quickUpload => 'Caricamento rapido';
+
+  @override
+  String get notice => 'Avviso';
+
+  @override
+  String get receipt => 'Ricevuta';
+
+  @override
+  String get filterDocuments => 'Filtra documenti';
+
+  @override
+  String get loadingProperties => 'Caricamento proprietà...';
+
+  @override
+  String get documentLibrary => 'Libreria documenti';
+
+  @override
+  String get uploadFirstDocument =>
+      'Carica il tuo primo documento per iniziare';
+
+  @override
+  String get fileLabel => 'File';
+
+  @override
+  String get sizeLabel => 'Dimensione';
+
+  @override
+  String get documentName => 'Nome documento';
+
+  @override
+  String get descriptionOptional => 'Descrizione (opzionale)';
+
+  @override
+  String get assignToPropertyOptional => 'Assegna alla proprietà (opzionale)';
+
+  @override
+  String get areYouSure => 'Sei sicuro?';
+
+  @override
+  String documentDeletedSuccessfully(Object name) {
+    return 'Documento \"$name\" eliminato con successo';
+  }
+
+  @override
+  String failedToDeleteDocument(Object error) {
+    return 'Impossibile eliminare il documento: $error';
+  }
+
+  @override
+  String get noAppToOpenFile => 'Nessuna app trovata per aprire questo file';
 }

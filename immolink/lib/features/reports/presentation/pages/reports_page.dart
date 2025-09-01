@@ -193,19 +193,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Export Reports'),
-        content: const Text('Exportformat wählen:'),
+  title: Text(AppLocalizations.of(context)!.exportReportsTitle),
+  content: Text(AppLocalizations.of(context)!.exportFormatPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _exportToPDF();
             },
-            child: const Text('Export PDF'),
+            child: Text(AppLocalizations.of(context)!.exportPdf),
           ),
         ],
       ),
@@ -379,7 +379,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Financial Overview',
+                l10n.financialOverview,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -410,7 +410,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       Container(
                         width: double.infinity,
                         child: _buildFinancialMetric(
-                          'Monthly Revenue',
+                          l10n.monthlyRevenue,
                           _formatCurrency(totalRevenue),
                           Icons.trending_up,
                           colors.success,
@@ -421,7 +421,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       Container(
                         width: double.infinity,
                         child: _buildFinancialMetric(
-                          'Collected',
+                          l10n.collected,
                           _formatCurrency(completedPayments),
                           Icons.check_circle_outline,
                           colors.info,
@@ -432,7 +432,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       Container(
                         width: double.infinity,
                         child: _buildFinancialMetric(
-                          'Outstanding',
+                          l10n.outstanding,
                           _formatCurrency(pendingPayments),
                           Icons.hourglass_empty,
                           colors.warning,
@@ -443,11 +443,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Fehler beim Laden der Zahlungen'),
+                error: (_, __) => Text(l10n.errorLoadingPaymentHistory),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Fehler beim Laden der Immobilien'),
+            error: (_, __) => Text(l10n.errorLoadingProperties),
           ),
         ],
       ),
@@ -572,7 +572,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Property Overview',
+                l10n.propertyOverview,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -594,7 +594,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Total Properties',
+                      l10n.totalProperties,
                       totalProperties.toString(),
                       Icons.home_outlined,
                       colors.info,
@@ -605,7 +605,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Occupied',
+                      l10n.occupied,
                       rentedProperties.toString(),
                       Icons.check_circle_outline,
                       colors.success,
@@ -616,7 +616,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Available',
+                      l10n.available,
                       availableProperties.toString(),
                       Icons.radio_button_unchecked,
                       colors.textSecondary,
@@ -627,7 +627,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Fehler beim Laden der Immobilienkennzahlen'),
+            error: (_, __) => Text(l10n.errorLoadingProperties),
           ),
         ],
       ),
@@ -679,7 +679,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Maintenance Overview',
+                l10n.maintenanceOverview,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -701,7 +701,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Total Requests',
+                      l10n.totalRequests,
                       totalRequests.toString(),
                       Icons.list_alt_outlined,
                       colors.textSecondary,
@@ -712,7 +712,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Pending',
+                      l10n.pending,
                       pendingRequests.toString(),
                       Icons.hourglass_empty,
                       colors.warning,
@@ -723,7 +723,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Completed',
+                      l10n.completed,
                       completedRequests.toString(),
                       Icons.check_circle_outline,
                       colors.success,
@@ -734,7 +734,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Fehler beim Laden der Wartungsdaten'),
+            error: (_, __) => Text(l10n.errorLoadingMaintenanceData),
           ),
         ],
       ),
@@ -868,7 +868,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Payment Summary',
+                l10n.paymentSummary,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -894,7 +894,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Total Paid',
+                      l10n.totalPaid,
                       _formatCurrency(totalPaid),
                       Icons.check_circle_outline,
                       colors.success,
@@ -905,7 +905,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Pending',
+                      l10n.pending,
                       _formatCurrency(pendingAmount),
                       Icons.hourglass_empty,
                       colors.warning,
@@ -916,7 +916,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Container(
                     width: double.infinity,
                     child: _buildFinancialMetric(
-                      'Total Payments',
+                      l10n.totalPayments,
                       totalPayments.toString(),
                       Icons.receipt_long_outlined,
                       colors.info,
@@ -927,7 +927,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Fehler beim Laden der Zahlungsübersicht'),
+            error: (_, __) => Text(l10n.errorLoadingPaymentSummary),
           ),
         ],
       ),
@@ -979,7 +979,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Maintenance Requests',
+                l10n.maintenanceRequests,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -1005,7 +1005,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                         ),
                         SizedBox(height: 16),
                         Text(
-                          'No maintenance requests',
+                          l10n.noMaintenanceRequests,
                           style: TextStyle(
                             fontSize: _getResponsiveFontSize(context, 16),
                             fontWeight: FontWeight.w600,
@@ -1092,7 +1092,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Fehler beim Laden der Wartungsanfragen'),
+            error: (_, __) => Text(l10n.errorLoadingMaintenanceRequests),
           ),
         ],
       ),
@@ -1144,7 +1144,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ),
               const SizedBox(width: 20),
               Text(
-                'Recent Payments',
+                l10n.recentPayments,
                 style: TextStyle(
                   fontSize: _getResponsiveFontSize(context, 22),
                   fontWeight: FontWeight.w800,
@@ -1162,7 +1162,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   padding: const EdgeInsets.all(40),
                   child: Center(
                     child: Text(
-                      'No payments found',
+                      l10n.noPaymentsFound,
                       style: TextStyle(
                         fontSize: _getResponsiveFontSize(context, 16),
                         color: Color(0xFF64748B),
@@ -1251,7 +1251,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Text('Fehler beim Laden der Zahlungshistorie'),
+            error: (_, __) => Text(l10n.errorLoadingPaymentHistory),
           ),
         ],
       ),
@@ -1301,13 +1301,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
+      builder: (context) => AlertDialog(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Generating PDF report...'),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(AppLocalizations.of(context)!.generatingPdfReport),
           ],
         ),
       ),
@@ -1319,10 +1319,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('PDF export feature will be implemented with pdf package'),
+          content: Text(AppLocalizations.of(context)!.pdfExportInfo),
           backgroundColor: colors.info,
           action: SnackBarAction(
-            label: 'OK',
+            label: AppLocalizations.of(context)!.ok,
             onPressed: () {},
           ),
         ),

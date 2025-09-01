@@ -48,7 +48,23 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         }
       });
     } catch (e) {
-      print('Error loading payment methods: $e');
+      // On mobile (APK) a common cause is an unreachable API_URL (e.g. pointing to localhost) or
+      // network / TLS issues. Provide a safe fallback so user still sees at least "Card".
+      debugPrint('Error loading payment methods: $e');
+      if (mounted) {
+        setState(() {
+          _paymentMethods = [
+            PaymentMethod(
+              type: 'card',
+              name: 'Credit/Debit Card',
+              icon: 'credit_card',
+              instant: true,
+              description: 'Standard card payment',
+            ),
+          ];
+          _selectedPaymentMethod = 'card';
+        });
+      }
     }
   }
 
@@ -264,6 +280,21 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             ),
           ),
           const SizedBox(height: 16),
+          if (_paymentMethods.isEmpty) ...[
+            Row(
+              children: [
+                Icon(Icons.info_outline, size: 18, color: colors.textSecondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'No payment methods loaded. Check network/API configuration. Showing none.',
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
           ..._paymentMethods.map((method) => _buildPaymentMethodTile(method, colors)),
         ],
       ),
@@ -450,6 +481,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         // Allow delayed payment methods like bank transfers
         allowsDelayedPaymentMethods: _selectedPaymentMethod != 'card',
       );
+      debugPrint('[Stripe] Init sheet with method=${_selectedPaymentMethod} delayed=${_selectedPaymentMethod != 'card'}');
 
       // Initialize payment sheet
       await Stripe.instance.initPaymentSheet(

@@ -2958,6 +2958,90 @@ abstract class AppLocalizations {
   /// **'Analytics & Reports'**
   String get analyticsAndReports;
 
+  /// No description provided for @exportReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Reports'**
+  String get exportReportsTitle;
+
+  /// No description provided for @exportFormatPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select export format'**
+  String get exportFormatPrompt;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export PDF'**
+  String get exportPdf;
+
+  /// No description provided for @generatingPdfReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating PDF report...'**
+  String get generatingPdfReport;
+
+  /// No description provided for @pdfExportInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF export feature will be implemented with pdf package'**
+  String get pdfExportInfo;
+
+  /// No description provided for @propertyOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Overview'**
+  String get propertyOverview;
+
+  /// No description provided for @financialOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Overview'**
+  String get financialOverview;
+
+  /// No description provided for @maintenanceOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance Overview'**
+  String get maintenanceOverview;
+
+  /// No description provided for @recentPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Payments'**
+  String get recentPayments;
+
+  /// No description provided for @noPaymentsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No payments found'**
+  String get noPaymentsFound;
+
+  /// No description provided for @collected.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected'**
+  String get collected;
+
+  /// No description provided for @totalPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Paid'**
+  String get totalPaid;
+
+  /// No description provided for @totalPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Payments'**
+  String get totalPayments;
+
+  /// No description provided for @totalRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Requests'**
+  String get totalRequests;
+
   /// No description provided for @revenueAnalytics.
   ///
   /// In en, this message translates to:
@@ -3324,12 +3408,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 week ago} other{{count} weeks ago}}'**
   String weeksAgo(num count);
 
-  /// No description provided for @financialOverview.
-  ///
-  /// In en, this message translates to:
-  /// **'Financial Overview'**
-  String get financialOverview;
-
   /// No description provided for @subscriptionRequired.
   ///
   /// In en, this message translates to:
@@ -3419,6 +3497,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reported'**
   String get reported;
+
+  /// No description provided for @loadingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading address...'**
+  String get loadingAddress;
+
+  /// No description provided for @propertyIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Property ID'**
+  String get propertyIdLabel;
 
   /// No description provided for @urgency.
   ///
@@ -3605,6 +3695,498 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get Started'**
   String get getStarted;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @manageSubscriptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get manageSubscriptionTitle;
+
+  /// No description provided for @chooseYourPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Your Plan'**
+  String get chooseYourPlanTitle;
+
+  /// No description provided for @subscriptionLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load subscription data'**
+  String get subscriptionLoadError;
+
+  /// No description provided for @upgradeUnlockFeaturesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to unlock more features and property limits'**
+  String get upgradeUnlockFeaturesMessage;
+
+  /// No description provided for @selectPlanIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the perfect plan for your property management needs'**
+  String get selectPlanIntro;
+
+  /// No description provided for @highestPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on the highest plan!'**
+  String get highestPlanTitle;
+
+  /// No description provided for @highestPlanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You have access to all premium features and unlimited property management capabilities.'**
+  String get highestPlanDescription;
+
+  /// No description provided for @premiumThanksMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for being a premium subscriber!'**
+  String get premiumThanksMessage;
+
+  /// No description provided for @billingMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get billingMonthly;
+
+  /// No description provided for @billingYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get billingYearly;
+
+  /// No description provided for @savePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {percent}%'**
+  String savePercent(Object percent);
+
+  /// No description provided for @currentPlanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Plan'**
+  String get currentPlanLabel;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
+
+  /// No description provided for @nextBillingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next billing'**
+  String get nextBillingLabel;
+
+  /// No description provided for @popularBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get popularBadge;
+
+  /// No description provided for @upgradeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade'**
+  String get upgradeBadge;
+
+  /// No description provided for @upgradePlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade Plan'**
+  String get upgradePlanButton;
+
+  /// No description provided for @continueToPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Payment'**
+  String get continueToPayment;
+
+  /// No description provided for @yourProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Property'**
+  String get yourProperty;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @statusActiveUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get statusActiveUpper;
+
+  /// No description provided for @myDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'My Documents'**
+  String get myDocuments;
+
+  /// No description provided for @welcomeUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome, {userName}'**
+  String welcomeUser(Object userName);
+
+  /// No description provided for @tenantDocumentsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage all your rental documents, contracts and important papers here.'**
+  String get tenantDocumentsIntro;
+
+  /// No description provided for @documentCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Categories'**
+  String get documentCategories;
+
+  /// No description provided for @leaseAgreement.
+  ///
+  /// In en, this message translates to:
+  /// **'Lease Agreement'**
+  String get leaseAgreement;
+
+  /// No description provided for @leaseAgreementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current rental contract'**
+  String get leaseAgreementSubtitle;
+
+  /// No description provided for @operatingCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Operating Costs'**
+  String get operatingCosts;
+
+  /// No description provided for @operatingCostsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statements and receipts'**
+  String get operatingCostsSubtitle;
+
+  /// No description provided for @protocols.
+  ///
+  /// In en, this message translates to:
+  /// **'Protocols'**
+  String get protocols;
+
+  /// No description provided for @protocolsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Handover and inspection reports'**
+  String get protocolsSubtitle;
+
+  /// No description provided for @correspondence.
+  ///
+  /// In en, this message translates to:
+  /// **'Correspondence'**
+  String get correspondence;
+
+  /// No description provided for @correspondenceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emails and letters'**
+  String get correspondenceSubtitle;
+
+  /// No description provided for @documentsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} document{pluralSuffix}'**
+  String documentsCount(Object count, Object pluralSuffix);
+
+  /// No description provided for @enterSearchTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a search term'**
+  String get enterSearchTerm;
+
+  /// No description provided for @noDocumentsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents found'**
+  String get noDocumentsFound;
+
+  /// No description provided for @documentSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Search'**
+  String get documentSearch;
+
+  /// No description provided for @useDocumentsTabForDetailedSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the documents tab for a detailed search'**
+  String get useDocumentsTabForDetailedSearch;
+
+  /// No description provided for @recentDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Documents'**
+  String get recentDocuments;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @noRecentDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent documents'**
+  String get noRecentDocuments;
+
+  /// No description provided for @allDocumentsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'All Documents'**
+  String get allDocumentsHeader;
+
+  /// No description provided for @noDocumentsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents available'**
+  String get noDocumentsAvailable;
+
+  /// No description provided for @documentsSharedByLandlord.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents shared by your landlord will appear here'**
+  String get documentsSharedByLandlord;
+
+  /// No description provided for @loadingDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading documents...'**
+  String get loadingDocuments;
+
+  /// No description provided for @errorLoadingDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading documents'**
+  String get errorLoadingDocuments;
+
+  /// No description provided for @pleaseLoginToUploadDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in to upload documents'**
+  String get pleaseLoginToUploadDocuments;
+
+  /// No description provided for @downloadingDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {name}...'**
+  String downloadingDocument(Object name);
+
+  /// No description provided for @documentDownloadedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} downloaded successfully'**
+  String documentDownloadedSuccessfully(Object name);
+
+  /// No description provided for @failedToDownloadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download {name}'**
+  String failedToDownloadDocument(Object name);
+
+  /// No description provided for @documentUploadedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Document \"{name}\" uploaded successfully'**
+  String documentUploadedSuccessfully(Object name);
+
+  /// No description provided for @failedToUploadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload document: {error}'**
+  String failedToUploadDocument(Object error);
+
+  /// No description provided for @featureComingSoonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get featureComingSoonTitle;
+
+  /// No description provided for @featureComingSoonMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature will be available in a future update.'**
+  String get featureComingSoonMessage;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @expiring.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring'**
+  String get expiring;
+
+  /// No description provided for @uploadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Document'**
+  String get uploadDocument;
+
+  /// No description provided for @noSpecificProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'No specific property'**
+  String get noSpecificProperty;
+
+  /// No description provided for @failedToUploadDocumentGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload document: {error}'**
+  String failedToUploadDocumentGeneric(Object error);
+
+  /// No description provided for @insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get insurance;
+
+  /// No description provided for @inspectionReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection Reports'**
+  String get inspectionReports;
+
+  /// No description provided for @legalDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Documents'**
+  String get legalDocuments;
+
+  /// No description provided for @otherCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get otherCategory;
+
+  /// No description provided for @documentManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Management'**
+  String get documentManagement;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back, {name}'**
+  String welcomeBack(Object name);
+
+  /// No description provided for @quickUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Upload'**
+  String get quickUpload;
+
+  /// No description provided for @notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice'**
+  String get notice;
+
+  /// No description provided for @receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get receipt;
+
+  /// No description provided for @filterDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Documents'**
+  String get filterDocuments;
+
+  /// No description provided for @loadingProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading properties...'**
+  String get loadingProperties;
+
+  /// No description provided for @documentLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Library'**
+  String get documentLibrary;
+
+  /// No description provided for @uploadFirstDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload your first document to get started'**
+  String get uploadFirstDocument;
+
+  /// No description provided for @fileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get fileLabel;
+
+  /// No description provided for @sizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get sizeLabel;
+
+  /// No description provided for @documentName.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Name'**
+  String get documentName;
+
+  /// No description provided for @descriptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get descriptionOptional;
+
+  /// No description provided for @assignToPropertyOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to Property (optional)'**
+  String get assignToPropertyOptional;
+
+  /// No description provided for @areYouSure.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure?'**
+  String get areYouSure;
+
+  /// No description provided for @documentDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Document \"{name}\" deleted successfully'**
+  String documentDeletedSuccessfully(Object name);
+
+  /// No description provided for @failedToDeleteDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete document: {error}'**
+  String failedToDeleteDocument(Object error);
+
+  /// No description provided for @noAppToOpenFile.
+  ///
+  /// In en, this message translates to:
+  /// **'No app found to open this file'**
+  String get noAppToOpenFile;
 }
 
 class _AppLocalizationsDelegate

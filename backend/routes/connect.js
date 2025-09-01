@@ -296,49 +296,58 @@ router.post('/create-tenant-payment', async (req, res) => {
       });
     }
 
-    // Get payment method types based on preference
-    let paymentMethodTypes = ['card']; // Default
-    
-    switch (preferredPaymentMethod) {
-      case 'bank_transfer':
-        paymentMethodTypes = ['customer_balance', 'us_bank_account'];
-        break;
-      case 'sepa_debit':
-        paymentMethodTypes = ['sepa_debit'];
-        break;
-      case 'sofort':
-        paymentMethodTypes = ['sofort'];
-        break;
-      case 'ideal':
-        paymentMethodTypes = ['ideal'];
-        break;
-      case 'card':
-      default:
-        paymentMethodTypes = ['card'];
-        break;
-    }
-    
     // Calculate application fee (e.g., 2.9% + 30 cents)
     const applicationFeeAmount = Math.round((amount * 0.029) + 30);
     
-    // Create payment intent with transfer to landlord
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: currency,
-      application_fee_amount: applicationFeeAmount,
-      transfer_data: {
-        destination: landlord.stripeConnectAccountId,
-      },
-      payment_method_types: paymentMethodTypes,
-      metadata: {
-        tenantId: tenantId,
-        propertyId: propertyId,
-        landlordId: property.landlordId,
-        paymentType: paymentType,
-        preferredPaymentMethod: preferredPaymentMethod,
-        description: description || `${paymentType} payment for ${property.address.street}`
-      }
-    });
+    // Strategy: try automatic payment methods first for broader coverage.
+    // If Stripe rejects (e.g., destination charge restrictions), fall back to curated list.
+    let paymentIntent;
+    try {
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100),
+        currency,
+        application_fee_amount: applicationFeeAmount,
+        transfer_data: { destination: landlord.stripeConnectAccountId },
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          tenantId,
+          propertyId,
+          landlordId: property.landlordId,
+          paymentType,
+          preferredPaymentMethod,
+          description: description || `${paymentType} payment for ${property.address.street}`
+        }
+      });
+      console.log('Created PI with automatic methods:', paymentIntent.id, paymentIntent.payment_method_types);
+    } catch (autoErr) {
+      console.warn('Automatic payment methods failed, falling back to manual list:', autoErr.message);
+      // Manual fallback prioritizing requested preference while adding safe common methods.
+      const fallbackTypes = (() => {
+        switch (preferredPaymentMethod) {
+          case 'sofort': return ['card','sofort'];
+          case 'ideal': return ['card','ideal'];
+          case 'sepa_debit': return ['card','sepa_debit'];
+          case 'bank_transfer': return ['card']; // customer_balance / bank debits often limited in Connect test
+          default: return ['card','sofort','ideal'];
+        }
+      })();
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100),
+        currency,
+        application_fee_amount: applicationFeeAmount,
+        transfer_data: { destination: landlord.stripeConnectAccountId },
+        payment_method_types: fallbackTypes,
+        metadata: {
+          tenantId,
+          propertyId,
+          landlordId: property.landlordId,
+          paymentType,
+          preferredPaymentMethod,
+          description: description || `${paymentType} payment for ${property.address.street}`
+        }
+      });
+      console.log('Created PI with fallback types:', paymentIntent.id, paymentIntent.payment_method_types);
+    }
 
     // Store payment record in database
     const paymentRecord = {

@@ -198,7 +198,7 @@ router.patch('/:userId', async (req, res) => {
     const db = client.db(dbName);
     
     const { userId } = req.params;
-    const { fullName, email, phone, address } = req.body;
+  const { fullName, email, phone, address, profileImage } = req.body;
     
     if (!ObjectId.isValid(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
@@ -209,7 +209,8 @@ router.patch('/:userId', async (req, res) => {
     if (fullName) updateData.fullName = fullName;
     if (email) updateData.email = email;
     if (phone) updateData.phone = phone;
-    if (address) updateData.address = address;
+  if (address) updateData.address = address;
+  if (profileImage !== undefined) updateData.profileImage = profileImage; // allow clearing with null
     
     updateData.updatedAt = new Date();
     

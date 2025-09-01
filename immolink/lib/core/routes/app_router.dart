@@ -43,6 +43,7 @@ import 'package:immosync/features/subscription/domain/models/subscription.dart';
 import 'package:immosync/features/payment/presentation/pages/tenant_payment_page.dart';
 import 'package:immosync/features/payment/presentation/pages/landlord_connect_setup_page.dart';
 import 'package:immosync/features/payment/presentation/pages/landlord_connect_dashboard_page.dart';
+import 'package:immosync/features/notifications/presentation/pages/notifications_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -278,6 +279,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsPage(),
       ),
       // Search route
       GoRoute(

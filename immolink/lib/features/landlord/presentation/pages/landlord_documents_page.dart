@@ -23,20 +23,27 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   
-  String _selectedCategory = 'All';
+  String _selectedCategory = 'All'; // Will map to localized 'All'
   String? _selectedPropertyId;
   Set<String> _selectedTenantIds = {};
 
-  final List<String> _categories = [
-    'All',
-    'Lease Agreement', 
-    'Insurance',
-    'Inspection Reports',
-    'Utility Bills',
-    'Correspondence',
-    'Legal Documents',
-    'Other'
-  ];
+  late List<String> _categories; // Populated in didChangeDependencies
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final l10n = AppLocalizations.of(context)!;
+    _categories = [
+      l10n.all,
+      l10n.leaseAgreement,
+      l10n.operatingCosts,
+      l10n.correspondence,
+  l10n.insurance,
+  l10n.inspectionReports,
+  l10n.legalDocuments,
+  l10n.otherCategory,
+    ];
+  }
 
   @override
   void initState() {
@@ -107,7 +114,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       backgroundColor: colors.primaryBackground,
       elevation: 0,
       title: Text(
-        'Document Management',
+        l10n.documentManagement,
         style: TextStyle(
           color: colors.textPrimary,
           fontWeight: FontWeight.bold,
@@ -147,6 +154,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   }
 
   Widget _buildWelcomeSection(String userName, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -181,7 +189,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
-                  'Welcome back, $userName!',
+                  l10n.welcomeBack(userName),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -193,7 +201,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           ),
           const SizedBox(height: 12),
           Text(
-            'Manage and share documents with your tenants. Upload contracts, notices, receipts and more.',
+            // Fallback: reuse existing description using existing keys combined
+            l10n.documentsSharedByLandlord,
             style: TextStyle(
               fontSize: 16,
               color: colors.textSecondary,
@@ -217,7 +226,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quick Upload',
+            AppLocalizations.of(context)!.quickUpload,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -229,28 +238,28 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             children: [
               Expanded(
                 child: _buildQuickUploadButton(
-                  'Lease Agreement',
+                  AppLocalizations.of(context)!.leaseAgreement,
                   Icons.description,
                   colors.primaryAccent,
-                  () => _uploadDocumentWithCategory('Lease Agreement'),
+                  () => _uploadDocumentWithCategory(AppLocalizations.of(context)!.leaseAgreement),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildQuickUploadButton(
-                  'Notice',
+                  AppLocalizations.of(context)!.notice,
                   Icons.announcement,
                   colors.warning,
-                  () => _uploadDocumentWithCategory('Correspondence'),
+                  () => _uploadDocumentWithCategory(AppLocalizations.of(context)!.correspondence),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildQuickUploadButton(
-                  'Receipt',
+                  AppLocalizations.of(context)!.receipt,
                   Icons.receipt,
                   colors.success,
-                  () => _uploadDocumentWithCategory('Utility Bills'),
+                  () => _uploadDocumentWithCategory(AppLocalizations.of(context)!.operatingCosts),
                 ),
               ),
             ],
@@ -303,7 +312,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Filter Documents',
+            AppLocalizations.of(context)!.filterDocuments,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -314,7 +323,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           
           // Category filter
           Text(
-            'Category',
+            AppLocalizations.of(context)!.category,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -346,7 +355,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           
           // Property filter
           Text(
-            'Property',
+            AppLocalizations.of(context)!.property,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -358,15 +367,15 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             data: (properties) => DropdownButtonFormField<String>(
               initialValue: _selectedPropertyId,
               decoration: InputDecoration(
-                hintText: 'All Properties',
+                hintText: AppLocalizations.of(context)!.allProperties,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
               items: [
-                const DropdownMenuItem<String>(
+                DropdownMenuItem<String>(
                   value: null,
-                  child: Text('All Properties'),
+                  child: Text(AppLocalizations.of(context)!.allProperties),
                 ),
                 ...properties.map((property) => DropdownMenuItem<String>(
                   value: property.id,
@@ -386,7 +395,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 border: Border.all(color: colors.borderLight),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text('Loading properties...'),
+              child: Text(AppLocalizations.of(context)!.loadingProperties),
             ),
             error: (_, __) => Container(
               padding: const EdgeInsets.all(12),
@@ -394,7 +403,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 border: Border.all(color: colors.error),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text('Error loading properties'),
+              child: Text(AppLocalizations.of(context)!.errorLoadingProperties),
             ),
           ),
         ],
@@ -407,7 +416,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Document Library',
+          AppLocalizations.of(context)!.documentLibrary,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -452,7 +461,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 CircularProgressIndicator(color: colors.primaryAccent),
                 const SizedBox(height: 16),
                 Text(
-                  'Loading documents...',
+                  AppLocalizations.of(context)!.loadingDocuments,
                   style: TextStyle(color: colors.textSecondary),
                 ),
               ],
@@ -465,6 +474,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   }
 
   Widget _buildEmptyState(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -481,7 +491,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             ),
             const SizedBox(height: 16),
             Text(
-              'No documents found',
+              l10n.noDocumentsFound,
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 18,
@@ -490,7 +500,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             ),
             const SizedBox(height: 8),
             Text(
-              'Upload your first document to get started',
+              l10n.uploadFirstDocument,
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 14,
@@ -501,7 +511,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             ElevatedButton.icon(
               onPressed: _uploadDocument,
               icon: const Icon(Icons.upload_file),
-              label: const Text('Upload Document'),
+              label: Text(l10n.uploadDocument),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: colors.textOnAccent,
@@ -514,6 +524,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   }
 
   Widget _buildErrorState(Object error, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -530,7 +541,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading documents',
+              l10n.errorLoadingDocuments,
               style: TextStyle(
                 color: colors.error,
                 fontSize: 16,
@@ -553,7 +564,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 backgroundColor: colors.error,
                 foregroundColor: colors.textOnAccent,
               ),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -594,19 +605,19 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Upload Document'),
+          title: Text(AppLocalizations.of(context)!.uploadDocument),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('File: ${file.name}'),
-                Text('Size: ${(file.size / 1024 / 1024).toStringAsFixed(2)} MB'),
+                Text('${AppLocalizations.of(context)!.fileLabel}: ${file.name}'),
+                Text('${AppLocalizations.of(context)!.sizeLabel}: ${(file.size / 1024 / 1024).toStringAsFixed(2)} MB'),
                 const SizedBox(height: 16),
                 
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Document Name',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.documentName,
                     border: OutlineInputBorder(),
                   ),
                   controller: TextEditingController(text: documentName),
@@ -615,8 +626,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 const SizedBox(height: 16),
                 
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Description (Optional)',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.descriptionOptional,
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
@@ -626,8 +637,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 
                 DropdownButtonFormField<String>(
                   initialValue: selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.category,
                     border: OutlineInputBorder(),
                   ),
                   items: _categories.skip(1).map((category) => 
@@ -640,14 +651,14 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 propertiesAsync.when(
                   data: (properties) => DropdownButtonFormField<String>(
                     initialValue: selectedPropertyId,
-                    decoration: const InputDecoration(
-                      labelText: 'Assign to Property (Optional)',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.assignToPropertyOptional,
                       border: OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem<String>(
+                      DropdownMenuItem<String>(
                         value: null,
-                        child: Text('No specific property'),
+                        child: Text(AppLocalizations.of(context)!.noSpecificProperty),
                       ),
                       ...properties.map((property) => DropdownMenuItem<String>(
                         value: property.id,
@@ -660,7 +671,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                     }),
                   ),
                   loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('Error loading properties'),
+                  error: (_, __) => Text(AppLocalizations.of(context)!.errorLoadingProperties),
                 ),
               ],
             ),
@@ -668,7 +679,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -682,7 +693,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                   selectedTenantIds,
                 );
               },
-              child: const Text('Upload'),
+              child: Text(AppLocalizations.of(context)!.upload),
             ),
           ],
         ),
@@ -699,11 +710,12 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
     Set<String> tenantIds,
   ) async {
     try {
-      _showInfoSnackBar('Uploading ${file.name}...');
+  final l10nUpload = AppLocalizations.of(context)!;
+  _showInfoSnackBar(l10nUpload.downloadingDocument(file.name));
       
       final authState = ref.read(authProvider);
       if (authState.userId == null) {
-        _showErrorSnackBar('Please log in to upload documents');
+  _showErrorSnackBar(l10nUpload.pleaseLoginToUploadDocuments);
         return;
       }
       
@@ -719,22 +731,26 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       );
       
       ref.read(landlordDocumentsProvider.notifier).refresh();
-      _showSuccessSnackBar('Document uploaded successfully');
+  _showSuccessSnackBar(l10nUpload.documentUploadedSuccessfully(file.name));
     } catch (e) {
-      _showErrorSnackBar('Failed to upload document: $e');
+      final l10nUpload = AppLocalizations.of(context)!;
+      _showErrorSnackBar(l10nUpload.failedToUploadDocumentGeneric(e));
     }
   }
 
   void _bulkUploadDocuments() {
-    _showInfoSnackBar('Bulk upload feature coming soon');
+    final l10n = AppLocalizations.of(context)!;
+    _showInfoSnackBar(l10n.featureComingSoonTitle);
   }
 
   void _exportDocuments() {
-    _showInfoSnackBar('Export feature coming soon');
+    final l10n = AppLocalizations.of(context)!;
+    _showInfoSnackBar(l10n.featureComingSoonTitle);
   }
 
   void _showDocumentSettings() {
-    _showInfoSnackBar('Document settings coming soon');
+    final l10n = AppLocalizations.of(context)!;
+    _showInfoSnackBar(l10n.featureComingSoonTitle);
   }
 
   void _viewDocument(DocumentModel document) {
@@ -747,14 +763,15 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
 
   void _downloadDocument(DocumentModel document) async {
     try {
-      _showInfoSnackBar('Downloading ${document.name}...');
+  _showInfoSnackBar(AppLocalizations.of(context)!.downloadingDocument(document.name));
       
       final documentService = ref.read(documentServiceProvider);
       await documentService.downloadDocument(document);
       
-      _showSuccessSnackBar('${document.name} downloaded successfully');
+  final l10n = AppLocalizations.of(context)!;
+  _showSuccessSnackBar(l10n.documentDownloadedSuccessfully(document.name));
     } catch (e) {
-      _showErrorSnackBar('Failed to download ${document.name}');
+  _showErrorSnackBar(AppLocalizations.of(context)!.failedToDownloadDocument(document.name));
     }
   }
 
@@ -762,17 +779,17 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Document'),
-        content: Text('Are you sure you want to delete "${document.name}"? This action cannot be undone.'),
+  title: Text(AppLocalizations.of(context)!.delete),
+  content: Text(AppLocalizations.of(context)!.areYouSure),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+      child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -783,10 +800,10 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
         final documentService = ref.read(documentServiceProvider);
         await documentService.deleteDocument(document.id);
         
-        ref.read(landlordDocumentsProvider.notifier).refresh();
-        _showSuccessSnackBar('Document deleted successfully');
+  ref.read(landlordDocumentsProvider.notifier).refresh();
+  _showSuccessSnackBar(AppLocalizations.of(context)!.documentDeletedSuccessfully(document.name));
       } catch (e) {
-        _showErrorSnackBar('Failed to delete document: $e');
+  _showErrorSnackBar(AppLocalizations.of(context)!.failedToDeleteDocument(e));
       }
     }
   }

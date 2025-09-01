@@ -78,6 +78,8 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+// Alias singular path to the same router to avoid confusion ("Cannot GET /api/subscription")
+app.use('/api/subscription', subscriptionsRoutes);
 app.use('/api/connect', connectRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/documents', documentsRoutes);

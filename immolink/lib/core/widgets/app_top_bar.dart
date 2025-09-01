@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -88,7 +89,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               // Right: Notification bell
               if (showNotification)
                 IconButton(
-                  onPressed: onNotificationTap,
+                  onPressed: onNotificationTap ?? () => context.push('/notifications'),
                   icon: const Icon(
                     Icons.notifications_outlined,
                     size: AppSizes.iconMedium,
