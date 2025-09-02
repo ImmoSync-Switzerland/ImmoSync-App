@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui'; // For PlatformDispatcher
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -17,6 +18,7 @@ import 'package:immosync/features/settings/providers/settings_provider.dart';
 import 'package:immosync/l10n_helper.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:immosync/core/config/db_config.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 
 void main() async {
   bool _appStarted = false; // track if primary runApp already executed
@@ -63,15 +65,22 @@ void main() async {
       debugPrint(st.toString());
     }
 
-    // Step 3: Stripe (guard nulls carefully) – run after bindings ready
+    // Step 3: Stripe (only on supported platforms: web, Android, iOS)
     try {
-      final stripeKey = envLoaded ? dotenv.dotenv.env['STRIPE_PUBLISHABLE_KEY'] : null;
-      if ((stripeKey ?? '').isEmpty) {
-        debugPrint('[Startup][INFO] Stripe key missing – skipping Stripe init');
+      final isStripeSupported = kIsWeb || (
+        !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)
+      );
+      if (!isStripeSupported) {
+        debugPrint('[Startup][INFO] Stripe unsupported on this platform (${defaultTargetPlatform.name}) – skipping Stripe init');
       } else {
-        Stripe.publishableKey = stripeKey!;
-        await Stripe.instance.applySettings();
-        debugPrint('[Startup] Stripe initialized');
+        final stripeKey = envLoaded ? dotenv.dotenv.env['STRIPE_PUBLISHABLE_KEY'] : null;
+        if ((stripeKey ?? '').isEmpty) {
+          debugPrint('[Startup][INFO] Stripe key missing – skipping Stripe init');
+        } else {
+          Stripe.publishableKey = stripeKey!;
+          await Stripe.instance.applySettings();
+          debugPrint('[Startup] Stripe initialized');
+        }
       }
     } catch (e, st) {
       debugPrint('[Startup][WARN] Stripe init failed: $e');
@@ -138,8 +147,14 @@ class ImmoSync extends ConsumerWidget {
   const ImmoSync({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  // Start FCM service side effects
-  ref.watch(fcmServiceProvider);
+    // Start FCM service side effects and keep instance
+    final fcm = ref.watch(fcmServiceProvider);
+    // Listen for auth userId changes (avoid triggering on every rebuild)
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      if (prev?.userId != next.userId) {
+        fcm.updateUserId(next.userId);
+      }
+    });
     final router = ref.watch(routerProvider);
     final currentLocale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);

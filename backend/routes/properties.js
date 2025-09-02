@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');  // Add ObjectId here
 const { dbUri, dbName } = require('../config');
+const notifications = require('./notifications');
 
 router.get('/landlord/:landlordId', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -184,6 +185,14 @@ router.post('/:propertyId/remove-tenant', async (req, res) => {
       console.log(`Deleted ${invitationDeleteResult.deletedCount} invitations for property ${propertyId} and tenant ${tenantId}`);
 
     res.json({ success: true, message: 'Tenant removed successfully' });
+
+    // Notify tenant of removal
+    notifications.sendDomainNotification(tenantId, {
+      title: 'Removed from Property',
+      body: 'You have been unassigned from a property',
+      type: 'tenant_removed',
+      data: { propertyId: propertyId.toString() }
+    });
   } catch (error) {
     console.error('Error removing tenant:', error);
     res.status(500).json({ message: 'Failed to remove tenant' });

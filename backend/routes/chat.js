@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const notifications = require('./notifications');
 
 // Get messages for a conversation
 router.get('/:conversationId/messages', async (req, res) => {
@@ -71,6 +72,16 @@ router.post('/:conversationId/messages', async (req, res) => {
       messageId: messageResult.insertedId,
       message: 'Message sent successfully' 
     });
+
+    // Notify receiver (fire and forget)
+    if (receiverId) {
+      notifications.sendDomainNotification(receiverId, {
+        title: 'New Message',
+        body: content.slice(0, 80),
+        type: 'message',
+        data: { conversationId, messageId: messageResult.insertedId.toString(), senderId }
+      });
+    }
   } catch (error) {
     console.error('Error sending message:', error);
     res.status(500).json({ message: 'Error sending message' });

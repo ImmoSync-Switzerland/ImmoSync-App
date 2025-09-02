@@ -11,7 +11,7 @@ class SubscriptionService {
   Future<List<SubscriptionPlan>> getAvailablePlans() async {
     try {
       final response = await http.get(
-        Uri.parse('$_apiUrl/payments/subscription-plans'),
+        Uri.parse('$_apiUrl/subscriptions/plans'),
         headers: {'Content-Type': 'application/json'},
       );
 

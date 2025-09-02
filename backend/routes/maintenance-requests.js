@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getDB } = require('../database');
 const { ObjectId } = require('mongodb');
+const notifications = require('./notifications');
 
 // POST /api/maintenance-requests - Create maintenance requests (alternative endpoint)
 router.post('/', async (req, res) => {
@@ -56,6 +57,20 @@ router.post('/', async (req, res) => {
       success: true,
       ticketId: savedRequest._id.toString(),
       message: 'Maintenance request created successfully'
+    });
+
+    // Notify landlord and tenant
+    notifications.sendDomainNotification(landlordId, {
+      title: 'New Maintenance Request',
+      body: `${title} submitted by tenant`,
+      type: 'maintenance_created',
+      data: { requestId: savedRequest._id.toString(), propertyId, tenantId }
+    });
+    notifications.sendDomainNotification(tenantId, {
+      title: 'Request Submitted',
+      body: `Your maintenance request '${title}' was created`,
+      type: 'maintenance_created',
+      data: { requestId: savedRequest._id.toString(), propertyId }
     });
   } catch (error) {
     console.error('Error creating maintenance request:', error);

@@ -23,30 +23,19 @@ class CommonBottomNav extends ConsumerWidget {
     });
     
     return Container(
+      padding: const EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colors.primaryBackground,
-            colors.luxuryGradientStart,
-          ],
-        ),
-        border: Border(
-          top: BorderSide(
-            color: colors.borderLight,
-            width: 1,
-          ),
-        ),
+        color: colors.surfaceSecondary,
+        border: Border(top: BorderSide(color: colors.borderLight, width: 1)),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColorMedium,
-            blurRadius: 16,
-            offset: const Offset(0, -4),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
-  child: BottomNavigationBar(
+      child: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: (index) {
           HapticFeedback.lightImpact();
@@ -111,22 +100,17 @@ class CommonBottomNav extends ConsumerWidget {
   ) {
     final isSelected = selectedIndex == index;
     return BottomNavigationBarItem(
-      icon: Container(
-        padding: const EdgeInsets.all(8),
+      icon: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.symmetric(horizontal: isSelected ? 14 : 8, vertical: 8),
         decoration: BoxDecoration(
-          gradient: isSelected ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.primaryAccent.withValues(alpha: 0.1),
-              colors.primaryAccent.withValues(alpha: 0.05),
-            ],
-          ) : null,
-          borderRadius: BorderRadius.circular(12),
-          border: isSelected ? Border.all(
-            color: colors.primaryAccent.withValues(alpha: 0.2),
+          color: isSelected ? colors.primaryAccent.withValues(alpha: 0.10) : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isSelected ? colors.primaryAccent.withValues(alpha: 0.25) : colors.borderLight.withValues(alpha: 0.4),
             width: 1,
-          ) : null,
+          ),
         ),
         child: Icon(
           isSelected ? activeIcon : icon,

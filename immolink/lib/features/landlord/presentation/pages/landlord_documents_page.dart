@@ -364,8 +364,13 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           ),
           const SizedBox(height: 8),
           propertiesAsync.when(
-            data: (properties) => DropdownButtonFormField<String>(
-              initialValue: _selectedPropertyId,
+            data: (properties) {
+              // Ensure current selected property still exists; else reset to null
+              if (_selectedPropertyId != null && !properties.any((p) => p.id == _selectedPropertyId)) {
+                _selectedPropertyId = null;
+              }
+              return DropdownButtonFormField<String>(
+              value: _selectedPropertyId,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.allProperties,
                 border: OutlineInputBorder(
@@ -373,10 +378,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 ),
               ),
               items: [
-                DropdownMenuItem<String>(
-                  value: null,
-                  child: Text(AppLocalizations.of(context)!.allProperties),
-                ),
+                DropdownMenuItem<String>(value: null, child: Text(AppLocalizations.of(context)!.allProperties)),
                 ...properties.map((property) => DropdownMenuItem<String>(
                   value: property.id,
                   child: Text('${property.address.street}, ${property.address.city}'),
@@ -388,7 +390,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                   _selectedTenantIds.clear();
                 });
               },
-            ),
+            );},
             loading: () => Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -573,7 +575,9 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   }
 
   void _uploadDocument() async {
-    _uploadDocumentWithCategory('Other');
+  // Use localized "Other" category so the dropdown initialValue matches items in non-English locales
+  final l10n = AppLocalizations.of(context)!;
+  _uploadDocumentWithCategory(l10n.otherCategory);
   }
 
   void _uploadDocumentWithCategory(String category) async {
@@ -712,6 +716,19 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
     try {
   final l10nUpload = AppLocalizations.of(context)!;
   _showInfoSnackBar(l10nUpload.downloadingDocument(file.name));
+      // Normalize category: convert localized label back to internal canonical label set to avoid duplicate 'Other'
+      final lc = category.toLowerCase();
+      final l10n = AppLocalizations.of(context)!;
+      final canonicalMap = <String,String>{
+        l10n.leaseAgreement.toLowerCase(): l10n.leaseAgreement,
+        l10n.operatingCosts.toLowerCase(): l10n.operatingCosts,
+        l10n.correspondence.toLowerCase(): l10n.correspondence,
+        l10n.insurance.toLowerCase(): l10n.insurance,
+        l10n.inspectionReports.toLowerCase(): l10n.inspectionReports,
+        l10n.legalDocuments.toLowerCase(): l10n.legalDocuments,
+        l10n.otherCategory.toLowerCase(): l10n.otherCategory,
+      };
+      category = canonicalMap[lc] ?? category;
       
       final authState = ref.read(authProvider);
       if (authState.userId == null) {
@@ -724,7 +741,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
         file: file,
         name: name,
         description: description,
-        category: category,
+  category: category,
         uploadedBy: authState.userId!,
         propertyId: propertyId,
         tenantIds: tenantIds.toList(),

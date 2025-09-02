@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/core/config/api_config.dart';
 import '../../domain/models/app_notification.dart';
 
 final notificationsProvider = StateNotifierProvider<NotificationsNotifier, AsyncValue<List<AppNotification>>>((ref) {
@@ -16,7 +17,7 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
     _maybeLoad();
   }
 
-  static const String _baseUrl = 'http://localhost:3000/api'; // TODO externalize
+  static String get _baseUrl => ApiConfig.baseUrl;
 
   void updateUser(String? userId) {
     if (userId == _userId) return;
@@ -36,7 +37,7 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
     if (_userId == null) return;
     state = const AsyncLoading();
     try {
-      final resp = await http.get(Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'));
+  final resp = await http.get(Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'));
       if (resp.statusCode == 200) {
         final jsonBody = jsonDecode(resp.body) as Map<String, dynamic>;
         final list = (jsonBody['notifications'] as List<dynamic>)

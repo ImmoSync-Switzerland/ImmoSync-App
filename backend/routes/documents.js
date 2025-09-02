@@ -4,6 +4,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
 const multer = require('multer');
 const path = require('path');
+const notifications = require('./notifications');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -214,6 +215,16 @@ router.post('/upload', upload.single('document'), async (req, res) => {
       documentId: result.insertedId,
       document: { ...document, _id: result.insertedId }
     });
+
+    // Notify assigned tenants
+    if (parsedTenantIds && parsedTenantIds.length) {
+      parsedTenantIds.forEach(tid => notifications.sendDomainNotification(tid, {
+        title: 'New Document Assigned',
+        body: document.name,
+        type: 'document_assigned',
+        data: { documentId: result.insertedId.toString() }
+      }));
+    }
   } catch (error) {
     console.error('Error uploading document:', error);
     res.status(500).json({ message: 'Error uploading document' });

@@ -4,14 +4,70 @@ const router = express.Router();
 // Firebase Admin initialization (with graceful fallback to mock)
 let admin = null;
 try {
-  // Only initialize if credentials are provided
-  if (process.env.FIREBASE_PROJECT_ID && !admin) {
+  if (process.env.FIREBASE_PROJECT_ID || process.env.FIREBASE_CREDENTIALS_FILE) {
     admin = require('firebase-admin');
     if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
-      });
-      console.log('Firebase Admin initialized for notifications');
+      // Option 1: external JSON file path
+      if (process.env.FIREBASE_CREDENTIALS_FILE) {
+        try {
+          const serviceAccount = require(process.env.FIREBASE_CREDENTIALS_FILE);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+          });
+          console.log('Firebase Admin initialized (service account file)');
+        } catch (fileErr) {
+          console.warn('[Firebase Admin] Failed loading file at FIREBASE_CREDENTIALS_FILE:', fileErr.message);
+          throw fileErr;
+        }
+      } else {
+        // Option 2: env inline credentials
+        const {
+          FIREBASE_PROJECT_ID,
+          FIREBASE_CLIENT_EMAIL,
+          FIREBASE_PRIVATE_KEY
+        } = process.env;
+
+        if (FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY) {
+        // Parse private key: support escaped \n and optional base64
+        function parsePrivateKey(raw) {
+          let key = raw.trim();
+          // If wrapped in quotes remove them
+            if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+            key = key.slice(1, -1);
+          }
+          // Replace escaped newlines
+          key = key.replace(/\\n/g, '\n');
+          // If still single line without header but looks base64, attempt decode
+          if (!key.includes('BEGIN') && /^[A-Za-z0-9+/=\r\n]+$/.test(key) && key.length % 4 === 0) {
+            try {
+              const decoded = Buffer.from(key.replace(/\s+/g,''), 'base64').toString('utf8');
+              if (decoded.includes('BEGIN PRIVATE KEY')) {
+                key = decoded;
+              }
+            } catch (_) { /* ignore */ }
+          }
+          return key;
+        }
+        const privateKey = parsePrivateKey(FIREBASE_PRIVATE_KEY);
+
+        if (!privateKey.includes('BEGIN PRIVATE KEY')) {
+          console.warn('[Firebase Admin] Provided FIREBASE_PRIVATE_KEY appears invalid (missing BEGIN PRIVATE KEY header).');
+        }
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId: FIREBASE_PROJECT_ID,
+            clientEmail: FIREBASE_CLIENT_EMAIL,
+            privateKey,
+          }),
+        });
+        console.log('Firebase Admin initialized (cert env vars)');
+        } else {
+          admin.initializeApp({
+            credential: admin.credential.applicationDefault(),
+          });
+          console.log('Firebase Admin initialized (application default credentials)');
+        }
+      } // end inline credentials path
     }
   }
 } catch (e) {
@@ -88,6 +144,32 @@ class PushNotificationService {
 const userTokens = new Map(); // userId -> [tokens]
 const notificationSettings = new Map(); // userId -> settings
 const userNotifications = new Map(); // userId -> [{id,title,body,type,data,timestamp,read:false}]
+
+// Reusable helper to send a notification to a single userId (used by other route modules)
+async function sendDomainNotification(userId, { title, body, type='general', data = {} }) {
+  try {
+    const tokens = userTokens.get(userId);
+    if (!tokens || tokens.length === 0) {
+      return { success: false, reason: 'no_tokens' };
+    }
+    const settings = notificationSettings.get(userId) || { pushNotifications: true };
+    if (!settings.pushNotifications) {
+      return { success: false, reason: 'disabled' };
+    }
+    const payloadData = { ...data, type, timestamp: new Date().toISOString() };
+    let result;
+    if (tokens.length === 1) {
+      result = await PushNotificationService.sendNotification(tokens[0], title, body, payloadData);
+    } else {
+      result = await PushNotificationService.sendToMultipleTokens(tokens, title, body, payloadData);
+    }
+    addNotification(userId, { title, body, type, data: payloadData });
+    return { success: true, result };
+  } catch (e) {
+    console.error('[DomainNotification] send error', e);
+    return { success: false, reason: 'error', error: e.message };
+  }
+}
 
 function addNotification(userId, { title, body, type='general', data={} }) {
   if (!userNotifications.has(userId)) userNotifications.set(userId, []);
@@ -497,6 +579,31 @@ router.post('/send-maintenance-notifications', async (req, res) => {
 });
 
 module.exports = router;
+
+// Also export helper for other modules (they can require this file and use sendDomainNotification)
+module.exports.sendDomainNotification = sendDomainNotification;
+
+// --- Debug endpoints (non-production use) ---
+// List tokens for a user
+router.get('/debug/tokens/:userId', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Disabled in production' });
+  }
+  const tokens = userTokens.get(req.params.userId) || [];
+  res.json({ userId: req.params.userId, tokens, count: tokens.length });
+});
+
+// List all users with token counts
+router.get('/debug/all-tokens', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Disabled in production' });
+  }
+  const summary = [];
+  for (const [userId, tokens] of userTokens.entries()) {
+    summary.push({ userId, count: tokens.length, tokens });
+  }
+  res.json({ users: summary });
+});
 
 // Fetch notifications for a user (latest first)
 router.get('/list/:userId', (req, res) => {

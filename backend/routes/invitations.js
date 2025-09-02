@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const notifications = require('./notifications');
 
 // Get invitations for a user
 router.get('/user/:userId', async (req, res) => {
@@ -158,6 +159,14 @@ router.post('/', async (req, res) => {
       invitationId: result.insertedId.toString(),
       conversationId: conversationResult.insertedId.toString(),
       message: 'Invitation sent successfully' 
+    });
+
+    // Notify tenant of invitation
+    notifications.sendDomainNotification(tenantId, {
+      title: 'Property Invitation',
+      body: `You have been invited to a property`,
+      type: 'invitation_created',
+      data: { invitationId: result.insertedId.toString(), propertyId }
     });
     
   } catch (error) {

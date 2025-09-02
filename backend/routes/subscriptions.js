@@ -21,65 +21,170 @@ function requireStripe(res) {
   return null;
 }
 
-// Get available subscription plans
+// In-memory cache for Stripe plan retrieval (reduces API calls)
+let cachedPlans = null;
+let cachedPlansFetchedAt = 0;
+const PLANS_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// Helper to build plans dynamically from Stripe & env
+async function buildPlansFromStripe() {
+  if (!stripe) return null; // no stripe configured
+
+  // Discover plan slugs by scanning env for *_MONTHLY_PRICE_ID pattern
+  const planEntries = Object.entries(process.env)
+    .filter(([k,v]) => /^STRIPE_[A-Z0-9]+_MONTHLY_PRICE_ID$/.test(k) && v)
+    .map(([k,v]) => k.replace('STRIPE_','').replace('_MONTHLY_PRICE_ID','').toLowerCase());
+
+  // Ensure uniqueness
+  const uniqueSlugs = [...new Set(planEntries)];
+  if (uniqueSlugs.length === 0) return null;
+
+  const result = [];
+  for (const slug of uniqueSlugs) {
+    const upper = slug.toUpperCase();
+    const monthlyPriceId = process.env[`STRIPE_${upper}_MONTHLY_PRICE_ID`];
+    const yearlyPriceId = process.env[`STRIPE_${upper}_YEARLY_PRICE_ID`];
+    if (!monthlyPriceId) continue; // monthly is minimum requirement
+
+    try {
+      // Retrieve monthly price (expand product for metadata)
+      const monthlyPrice = await stripe.prices.retrieve(monthlyPriceId, { expand: ['product'] });
+      let yearlyPrice = null;
+      if (yearlyPriceId) {
+        try {
+          yearlyPrice = await stripe.prices.retrieve(yearlyPriceId, { expand: ['product'] });
+        } catch (e) {
+          console.warn(`Yearly price fetch failed for ${slug}:`, e.message);
+        }
+      }
+
+      const product = monthlyPrice.product; // expanded
+      const name = (product && product.name) || slug;
+      const description = (product && product.description) || '';
+
+      // Features: look for metadata.features (JSON array or ';' separated)
+      let features = [];
+      if (product && product.metadata && product.metadata.features) {
+        const raw = product.metadata.features;
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) features = parsed.map(String);
+        } catch (_) {
+          features = raw.split(/;|\n/).map(f=>f.trim()).filter(Boolean);
+        }
+      }
+      // Fallback default features if none provided
+      if (features.length === 0) {
+        features = [
+          'Property management',
+          'Tenant tools',
+          'Support'
+        ];
+      }
+
+      const isPopular = !!(product && product.metadata && (product.metadata.isPopular === 'true'));
+
+      const monthlyAmount = (monthlyPrice.unit_amount || 0) / 100;
+      let yearlyAmount = yearlyPrice ? (yearlyPrice.unit_amount || 0) / 100 : null;
+      if (!yearlyAmount) {
+        // Derive yearly if missing (12 * monthly, apply optional discount from metadata.discountPercent)
+        let derived = monthlyAmount * 12;
+        const discount = product && product.metadata && product.metadata.yearlyDiscountPercent;
+        if (discount && !isNaN(Number(discount))) {
+          derived = derived * (1 - Number(discount)/100);
+        }
+        yearlyAmount = parseFloat(derived.toFixed(2));
+      }
+
+      result.push({
+        id: slug,
+        name,
+        description,
+        monthlyPrice: monthlyAmount,
+        yearlyPrice: yearlyAmount,
+        features,
+        isPopular,
+        stripePriceIdMonthly: monthlyPriceId,
+        stripePriceIdYearly: yearlyPriceId || null,
+      });
+    } catch (e) {
+      console.warn(`Skipping plan ${slug} due to Stripe error:`, e.message);
+    }
+  }
+
+  return result.length ? result : null;
+}
+
+// Get available subscription plans (dynamic from Stripe if configured)
 router.get('/plans', async (req, res) => {
   try {
-    // Default subscription plans
-    const plans = [
-      {
-        id: 'basic',
-        name: 'Basic',
-        description: 'Perfect for individual landlords',
-        monthlyPrice: 9.99,
-        yearlyPrice: 99.99,
-        features: [
-          'Up to 3 properties',
-          'Basic tenant management',
-          'Payment tracking',
-          'Email support',
-        ],
-        isPopular: false,
-        stripePriceIdMonthly: process.env.STRIPE_BASIC_MONTHLY_PRICE_ID || 'price_basic_monthly',
-        stripePriceIdYearly: process.env.STRIPE_BASIC_YEARLY_PRICE_ID || 'price_basic_yearly',
-      },
-      {
-        id: 'pro',
-        name: 'Professional',
-        description: 'Best for growing property portfolios',
-        monthlyPrice: 19.99,
-        yearlyPrice: 199.99,
-        features: [
-          'Up to 15 properties',
-          'Advanced tenant management',
-          'Automated rent collection',
-          'Maintenance request tracking',
-          'Financial reports',
-          'Priority support',
-        ],
-        isPopular: true,
-        stripePriceIdMonthly: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || 'price_pro_monthly',
-        stripePriceIdYearly: process.env.STRIPE_PRO_YEARLY_PRICE_ID || 'price_pro_yearly',
-      },
-      {
-        id: 'enterprise',
-        name: 'Enterprise',
-        description: 'For large property management companies',
-        monthlyPrice: 49.99,
-        yearlyPrice: 499.99,
-        features: [
-          'Unlimited properties',
-          'Multi-user accounts',
-          'Advanced analytics',
-          'API access',
-          'Custom integrations',
-          'Dedicated support',
-        ],
-        isPopular: false,
-        stripePriceIdMonthly: process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || 'price_enterprise_monthly',
-        stripePriceIdYearly: process.env.STRIPE_ENTERPRISE_YEARLY_PRICE_ID || 'price_enterprise_yearly',
-      },
-    ];
+    // Serve from cache if fresh
+    if (cachedPlans && (Date.now() - cachedPlansFetchedAt) < PLANS_CACHE_TTL_MS) {
+      return res.json(cachedPlans);
+    }
 
+    let plans = await buildPlansFromStripe();
+
+    if (!plans) {
+      // Fallback static definitions (legacy) if Stripe not configured or env missing
+      plans = [
+        {
+          id: 'basic',
+          name: 'Basic',
+          description: 'Perfect for individual landlords',
+          monthlyPrice: 9.99,
+          yearlyPrice: 99.99,
+          features: [
+            'Up to 3 properties',
+            'Basic tenant management',
+            'Payment tracking',
+            'Email support',
+          ],
+          isPopular: false,
+          stripePriceIdMonthly: process.env.STRIPE_BASIC_MONTHLY_PRICE_ID || null,
+          stripePriceIdYearly: process.env.STRIPE_BASIC_YEARLY_PRICE_ID || null,
+        },
+        {
+          id: 'pro',
+          name: 'Professional',
+          description: 'Best for growing property portfolios',
+          monthlyPrice: 19.99,
+          yearlyPrice: 199.99,
+          features: [
+            'Up to 15 properties',
+            'Advanced tenant management',
+            'Automated rent collection',
+            'Maintenance request tracking',
+            'Financial reports',
+            'Priority support',
+          ],
+          isPopular: true,
+          stripePriceIdMonthly: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || null,
+          stripePriceIdYearly: process.env.STRIPE_PRO_YEARLY_PRICE_ID || null,
+        },
+        {
+          id: 'enterprise',
+          name: 'Enterprise',
+          description: 'For large property management companies',
+          monthlyPrice: 49.99,
+          yearlyPrice: 499.99,
+          features: [
+            'Unlimited properties',
+            'Multi-user accounts',
+            'Advanced analytics',
+            'API access',
+            'Custom integrations',
+            'Dedicated support',
+          ],
+          isPopular: false,
+          stripePriceIdMonthly: process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || null,
+          stripePriceIdYearly: process.env.STRIPE_ENTERPRISE_YEARLY_PRICE_ID || null,
+        },
+      ];
+    }
+
+    cachedPlans = plans;
+    cachedPlansFetchedAt = Date.now();
     res.json(plans);
   } catch (error) {
     console.error('Error fetching subscription plans:', error);
@@ -330,7 +435,7 @@ router.post('/create-payment-intent', async (req, res) => {
   }
 });
 
-// Update subscription
+// Update subscription (plan / billingInterval)
 router.put('/:subscriptionId', async (req, res) => {
   const stripeError = requireStripe(res);
   if (stripeError) return stripeError;
@@ -351,14 +456,20 @@ router.put('/:subscriptionId', async (req, res) => {
       return res.status(404).json({ message: 'Subscription not found' });
     }
 
-    // Update Stripe subscription if it exists
+    // Update Stripe subscription if it exists and is a real Stripe subscription
     if (subscription.stripeSubscriptionId && subscription.stripeSubscriptionId.startsWith('sub_')) {
-      // This is a real Stripe subscription
+      const newPriceId = process.env[`STRIPE_${planId.toUpperCase()}_${billingInterval.toUpperCase()}_PRICE_ID`];
+      if (!newPriceId) {
+        return res.status(400).json({ message: 'Target Stripe price ID not configured in environment' });
+      }
+      // Retrieve subscription to get item ID
+      const stripeSub = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+      const firstItem = stripeSub.items?.data?.[0];
+      if (!firstItem) {
+        return res.status(500).json({ message: 'Stripe subscription has no items to update' });
+      }
       await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-        items: [{
-          id: subscription.stripeSubscriptionId,
-          price: process.env[`STRIPE_${planId.toUpperCase()}_${billingInterval.toUpperCase()}_PRICE_ID`]
-        }]
+        items: [{ id: firstItem.id, price: newPriceId }]
       });
     }
 

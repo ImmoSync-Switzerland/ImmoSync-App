@@ -237,7 +237,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 ),
               ),
               child: DropdownButtonFormField<String>(
-                initialValue: _selectedPropertyId,
+                value: _selectedPropertyId,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
@@ -304,6 +304,13 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   }
 
   Widget _buildPaymentDetailsSection() {
+    // Ensure selections remain valid & unique
+    if (_selectedPaymentType != null && !_paymentTypes.contains(_selectedPaymentType)) {
+      _selectedPaymentType = _paymentTypes.first;
+    }
+    if (_selectedPaymentMethod != null && !_paymentMethods.contains(_selectedPaymentMethod)) {
+      _selectedPaymentMethod = _paymentMethods.first;
+    }
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceCards,
@@ -359,7 +366,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           ),
                         ),
                         child: DropdownButtonFormField<String>(
-                          initialValue: _selectedPaymentType,
+                          value: _selectedPaymentType,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -412,7 +419,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           ),
                         ),
                         child: DropdownButtonFormField<String>(
-                          initialValue: _selectedPaymentMethod,
+                          value: _selectedPaymentMethod,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(

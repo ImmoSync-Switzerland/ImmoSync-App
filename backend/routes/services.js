@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const notifications = require('./notifications');
 
 // GET /api/services - Fetch community services
 router.get('/', async (req, res) => {
@@ -130,6 +131,14 @@ router.post('/', async (req, res) => {
         price: savedService.price,
         contactInfo: savedService.contactInfo
       }
+    });
+
+    // Notify landlord (could later notify subscribers/tenants if subscription model exists)
+    notifications.sendDomainNotification(landlordId, {
+      title: 'Service Published',
+      body: `${savedService.name} is now available`,
+      type: 'service_created',
+      data: { serviceId: savedService._id.toString() }
     });
   } catch (error) {
     console.error('Error creating service:', error);
