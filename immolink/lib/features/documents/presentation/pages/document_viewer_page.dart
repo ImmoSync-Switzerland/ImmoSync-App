@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/document_model.dart';
+import '../../../../core/config/api_config.dart';
 
 class DocumentViewerPage extends ConsumerStatefulWidget {
   final DocumentModel document;
@@ -29,8 +30,16 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   @override
   void initState() {
     super.initState();
-    // Don't auto-load the document to avoid potential crashes
-    // Only load when user explicitly requests it
+    // Auto-load lightweight previews (images & small docs) for better UX
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mime = widget.document.mimeType.toLowerCase();
+      final isImage = mime.startsWith('image/');
+      final isPdf = mime.contains('pdf');
+      final small = widget.document.fileSize < 5 * 1024 * 1024; // <5MB
+      if ((isImage || isPdf) && small) {
+        _loadDocument();
+      }
+    });
   }
 
   Future<void> _loadDocument() async {
@@ -42,17 +51,17 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         _error = null;
       });
 
-      // Construct the correct URL for file access
-      String fileUrl;
-      if (widget.document.filePath.startsWith('/')) {
-        fileUrl = 'https://backend.immosync.ch${widget.document.filePath}';
-      } else {
-        fileUrl = 'https://backend.immosync.ch/${widget.document.filePath}';
+      // Prefer raw endpoint (streams from disk or DB) rather than guessing path
+      final rawUrl = '${ApiConfig.baseUrl}/documents/${widget.document.id}/raw';
+      print('DocumentViewer: Loading document from raw endpoint: $rawUrl');
+      http.Response response = await http.get(Uri.parse(rawUrl));
+
+      // Fallback: if 404, attempt download endpoint (may differ in older deployments)
+      if (response.statusCode == 404) {
+        final altUrl = '${ApiConfig.baseUrl}/documents/download/${widget.document.id}';
+        print('DocumentViewer: raw endpoint 404, trying download endpoint: $altUrl');
+        response = await http.get(Uri.parse(altUrl));
       }
-
-      print('DocumentViewer: Loading document from URL: $fileUrl');
-
-      final response = await http.get(Uri.parse(fileUrl));
 
       print('DocumentViewer: Response status: ${response.statusCode}');
 
@@ -105,7 +114,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         downloadsDir = await getApplicationDocumentsDirectory();
       }
 
-      final fileName = widget.document.name;
+  final fileName = widget.document.name;
       final filePath = '${downloadsDir.path}${Platform.pathSeparator}$fileName';
       final file = File(filePath);
 

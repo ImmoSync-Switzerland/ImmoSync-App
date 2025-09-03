@@ -72,4 +72,27 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
           )).toList());
     } catch (_) {}
   }
+
+  // Internal helper for UI single-tap marking (local only for now)
+  void markSingleRead(String id) {
+    final current = state.value;
+    if (current == null) return;
+    bool changed = false;
+    final updated = current.map((n) {
+      if (n.id == id && !n.read) {
+        changed = true;
+        return AppNotification(
+          id: n.id,
+          title: n.title,
+          body: n.body,
+          type: n.type,
+          data: n.data,
+          timestamp: n.timestamp,
+          read: true,
+        );
+      }
+      return n;
+    }).toList();
+    if (changed) state = AsyncData(updated);
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:immosync/core/widgets/app_top_bar.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -125,8 +126,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-  appBar: _buildAppBar(currentUser?.fullName ?? AppLocalizations.of(context)!.tenant, colors),
-      body: Container(
+      appBar: const AppTopBar(title: null),
+  body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -354,35 +355,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     );
   }
 
-  PreferredSizeWidget _buildAppBar(String name, DynamicAppColors colors) {
-    return AppBar(
-      backgroundColor: colors.primaryBackground,
-      elevation: 0,
-      systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      centerTitle: true,
-      actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-          decoration: BoxDecoration(
-            color: colors.surfaceCards,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadowColor,
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(Icons.notifications_outlined, color: colors.textSecondary, size: 22),
-            onPressed: () => HapticFeedback.lightImpact(),
-          ),
-        ),
-      ],
-    );
-  }
+  // Removed legacy _buildAppBar (now using AppTopBar)
 
   Widget _buildWelcomeSection(String userName, DynamicAppColors colors) {
     return Container(

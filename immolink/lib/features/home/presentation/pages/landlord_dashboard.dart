@@ -3,6 +3,7 @@ import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:immosync/core/widgets/app_top_bar.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/features/home/domain/services/dashboard_service.dart';
@@ -111,7 +112,19 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-  appBar: _buildAppBar(currentUser?.fullName ?? AppLocalizations.of(context)!.propertyManager),
+      appBar: AppTopBar(
+  title: null,
+        leading: IconButton(
+          tooltip: 'Refresh',
+          icon: Icon(Icons.refresh, color: colors.primaryAccent, size: 22),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            final t = ref.read(propertyRefreshTriggerProvider.notifier);
+            t.state = t.state + 1;
+            _loadDashboardData();
+          },
+        ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: colors.createGradient(
@@ -222,51 +235,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  PreferredSizeWidget _buildAppBar(String name) {
-    final colors = ref.watch(dynamicColorsProvider);
-    
-    return AppBar(
-      backgroundColor: colors.primaryBackground,
-      elevation: 0,
-      systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      centerTitle: true,
-      actions: [
-        IconButton(
-          tooltip: 'Refresh',
-          icon: Icon(Icons.refresh, color: colors.primaryAccent, size: 22),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            final t = ref.read(propertyRefreshTriggerProvider.notifier);
-            t.state = t.state + 1;
-            _loadDashboardData();
-          },
-        ),
-        Container(
-          margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-          decoration: BoxDecoration(
-            color: colors.surfaceCards,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadowColor,
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.notifications_outlined, 
-              color: colors.textSecondary, 
-              size: 22,
-            ),
-            onPressed: () => HapticFeedback.lightImpact(),
-          ),
-        ),
-      ],
-    );
-  }
+  // Removed legacy _buildAppBar (now using AppTopBar)
   Widget _buildWelcomeSection(String name) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
