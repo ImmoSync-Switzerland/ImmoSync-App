@@ -11,29 +11,45 @@ router.get('/landlord/:landlordId', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
 
-    console.log('Querying properties for landlordId:', req.params.landlordId);
+    const landlordIdParam = req.params.landlordId;
+    console.log('[Properties][Landlord] Incoming landlordId param:', landlordIdParam);
+
+    // Support legacy documents where landlordId was stored as an ObjectId as well as
+    // current documents where it is stored as a plain string.
+    const orConditions = [{ landlordId: landlordIdParam }];
+    if (ObjectId.isValid(landlordIdParam)) {
+      orConditions.push({ landlordId: new ObjectId(landlordIdParam) });
+    }
+
+    // If only one condition (invalid ObjectId), query directly without $or for efficiency
+    const landlordQuery = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
+    console.log('[Properties][Landlord] Query filter:', JSON.stringify(landlordQuery));
+
     const properties = await db.collection('properties')
-      .find({
-        landlordId: req.params.landlordId
-      })
+      .find(landlordQuery)
       .toArray();
 
-    console.log(req.params.landlordId.toString())
-    console.log('Found properties:', properties.length);
-    console.log('Properties details:', JSON.stringify(properties, null, 2));
+    console.log('[Properties][Landlord] Found properties:', properties.length);
+    if (properties.length === 0) {
+      console.log('[Properties][Landlord] No properties matched. Example existing landlordIds (first 5 docs):');
+      const sample = await db.collection('properties').find({}, { projection: { landlordId: 1 } }).limit(5).toArray();
+      console.log(sample.map(d => d.landlordId));
+    } else {
+      console.log('[Properties][Landlord] Property IDs:', properties.map(p => p._id.toString()));
+    }
 
     const propertyIds = properties.map(p => p._id);
 
-    const tenants = await db.collection('users')
+    const tenants = propertyIds.length > 0 ? await db.collection('users')
       .find({
         role: 'tenant',
         propertyId: { $in: propertyIds }
       })
-      .toArray();
+      .toArray() : [];
 
     res.json({ properties, tenants });
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('[Properties][Landlord] Database error:', error);
     res.status(500).json({ message: 'Error fetching properties' });
   } finally {
     await client.close();
@@ -55,15 +71,32 @@ router.get('/tenant/:tenantId', async (req, res) => {
       return res.status(400).json({ message: 'Invalid tenant ID format' });
     }
 
-    // Find properties where this tenant is assigned
-    const properties = await db.collection('properties')
-      .find({
-        tenantIds: { $in: [req.params.tenantId] }
-      })
-      .toArray();
+    const tenantId = req.params.tenantId;
+    const propertiesCol = db.collection('properties');
 
-    console.log('Query used:', { tenantIds: { $in: [req.params.tenantId] } });
-    console.log('Found properties for tenant:', properties.length);
+    // Primary lookup: tenantIds array contains tenantId
+    const listByArray = await propertiesCol.find({ tenantIds: { $in: [tenantId] } }).toArray();
+
+    // Secondary lookup: user document has propertyId referencing property (legacy path)
+    let listByUserRef = [];
+    try {
+      const user = await db.collection('users').findOne({ _id: new ObjectId(tenantId) }, { projection: { propertyId: 1 } });
+      if (user?.propertyId) {
+        const propId = user.propertyId instanceof ObjectId ? user.propertyId : new ObjectId(user.propertyId);
+        const prop = await propertiesCol.findOne({ _id: propId });
+        if (prop) listByUserRef.push(prop);
+      }
+    } catch (e) {
+      console.error('[Properties][Tenant] User propertyId lookup error:', e.message);
+    }
+
+    // Merge & deduplicate
+    const mergedMap = new Map();
+    [...listByArray, ...listByUserRef].forEach(p => mergedMap.set(p._id.toString(), p));
+    const properties = Array.from(mergedMap.values());
+
+  console.log('Query (array) used:', { tenantIds: { $in: [tenantId] } });
+  console.log('Found properties (array match):', listByArray.length, 'via user.propertyId:', listByUserRef.length, 'merged total:', properties.length);
     console.log('Properties with tenantIds:', properties.map(p => ({ 
       id: p._id, 
       address: p.address?.street,

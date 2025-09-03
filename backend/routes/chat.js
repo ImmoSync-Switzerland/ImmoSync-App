@@ -73,14 +73,21 @@ router.post('/:conversationId/messages', async (req, res) => {
       message: 'Message sent successfully' 
     });
 
-    // Notify receiver (fire and forget)
+    // Notify receiver (now with debug logging)
     if (receiverId) {
-      notifications.sendDomainNotification(receiverId, {
-        title: 'New Message',
-        body: content.slice(0, 80),
-        type: 'message',
-        data: { conversationId, messageId: messageResult.insertedId.toString(), senderId }
-      });
+      notifications
+        .sendDomainNotification(receiverId, {
+          title: 'New Message',
+          body: content.slice(0, 80),
+          type: 'message',
+          data: { conversationId, messageId: messageResult.insertedId.toString(), senderId }
+        })
+        .then(r => {
+          console.log('[Chat][Notify] receiverId=%s result=%j', receiverId, r);
+        })
+        .catch(e => console.error('[Chat][Notify][Error]', e));
+    } else {
+      console.log('[Chat][Notify] No receiverId provided, skipping push');
     }
   } catch (error) {
     console.error('Error sending message:', error);

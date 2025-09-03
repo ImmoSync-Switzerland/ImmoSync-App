@@ -198,11 +198,32 @@ class DocumentService {
 
   /// Internal method to fetch landlord documents from API
   Future<List<DocumentModel>> _fetchLandlordDocumentsFromAPI(String landlordId) async {
-    final response = await http.get(Uri.parse('$_baseUrl/landlord/$landlordId'));
-    
+    // Use debug=1 to potentially get {count, documents}
+    final uri = Uri.parse('$_baseUrl/landlord/$landlordId?debug=1');
+    final response = await http.get(uri);
     if (response.statusCode == 200) {
-      final List<dynamic> jsonList = json.decode(response.body);
-      return jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+      dynamic decoded;
+      try {
+        decoded = json.decode(response.body);
+      } catch (e) {
+        print('DocumentService: Failed to decode landlord response JSON: $e');
+        return [];
+      }
+      List<dynamic> docsJson;
+      if (decoded is Map && decoded['documents'] is List) {
+        print('DocumentService: Landlord debug response count=${decoded['count']}');
+        docsJson = decoded['documents'];
+      } else if (decoded is List) {
+        docsJson = decoded;
+      } else {
+        print('DocumentService: Unexpected landlord response structure: ${decoded.runtimeType}');
+        return [];
+      }
+      if (docsJson.isEmpty) {
+        final preview = response.body.length > 500 ? response.body.substring(0,500) : response.body;
+        print('DocumentService: Landlord API returned empty list for $landlordId. Body preview: $preview');
+      }
+      return docsJson.map((j) => DocumentModel.fromJson(j as Map<String,dynamic>)).toList();
     } else {
       throw Exception('Failed to fetch landlord documents: ${response.statusCode}');
     }
@@ -226,11 +247,22 @@ class DocumentService {
     
     try {
       print('DocumentService: Fetching landlord documents from API for landlord: $landlordId');
-      final response = await http.get(Uri.parse('$_baseUrl/landlord/$landlordId'));
+      final response = await http.get(Uri.parse('$_baseUrl/landlord/$landlordId?debug=1'));
       
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body);
-        final apiDocuments = jsonList.map((json) => DocumentModel.fromJson(json)).toList();
+        dynamic decoded;
+        try { decoded = json.decode(response.body); } catch (e) { print('DocumentService: JSON decode error landlord documents: $e'); decoded = []; }
+        List<dynamic> jsonList;
+        if (decoded is Map && decoded['documents'] is List) {
+          print('DocumentService: Debug landlord response count field = ${decoded['count']}');
+          jsonList = decoded['documents'];
+        } else if (decoded is List) {
+          jsonList = decoded;
+        } else {
+          print('DocumentService: Unexpected landlord top-level JSON type: ${decoded.runtimeType}');
+          jsonList = [];
+        }
+        final apiDocuments = jsonList.map((json) => DocumentModel.fromJson(json as Map<String,dynamic>)).toList();
         
         print('DocumentService: Successfully fetched ${apiDocuments.length} documents from API');
         

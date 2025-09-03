@@ -99,10 +99,13 @@ class DocumentModel {
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
     // Handle different ID formats from API vs local storage
     String documentId;
-    if (json['_id'] is Map) {
-      documentId = json['_id']['\$oid'] as String;
+    final idField = json['_id'] ?? json['id'];
+    if (idField is Map && idField['\$oid'] != null) {
+      documentId = idField['\$oid'] as String;
+    } else if (idField is String) {
+      documentId = idField;
     } else {
-      documentId = json['_id'] ?? json['id'] as String;
+      documentId = DateTime.now().millisecondsSinceEpoch.toString();
     }
 
     // Handle fileSize which might be null or a different type
@@ -115,27 +118,70 @@ class DocumentModel {
       documentFileSize = 0;
     }
 
+    // Normalize category
+    final rawCategory = (json['category'] as String?) ?? 'Other';
+    final normalizedCategory = _normalizeCategory(rawCategory);
+    final rawFilePath = (json['filePath'] as String?) ?? '';
+    final mime = (json['mimeType'] as String?) ?? 'application/octet-stream';
+
+    // Parse uploadDate flexibly (may be Date string or Date object serialized)
+    DateTime parsedUploadDate = DateTime.now();
+    final uploadDateVal = json['uploadDate'];
+    if (uploadDateVal is String) {
+      try { parsedUploadDate = DateTime.parse(uploadDateVal); } catch (_) {}
+    } else if (uploadDateVal is Map && uploadDateVal['\$date'] != null) {
+      try { parsedUploadDate = DateTime.parse(uploadDateVal['\$date']); } catch (_) {}
+    }
+
+    // uploadedBy may be missing in legacy docs
+    String uploadedBy = '';
+    final uploadedByVal = json['uploadedBy'];
+    if (uploadedByVal is Map && uploadedByVal['\$oid'] != null) {
+      uploadedBy = uploadedByVal['\$oid'];
+    } else if (uploadedByVal is String) {
+      uploadedBy = uploadedByVal;
+    }
+
+    // Helper to coerce lists with ObjectIds / maps / mixed to List<String>
+    List<String> _coerceIdList(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return value.map((e) {
+          if (e is String) return e;
+          if (e is Map && e['\$oid'] != null) return e['\$oid'].toString();
+          return e.toString();
+        }).toList();
+      }
+      return [];
+    }
+
+    final assignedTenantIds = _coerceIdList(json['assignedTenantIds']);
+    final propertyIds = _coerceIdList(json['propertyIds']);
+
+    DateTime? expiry;
+    if (json['expiryDate'] is String) {
+      try { expiry = DateTime.parse(json['expiryDate']); } catch (_) {}
+    } else if (json['expiryDate'] is Map && json['expiryDate']['\$date'] != null) {
+      try { expiry = DateTime.parse(json['expiryDate']['\$date']); } catch (_) {}
+    }
+
     return DocumentModel(
       id: documentId,
-      name: json['name'] as String,
+      name: json['name'] as String? ?? 'Document',
       description: json['description'] as String? ?? '',
-      category: json['category'] as String,
-      filePath: json['filePath'] as String,
-      mimeType: json['mimeType'] as String,
+      category: normalizedCategory,
+      filePath: rawFilePath,
+      mimeType: mime,
       fileSize: documentFileSize,
-      uploadDate: DateTime.parse(json['uploadDate'] as String),
-      lastModified: json['lastModified'] != null 
-          ? DateTime.parse(json['lastModified'] as String) 
-          : null,
-      uploadedBy: json['uploadedBy'] as String,
-      assignedTenantIds: List<String>.from(json['assignedTenantIds'] as List? ?? []),
-      propertyIds: List<String>.from(json['propertyIds'] as List? ?? []),
+      uploadDate: parsedUploadDate,
+      lastModified: json['lastModified'] is String ? DateTime.tryParse(json['lastModified']) : null,
+      uploadedBy: uploadedBy,
+      assignedTenantIds: assignedTenantIds,
+      propertyIds: propertyIds,
       metadata: json['metadata'] as Map<String, dynamic>?,
       status: json['status'] as String? ?? 'active',
       isRequired: json['isRequired'] as bool? ?? false,
-      expiryDate: json['expiryDate'] != null 
-          ? DateTime.parse(json['expiryDate'] as String) 
-          : null,
+      expiryDate: expiry,
     );
   }
 
@@ -198,5 +244,41 @@ enum DocumentCategory {
       case DocumentCategory.other:
         return Icons.folder;
     }
+  }
+}
+
+// Helper to normalize possibly localized / variant category labels to canonical English keys used in filtering.
+String _normalizeCategory(String input) {
+  final lower = input.toLowerCase();
+  switch (lower) {
+    case 'mietvertrag':
+    case 'lease agreement':
+    case 'lease':
+      return 'Lease Agreement';
+    case 'nebenkosten':
+    case 'utility bills':
+    case 'operating costs':
+    case 'utilities':
+      return 'Operating Costs';
+    case 'protokolle':
+    case 'inspection reports':
+    case 'protocols':
+      return 'Inspection Reports';
+    case 'korrespondenz':
+    case 'correspondence':
+      return 'Correspondence';
+    case 'versicherung':
+    case 'insurance':
+      return 'Insurance';
+    case 'wartung':
+    case 'maintenance':
+      return 'Maintenance';
+    case 'rechtliches':
+    case 'legal':
+      return 'Legal Documents';
+    case 'sonstiges':
+    case 'other':
+    default:
+      return 'Other';
   }
 }

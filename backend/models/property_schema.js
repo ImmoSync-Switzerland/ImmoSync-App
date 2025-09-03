@@ -5,8 +5,8 @@ const propertySchema = {
       required: ["landlordId", "address", "status", "rentAmount"],
       properties: {
         landlordId: {
-          bsonType: "string",
-          description: "Unique identifier for the landlord"
+          bsonType: ["string", "objectId"],
+          description: "Unique identifier for the landlord (string or ObjectId for backward compatibility)"
         },
         address: {
           bsonType: "object",
@@ -50,7 +50,8 @@ const propertySchema = {
         },
         tenantIds: {
           bsonType: "array",
-          items: { bsonType: "string" }
+          items: { bsonType: ["string", "objectId"] },
+          description: "Array of tenant user IDs (strings or ObjectIds allowed for mixed legacy data)"
         },
         outstandingPayments: { 
           bsonType: ["int", "double"],

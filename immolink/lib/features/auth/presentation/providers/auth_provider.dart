@@ -65,6 +65,22 @@ class CurrentUserNotifier extends StateNotifier<User?> {
   void clearUser() {
     state = null;
   }
+
+  void setPropertyId(String propertyId) {
+    final current = state;
+    if (current == null) return;
+    state = User(
+      id: current.id,
+      email: current.email,
+      fullName: current.fullName,
+      birthDate: current.birthDate,
+      role: current.role,
+      isAdmin: current.isAdmin,
+      isValidated: current.isValidated,
+      address: current.address,
+      propertyId: propertyId,
+    );
+  }
 }
 
 final currentUserProvider = StateNotifierProvider<CurrentUserNotifier, User?>((ref) {

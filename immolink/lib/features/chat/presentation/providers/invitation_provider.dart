@@ -27,7 +27,7 @@ class InvitationService {
     throw Exception('Failed to fetch invitations');
   }
 
-  Future<void> acceptInvitation(String invitationId) async {
+  Future<dynamic> acceptInvitation(String invitationId) async {
     final httpResponse = await http.put(
       Uri.parse('$_apiUrl/invitations/$invitationId/accept'),
       headers: {'Content-Type': 'application/json'},
@@ -35,6 +35,13 @@ class InvitationService {
 
     if (httpResponse.statusCode != 200) {
       throw Exception('Failed to accept invitation');
+    }
+
+    // Return parsed body so caller can update local state immediately
+    try {
+      return json.decode(httpResponse.body);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -118,17 +125,36 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     
     try {
-      await _invitationService.acceptInvitation(invitationId);
+  final result = await _invitationService.acceptInvitation(invitationId);
       state = const AsyncValue.data(null);
+      // If backend returned property & tenantUser, update current user propertyId immediately
+      if (result is Map && result['tenantUser'] != null) {
+        final tenantUser = result['tenantUser'];
+        final property = result['property'];
+        final propertyId = property != null ? property['_id']?.toString() : tenantUser['propertyId']?.toString();
+        if (propertyId != null) {
+          try {
+            _ref.read(currentUserProvider.notifier).setPropertyId(propertyId);
+          } catch (_) {}
+        }
+      }
       
-      // Refresh invitations after accepting
-      _ref.invalidate(userInvitationsProvider);
-      // Refresh tenant properties to show the newly assigned property
-      _ref.invalidate(tenantPropertiesProvider);
-      // Also refresh all properties to ensure UI consistency
-      _ref.invalidate(propertiesProvider);
-      // Refresh landlord properties as well (status might have changed)
-      _ref.invalidate(landlordPropertiesProvider);
+      // Immediate refresh (ref.refresh starts fetch now vs invalidate defers)
+  final _ = _ref.refresh(userInvitationsProvider);
+  final __ = _ref.refresh(tenantPropertiesProvider);
+  final ___ = _ref.refresh(propertiesProvider);
+  final ____ = _ref.refresh(landlordPropertiesProvider);
+      // Trigger manual property refresh tick for any stream listeners
+      try {
+        _ref.read(propertyRefreshTriggerProvider.notifier).state++;
+      } catch (_) {}
+      // Schedule a second refresh after slight delay to catch eventual consistency
+      Future.delayed(const Duration(milliseconds: 400), () {
+        try {
+          final _____ = _ref.refresh(tenantPropertiesProvider);
+          _ref.read(propertyRefreshTriggerProvider.notifier).state++;
+        } catch (_) {}
+      });
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }

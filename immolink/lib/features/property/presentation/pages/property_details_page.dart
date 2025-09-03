@@ -13,7 +13,7 @@ import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
-import '../../../../core/config/db_config.dart';
+import '../../../../core/utils/image_resolver.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/currency_provider.dart';
 
@@ -22,31 +22,7 @@ class PropertyDetailsPage extends ConsumerWidget {
 
   const PropertyDetailsPage({required this.propertyId, super.key});
 
-  String _getImageUrl(String imageIdOrPath) {
-    if (imageIdOrPath.isEmpty) return '';
-    debugPrint('PropertyDetailsPage: processing image ref "$imageIdOrPath"');
-    if (imageIdOrPath.startsWith('http://') || imageIdOrPath.startsWith('https://')) {
-      return imageIdOrPath;
-    }
-    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(imageIdOrPath)) {
-      return '${DbConfig.apiUrl}/images/$imageIdOrPath';
-    }
-    if (imageIdOrPath.startsWith('file:')) {
-      return '';
-    }
-    final api = DbConfig.apiUrl;
-    final base = api.endsWith('/api') ? api.substring(0, api.length - 4) : api;
-    String path = imageIdOrPath;
-    if (!path.startsWith('/')) path = '/$path';
-    if (path.startsWith('/uploads')) {
-    } else if (path.contains('uploads/')) {
-      final idx = path.indexOf('uploads/');
-      path = '/' + path.substring(idx);
-    }
-    final url = '$base$path';
-    if (Uri.tryParse(url)?.hasAuthority == true) return url;
-    return '';
-  }
+  String _getImageUrl(String imageIdOrPath) => resolvePropertyImage(imageIdOrPath);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -696,8 +672,9 @@ class PropertyDetailsPage extends ConsumerWidget {
                   
                   // Check if it's a MongoDB ObjectId (24 hex characters)
                   if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+                    final resolved = _getImageUrl(imageIdOrPath);
                     return MongoImage(
-                      imageId: imageIdOrPath,
+                      imageId: resolved,
                       fit: BoxFit.cover,
                       loadingWidget: Container(
                         color: Colors.grey[300],

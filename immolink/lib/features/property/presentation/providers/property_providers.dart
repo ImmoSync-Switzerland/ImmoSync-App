@@ -22,27 +22,36 @@ final propertyRefreshTriggerProvider = StateProvider<int>((_) => 0);
 
 // Landlord-specific properties provider with real-time refresh
 final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
-  print('LandlordPropertiesProvider initialized');
+  print('[LandlordPropertiesProvider] init');
   final currentUser = ref.watch(currentUserProvider);
-  
-  // Watch the manual refresh trigger (increments cause rebuild)
-  ref.watch(propertyRefreshTriggerProvider);
-  
-  print('Current user in provider: ${currentUser?.id}');
 
-  // Early return empty list if no user
+  // React to manual refresh trigger
+  final refreshTick = ref.watch(propertyRefreshTriggerProvider);
+  if (refreshTick > 0) {
+    print('[LandlordPropertiesProvider] Manual refresh tick = $refreshTick');
+  }
+
+  print('[LandlordPropertiesProvider] Current user: ${currentUser?.id}');
+
   if (currentUser == null) {
+    print('[LandlordPropertiesProvider] No current user -> empty list');
     yield [];
     return;
   }
 
   final propertyService = ref.watch(propertyServiceProvider);
-  print('Calling PropertyService.getLandlordProperties with ID: ${currentUser.id}');
-  
-  // Get initial data
-  await for (final properties in propertyService.getLandlordProperties(currentUser.id)) {
-    print('LandlordPropertiesProvider: Yielding ${properties.length} properties');
-    yield properties;
+  print('[LandlordPropertiesProvider] Fetching for landlordId=${currentUser.id}');
+
+  try {
+    await for (final properties in propertyService.getLandlordProperties(currentUser.id)) {
+      print('[LandlordPropertiesProvider] Emitting ${properties.length} properties');
+      yield properties;
+    }
+  } catch (e, st) {
+    // Log and rethrow so Riverpod captures error state
+    print('[LandlordPropertiesProvider][ERROR] $e');
+    print(st);
+    rethrow;
   }
 });
 

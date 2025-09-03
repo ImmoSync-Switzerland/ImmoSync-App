@@ -93,9 +93,16 @@ class _MongoImageState extends State<MongoImage> {
   Future<void> _loadImageAsBytes() async {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
-    final response = await http.get(
-      Uri.parse('${DbConfig.apiUrl}/images/${widget.imageId}?v=$cacheBuster'),
-    );
+    // Accept raw ID or full URL; if widget.imageId already looks like a URL keep it
+    String url;
+    if (widget.imageId.startsWith('http://') || widget.imageId.startsWith('https://')) {
+      url = widget.imageId;
+    } else {
+      // Ensure we don't double append /api when constructing base
+      final api = DbConfig.apiUrl; // e.g. https://backend.immosync.ch/api
+      url = '$api/images/${widget.imageId}?v=$cacheBuster';
+    }
+    final response = await http.get(Uri.parse(url));
 
     print('Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
 
@@ -106,7 +113,7 @@ class _MongoImageState extends State<MongoImage> {
       });
       print('Image bytes loaded successfully');
     } else {
-      throw Exception('Failed to load image: ${response.statusCode}');
+  throw Exception('Failed to load image: ${response.statusCode} (${response.reasonPhrase})');
     }
   }
 

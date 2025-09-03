@@ -5,6 +5,7 @@ const { dbUri, dbName } = require('../config');
 const multer = require('multer');
 const path = require('path');
 const notifications = require('./notifications');
+const fs = require('fs');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -36,22 +37,65 @@ const upload = multer({
   }
 });
 
-// Get all documents for a landlord
+// Get all documents for a landlord (by direct upload OR by properties owned)
 router.get('/landlord/:landlordId', async (req, res) => {
   const client = new MongoClient(dbUri);
-  
   try {
     await client.connect();
     const db = client.db(dbName);
-    
     const landlordId = req.params.landlordId;
-    
-    const documents = await db.collection('documents')
-      .find({ uploadedBy: landlordId })
-      .sort({ uploadDate: -1 })
-      .toArray();
-    
-    res.json(documents);
+  const debug = req.query.debug === '1' || req.query.debug === 'true';
+
+    const validObjectId = ObjectId.isValid(landlordId) ? new ObjectId(landlordId) : null;
+    // Fetch property ids owned by landlord (string + ObjectId forms)
+    const properties = await db.collection('properties').find({
+      $or: [
+        { landlordId: landlordId },
+        validObjectId ? { landlordId: validObjectId } : { _never: true }
+      ]
+    }, { projection: { _id: 1 } }).toArray();
+    const propertyIdStrings = properties.map(p => p._id.toString());
+    const propertyObjectIds = properties.map(p => p._id);
+
+    const query = {
+      $or: [
+        { uploadedBy: landlordId },
+        { uploadedBy: landlordId.toString() },
+        // Documents missing uploadedBy but referencing landlord's properties
+        { $and: [ { uploadedBy: { $exists: false } }, { propertyIds: { $in: propertyIdStrings } } ] },
+        { propertyIds: { $in: propertyIdStrings } },
+        { propertyIds: { $in: propertyObjectIds } }
+      ]
+    };
+
+    if (debug) {
+      console.log('[documents][landlord] landlordId=', landlordId, 'properties count=', properties.length);
+      console.log('[documents][landlord] propertyIdStrings=', propertyIdStrings);
+      console.log('[documents][landlord] query=', JSON.stringify(query));
+    }
+
+    let rawDocs = await db.collection('documents').find(query).sort({ uploadDate: -1 }).toArray();
+
+    // Fallback: if none, try documents with no uploadedBy and no propertyIds (global) just to validate visibility
+    if (rawDocs.length === 0) {
+      const fallback = await db.collection('documents').find({ uploadedBy: { $exists: false } }).limit(5).toArray();
+      if (debug) {
+        console.log('[documents][landlord] primary query returned 0; fallback(no uploadedBy) size=', fallback.length);
+      }
+      rawDocs = rawDocs.concat(fallback);
+    }
+    // Deduplicate by _id
+    const seen = new Set();
+    const documents = [];
+    for (const d of rawDocs) {
+      const idStr = d._id.toString();
+      if (!seen.has(idStr)) { seen.add(idStr); documents.push(d); }
+    }
+    if (debug) {
+      console.log('[documents][landlord] final.documents.count=', documents.length);
+      documents.slice(0,5).forEach(d=>console.log('[documents][landlord] sample doc', d._id.toString(), {uploadedBy:d.uploadedBy, propertyIds:d.propertyIds}));
+    }
+    res.json(debug ? { count: documents.length, documents } : documents);
   } catch (error) {
     console.error('Error fetching landlord documents:', error);
     res.status(500).json({ message: 'Error fetching documents' });
@@ -331,16 +375,207 @@ router.get('/download/:documentId', async (req, res) => {
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });
     }
+    // If stored as binary in DB (fileData), stream directly
+    if (!document.filePath && document.fileData) {
+      try {
+        const bin = document.fileData; // Could be BSON Binary or base64 string
+        let buffer;
+        if (bin && bin.buffer) {
+          buffer = Buffer.from(bin.buffer);
+        } else if (typeof bin === 'string') {
+          buffer = Buffer.from(bin, 'base64');
+        }
+        if (buffer) {
+          res.setHeader('Content-Disposition', `attachment; filename="${document.originalName || 'file'}"`);
+          res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+          res.setHeader('Content-Length', buffer.length);
+          return res.end(buffer);
+        }
+      } catch (e) {
+        console.warn('[documents/download] binary fallback error', e.message);
+      }
+    }
 
-    // Set headers for file download
+    if (!document.filePath) {
+      return res.status(404).json({ message: 'File path missing' });
+    }
+
+    const resolved = path.resolve(document.filePath);
+    if (!fs.existsSync(resolved)) {
+      return res.status(404).json({ message: 'File not found on disk' });
+    }
+
     res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
-    res.setHeader('Content-Type', document.mimeType);
-    
-    // Send file
-    res.sendFile(path.resolve(document.filePath));
+    res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+    res.sendFile(resolved);
   } catch (error) {
     console.error('Error downloading document:', error);
     res.status(500).json({ message: 'Error downloading document' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Serve raw document content inline (e.g., for images) at /api/documents/:documentId/raw
+router.get('/:documentId/raw', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const documentId = req.params.documentId;
+    const debug = req.query.debug === '1' || req.query.debug === 'true';
+
+    if (!ObjectId.isValid(documentId)) {
+      return res.status(400).json({ message: 'Invalid document ID' });
+    }
+
+    const document = await db.collection('documents').findOne({ _id: new ObjectId(documentId) });
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+    const attempts = [];
+    const recordDetails = {
+      hasFilePath: Boolean(document.filePath),
+      hasFileName: Boolean(document.fileName),
+      filePath: document.filePath,
+      fileName: document.fileName,
+  mimeType: document.mimeType,
+  cwd: process.cwd()
+    };
+
+    function consider(label, candidate) {
+      const exists = candidate && fs.existsSync(candidate);
+      attempts.push({ label, candidate, exists });
+      return exists;
+    }
+
+    const rootDir = path.resolve(__dirname, '..'); // backend directory
+    const uploadsDir = path.join(rootDir, 'uploads', 'documents');
+  const cwdUploadsDir = path.join(process.cwd(), 'uploads', 'documents');
+  const parentUploadsDir = path.join(rootDir, '..', 'uploads', 'documents');
+    let absPath = null;
+
+    // 1. Direct stored filePath (as-is, resolved)
+    if (document.filePath) {
+      const direct = path.isAbsolute(document.filePath)
+        ? document.filePath
+        : path.resolve(document.filePath);
+      if (consider('stored.filePath', direct)) {
+        absPath = direct;
+      }
+    }
+    // 2. Stored filePath joined with backend root (covers relative persisted from diff CWD)
+    if (!absPath && document.filePath && !path.isAbsolute(document.filePath)) {
+      const joinedRoot = path.join(rootDir, document.filePath);
+      if (consider('root+filePath', joinedRoot)) {
+        absPath = joinedRoot;
+      }
+    }
+    // 3. Reconstruct from fileName inside uploads/documents (expected normal case)
+    if (!absPath && document.fileName) {
+      const reconstructed = path.join(uploadsDir, document.fileName);
+      if (consider('uploadsDir+fileName', reconstructed)) {
+        absPath = reconstructed;
+      }
+    }
+    // 3b. Reconstruct from process.cwd()/uploads/documents (if server started one level above backend)
+    if (!absPath && document.fileName) {
+      const cwdPath = path.join(cwdUploadsDir, document.fileName);
+      if (consider('cwdUploadsDir+fileName', cwdPath)) {
+        absPath = cwdPath;
+      }
+    }
+    // 3c. Reconstruct from parent of backend (../uploads/documents)
+    if (!absPath && document.fileName) {
+      const parentPath = path.join(parentUploadsDir, document.fileName);
+      if (consider('parentUploadsDir+fileName', parentPath)) {
+        absPath = parentPath;
+      }
+    }
+    // 4. Try process.cwd() variant (in case server started above backend)
+    if (!absPath && document.fileName) {
+      const cwdVariant = path.join(process.cwd(), 'backend', 'uploads', 'documents', document.fileName);
+      if (consider('cwd+backend+uploads+fileName', cwdVariant)) {
+        absPath = cwdVariant;
+      }
+    }
+    // 5. If fileName has different casing / look for any file starting with base name
+    if (!absPath && document.fileName) {
+      try {
+        const base = path.parse(document.fileName).name; // without extension
+        if (fs.existsSync(uploadsDir)) {
+          const variants = fs.readdirSync(uploadsDir).filter(f => f.startsWith(base));
+          if (variants.length === 1) {
+            const variantPath = path.join(uploadsDir, variants[0]);
+            if (consider('uploadsDir+detectedVariant', variantPath)) {
+              absPath = variantPath;
+            }
+          } else if (variants.length > 1 && debug) {
+            attempts.push({ label: 'variant.multiple', candidate: variants, exists: true });
+          }
+        }
+      } catch (e) {
+        console.warn('[documents/raw] variant scan error', e.message);
+      }
+    }
+
+    // 6. In-DB binary fallback (fileData) if no file on disk
+    let inDbBuffer = null;
+    if (!absPath && document.fileData) {
+      try {
+        const bin = document.fileData;
+        if (bin && bin.buffer) {
+          inDbBuffer = Buffer.from(bin.buffer);
+        } else if (typeof bin === 'string') {
+          inDbBuffer = Buffer.from(bin, 'base64');
+        }
+        if (inDbBuffer) {
+          attempts.push({ label: 'inlineBinary', candidate: 'mongodbBinary', exists: true });
+        }
+      } catch (e) {
+        attempts.push({ label: 'inlineBinary.error', candidate: e.message, exists: false });
+      }
+    }
+
+    if (!absPath && inDbBuffer) {
+      if (debug) {
+        console.log('[documents/raw] serving from Mongo binary for', documentId, 'size', inDbBuffer.length);
+      }
+      res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Content-Length', inDbBuffer.length);
+      return res.end(inDbBuffer);
+    }
+
+    if (!absPath) {
+      const errorPayload = { message: 'File path missing', attempts: debug ? attempts : undefined, record: debug ? recordDetails : undefined, note: 'No filesystem path resolved and no usable in-DB binary' };
+      return res.status(404).json(errorPayload);
+    }
+
+    if (!fs.existsSync(absPath)) {
+      return res.status(404).json({ message: 'File not found on disk', resolved: debug ? absPath : undefined });
+    }
+
+    if (debug) {
+      console.log('[documents/raw] resolved path', absPath, 'attempts:', attempts);
+    }
+
+    // Set proper content-type for inline display
+    res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    const stream = fs.createReadStream(absPath);
+    stream.on('error', (err) => {
+      console.error('Stream error serving raw document:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: 'Error reading file' });
+      }
+    });
+    stream.pipe(res);
+  } catch (error) {
+    console.error('Error serving raw document:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Error serving document' });
+    }
   } finally {
     await client.close();
   }

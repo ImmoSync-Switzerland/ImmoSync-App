@@ -9,6 +9,7 @@ class User {
   final bool isAdmin;
   final bool isValidated;
   final Address address;
+  final String? propertyId; // newly added, optional
 
   User({
     required this.id,
@@ -19,6 +20,7 @@ class User {
     required this.isAdmin,
     required this.isValidated,
     required this.address,
+  this.propertyId,
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -49,7 +51,12 @@ class User {
         // Provide default address when not in response
         address: map['address'] != null
             ? Address.fromMap(map['address'])
-            : Address(street: '', city: '', postalCode: '', country: ''));
+      : Address(street: '', city: '', postalCode: '', country: ''),
+    propertyId: map['propertyId'] != null
+      ? (map['propertyId'] is Map && map['propertyId']['\$oid'] != null
+        ? map['propertyId']['\$oid']
+        : map['propertyId'].toString())
+      : null);
   }
 
   Map<String, dynamic> toMap() {
@@ -62,6 +69,7 @@ class User {
       'isAdmin': isAdmin,
       'isValidated': isValidated,
       'address': address.toMap(),
+  if (propertyId != null) 'propertyId': propertyId,
     };
   }
 }

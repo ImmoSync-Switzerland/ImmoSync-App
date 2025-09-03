@@ -15,7 +15,7 @@ import '../../../../features/property/presentation/providers/property_providers.
 import '../../../../core/providers/currency_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/mongo_image.dart';
-import 'package:immosync/core/config/db_config.dart';
+import '../../../../core/utils/image_resolver.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -2196,27 +2196,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   }
 
   Widget _buildPropertyImage(String imageIdOrPath) {
-    String normalize(String input) {
-      if (input.isEmpty) return '';
-      if (input.startsWith('http://') || input.startsWith('https://')) return input;
-      if (input.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(input)) {
-        return '${DbConfig.apiUrl}/images/$input';
-      }
-      if (input.startsWith('file:')) return '';
-      final api = DbConfig.apiUrl;
-      final base = api.endsWith('/api') ? api.substring(0, api.length - 4) : api;
-      String path = input;
-      if (!path.startsWith('/')) path = '/$path';
-      if (path.startsWith('/uploads')) {
-      } else if (path.contains('uploads/')) {
-        final idx = path.indexOf('uploads/');
-        path = '/' + path.substring(idx);
-      }
-      final url = '$base$path';
-      if (Uri.tryParse(url)?.hasAuthority == true) return url;
-      return '';
-    }
-    final resolved = normalize(imageIdOrPath);
+    final resolved = resolvePropertyImage(imageIdOrPath);
     if (resolved.isEmpty) {
       return Container(
         color: Colors.grey[200],
@@ -2227,7 +2207,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     // Check if it's a MongoDB ObjectId (24 hex characters)
     if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
       return MongoImage(
-        imageId: imageIdOrPath,
+        imageId: resolved,
         fit: BoxFit.cover,
         width: 60,
         height: 60,
