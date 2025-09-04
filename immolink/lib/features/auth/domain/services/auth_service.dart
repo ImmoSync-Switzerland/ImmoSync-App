@@ -73,6 +73,13 @@ class AuthService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final user = data['user'];
+      // Debug: log keys to verify sessionToken presence
+      try {
+        // ignore: avoid_print
+        print('AuthService: user keys=${(user as Map).keys}');
+        // ignore: avoid_print
+        print('AuthService: sessionToken raw=${user['sessionToken']}');
+      } catch (_) {}
       // Backend /auth/login returns { message, user: { userId, email, role, fullName, sessionToken } }
       return {
         'userId': user['userId'],

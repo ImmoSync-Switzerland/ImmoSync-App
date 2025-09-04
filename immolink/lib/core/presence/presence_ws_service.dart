@@ -29,10 +29,11 @@ class PresenceWsService {
   Stream<Map<String, dynamic>> get conversationStream => _conversationController.stream;
 
   Future<void> connect({required String userId, required String token}) async {
-    if (_presenceSocket != null) return;
-    _userId = userId;
-    _token = token;
-    final base = DbConfig.wsUrl; // e.g. wss://host
+  if (_presenceSocket != null) return;
+  _userId = userId;
+  _token = token;
+  var base = DbConfig.wsUrl; // e.g. wss://host or wss://host/
+  while (base.endsWith('/')) { base = base.substring(0, base.length - 1); }
   print('[WS][connect] attempting user=$userId base=$base');
     final opt = IO.OptionBuilder()
         .setTransports(['websocket'])
@@ -48,6 +49,9 @@ class PresenceWsService {
         _pingTimer = Timer.periodic(const Duration(seconds: 25), (_) => _ping());
       })
   ..on('connect_error', (err) { print('[WS][presence][connect_error] $err'); })
+  ..on('reconnect_attempt', (attempt) { print('[WS][presence][reconnect_attempt] $attempt'); })
+  ..on('reconnecting', (attempt) { print('[WS][presence][reconnecting] $attempt'); })
+  ..on('reconnect_failed', (_) { print('[WS][presence][reconnect_failed]'); })
       ..on('presence:update', (data) {
         if (data is Map) {
           _controller.add(PresenceUpdate(
@@ -79,6 +83,9 @@ class PresenceWsService {
         print('[WS][chat] replay complete');
       })
   ..on('connect_error', (err) { print('[WS][chat][connect_error] $err'); })
+  ..on('reconnect_attempt', (attempt) { print('[WS][chat][reconnect_attempt] $attempt'); })
+  ..on('reconnecting', (attempt) { print('[WS][chat][reconnecting] $attempt'); })
+  ..on('reconnect_failed', (_) { print('[WS][chat][reconnect_failed]'); })
       ..on('chat:message', (data) async {
         if (data is Map) {
           await _maybeDecryptAndForward(data, isAck: false);
