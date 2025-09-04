@@ -174,6 +174,19 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         if (data['conversationId'] == convId && data['userId'] != ref.read(currentUserProvider)?.id) {
           setState(() { _otherTyping = data['isTyping'] == true; });
         }
+      } else if (type == 'error') {
+        // Handle chat errors (e.g., database unavailable)
+        final errorMessage = data['message'] ?? 'Chat error occurred';
+        print('[ChatPage] Chat error: $type - $errorMessage');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Chat error: $errorMessage'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
       } else if (type == 'read') {
         // optional: future read receipt UI updates
       }

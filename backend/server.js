@@ -125,7 +125,10 @@ async function startServer() {
       const db = getDB();
       await db.collection('users').updateOne({ _id: new ObjectId(userId) }, { $set: { lastSeen: new Date(ts), updatedAt: new Date() } });
     } catch (e) {
-      console.warn('Failed to persist lastSeen', userId, e.message);
+      // Don't log database unavailable errors repeatedly
+      if (!e.message.includes('Database not initialized')) {
+        console.warn('Failed to persist lastSeen', userId, e.message);
+      }
     }
   }
 

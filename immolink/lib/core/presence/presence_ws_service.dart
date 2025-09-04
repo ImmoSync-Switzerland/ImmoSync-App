@@ -104,6 +104,12 @@ class PresenceWsService {
       ..on('chat:delivered', (data) {
         if (data is Map) _chatController.add({...data, 'type': 'delivered'});
       })
+      ..on('chat:error', (data) {
+        if (data is Map) {
+          print('[WS][chat:error] ${data['type']}: ${data['message']}');
+          _chatController.add({...data, 'type': 'error'});
+        }
+      })
       ..onDisconnect((_) => _scheduleReconnect())
   ..onError((err) { print('[WS][chat] error $err'); _scheduleReconnect(); });
 
