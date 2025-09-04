@@ -143,13 +143,30 @@ async function startServer() {
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth?.token || socket.handshake.query?.token || socket.handshake.headers['authorization'];
-      if (!token) return next(new Error('NO_TOKEN'));
-      const db = getDB();
+      if (!token) {
+        console.log('[WS][auth] No token provided');
+        return next(new Error('NO_TOKEN'));
+      }
+      
+      let db;
+      try {
+        db = getDB();
+      } catch (dbError) {
+        console.error('[WS][auth] Database not available:', dbError.message);
+        return next(new Error('DATABASE_UNAVAILABLE'));
+      }
+      
       const user = await db.collection('users').findOne({ sessionToken: token });
-      if (!user) return next(new Error('BAD_TOKEN'));
+      if (!user) {
+        console.log('[WS][auth] Invalid token provided');
+        return next(new Error('BAD_TOKEN'));
+      }
+      
       socket.data.userId = user._id.toString();
+      console.log('[WS][auth] User authenticated: %s', socket.data.userId);
       return next();
     } catch (e) {
+      console.error('[WS][auth] Authentication error:', e.message);
       return next(new Error('AUTH_ERROR'));
     }
   });
@@ -283,10 +300,25 @@ async function startServer() {
         // msg may include plaintext content OR e2ee bundle
         const { conversationId, content, receiverId, e2ee } = msg || {};
         const senderId = socket.data.userId;
-        if (!conversationId || !senderId) return;
-        const db = getDB();
+        if (!conversationId || !senderId) {
+          console.log('[WS][chat:message] missing required fields: conversationId=%s senderId=%s', conversationId, senderId);
+          return;
+        }
+        
+        let db;
+        try {
+          db = getDB();
+        } catch (dbError) {
+          console.error('[WS][chat:message] database not available:', dbError.message);
+          socket.emit('chat:error', { type: 'database', message: 'Database not available' });
+          return;
+        }
+        
         const encrypted = !!e2ee && !content;
-        if (!content && !encrypted) return; // nothing to store
+        if (!content && !encrypted) {
+          console.log('[WS][chat:message] no content to store: content=%s encrypted=%s', !!content, encrypted);
+          return; // nothing to store
+        }
   console.log('[WS][chat:message] resolved sender=%s conv=%s encrypted=%s', senderId, conversationId, encrypted);
         const doc = {
           conversationId,
@@ -302,27 +334,41 @@ async function startServer() {
           deliveredAt: null,
           readAt: null
         };
-  const result = await db.collection('messages').insertOne(doc);
-  const fullDoc = { ...doc, _id: result.insertedId };
-        // Ack & broadcast early so client UI updates even if conversation update fails (e.g. invalid ObjectId)
-  socket.emit('chat:ack', fullDoc);
-  socket.broadcast.emit('chat:message', fullDoc);
-  console.log('[WS][chat:message] stored message _id=%s conv=%s broadcasting', result.insertedId.toString(), conversationId);
-        // Try to update conversation document; ignore errors
+        
         try {
-	      await db.collection('conversations').updateOne(
-		    { _id: new ObjectId(conversationId) },
-		    { $set: { lastMessage: encrypted ? '[encrypted]' : content, lastMessageTime: new Date(), updatedAt: new Date() } }
-	      );
-    console.log('[WS][chat:message] conversation metadata updated %s', conversationId);
-        } catch (convErr) {
-          console.warn('conversation update failed (possibly invalid id)', convErr?.message || convErr);
+          const result = await db.collection('messages').insertOne(doc);
+          const fullDoc = { ...doc, _id: result.insertedId };
+          console.log('[WS][chat:message] stored message _id=%s conv=%s', result.insertedId.toString(), conversationId);
+          
+          // Ack & broadcast early so client UI updates even if conversation update fails (e.g. invalid ObjectId)
+          socket.emit('chat:ack', fullDoc);
+          socket.broadcast.emit('chat:message', fullDoc);
+          console.log('[WS][chat:message] broadcasting message to other clients');
+          
+          // Try to update conversation document; ignore errors
+          try {
+            await db.collection('conversations').updateOne(
+              { _id: new ObjectId(conversationId) },
+              { $set: { lastMessage: encrypted ? '[encrypted]' : content, lastMessageTime: new Date(), updatedAt: new Date() } }
+            );
+            console.log('[WS][chat:message] conversation metadata updated %s', conversationId);
+          } catch (convErr) {
+            console.warn('conversation update failed (possibly invalid id)', convErr?.message || convErr);
+          }
+          
+          // Mark delivered immediately (best-effort) and inform sender
+          try {
+            await db.collection('messages').updateOne({ _id: result.insertedId }, { $set: { deliveredAt: new Date() } });
+            const deliveredPayload = { _id: result.insertedId, conversationId, deliveredAt: new Date() };
+            socket.emit('chat:delivered', deliveredPayload);
+            console.log('[WS][chat:message] delivered emit %j', deliveredPayload);
+          } catch (deliveryErr) {
+            console.warn('[WS][chat:message] failed to mark as delivered:', deliveryErr.message);
+          }
+        } catch (insertError) {
+          console.error('[WS][chat:message] failed to insert message:', insertError.message);
+          socket.emit('chat:error', { type: 'insert', message: 'Failed to save message' });
         }
-  // Mark delivered immediately (best-effort) and inform sender
-  await db.collection('messages').updateOne({ _id: result.insertedId }, { $set: { deliveredAt: new Date() } });
-  const deliveredPayload = { _id: result.insertedId, conversationId, deliveredAt: new Date() };
-	socket.emit('chat:delivered', deliveredPayload);
-  console.log('[WS][chat:message] delivered emit %j', deliveredPayload);
       } catch (e) {
         console.error('chat:message ws error', e);
       }

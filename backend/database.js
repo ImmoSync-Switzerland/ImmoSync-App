@@ -34,6 +34,10 @@ const getDB = () => {
   return db;
 };
 
+const getDBSafe = () => {
+  return db; // Returns null if not connected, allows caller to handle gracefully
+};
+
 const closeDB = async () => {
   if (client) {
     await client.close();
@@ -46,5 +50,6 @@ const closeDB = async () => {
 module.exports = {
   connectDB,
   getDB,
+  getDBSafe,
   closeDB
 };

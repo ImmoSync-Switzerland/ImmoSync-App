@@ -39,7 +39,16 @@ router.post('/:conversationId/messages', async (req, res) => {
     const db = client.db(dbName);
     
     const { conversationId } = req.params;
-  const { senderId, receiverId, content, messageType = 'text', metadata, e2ee } = req.body;
+    const { senderId, receiverId, content, messageType = 'text', metadata, e2ee } = req.body;
+    
+    // Validate required fields
+    if (!conversationId || !senderId) {
+      return res.status(400).json({ message: 'Missing required fields: conversationId and senderId' });
+    }
+    
+    if (!content && !e2ee) {
+      return res.status(400).json({ message: 'Message must have content or e2ee data' });
+    }
     
     // Create message document
     const encrypted = !!e2ee || (metadata && metadata.ciphertext);
