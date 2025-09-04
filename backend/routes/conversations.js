@@ -38,12 +38,21 @@ router.get('/user/:userId', async (req, res) => {
           }
         }
         
+        // Online status (lastSeen within 60s)
+        let online = false;
+        let lastSeen = null;
+        if (otherParticipant && otherParticipant.lastSeen) {
+          lastSeen = otherParticipant.lastSeen;
+          online = Date.now() - new Date(otherParticipant.lastSeen).getTime() < 60000;
+        }
         return {
           ...conversation,
           otherParticipantId,
           otherParticipantName: otherParticipant ? otherParticipant.fullName : 'Unknown User',
           otherParticipantEmail: otherParticipant ? otherParticipant.email : '',
           otherParticipantRole: otherParticipant ? otherParticipant.role : 'unknown',
+          otherParticipantOnline: online,
+          otherParticipantLastSeen: lastSeen,
         };
       })
     );

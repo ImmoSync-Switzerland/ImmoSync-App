@@ -73,10 +73,10 @@ class AuthService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final user = data['user'];
-
+      // Backend /auth/login returns { message, user: { userId, email, role, fullName, sessionToken } }
       return {
         'userId': user['userId'],
-        'token': data['token'] ?? '', // Handle optional token
+        'sessionToken': user['sessionToken'],
         'email': user['email'],
         'role': user['role'],
         'fullName': user['fullName']
@@ -147,6 +147,61 @@ class AuthService {
       print('AuthService: Forgot password error: $e');
       throw Exception('Failed to send password reset email');
     }
+  }
+
+  Future<Map<String, dynamic>> socialLogin({
+    required String provider,
+    required String idToken,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_apiUrl/auth/social-login'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({ 'provider': provider, 'idToken': idToken }),
+    );
+
+    final data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      return data; // contains success, needCompletion, missingFields or user
+    }
+    throw Exception(data['message'] ?? 'Social login failed');
+  }
+
+  Future<Map<String, dynamic>> completeSocialProfile({
+    required String userId,
+    String? fullName,
+    String? role,
+    String? phone,
+    bool? isCompany,
+    String? companyName,
+    String? companyAddress,
+    String? taxId,
+    String? address,
+    DateTime? birthDate,
+  }) async {
+    final body = <String, dynamic>{
+      'userId': userId,
+      if (fullName != null) 'fullName': fullName,
+      if (role != null) 'role': role,
+      if (phone != null) 'phone': phone,
+      if (isCompany != null) 'isCompany': isCompany,
+      if (companyName != null) 'companyName': companyName,
+      if (companyAddress != null) 'companyAddress': companyAddress,
+      if (taxId != null) 'taxId': taxId,
+      if (address != null) 'address': address,
+      if (birthDate != null) 'birthDate': birthDate.toIso8601String(),
+    };
+
+    final response = await http.post(
+      Uri.parse('$_apiUrl/auth/social-complete'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    final data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      return data;
+    }
+    throw Exception(data['message'] ?? 'Profile completion failed');
   }
 }
 

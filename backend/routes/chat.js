@@ -39,18 +39,22 @@ router.post('/:conversationId/messages', async (req, res) => {
     const db = client.db(dbName);
     
     const { conversationId } = req.params;
-    const { senderId, receiverId, content, messageType = 'text' } = req.body;
+  const { senderId, receiverId, content, messageType = 'text', metadata, e2ee } = req.body;
     
     // Create message document
+    const encrypted = !!e2ee || (metadata && metadata.ciphertext);
     const message = {
       conversationId,
       senderId,
       receiverId,
-      content,
+      content: encrypted ? (content || '') : content,
       timestamp: new Date(),
       messageType,
       isRead: false,
-      attachments: req.body.attachments || []
+      attachments: req.body.attachments || [],
+      metadata: metadata || null,
+      e2ee: e2ee || null,
+      isEncrypted: encrypted
     };
     
     // Insert message
@@ -61,7 +65,7 @@ router.post('/:conversationId/messages', async (req, res) => {
       { _id: new ObjectId(conversationId) },
       {
         $set: {
-          lastMessage: content,
+          lastMessage: encrypted ? (messageType === 'file' ? '[encrypted file]' : '[encrypted]') : content,
           lastMessageTime: new Date(),
           updatedAt: new Date()
         }

@@ -4,6 +4,69 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+// Social auth helpers
+const { OAuth2Client } = require('google-auth-library');
+const jose = require('jose');
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''; // Optional enforcement
+const APPLE_AUDIENCE = process.env.APPLE_CLIENT_ID || process.env.APPLE_SERVICE_ID || ''; // Apple client / service id
+
+const googleClient = new OAuth2Client();
+
+async function verifyGoogleIdToken(idToken) {
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: GOOGLE_CLIENT_ID || undefined });
+  const payload = ticket.getPayload();
+  return {
+    email: payload.email,
+    emailVerified: payload.email_verified,
+    fullName: payload.name || [payload.given_name, payload.family_name].filter(Boolean).join(' ').trim(),
+    providerId: payload.sub,
+    picture: payload.picture
+  };
+}
+
+let appleJWKS; // cached
+async function getAppleJWKS() {
+  if (!appleJWKS) {
+    const jwksUri = 'https://appleid.apple.com/auth/keys';
+    const resp = await fetch(jwksUri);
+    const jwks = await resp.json();
+    appleJWKS = jose.createLocalJWKSet(jwks);
+  }
+  return appleJWKS;
+}
+
+async function verifyAppleIdentityToken(idToken) {
+  const JWKS = await getAppleJWKS();
+  const { payload } = await jose.jwtVerify(idToken, JWKS, {
+    issuer: 'https://appleid.apple.com',
+    audience: APPLE_AUDIENCE || undefined
+  });
+  return {
+    email: payload.email,
+    emailVerified: payload.email_verified,
+    fullName: payload.name || '', // Apple only returns name on first auth usually (handled client-side normally)
+    providerId: payload.sub
+  };
+}
+
+function computeMissingFields(userDoc) {
+  const missing = [];
+  // Required common fields
+  if (!userDoc.fullName) missing.push('fullName');
+  if (!userDoc.role) missing.push('role');
+  if (!userDoc.phone) missing.push('phone');
+  if (userDoc.isCompany === undefined) missing.push('isCompany');
+  if (userDoc.isCompany === true) {
+    if (!userDoc.companyName) missing.push('companyName');
+    if (!userDoc.companyAddress) missing.push('companyAddress');
+    // taxId optional
+  } else if (userDoc.isCompany === false) {
+    if (!userDoc.address) missing.push('address');
+    if (!userDoc.birthDate) missing.push('birthDate');
+  }
+  return missing;
+}
 
 router.post('/register', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -138,12 +201,16 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Create session or token
+    // Issue (or rotate) session token
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
+
     const sessionData = {
       userId: user._id,
       email: user.email,
       role: user.role,
-      fullName: user.fullName
+      fullName: user.fullName,
+      sessionToken
     };
 
     res.status(200).json({
@@ -395,6 +462,176 @@ router.patch('/change-password', async (req, res) => {
   } catch (error) {
     console.error('Error changing password:', error);
     res.status(500).json({ message: 'Error changing password' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Social login endpoint
+router.post('/social-login', async (req, res) => {
+  const { provider, idToken } = req.body;
+  if (!provider || !idToken) {
+    return res.status(400).json({ message: 'provider and idToken are required' });
+  }
+
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const users = db.collection('users');
+
+    let verified;
+    try {
+      if (provider === 'google') {
+        verified = await verifyGoogleIdToken(idToken);
+      } else if (provider === 'apple') {
+        verified = await verifyAppleIdentityToken(idToken);
+      } else {
+        return res.status(400).json({ message: 'Unsupported provider' });
+      }
+    } catch (e) {
+      console.error('Token verification failed:', e);
+      return res.status(401).json({ message: 'Invalid idToken' });
+    }
+
+    if (!verified.email) {
+      return res.status(400).json({ message: 'Email claim missing from token' });
+    }
+
+    // Find by provider first
+    let user = await users.findOne({ provider, providerId: verified.providerId });
+    if (!user) {
+      // fallback by email
+      user = await users.findOne({ email: verified.email });
+    }
+
+    if (!user) {
+      // Create partial user document
+      const partialUser = {
+        email: verified.email,
+        fullName: verified.fullName || '',
+        provider: provider,
+        providerId: verified.providerId,
+        providerPicture: verified.picture,
+        isValidated: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const insertResult = await users.insertOne(partialUser);
+      user = { ...partialUser, _id: insertResult.insertedId };
+    } else {
+      // Ensure provider linkage is saved if missing
+      if (!user.provider || !user.providerId) {
+        await users.updateOne(
+          { _id: user._id },
+          { $set: { provider, providerId: verified.providerId, updatedAt: new Date() } }
+        );
+        user.provider = provider;
+        user.providerId = verified.providerId;
+      }
+    }
+
+    const missingFields = computeMissingFields(user);
+    const needCompletion = missingFields.length > 0 || user.isValidated === false;
+
+    if (!needCompletion) {
+      // Ensure session token exists / rotate
+      const sessionToken = crypto.randomBytes(32).toString('hex');
+      await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
+      return res.json({
+        success: true,
+        needCompletion: false,
+        user: {
+          userId: user._id,
+          email: user.email,
+          role: user.role,
+          fullName: user.fullName,
+          sessionToken
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      needCompletion: true,
+      userId: user._id,
+      missingFields
+    });
+  } catch (error) {
+    console.error('Social login error:', error);
+    res.status(500).json({ message: 'Social login failed', error: error.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// Social profile completion endpoint
+router.post('/social-complete', async (req, res) => {
+  const { userId, fullName, role, phone, isCompany, companyName, companyAddress, taxId, address, birthDate } = req.body;
+  if (!userId) {
+    return res.status(400).json({ message: 'userId is required' });
+  }
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const users = db.collection('users');
+
+    const user = await users.findOne({ _id: new ObjectId(userId) });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const update = { updatedAt: new Date() };
+    if (fullName !== undefined) update.fullName = fullName;
+    if (role !== undefined) update.role = role.toLowerCase();
+    if (phone !== undefined) update.phone = phone;
+    if (isCompany !== undefined) update.isCompany = isCompany;
+    if (isCompany) {
+      if (companyName !== undefined) update.companyName = companyName;
+      if (companyAddress !== undefined) update.companyAddress = companyAddress;
+      if (taxId !== undefined) update.taxId = taxId;
+      // Clear individual fields if switching
+      update.address = undefined;
+      update.birthDate = undefined;
+    } else if (isCompany === false) {
+      if (address !== undefined) update.address = address;
+      if (birthDate) update.birthDate = new Date(birthDate);
+      // Clear company fields if switching
+      update.companyName = undefined;
+      update.companyAddress = undefined;
+      update.taxId = undefined;
+    }
+
+    // Apply update
+    await users.updateOne({ _id: user._id }, { $set: update, $unset: Object.fromEntries(Object.entries(update).filter(([k,v]) => v === undefined).map(([k]) => [k, ''])) });
+
+    const updatedUser = await users.findOne({ _id: user._id });
+    const missing = computeMissingFields(updatedUser);
+    const needCompletion = missing.length > 0;
+    if (!needCompletion) {
+      await users.updateOne({ _id: user._id }, { $set: { isValidated: true, updatedAt: new Date() } });
+    }
+
+    if (needCompletion) {
+      return res.status(400).json({ message: 'Still missing required fields', missing });
+    }
+
+    // Issue session token for completed profile
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
+
+    res.json({
+      success: true,
+      user: {
+        userId: updatedUser._id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        fullName: updatedUser.fullName,
+        sessionToken
+      }
+    });
+  } catch (error) {
+    console.error('Social completion error:', error);
+    res.status(500).json({ message: 'Profile completion failed', error: error.message });
   } finally {
     await client.close();
   }

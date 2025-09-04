@@ -3,6 +3,13 @@ const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
 
+// Helper to compute if a timestamp is considered online (e.g. last 60s)
+function isOnline(lastSeen) {
+  if (!lastSeen) return false;
+  const thresholdMs = 60 * 1000; // 60 seconds window
+  return Date.now() - new Date(lastSeen).getTime() < thresholdMs;
+}
+
 // Get all available tenants (for a specific property or all available)
 router.get('/available-tenants', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -189,7 +196,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Update user profile
+// Update user profile (extended to allow setting publicKey for E2EE bootstrap)
 router.patch('/:userId', async (req, res) => {
   const client = new MongoClient(dbUri);
   
@@ -198,7 +205,7 @@ router.patch('/:userId', async (req, res) => {
     const db = client.db(dbName);
     
     const { userId } = req.params;
-  const { fullName, email, phone, address, profileImage } = req.body;
+  const { fullName, email, phone, address, profileImage, publicKey } = req.body;
     
     if (!ObjectId.isValid(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
@@ -211,6 +218,14 @@ router.patch('/:userId', async (req, res) => {
     if (phone) updateData.phone = phone;
   if (address) updateData.address = address;
   if (profileImage !== undefined) updateData.profileImage = profileImage; // allow clearing with null
+    if (publicKey && typeof publicKey === 'string') {
+      // Only allow setting once to prevent key swapping attacks without explicit reset flow
+      const existing = await db.collection('users').findOne({ _id: new ObjectId(userId) }, { projection: { publicKey: 1 } });
+      if (existing && existing.publicKey && existing.publicKey !== publicKey) {
+        return res.status(400).json({ message: 'Public key already set; key rotation not yet supported.' });
+      }
+      updateData.publicKey = publicKey;
+    }
     
     updateData.updatedAt = new Date();
     
@@ -235,3 +250,113 @@ router.patch('/:userId', async (req, res) => {
 });
 
 module.exports = router;
+
+// --- E2EE PUBLIC KEY ENDPOINTS ---
+// Publish identity public key (one-time). Body: { userId, publicKey }
+router.post('/publish-key', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId, publicKey } = req.body || {};
+    if (!userId || !publicKey) return res.status(400).json({ message: 'userId and publicKey required' });
+    if (!ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+    const existing = await db.collection('users').findOne({ _id: new ObjectId(userId) }, { projection: { publicKey: 1 } });
+    if (existing && existing.publicKey && existing.publicKey !== publicKey) {
+      return res.status(400).json({ message: 'Public key already set; rotation not supported.' });
+    }
+    await db.collection('users').updateOne({ _id: new ObjectId(userId) }, { $set: { publicKey, updatedAt: new Date() } });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('publish-key error', e);
+    res.status(500).json({ message: 'Failed to publish key' });
+  } finally { await client.close(); }
+});
+
+// Get a user's public key
+router.get('/:userId/public-key', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId } = req.params;
+    if (!ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) }, { projection: { publicKey: 1 } });
+    if (!user || !user.publicKey) return res.status(404).json({ message: 'Public key not found' });
+    res.json({ userId, publicKey: user.publicKey });
+  } catch (e) {
+    console.error('get public-key error', e);
+    res.status(500).json({ message: 'Failed to fetch public key' });
+  } finally { await client.close(); }
+});
+
+// Heartbeat endpoint to update user's lastSeen (client should POST every ~30s)
+router.post('/:userId/heartbeat', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId } = req.params;
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { lastSeen: new Date(), updatedAt: new Date() } }
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Heartbeat error:', e);
+    res.status(500).json({ message: 'Heartbeat failed' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Batch online status lookup: /api/users/online-status?ids=comma,separated,ids
+router.get('/online-status', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    const idsRaw = req.query.ids;
+    if (!idsRaw) return res.status(400).json({ message: 'ids query param required' });
+    const ids = idsRaw.split(',').filter(Boolean).slice(0, 100); // limit
+    await client.connect();
+    const db = client.db(dbName);
+    const objectIds = ids.filter(id => ObjectId.isValid(id)).map(id => new ObjectId(id));
+    const users = await db.collection('users')
+      .find({ _id: { $in: objectIds } })
+      .project({ lastSeen: 1 })
+      .toArray();
+    const map = {};
+    users.forEach(u => { map[u._id.toString()] = { online: isOnline(u.lastSeen), lastSeen: u.lastSeen }; });
+    // Fill missing ids
+    ids.forEach(id => { if (!map[id]) map[id] = { online: false, lastSeen: null }; });
+    res.json({ statuses: map, serverTime: new Date().toISOString(), windowSeconds: 60 });
+  } catch (e) {
+    console.error('Online status error:', e);
+    res.status(500).json({ message: 'Failed to fetch online status' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Key rotation (requires providing oldPublicKey to verify continuity)
+router.post('/rotate-key', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId, oldPublicKey, newPublicKey } = req.body || {};
+    if (!userId || !oldPublicKey || !newPublicKey) return res.status(400).json({ message: 'userId, oldPublicKey, newPublicKey required' });
+    if (!ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) }, { projection: { publicKey: 1 } });
+    if (!user || !user.publicKey) return res.status(400).json({ message: 'No existing key to rotate' });
+    if (user.publicKey !== oldPublicKey) return res.status(403).json({ message: 'Old key mismatch' });
+    await db.collection('users').updateOne({ _id: new ObjectId(userId) }, { $set: { publicKey: newPublicKey, updatedAt: new Date(), keyRotatedAt: new Date() } });
+    // NOTE: Clients must re-establish conversation keys after rotation; we do not auto-invalidate stored conversation keys here.
+    res.json({ success: true });
+  } catch (e) {
+    console.error('rotate-key error', e);
+    res.status(500).json({ message: 'Failed to rotate key' });
+  } finally { await client.close(); }
+});

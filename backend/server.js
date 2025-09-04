@@ -6,6 +6,14 @@ const cors = require('cors');
 const path = require('path');
 const { connectDB } = require('./database');
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET','POST'], allowedHeaders: ['Authorization'] }
+});
+const { getDB } = require('./database');
+const { ObjectId } = require('mongodb');
 const authRoutes = require('./routes/auth');
 const auth2faRoutes = require('./routes/auth-2fa');
 const propertyRoutes = require('./routes/properties');
@@ -103,9 +111,222 @@ async function startServer() {
     console.log('Server will start without database connection');
   }
   
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  // Use a single HTTP server (with Socket.IO). Removed duplicate app.listen to prevent EADDRINUSE.
+  server.listen(PORT, () => {
+    console.log(`HTTP + WebSocket server on :${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
+  });
+
+  // In-memory presence map { userId: { socketId, lastPing } }
+  const presence = new Map();
+
+  async function persistLastSeen(userId, ts) {
+    try {
+      const db = getDB();
+      await db.collection('users').updateOne({ _id: new ObjectId(userId) }, { $set: { lastSeen: new Date(ts), updatedAt: new Date() } });
+    } catch (e) {
+      console.warn('Failed to persist lastSeen', userId, e.message);
+    }
+  }
+
+  function broadcastPresenceUpdate(userId) {
+    const entry = presence.get(userId);
+    const lastSeenIso = entry ? new Date(entry.lastPing).toISOString() : new Date().toISOString();
+    io.of('/presence').emit('presence:update', {
+      userId,
+      online: !!entry,
+      lastSeen: lastSeenIso
+    });
+  }
+
+  // Auth middleware (expects ?token= or Authorization header)
+  io.use(async (socket, next) => {
+    try {
+      const token = socket.handshake.auth?.token || socket.handshake.query?.token || socket.handshake.headers['authorization'];
+      if (!token) return next(new Error('NO_TOKEN'));
+      const db = getDB();
+      const user = await db.collection('users').findOne({ sessionToken: token });
+      if (!user) return next(new Error('BAD_TOKEN'));
+      socket.data.userId = user._id.toString();
+      return next();
+    } catch (e) {
+      return next(new Error('AUTH_ERROR'));
+    }
+  });
+
+  // Namespaces: /presence and /chat
+  const presenceNs = io.of('/presence');
+  const chatNs = io.of('/chat');
+
+  // Global namespace connection error logging (client auth failures etc.)
+  presenceNs.on('connect_error', (err) => {
+    console.warn('[WS][presence][connect_error]', err.message, err?.data || '');
+  });
+  chatNs.on('connect_error', (err) => {
+    console.warn('[WS][chat][connect_error]', err.message, err?.data || '');
+  });
+
+  presenceNs.on('connection', (socket) => {
+    const userId = socket.data.userId;
+    if (userId) {
+      presence.set(userId, { socketId: socket.id, lastPing: Date.now() });
+      persistLastSeen(userId, Date.now());
+      broadcastPresenceUpdate(userId);
+    }
+    socket.on('presence:ping', () => {
+      if (!userId) return;
+      const entry = presence.get(userId);
+      if (entry) {
+        entry.lastPing = Date.now();
+        presence.set(userId, entry);
+        persistLastSeen(userId, entry.lastPing);
+        broadcastPresenceUpdate(userId);
+      }
+    });
+    socket.on('disconnect', () => {
+      if (userId && presence.get(userId)?.socketId === socket.id) {
+        presence.delete(userId);
+        broadcastPresenceUpdate(userId);
+      }
+    });
+  });
+
+  chatNs.on('connection', (socket) => {
+    // Create new conversation and optional first message
+    socket.on('chat:create', async (payload) => {
+      try {
+  const { otherUserId, initialMessage, initialE2EE } = payload || {};
+        const senderId = socket.data.userId;
+        if (!otherUserId || !senderId) return;
+        const db = getDB();
+        // Find existing conversation between users
+        let conversation = await db.collection('conversations').findOne({
+          participants: { $all: [senderId, otherUserId], $size: 2 }
+        });
+        if (!conversation) {
+          const convDoc = {
+            participants: [senderId, otherUserId].sort(),
+            lastMessage: initialMessage || '',
+            lastMessageTime: new Date(),
+            unreadCount: initialMessage ? 1 : 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+            const convResult = await db.collection('conversations').insertOne(convDoc);
+          conversation = { _id: convResult.insertedId, ...convDoc };
+        }
+        let firstMessage = null;
+        if (initialMessage || initialE2EE) {
+          const encrypted = !!initialE2EE && !initialMessage;
+          const msgDoc = {
+            conversationId: conversation._id.toString(),
+            senderId,
+            receiverId: otherUserId,
+            content: encrypted ? '' : (initialMessage || ''),
+            e2ee: initialE2EE || null,
+            isEncrypted: encrypted,
+            timestamp: new Date(),
+            messageType: 'text',
+            isRead: false,
+            attachments: [],
+            deliveredAt: null,
+            readAt: null
+          };
+          const msgRes = await db.collection('messages').insertOne(msgDoc);
+          firstMessage = { _id: msgRes.insertedId, ...msgDoc };
+          await db.collection('conversations').updateOne(
+            { _id: conversation._id },
+            { $set: { lastMessage: encrypted ? '[encrypted]' : initialMessage, lastMessageTime: msgDoc.timestamp, updatedAt: new Date() } }
+          );
+          // Mark delivered immediately (best-effort) and notify sender
+          await db.collection('messages').updateOne({ _id: msgRes.insertedId }, { $set: { deliveredAt: new Date() } });
+          firstMessage.deliveredAt = new Date();
+        }
+        // Ack creator
+        socket.emit('chat:create:ack', { conversation, firstMessage });
+        // Notify other participant about new conversation
+        socket.broadcast.emit('chat:conversation:new', { conversation, firstMessage });
+      } catch (e) {
+        console.error('chat:create error', e);
+        socket.emit('chat:error', { type: 'create', message: e.message });
+      }
+    });
+
+    // Typing indicator
+    socket.on('chat:typing', (data) => {
+      const { conversationId, isTyping } = data || {};
+      if (!conversationId) return;
+      socket.broadcast.emit('chat:typing', { conversationId, userId: socket.data.userId, isTyping: !!isTyping });
+    });
+
+    // Mark messages read
+    socket.on('chat:read', async (data) => {
+      try {
+        const { conversationId, messageIds } = data || {};
+        const userId = socket.data.userId;
+        if (!conversationId || !Array.isArray(messageIds) || !messageIds.length) return;
+        const db = getDB();
+        const readAt = new Date();
+        await db.collection('messages').updateMany(
+          { _id: { $in: messageIds.map(id => new ObjectId(id)) }, conversationId },
+          { $set: { isRead: true, readAt } }
+        );
+        socket.broadcast.emit('chat:read', { conversationId, messageIds, userId, readAt });
+      } catch (e) {
+        console.error('chat:read error', e);
+      }
+    });
+
+    socket.on('chat:message', async (msg) => {
+      try {
+  console.log('[WS][chat:message][in]', msg);
+        // msg may include plaintext content OR e2ee bundle
+        const { conversationId, content, receiverId, e2ee } = msg || {};
+        const senderId = socket.data.userId;
+        if (!conversationId || !senderId) return;
+        const db = getDB();
+        const encrypted = !!e2ee && !content;
+        if (!content && !encrypted) return; // nothing to store
+  console.log('[WS][chat:message] resolved sender=%s conv=%s encrypted=%s', senderId, conversationId, encrypted);
+        const doc = {
+          conversationId,
+          senderId,
+          receiverId: receiverId || null,
+          content: encrypted ? '' : content,
+          e2ee: e2ee || null,
+          isEncrypted: encrypted,
+          timestamp: new Date(),
+          messageType: 'text',
+          isRead: false,
+          attachments: [],
+          deliveredAt: null,
+          readAt: null
+        };
+  const result = await db.collection('messages').insertOne(doc);
+  const fullDoc = { ...doc, _id: result.insertedId };
+        // Ack & broadcast early so client UI updates even if conversation update fails (e.g. invalid ObjectId)
+  socket.emit('chat:ack', fullDoc);
+  socket.broadcast.emit('chat:message', fullDoc);
+  console.log('[WS][chat:message] stored message _id=%s conv=%s broadcasting', result.insertedId.toString(), conversationId);
+        // Try to update conversation document; ignore errors
+        try {
+	      await db.collection('conversations').updateOne(
+		    { _id: new ObjectId(conversationId) },
+		    { $set: { lastMessage: encrypted ? '[encrypted]' : content, lastMessageTime: new Date(), updatedAt: new Date() } }
+	      );
+    console.log('[WS][chat:message] conversation metadata updated %s', conversationId);
+        } catch (convErr) {
+          console.warn('conversation update failed (possibly invalid id)', convErr?.message || convErr);
+        }
+  // Mark delivered immediately (best-effort) and inform sender
+  await db.collection('messages').updateOne({ _id: result.insertedId }, { $set: { deliveredAt: new Date() } });
+  const deliveredPayload = { _id: result.insertedId, conversationId, deliveredAt: new Date() };
+	socket.emit('chat:delivered', deliveredPayload);
+  console.log('[WS][chat:message] delivered emit %j', deliveredPayload);
+      } catch (e) {
+        console.error('chat:message ws error', e);
+      }
+    });
   });
 }
 

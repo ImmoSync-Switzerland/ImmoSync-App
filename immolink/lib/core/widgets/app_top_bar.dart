@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/notifications/presentation/widgets/notifications_popup.dart';
 import 'package:immosync/features/notifications/presentation/providers/notifications_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_colors_dark.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
@@ -58,11 +59,15 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
       children: [
         Container(
       height: AppSizes.topAppBarHeight,
-      decoration: const BoxDecoration(
-        color: AppColors.primaryBackground,
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColorsDark.appBarBackground
+            : AppColors.primaryBackground,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.dividerSeparator,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColorsDark.dividerSeparator
+                : AppColors.dividerSeparator,
             width: 1,
           ),
         ),
@@ -78,10 +83,12 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
               ] else if (widget.showRefresh) ...[
                 IconButton(
                   onPressed: widget.onRefresh,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.refresh,
                     size: AppSizes.iconMedium,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColorsDark.textPrimary
+                        : AppColors.textPrimary,
                   ),
                   tooltip: 'Refresh',
                 ),
@@ -128,11 +135,13 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
                     IconButton(
                       key: _bellKey,
                       onPressed: widget.onNotificationTap ?? _togglePopup,
-                      icon: Icon(
-                        popupVisible ? Icons.notifications : Icons.notifications_outlined,
-                        size: AppSizes.iconMedium,
-                        color: AppColors.textPrimary,
-                      ),
+            icon: Icon(
+              popupVisible ? Icons.notifications : Icons.notifications_outlined,
+              size: AppSizes.iconMedium,
+              color: Theme.of(context).brightness == Brightness.dark
+                ? AppColorsDark.textPrimary
+                : AppColors.textPrimary,
+              ),
                     ),
                     if (unreadCount > 0)
                       Positioned(

@@ -17,9 +17,9 @@ class ChatMessagesNotifier extends StateNotifier<AsyncValue<List<ChatMessage>>> 
     _loadMessages();
   }
   Future<void> _loadMessages() async {    try {
-      final messages = await _chatService.getMessages(_conversationId);
+  final messages = await _chatService.getMessages(_conversationId);
       // Messages are already sorted chronologically from backend
-      state = AsyncValue.data(messages);
+  state = AsyncValue.data(messages);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -44,6 +44,66 @@ class ChatMessagesNotifier extends StateNotifier<AsyncValue<List<ChatMessage>>> 
       // as we still want to show existing messages
       print('Error sending message: $error');
       rethrow;
+    }
+  }
+
+  // Optimistic insertion for WS send (sender doesn't get broadcast echo)
+  void addOptimisticMessage(ChatMessage msg) {
+  final List<ChatMessage> current = List<ChatMessage>.from(state.asData?.value ?? const <ChatMessage>[]);
+  state = AsyncValue.data([...current, msg]);
+  }
+
+  // Apply incoming WS message or ack
+  void applyWsMessage(Map<String, dynamic> data, {bool isAck = false}) {
+    try {
+      if (data['conversationId'] != _conversationId) return;
+      final msg = ChatMessage.fromMap(data);
+  final List<ChatMessage> current = List<ChatMessage>.from(state.asData?.value ?? const <ChatMessage>[]);
+      // For ack, try to replace optimistic (match by content + sender + timestamp within 5s window)
+      if (isAck) {
+        final idx = current.indexWhere((m) =>
+          m.content == msg.content &&
+          m.senderId == msg.senderId &&
+          (msg.timestamp.difference(m.timestamp).inSeconds).abs() < 5 &&
+          (m.id.startsWith('temp_'))
+        );
+        if (idx >= 0) {
+          current[idx] = msg; // replace temp
+          state = AsyncValue.data(current);
+          return;
+        }
+      }
+      // Avoid duplicates (id or same sender+timestamp+content)
+      final dup = current.any((m) => m.id == msg.id || (m.content == msg.content && m.senderId == msg.senderId && (m.timestamp.difference(msg.timestamp).inSeconds).abs() < 2));
+      if (!dup) {
+        current.add(msg);
+        current.sort((a,b)=> a.timestamp.compareTo(b.timestamp));
+        state = AsyncValue.data(current);
+      }
+    } catch (e) {
+      // ignore parsing issues
+    }
+  }
+
+  void applyDeliveryOrRead(Map<String, dynamic> data) {
+    if (data['conversationId'] != _conversationId) return;
+    final id = data['_id']?.toString();
+    if (id == null) return;
+  final List<ChatMessage> current = List<ChatMessage>.from(state.asData?.value ?? const <ChatMessage>[]);
+    final idx = current.indexWhere((m) => m.id == id);
+    if (idx >= 0) {
+      final old = current[idx];
+      current[idx] = ChatMessage(
+        id: old.id,
+        senderId: old.senderId,
+        receiverId: old.receiverId,
+        content: old.content,
+        timestamp: old.timestamp,
+        isRead: data['type'] == 'read' ? true : old.isRead,
+        deliveredAt: data['type'] == 'delivered' && data['deliveredAt'] != null ? DateTime.tryParse(data['deliveredAt']) ?? old.deliveredAt : old.deliveredAt,
+        readAt: data['type'] == 'read' && data['readAt'] != null ? DateTime.tryParse(data['readAt']) ?? old.readAt : old.readAt,
+      );
+      state = AsyncValue.data(current);
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/pages/login_page.dart';
 import 'package:immosync/features/auth/presentation/pages/enhanced_register_page.dart';
+import 'package:immosync/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:immosync/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/presentation/pages/chat_page.dart';
@@ -58,6 +59,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
   builder: (context, state) => const _GermanOnly(child: EnhancedRegisterPage()),
+      ),
+      GoRoute(
+        path: '/complete-profile',
+        builder: (context, state) => const _GermanOnly(child: CompleteProfilePage()),
       ),
       GoRoute(
         path: '/forgot-password',
@@ -324,13 +329,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
-      final isForgotPassword = state.matchedLocation == '/forgot-password';
+  final isForgotPassword = state.matchedLocation == '/forgot-password';
+  final isCompleting = state.matchedLocation == '/complete-profile';
 
       if (!authState.isAuthenticated && !isLoggingIn && !isRegistering && !isForgotPassword) {
+        if (isCompleting && authState.needsProfileCompletion) return null;
         return '/login';
       }
 
-      if (authState.isAuthenticated && (isLoggingIn || isRegistering || isForgotPassword)) {
+      if (authState.isAuthenticated && (isLoggingIn || isRegistering || isForgotPassword || isCompleting)) {
         return '/home';
       }
 

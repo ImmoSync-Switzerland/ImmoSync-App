@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../presentation/providers/notifications_provider.dart';
 import '../../domain/models/app_notification.dart';
 
@@ -35,101 +36,115 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
       opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
       child: ScaleTransition(
         scale: CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-        child: Material(
+  child: Material(
           elevation: 10,
           clipBehavior: Clip.antiAlias,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: theme.colorScheme.surface,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 460),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [theme.colorScheme.surface, theme.colorScheme.surfaceVariant.withOpacity(0.15)],
-                ),
-              ),
-              child: asyncList.when(
-                loading: () => _buildSectionWrapper(
-                  context,
-                  child: const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                ),
-                error: (e, _) => _buildSectionWrapper(
-                  context,
-                  child: SizedBox(
-                    height: 140,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.error_outline, size: 32, color: Colors.redAccent),
-                          const SizedBox(height: 8),
-                          Text('Failed to load', style: theme.textTheme.titleSmall),
-                          Text('$e', style: theme.textTheme.bodySmall),
-                        ],
-                      ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = MediaQuery.of(context).size.width;
+              // Responsive width: on narrow screens use almost full width
+              final maxWidth = screenWidth < 500 ? screenWidth - 24 : 420.0;
+              final maxHeight = screenWidth < 500 ? MediaQuery.of(context).size.height * 0.7 : 480.0;
+              return ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: theme.brightness == Brightness.dark
+                          ? [theme.colorScheme.surface, Colors.black.withOpacity(0.4)]
+                          : [theme.colorScheme.surface, theme.colorScheme.surfaceVariant.withOpacity(0.15)],
+                    ),
+                    border: Border.all(
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.06)
+                          : Colors.black.withOpacity(0.05),
                     ),
                   ),
-                ),
-                data: (list) {
-                  if (list.isEmpty) {
-                    return _buildSectionWrapper(
+                  child: asyncList.when(
+                    loading: () => _buildSectionWrapper(
+                      context,
+                      child: const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                    ),
+                    error: (e, _) => _buildSectionWrapper(
                       context,
                       child: SizedBox(
-                        height: 160,
+                        height: 140,
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.notifications_off_outlined, size: 40, color: theme.disabledColor),
-                              const SizedBox(height: 10),
-                              Text('You\'re all caught up', style: theme.textTheme.titleSmall),
-                              Text('No notifications yet', style: theme.textTheme.bodySmall),
+                              const Icon(Icons.error_outline, size: 32, color: Colors.redAccent),
+                              const SizedBox(height: 8),
+                              Text('Failed to load', style: theme.textTheme.titleSmall),
+                              Text('$e', style: theme.textTheme.bodySmall),
                             ],
                           ),
                         ),
                       ),
-                    );
-                  }
-
-                  final grouped = _groupByDay(list.take(50).toList());
-
-                  return Column(
-                    children: [
-                      _HeaderBar(onClose: () => ref.read(notificationsPopupVisibleProvider.notifier).state = false, ref: ref),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: ScrollConfiguration(
-                          behavior: const _NoGlowScrollBehavior(),
-                          child: ListView.builder(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: grouped.length,
-                            itemBuilder: (context, index) {
-                              final entry = grouped[index];
-                              return _DaySection(
-                                label: entry.label,
-                                notifications: entry.items,
-                                onTap: (n) {
-                                  // For now just mark read locally & close popup
-                                  ref.read(notificationsProvider.notifier).markSingleRead(n.id);
-                                  ref.read(notificationsPopupVisibleProvider.notifier).state = false;
-                                  // TODO: Navigate based on n.type if needed
-                                },
-                              );
-                            },
+                    ),
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return _buildSectionWrapper(
+                          context,
+                          child: SizedBox(
+                            height: 160,
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.notifications_off_outlined, size: 40, color: theme.disabledColor),
+                                  const SizedBox(height: 10),
+                                  Text('You\'re all caught up', style: theme.textTheme.titleSmall),
+                                  Text('No notifications yet', style: theme.textTheme.bodySmall),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      _ViewAllButton(onTap: () {
-                        ref.read(notificationsPopupVisibleProvider.notifier).state = false;
-                        Navigator.of(context).pushNamed('/notifications');
-                      }),
-                    ],
-                  );
-                },
-              ),
-            ),
+                        );
+                      }
+
+                      final grouped = _groupByDay(list.take(50).toList());
+
+                      return Column(
+                        children: [
+                          _HeaderBar(onClose: () => ref.read(notificationsPopupVisibleProvider.notifier).state = false, ref: ref),
+                          const Divider(height: 1),
+                          Expanded(
+                            child: ScrollConfiguration(
+                              behavior: const _NoGlowScrollBehavior(),
+                              child: ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                itemCount: grouped.length,
+                                itemBuilder: (context, index) {
+                                  final entry = grouped[index];
+                                  return _DaySection(
+                                    label: entry.label,
+                                    notifications: entry.items,
+                                    onTap: (n) {
+                                      ref.read(notificationsProvider.notifier).markSingleRead(n.id);
+                                      ref.read(notificationsPopupVisibleProvider.notifier).state = false;
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          _ViewAllButton(onTap: () {
+                            ref.read(notificationsPopupVisibleProvider.notifier).state = false;
+                            if (context.mounted) context.push('/notifications');
+                          }),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -182,10 +197,13 @@ class _HeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLoading = ref.watch(notificationsProvider).isLoading;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withOpacity(0.9),
+    color: theme.brightness == Brightness.dark
+      ? theme.colorScheme.surface.withOpacity(0.92)
+      : theme.colorScheme.surface.withOpacity(0.9),
       ),
       child: Row(
         children: [
@@ -193,19 +211,33 @@ class _HeaderBar extends StatelessWidget {
           const SizedBox(width: 8),
           Text('Notifications', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
           const Spacer(),
-          Tooltip(
-            message: 'Refresh',
-            child: IconButton(
-              visualDensity: VisualDensity.compact,
-              onPressed: () => ref.read(notificationsProvider.notifier).refresh(),
-              icon: const Icon(Icons.refresh, size: 18),
+          if (isLoading)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: Padding(
+                padding: EdgeInsets.all(2),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            Tooltip(
+              message: 'Refresh',
+              child: IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () async {
+                  await ref.read(notificationsProvider.notifier).refresh();
+                },
+                icon: const Icon(Icons.refresh, size: 18),
+              ),
             ),
-          ),
           Tooltip(
             message: 'Mark all read',
             child: IconButton(
               visualDensity: VisualDensity.compact,
-              onPressed: () => ref.read(notificationsProvider.notifier).markAllRead(),
+              onPressed: () async {
+                await ref.read(notificationsProvider.notifier).markAllRead();
+              },
               icon: const Icon(Icons.done_all, size: 18),
             ),
           ),
@@ -381,7 +413,7 @@ class _ViewAllButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: theme.dividerColor)),
+          border: Border(top: BorderSide(color: theme.dividerColor.withOpacity(theme.brightness == Brightness.dark ? 0.4 : 1))),
         ),
         child: Center(
           child: Text('View all notifications', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/domain/services/auth_service.dart';
-import 'package:immosync/features/auth/presentation/providers/register_provider.dart';
+import 'auth_provider.dart';
 
 class LoginState {
   final bool isLoading;
@@ -32,8 +32,9 @@ class LoginState {
 
 class LoginNotifier extends StateNotifier<LoginState> {
   final AuthService _authService;
+  final Ref _ref;
 
-  LoginNotifier(this._authService) : super(LoginState());
+  LoginNotifier(this._authService, this._ref) : super(LoginState());
 
   Future<void> login({
     required String email,
@@ -50,8 +51,18 @@ class LoginNotifier extends StateNotifier<LoginState> {
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
-        userData: userData['user'],
+  userData: userData,
       );
+  // ignore: avoid_print
+  print('LoginProvider: received sessionToken? ${userData['sessionToken'] != null}');
+  // ignore: avoid_print
+  print('LoginProvider: raw userData map = ' + userData.toString());
+      // Sync into primary auth provider so rest of app (including WS) gets token
+      if (userData['sessionToken'] != null) {
+        try {
+          Future.microtask(() => _ref.read(authProvider.notifier).applyExternalLogin(userData));
+        } catch (_) {}
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -63,5 +74,5 @@ class LoginNotifier extends StateNotifier<LoginState> {
 }
 
 final loginProvider = StateNotifierProvider<LoginNotifier, LoginState>(
-  (ref) => LoginNotifier(ref.read(authServiceProvider)),
+  (ref) => LoginNotifier(ref.read(authServiceProvider), ref),
 );

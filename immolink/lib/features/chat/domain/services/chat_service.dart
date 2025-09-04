@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/domain/models/conversation.dart';
+import 'dart:io';
+import 'package:immosync/core/crypto/e2ee_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;
@@ -235,23 +238,48 @@ class ChatService {
     required String fileName,
     required String filePath,
     String? fileSize,
+    String? otherUserId,
+    WidgetRef? ref,
   }) async {
     try {
+      Map<String,dynamic>? encMeta;
+      if (ref != null && otherUserId != null) {
+        try {
+          final e2ee = ref.read(e2eeServiceProvider);
+          final bytes = await File(filePath).readAsBytes();
+            final enc = await e2ee.encryptAttachment(conversationId: conversationId, otherUserId: otherUserId, bytes: bytes);
+            if (enc != null) {
+              encMeta = enc;
+            }
+        } catch (_) {}
+      }
+      final body = {
+        'senderId': senderId,
+        'messageType': 'file',
+        'content': fileName,
+        'metadata': {
+          'fileName': fileName,
+          'filePath': filePath,
+          'fileSize': fileSize,
+          'fileType': fileName.split('.').last,
+          if (encMeta != null) 'ciphertext': encMeta['ciphertext'],
+          if (encMeta != null) 'iv': encMeta['iv'],
+          if (encMeta != null) 'tag': encMeta['tag'],
+          if (encMeta != null) 'encVersion': encMeta['v'],
+        },
+        if (encMeta != null) 'e2ee': {
+          'ciphertext': encMeta['ciphertext'],
+          'iv': encMeta['iv'],
+          'tag': encMeta['tag'],
+          'v': encMeta['v'],
+          'type': 'file'
+        },
+        'timestamp': DateTime.now().toIso8601String(),
+      };
       final response = await http.post(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'senderId': senderId,
-          'messageType': 'file',
-          'content': fileName,
-          'metadata': {
-            'fileName': fileName,
-            'filePath': filePath,
-            'fileSize': fileSize,
-            'fileType': fileName.split('.').last,
-          },
-          'timestamp': DateTime.now().toIso8601String(),
-        }),
+        body: json.encode(body),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

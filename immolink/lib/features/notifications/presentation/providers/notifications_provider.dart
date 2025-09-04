@@ -74,25 +74,33 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
   }
 
   // Internal helper for UI single-tap marking (local only for now)
-  void markSingleRead(String id) {
+  Future<void> markNotificationRead(String id) async {
+    if (_userId == null) return;
+    // Optimistic local update first
     final current = state.value;
-    if (current == null) return;
-    bool changed = false;
-    final updated = current.map((n) {
-      if (n.id == id && !n.read) {
-        changed = true;
-        return AppNotification(
-          id: n.id,
-          title: n.title,
-          body: n.body,
-          type: n.type,
-          data: n.data,
-          timestamp: n.timestamp,
-          read: true,
-        );
-      }
-      return n;
-    }).toList();
-    if (changed) state = AsyncData(updated);
+    if (current != null) {
+      final updated = current.map((n) => n.id == id ? AppNotification(
+        id: n.id,
+        title: n.title,
+        body: n.body,
+        type: n.type,
+        data: n.data,
+        timestamp: n.timestamp,
+        read: true,
+      ) : n).toList();
+      state = AsyncData(updated);
+    }
+    try {
+      await http.post(
+        Uri.parse('$_baseUrl/notifications/mark-read'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': _userId, 'ids': [id]}),
+      );
+    } catch (_) {
+      // silently ignore
+    }
   }
+
+  // Backward compatibility name used by popup
+  void markSingleRead(String id) { markNotificationRead(id); }
 }

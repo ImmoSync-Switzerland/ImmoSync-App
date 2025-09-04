@@ -14,6 +14,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import '../../../../core/presence/presence_ws_service.dart';
+import '../../../../core/presence/presence_cache.dart';
+import '../../../../core/config/db_config.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -38,8 +44,22 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   final ScrollController _scrollController = ScrollController();
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
-  bool _isTyping = false;
-  Timer? _refreshTimer;
+  bool _isTyping = false; // local user typing
+  bool _otherTyping = false; // remote user typing
+  // Removed polling timer
+  Timer? _presenceTimer; // Fallback heartbeat only
+  bool _otherOnline = false;
+  DateTime? _otherLastSeen;
+  ProviderSubscription<Map<String, PresenceInfo>>? _presenceCacheRemove;
+  ProviderSubscription<dynamic>? _authConnSub;
+  Timer? _wsConnectRetry;
+  int _wsConnectAttempts = 0;
+
+  String? _currentConversationId;
+  // Per-message visibility tracking
+  final Map<String, GlobalKey> _messageKeys = {};
+  final Set<String> _readSent = {};
+  Timer? _visibilityDebounce;
 
   @override
   void initState() {
@@ -53,8 +73,15 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     );
     _animationController.forward();
     
-    // Start auto-refresh timer for real-time chat updates
-    _startAutoRefresh();
+  // Start fallback refresh and init layers
+  _currentConversationId = widget.conversationId;
+  // No polling refresh (pure WS)
+  _initPresenceLayer();
+  _initChatWsListener();
+  // Attempt initial read marking shortly after build
+  WidgetsBinding.instance.addPostFrameCallback((_) => _emitReadReceipts());
+  // Attach scroll listener for fine-grained visibility based read detection
+  _scrollController.addListener(_onScrollVisibilityCheck);
   }
 
   @override
@@ -62,17 +89,151 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     _messageController.dispose();
     _scrollController.dispose();
     _animationController.dispose();
-    _refreshTimer?.cancel();
+  // no polling timer to cancel
+  _presenceTimer?.cancel();
+    _visibilityDebounce?.cancel();
+  _presenceCacheRemove?.close();
+  _authConnSub?.close();
+  _wsConnectRetry?.cancel();
     super.dispose();
   }
 
-  void _startAutoRefresh() {
-    // Refresh messages every 3 seconds to check for new messages
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (mounted) {
-        ref.read(conversationMessagesProvider(widget.conversationId).notifier).refresh();
+  // polling removed
+
+  void _initPresenceLayer() {
+    final currentUser = ref.read(currentUserProvider);
+    final userId = currentUser?.id;
+    print('[ChatPage][_initPresenceLayer] userId=$userId');
+    if (userId != null && userId.isNotEmpty) {
+      void tryConnect() {
+        final token = ref.read(authProvider).sessionToken;
+        print('[ChatPage][tryConnect] attempt=$_wsConnectAttempts token=${token != null}');
+        if (token != null) {
+          ref.read(presenceWsServiceProvider).connect(userId: userId, token: token);
+          _authConnSub?.close();
+          _authConnSub = null;
+          _wsConnectRetry?.cancel();
+          // After short delay, dump debug status
+          Future.delayed(const Duration(seconds:1), () {
+            if (mounted) {
+              ref.read(presenceWsServiceProvider).debugStatus();
+            }
+          });
+        }
+      }
+      // Attempt now (post frame) and if token not yet ready, listen for it
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        tryConnect();
+        if (_authConnSub == null && ref.read(authProvider).sessionToken == null) {
+          _authConnSub = ref.listenManual(authProvider, (prev, next) {
+            if (mounted) tryConnect();
+          });
+        }
+      });
+      // Also start a periodic retry (in case listenManual misses initial change)
+      _wsConnectRetry = Timer.periodic(const Duration(seconds: 2), (t) {
+        _wsConnectAttempts++;
+        if (_wsConnectAttempts > 10) { t.cancel(); return; }
+        // Just attempt; PresenceWsService internally ignores duplicate connects
+        tryConnect();
+      });
+      // Fallback REST heartbeat every 45s (server also gets WS pings)
+      _presenceTimer = Timer.periodic(const Duration(seconds: 45), (_) => _sendHeartbeat());
+      _sendHeartbeat();
+    }
+    // Listen to presence cache for other user updates (manual listen allowed outside build)
+    _presenceCacheRemove = ref.listenManual<Map<String, PresenceInfo>>(presenceCacheProvider, (prev, next) {
+      final oid = widget.otherUserId;
+      if (oid != null && next.containsKey(oid)) {
+        final info = next[oid]!;
+        if (mounted) {
+          setState(() {
+            _otherOnline = info.online;
+            _otherLastSeen = info.lastSeen;
+          });
+        }
       }
     });
+    // Initial fetch for other user (HTTP fallback)
+    _fetchOtherStatus();
+  }
+
+  void _initChatWsListener() {
+    final ws = ref.read(presenceWsServiceProvider);
+    ws.chatStream.listen((data) {
+      final type = data['type'];
+      final convId = _currentConversationId ?? widget.conversationId;
+      final notifier = ref.read(conversationMessagesProvider(convId).notifier);
+      if (type == 'message') {
+        notifier.applyWsMessage(data, isAck: false);
+      } else if (type == 'ack') {
+        notifier.applyWsMessage(data, isAck: true);
+      } else if (type == 'delivered' || type == 'read') {
+        notifier.applyDeliveryOrRead(data);
+      } else if (type == 'typing') {
+        if (data['conversationId'] == convId && data['userId'] != ref.read(currentUserProvider)?.id) {
+          setState(() { _otherTyping = data['isTyping'] == true; });
+        }
+      } else if (type == 'read') {
+        // optional: future read receipt UI updates
+      }
+      // Auto-scroll on new messages
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    });
+    ws.conversationStream.listen((data) {
+      if (data['type'] == 'createAck') {
+        final conv = data['conversation'];
+        final newId = conv?['_id']?.toString();
+        if (newId != null) {
+          setState(() { _currentConversationId = newId; });
+          // Replace route to bind to provider keyed by new ID
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => ChatPage(
+                  conversationId: newId,
+                  otherUserName: widget.otherUserName,
+                  otherUserAvatar: widget.otherUserAvatar,
+                  otherUserId: widget.otherUserId,
+                ),
+              ),
+            );
+          });
+        }
+      }
+    });
+  }
+
+  Future<void> _sendHeartbeat() async {
+    final currentUser = ref.read(currentUserProvider);
+    final userId = currentUser?.id;
+    if (userId == null || userId.isEmpty) return;
+    try {
+      // Assuming same base API used elsewhere
+  final baseUrl = DbConfig.apiUrl;
+  await http.post(Uri.parse('$baseUrl/users/$userId/heartbeat'));
+    } catch (_) {}
+  }
+
+  Future<void> _fetchOtherStatus() async {
+    if (widget.otherUserId == null || widget.otherUserId!.isEmpty) return;
+    try {
+  final baseUrl = DbConfig.apiUrl;
+  final resp = await http.get(Uri.parse('$baseUrl/users/online-status?ids=${widget.otherUserId}'));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        final map = data['statuses'] as Map<String, dynamic>;
+        final entry = map[widget.otherUserId];
+        if (entry != null) {
+          setState(() {
+            _otherOnline = entry['online'] == true;
+            final ls = entry['lastSeen'];
+            _otherLastSeen = ls != null ? DateTime.tryParse(ls) : null;
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   @override
@@ -188,7 +349,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     inherit: true,
                   ),
                 ),
-                if (_isTyping)
+                if (_otherTyping)
                   Text(
                     'typing...',
                     style: AppTypography.caption.copyWith(
@@ -198,12 +359,25 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     ),
                   )
                 else
-                  Text(
-                    'Online',
-                    style: AppTypography.caption.copyWith(
-                      color: colors.textSecondary,
-                      inherit: true,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.only(right: 4),
+                        decoration: BoxDecoration(
+                          color: _otherOnline ? Colors.green : colors.textTertiary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Text(
+                        _otherOnline ? 'Online' : _formatLastSeen(),
+                        style: AppTypography.caption.copyWith(
+                          color: colors.textSecondary,
+                          inherit: true,
+                        ),
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -229,6 +403,15 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     );
   }
 
+  String _formatLastSeen() {
+    if (_otherLastSeen == null) return 'Offline';
+    final diff = DateTime.now().difference(_otherLastSeen!);
+    if (diff.inMinutes < 1) return 'Gerade eben';
+    if (diff.inMinutes < 60) return 'vor ${diff.inMinutes} Min';
+    if (diff.inHours < 24) return 'vor ${diff.inHours} Std';
+    return 'vor ${diff.inDays} Tg';
+  }
+
   Widget _buildMessagesList(List<ChatMessage> messages, String currentUserId) {
     if (messages.isEmpty) {
       return _buildEmptyMessagesState();
@@ -248,11 +431,16 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               final isMe = message.senderId == currentUserId;
               final showDate = index == 0 || 
                   !_isSameDay(message.timestamp, messages[index - 1].timestamp);
-              
+              // Ensure a GlobalKey for visibility tracking
+              _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+
               return Column(
                 children: [
                   if (showDate) _buildDateSeparator(message.timestamp),
-                  _buildMessageBubble(message, isMe),
+                  _MessageVisibilityWrapper(
+                    key: _messageKeys[message.id],
+                    child: _buildMessageBubble(message, isMe),
+                  ),
                 ],
               );
             },
@@ -377,12 +565,25 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.content,
-                    style: AppTypography.body.copyWith(
-                      color: isMe ? Colors.white : colors.textPrimary,
-                      inherit: true,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if ((message.deliveredAt != null || message.readAt != null) && message.content == '[encrypted]')
+                        const SizedBox.shrink(),
+                      if (message.content == '[encrypted]') ...[
+                        Icon(Icons.lock, size: 14, color: isMe ? Colors.white70 : colors.textSecondary),
+                        const SizedBox(width: 4),
+                      ],
+                      Expanded(
+                        child: Text(
+                          message.content,
+                          style: AppTypography.body.copyWith(
+                            color: isMe ? Colors.white : colors.textPrimary,
+                            inherit: true,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -394,6 +595,16 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                       inherit: true,
                     ),
                   ),
+                  if (isMe) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      message.readAt != null ? Icons.done_all : (message.deliveredAt != null ? Icons.check : Icons.access_time),
+                      size: 14,
+                      color: message.readAt != null
+                          ? Colors.lightBlueAccent
+                          : (message.deliveredAt != null ? Colors.white70 : Colors.white38),
+                    )
+                  ]
                 ],
               ),
             ),
@@ -482,6 +693,16 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                       onChanged: (text) {
                         setState(() {
                           _isTyping = text.isNotEmpty;
+                          final convId = _currentConversationId;
+                          if (convId != null && convId != 'new') {
+                            ref.read(presenceWsServiceProvider).sendTyping(conversationId: convId, isTyping: true);
+                            // Schedule stop typing after debounce
+                            Future.delayed(const Duration(seconds: 2), () {
+                              if (mounted && _isTyping == false) {
+                                ref.read(presenceWsServiceProvider).sendTyping(conversationId: convId, isTyping: false);
+                              }
+                            });
+                          }
                         });
                       },
                     ),
@@ -535,43 +756,42 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     _messageController.clear();
     setState(() {
       _isTyping = false;
-    });    try {      // Get the real current user ID from auth provider
+    });
+    try {
+      // TODO: Migrate to WebSocket send for lower latency & real-time fanout
+      // Example (after ensuring conversationId is established):
+      // ref.read(presenceWsServiceProvider).sendChatMessage(
+      //   conversationId: widget.conversationId,
+      //   senderId: realSenderId,
+      //   content: content,
+      // );
+      // For new conversation creation keep REST flow until WS creation event exists.
+      // Get the real current user ID from auth provider
       final currentUser = ref.read(currentUserProvider);
       final realSenderId = currentUser?.id ?? 'unknown-user';
       
       print('Sending message with senderId: $realSenderId, otherUserId: ${widget.otherUserId}');
 
-      // Handle new conversation creation
-      if (widget.conversationId == 'new') {
-        final chatService = ref.read(chat_providers.chatServiceProvider);        final newConversationId = await chatService.createNewConversation(
+      final convId = _currentConversationId ?? widget.conversationId;
+      if (convId == 'new') {
+        ref.read(presenceWsServiceProvider).createConversation(
           otherUserId: widget.otherUserId ?? '',
           initialMessage: content,
-          currentUserId: realSenderId, // Use the real current user ID
         );
-        
-        // Update conversation ID for future messages
-        print('Created new conversation: $newConversationId');
-        
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Message sent to ${widget.otherUserName}!'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      } else {        // Send message to existing conversation
-        await ref.read(messageSenderProvider.notifier).sendMessage(
-          conversationId: widget.conversationId,
-          senderId: realSenderId, // Use the real current user ID
+      } else {
+        final ws = ref.read(presenceWsServiceProvider);
+        final optimistic = ChatMessage(
+          id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+          senderId: realSenderId,
           receiverId: widget.otherUserId ?? '',
           content: content,
+          timestamp: DateTime.now(),
         );
+        ref.read(conversationMessagesProvider(convId).notifier).addOptimisticMessage(optimistic);
+  ws.sendChatMessage(conversationId: convId, content: content, receiverId: widget.otherUserId, ref: ref);
       }
       
-      // Scroll to bottom after sending
-      _scrollToBottom();
+  _scrollToBottom();
     } catch (error) {
       // Show error message
       if (mounted) {
@@ -592,6 +812,72 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
+    }
+    _emitReadReceipts();
+  }
+
+  void _emitReadReceipts() {
+    final convId = _currentConversationId ?? widget.conversationId;
+    if (convId == 'new') return;
+    final currentUserId = ref.read(currentUserProvider)?.id;
+    if (currentUserId == null) return;
+    final messagesAsync = ref.read(conversationMessagesProvider(convId));
+    final messages = messagesAsync.maybeWhen(data: (m) => m, orElse: () => []);
+    if (messages.isEmpty) return;
+    // Determine visible: if scrolled near bottom treat all as viewed.
+    if (_scrollController.hasClients) {
+      final offsetFromBottom = _scrollController.position.maxScrollExtent - _scrollController.offset;
+      if (offsetFromBottom > 150) return; // not near bottom yet
+    }
+  final unreadIds = messages
+    .where((m) => m.senderId != currentUserId && !m.isRead)
+    .map((m) => m.id as String)
+    .toList(growable: false);
+  if (unreadIds.isNotEmpty) {
+    ref.read(presenceWsServiceProvider).markAllRead(conversationId: convId, messageIds: List<String>.from(unreadIds));
+    }
+  }
+
+  void _onScrollVisibilityCheck() {
+    if (_visibilityDebounce?.isActive ?? false) return;
+    _visibilityDebounce = Timer(const Duration(milliseconds: 120), _computeVisibleMessagesAndMarkRead);
+  }
+
+  void _computeVisibleMessagesAndMarkRead() {
+    final convId = _currentConversationId ?? widget.conversationId;
+    if (convId == 'new') return;
+    final currentUserId = ref.read(currentUserProvider)?.id;
+    if (currentUserId == null) return;
+    final messages = ref.read(conversationMessagesProvider(convId)).maybeWhen(data: (m)=>m, orElse: ()=>[]);
+    if (messages.isEmpty) return;
+    final unreadToMark = <String>[];
+    for (final msg in messages) {
+      if (msg.senderId == currentUserId || msg.isRead) continue;
+      final key = _messageKeys[msg.id];
+      final ctx = key?.currentContext;
+      if (ctx == null) continue;
+      final renderObj = ctx.findRenderObject();
+      if (renderObj is! RenderBox) continue;
+      // Determine global position
+      final offset = renderObj.localToGlobal(Offset.zero);
+      final size = renderObj.size;
+      final top = offset.dy;
+      final bottom = top + size.height;
+      final screenHeight = MediaQuery.of(ctx).size.height;
+      final vpTop = 0.0;
+      final vpBottom = screenHeight;
+      final overlap = bottom > vpTop && top < vpBottom;
+      if (!overlap) continue;
+      final visibleTop = top.clamp(vpTop, vpBottom);
+      final visibleBottom = bottom.clamp(vpTop, vpBottom);
+      final visiblePortion = (visibleBottom - visibleTop) / size.height;
+      if (visiblePortion >= 0.35 && !_readSent.contains(msg.id)) {
+        unreadToMark.add(msg.id);
+      }
+    }
+    if (unreadToMark.isNotEmpty) {
+      ref.read(presenceWsServiceProvider).markAllRead(conversationId: convId, messageIds: unreadToMark);
+      _readSent.addAll(unreadToMark);
     }
   }
 
@@ -1039,6 +1325,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
             fileName: file.name,
             filePath: file.path ?? '',
             fileSize: file.size.toString(),
+            otherUserId: widget.otherUserId,
+            ref: ref,
           );
           
           // Refresh messages
@@ -1096,5 +1384,15 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖',
     '💘', '💝', '💟', '👍', '👎', '👌', '🤏', '✌️',
   ];
+}
+
+// Lightweight wrapper so each message has a RenderObject with a GlobalKey for visibility calc.
+class _MessageVisibilityWrapper extends StatelessWidget {
+  final Widget child;
+  const _MessageVisibilityWrapper({super.key, required this.child});
+  @override
+  Widget build(BuildContext context) {
+    return child;
+  }
 }
 

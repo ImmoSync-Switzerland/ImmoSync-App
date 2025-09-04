@@ -5,6 +5,8 @@ class ChatMessage {
   final String content;
   final DateTime timestamp;
   final bool isRead;
+  final DateTime? deliveredAt;
+  final DateTime? readAt;
 
   ChatMessage({
     required this.id,
@@ -13,6 +15,8 @@ class ChatMessage {
     required this.content,
     required this.timestamp,
     this.isRead = false,
+  this.deliveredAt,
+  this.readAt,
   });
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
     return ChatMessage(
@@ -24,6 +28,8 @@ class ChatMessage {
           ? DateTime.parse(map['timestamp'])
           : DateTime.now(),
       isRead: map['isRead'] ?? false,
+  deliveredAt: map['deliveredAt'] != null ? DateTime.tryParse(map['deliveredAt']) : null,
+  readAt: map['readAt'] != null ? DateTime.tryParse(map['readAt']) : null,
     );
   }
 
@@ -35,6 +41,8 @@ class ChatMessage {
       'content': content,
       'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
+  if (deliveredAt != null) 'deliveredAt': deliveredAt!.toIso8601String(),
+  if (readAt != null) 'readAt': readAt!.toIso8601String(),
     };
   }
 }

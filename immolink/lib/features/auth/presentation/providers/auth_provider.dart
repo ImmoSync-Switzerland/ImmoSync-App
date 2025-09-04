@@ -4,22 +4,31 @@ import 'package:immosync/features/auth/domain/services/auth_service.dart';
 import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/crypto/e2ee_service.dart';
 
 class AuthState {
   final bool isAuthenticated;
   final bool isLoading;
   final String? error;
   final String? userId;
+  final String? sessionToken;
+  final bool needsProfileCompletion;
+  final List<String> missingFields;
+  final String? pendingSocialUserId;
 
   AuthState({
     required this.isAuthenticated,
     required this.isLoading,
     this.error,
     this.userId,
+  this.sessionToken,
+    this.needsProfileCompletion = false,
+    this.missingFields = const [],
+    this.pendingSocialUserId,
   });
 
   factory AuthState.initial() {
-    return AuthState(isAuthenticated: false, isLoading: false);
+  return AuthState(isAuthenticated: false, isLoading: false);
   }
 
   AuthState copyWith({
@@ -27,12 +36,20 @@ class AuthState {
     bool? isLoading,
     String? error,
     String? userId,
+  String? sessionToken,
+    bool? needsProfileCompletion,
+    List<String>? missingFields,
+    String? pendingSocialUserId,
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       userId: userId ?? this.userId,
+  sessionToken: sessionToken ?? this.sessionToken,
+      needsProfileCompletion: needsProfileCompletion ?? this.needsProfileCompletion,
+      missingFields: missingFields ?? this.missingFields,
+      pendingSocialUserId: pendingSocialUserId ?? this.pendingSocialUserId,
     );
   }
 }
@@ -95,13 +112,53 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _restoreSession();
   }
 
+  // Allow other flows (e.g., legacy loginProvider) to inject a successful login result
+  Future<void> applyExternalLogin(Map<String,dynamic> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await Future.wait([
+        if (data['userId'] != null) prefs.setString('userId', data['userId']),
+        if (data['sessionToken'] != null) prefs.setString('sessionToken', data['sessionToken']),
+        if (data['email'] != null) prefs.setString('email', data['email']),
+        if (data['role'] != null) prefs.setString('userRole', data['role']),
+        if (data['fullName'] != null) prefs.setString('fullName', data['fullName']),
+      ]);
+      if (data['role'] != null) {
+        ref.read(userRoleProvider.notifier).setUserRole(data['role']);
+      }
+      if (data['userId'] != null) {
+        await ref.read(currentUserProvider.notifier).setUser(data['userId']);
+      }
+      state = state.copyWith(
+        isAuthenticated: true,
+        isLoading: false,
+        userId: data['userId'],
+        sessionToken: data['sessionToken'],
+        error: null,
+      );
+      // Fire-and-forget identity key publish
+      if (data['userId'] != null) {
+        _publishIdentityKey(data['userId']);
+      }
+      // ignore: avoid_print
+      print('AuthProvider: applyExternalLogin sessionToken present? ${data['sessionToken'] != null}');
+    } catch (e) {
+      // ignore: avoid_print
+      print('AuthProvider: applyExternalLogin error $e');
+    }
+  }
+
   Future<void> _restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
+    final sessionToken = prefs.getString('sessionToken');
+  // Debug: log restore status (helps diagnose missing sessionToken causing WS not to auth)
+  // ignore: avoid_print
+  print('AuthProvider:_restoreSession userId=$userId sessionTokenPresent=${sessionToken != null}');
 
     if (userId != null) {
       await ref.read(currentUserProvider.notifier).setUser(userId);
-      state = state.copyWith(isAuthenticated: true, userId: userId);
+      state = state.copyWith(isAuthenticated: true, userId: userId, sessionToken: sessionToken);
     }
   }
 
@@ -118,7 +175,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([
         prefs.setString('userId', userData['userId']),
-        prefs.setString('authToken', userData['token']),
+  if (userData['sessionToken'] != null) prefs.setString('sessionToken', userData['sessionToken']),
         prefs.setString('email', userData['email']),
         prefs.setString('userRole', userData['role']),
         prefs.setString('fullName', userData['fullName'])
@@ -130,9 +187,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
-        userId: userData['userId']
+        userId: userData['userId'],
+        sessionToken: userData['sessionToken']
       );
+  // E2EE: publish identity key (fire and forget)
+  _publishIdentityKey(userData['userId']);
       print('AuthProvider: Login state updated - authenticated: true');
+  print('AuthProvider: sessionToken present? ${userData['sessionToken'] != null}');
     } catch (e) {
       print('AuthProvider: Login failed with error: $e');
       final errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -155,8 +216,106 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
+  // Ensure sessionToken removed (prefs.clear should handle but explicit for clarity)
+  // ignore: unused_result
+  prefs.remove('sessionToken');
       ref.read(currentUserProvider.notifier).clearUser();
       state = AuthState.initial();
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> socialLogin({required String provider, required String idToken}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final data = await _authService.socialLogin(provider: provider, idToken: idToken);
+      if (data['needCompletion'] == true) {
+        state = state.copyWith(
+          isLoading: false,
+            needsProfileCompletion: true,
+            missingFields: List<String>.from(data['missingFields'] ?? []),
+            pendingSocialUserId: data['userId'],
+        );
+      } else {
+        final user = data['user'];
+        final prefs = await SharedPreferences.getInstance();
+        await Future.wait([
+          prefs.setString('userId', user['userId']),
+          if (user['sessionToken'] != null) prefs.setString('sessionToken', user['sessionToken']),
+          prefs.setString('email', user['email'] ?? ''),
+          if (user['role'] != null) prefs.setString('userRole', user['role']),
+          if (user['fullName'] != null) prefs.setString('fullName', user['fullName']),
+        ]);
+        if (user['role'] != null) {
+          ref.read(userRoleProvider.notifier).setUserRole(user['role']);
+        }
+        await ref.read(currentUserProvider.notifier).setUser(user['userId']);
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: true,
+          userId: user['userId'],
+          sessionToken: user['sessionToken'],
+          needsProfileCompletion: false,
+          missingFields: [],
+          pendingSocialUserId: null,
+        );
+        _publishIdentityKey(user['userId']);
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString(), needsProfileCompletion: false);
+    }
+  }
+
+  Future<void> _publishIdentityKey(String userId) async {
+    try {
+      final e2ee = ref.read(e2eeServiceProvider);
+      await e2ee.ensureInitialized();
+      await e2ee.publishIdentityKey(userId);
+    } catch (_) {}
+  }
+
+  Future<void> completeSocialProfile({
+    required Map<String, dynamic> fields,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final userId = state.pendingSocialUserId;
+      if (userId == null) throw Exception('No pending social user');
+      final resp = await _authService.completeSocialProfile(
+        userId: userId,
+        fullName: fields['fullName'],
+        role: fields['role'],
+        phone: fields['phone'],
+        isCompany: fields['isCompany'],
+        companyName: fields['companyName'],
+        companyAddress: fields['companyAddress'],
+        taxId: fields['taxId'],
+        address: fields['address'],
+        birthDate: fields['birthDate'],
+      );
+      final user = resp['user'];
+      final prefs = await SharedPreferences.getInstance();
+      await Future.wait([
+        prefs.setString('userId', user['userId']),
+        if (user['sessionToken'] != null) prefs.setString('sessionToken', user['sessionToken']),
+        prefs.setString('email', user['email'] ?? ''),
+        if (user['role'] != null) prefs.setString('userRole', user['role']),
+        if (user['fullName'] != null) prefs.setString('fullName', user['fullName']),
+      ]);
+      if (user['role'] != null) {
+        ref.read(userRoleProvider.notifier).setUserRole(user['role']);
+      }
+      await ref.read(currentUserProvider.notifier).setUser(user['userId']);
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        userId: user['userId'],
+        sessionToken: user['sessionToken'],
+        needsProfileCompletion: false,
+        missingFields: [],
+        pendingSocialUserId: null,
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
