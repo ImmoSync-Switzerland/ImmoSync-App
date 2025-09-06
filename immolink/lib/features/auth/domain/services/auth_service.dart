@@ -73,6 +73,16 @@ class AuthService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final user = data['user'];
+      // Normalize userId returned from backend (string or {"$oid": "..."})
+      dynamic rawId = user['userId'];
+      String userIdStr;
+      if (rawId is String) {
+        userIdStr = rawId;
+      } else if (rawId is Map && rawId[r'$oid'] != null) {
+        userIdStr = rawId[r'$oid'].toString();
+      } else {
+        userIdStr = rawId.toString();
+      }
       // Debug: log keys to verify sessionToken presence
       try {
         // ignore: avoid_print
@@ -82,7 +92,7 @@ class AuthService {
       } catch (_) {}
       // Backend /auth/login returns { message, user: { userId, email, role, fullName, sessionToken } }
       return {
-        'userId': user['userId'],
+        'userId': userIdStr,
         'sessionToken': user['sessionToken'],
         'email': user['email'],
         'role': user['role'],

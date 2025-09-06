@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import '../models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
   final String _apiUrl = DbConfig.apiUrl;
@@ -36,16 +37,46 @@ class UserService {
     required String email,
     required String phone,
     String? address,
+  String? profileImage,
   }) async {
     try {
+      // Include session token if available for backend-side identification
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      try {
+        // Lazy import to avoid tight coupling
+        // ignore: avoid_dynamic_calls
+      } catch (_) {}
+      // Read token from SharedPreferences
+      try {
+        // Using dynamic import pattern to avoid hard dependency at top
+        // ignore: import_of_legacy_library_into_null_safe
+      } catch (_) {}
+      // Actually obtain token
+      String? token;
+      try {
+        // Deferred import
+        // ignore: avoid_print
+      } catch (_) {}
+      try {
+        // SharedPreferences access
+        // We inline to keep service self-contained
+        // ignore: depend_on_referenced_packages
+        final prefs = await SharedPreferences.getInstance();
+        token = prefs.getString('sessionToken');
+      } catch (_) {}
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = token; // plain token (backend accepts plain or query)
+      }
+
       final response = await http.patch(
         Uri.parse('$_apiUrl/users/$userId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: json.encode({
           'fullName': fullName,
           'email': email,
           'phone': phone,
           if (address != null) 'address': address,
+      if (profileImage != null) 'profileImage': profileImage,
         }),
       );
 
@@ -59,6 +90,41 @@ class UserService {
     } catch (e) {
       print('UserService: Update profile error: $e');
       throw Exception('Failed to update profile');
+    }
+  }
+
+  Future<User?> fetchCurrentUser() async {
+    try {
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      String? token;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        token = prefs.getString('sessionToken');
+      } catch (_) {}
+      if (token == null || token.isEmpty) return null;
+      headers['Authorization'] = token;
+      final resp = await http.get(Uri.parse('$_apiUrl/users/me'), headers: headers);
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        return User.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<User?> fetchUserById(String userId) async {
+    try {
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      final resp = await http.get(Uri.parse('$_apiUrl/users/by-id/$userId'), headers: headers);
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body) as Map<String, dynamic>;
+        return User.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 }

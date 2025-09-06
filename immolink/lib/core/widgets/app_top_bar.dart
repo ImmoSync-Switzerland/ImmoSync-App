@@ -40,14 +40,72 @@ class AppTopBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
 
 class _AppTopBarState extends ConsumerState<AppTopBar> {
   final GlobalKey _bellKey = GlobalKey();
+  OverlayEntry? _notificationsOverlay;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _togglePopup() {
-    final visible = ref.read(notificationsPopupVisibleProvider);
-    ref.read(notificationsPopupVisibleProvider.notifier).state = !visible;
+  final visible = ref.read(notificationsPopupVisibleProvider);
+  ref.read(notificationsPopupVisibleProvider.notifier).state = !visible;
+  }
+
+  void _showNotificationsOverlay() {
+    if (_notificationsOverlay != null) return;
+    final overlay = Overlay.of(context);
+    _notificationsOverlay = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            // Opaque barrier to block interactions behind and close on tap outside
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  // Close via provider; listener will hide overlay
+                  ref.read(notificationsPopupVisibleProvider.notifier).state = false;
+                },
+                child: const SizedBox.expand(),
+              ),
+            ),
+            // Anchor popup below the app bar, aligned to right
+            Positioned(
+              top: AppSizes.topAppBarHeight + 4,
+              right: 8,
+              child: const NotificationsPopup(),
+            ),
+          ],
+        );
+      },
+    );
+    overlay.insert(_notificationsOverlay!);
+  }
+
+  void _hideNotificationsOverlay() {
+    _notificationsOverlay?.remove();
+    _notificationsOverlay = null;
+  }
+
+  @override
+  void dispose() {
+    _hideNotificationsOverlay();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen during build so Riverpod can manage the subscription lifecycle
+    ref.listen<bool>(notificationsPopupVisibleProvider, (prev, next) {
+      if (!mounted) return;
+      if (next) {
+        _showNotificationsOverlay();
+      } else {
+        _hideNotificationsOverlay();
+      }
+    });
+
     final popupVisible = ref.watch(notificationsPopupVisibleProvider);
     final notificationsAsync = ref.watch(notificationsProvider);
     final unreadCount = notificationsAsync.maybeWhen(
@@ -181,21 +239,7 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
             ),
           ),
         ), // end Container
-        // Tap outside to dismiss overlay
-        if (popupVisible)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: _togglePopup,
-              child: const SizedBox.shrink(),
-            ),
-          ),
-        if (popupVisible)
-          Positioned(
-            top: AppSizes.topAppBarHeight + 4,
-            right: 8,
-            child: const NotificationsPopup(),
-          ),
+  // Popup is rendered via OverlayEntry now; nothing to render here
       ],
     );
   }

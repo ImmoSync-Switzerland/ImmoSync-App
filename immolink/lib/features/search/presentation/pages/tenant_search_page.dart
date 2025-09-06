@@ -396,7 +396,10 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
         iconColor = colors.warning;
         onTap = () {
           final conversation = result.data as Conversation;
-          context.push('/chat/${conversation.id}');
+          final name = conversation.otherParticipantName ?? 'User';
+          final otherId = conversation.otherParticipantId ?? '';
+          final avatar = conversation.otherParticipantAvatar ?? '';
+          context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         };
         break;
       case 'tenant':
@@ -405,7 +408,10 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
         iconColor = colors.info;
         onTap = () {
           final conversation = result.data as Conversation;
-          context.push('/chat/${conversation.id}');
+          final name = conversation.otherParticipantName ?? 'User';
+          final otherId = conversation.otherParticipantId ?? '';
+          final avatar = conversation.otherParticipantAvatar ?? '';
+          context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         };
         break;
       default:

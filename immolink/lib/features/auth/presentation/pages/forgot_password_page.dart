@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:immosync/core/theme/app_colors.dart';
 import 'package:immosync/features/auth/domain/services/auth_service.dart';
 
@@ -33,11 +34,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       await _authService.forgotPassword(email: _emailController.text.trim());
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Password reset email sent! Please check your inbox.',
-              style: TextStyle(color: Colors.white),
+              l10n?.passwordResetEmailSent ?? 'Password reset email sent! Please check your inbox.',
+              style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.green,
           ),
@@ -67,6 +69,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -87,7 +90,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               children: [
                 const SizedBox(height: 40),
                 Text(
-                  'Forgot Password?',
+                  l10n?.forgotPasswordTitle ?? 'Forgot Password?',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -97,7 +100,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Enter your email address and we\'ll send you a link to reset your password.',
+                  l10n?.forgotPasswordDescription ?? 'Enter your email address and we\'ll send you a link to reset your password.',
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
@@ -109,7 +112,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: l10n?.email ?? 'Email',
                     prefixIcon: Icon(Icons.email_outlined,
                         color: AppColors.textSecondary),
                     border: OutlineInputBorder(
@@ -129,12 +132,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     fillColor: AppColors.surfaceSecondary,
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+        if (value == null || value.isEmpty) {
+      return l10n?.pleaseEnterYourEmail ?? 'Please enter your email';
                     }
                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                         .hasMatch(value)) {
-                      return 'Please enter a valid email';
+      return l10n?.pleaseEnterValidEmail ?? 'Please enter a valid email address';
                     }
                     return null;
                   },
@@ -162,9 +165,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
-                            'Send Reset Email',
-                            style: TextStyle(
+            : Text(
+              l10n?.sendResetEmail ?? 'Send Reset Email',
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -175,7 +178,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 TextButton(
                   onPressed: () => context.pop(),
                   child: Text(
-                    'Back to Login',
+          l10n?.backToLogin ?? 'Back to Login',
                     style: TextStyle(
                       color: AppColors.primaryAccent,
                       fontSize: 16,

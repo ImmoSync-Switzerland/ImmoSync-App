@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -580,7 +581,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
   }
 
   Future<void> _handleGoogle() async {
-    final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+    // Request an ID token by providing the OAuth2 Web Client ID from env
+    final clientId = dotenv.dotenv.env['GOOGLE_CLIENT_ID'];
+    final googleSignIn = GoogleSignIn(
+      scopes: const ['email', 'profile'],
+      serverClientId: (clientId != null && clientId.isNotEmpty) ? clientId : null,
+    );
     try {
       final account = await googleSignIn.signIn();
       if (account == null) return; // canceled
@@ -588,7 +594,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
       final idToken = auth.idToken;
       if (idToken == null) {
         setState(() {
-          _currentError = 'Google Sign-In fehlgeschlagen (kein Token)';
+          _currentError = (clientId == null || clientId.isEmpty)
+              ? 'Google Sign-In fehlgeschlagen: GOOGLE_CLIENT_ID fehlt in .env'
+              : 'Google Sign-In fehlgeschlagen (kein Token)';
         });
         return;
       }

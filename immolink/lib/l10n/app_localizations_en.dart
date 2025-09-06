@@ -1463,6 +1463,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileImageUpload => 'Profile image upload coming soon';
 
   @override
+  String get forgotPasswordTitle => 'Forgot Password?';
+
+  @override
+  String get forgotPasswordDescription =>
+      'Enter your email address and we\'ll send you a link to reset your password.';
+
+  @override
+  String get sendResetEmail => 'Send Reset Email';
+
+  @override
+  String get backToLogin => 'Back to Login';
+
+  @override
+  String get passwordResetEmailSent =>
+      'Password reset email sent! Please check your inbox.';
+
+  @override
+  String get pleaseEnterYourEmail => 'Please enter your email';
+
+  @override
   String get searchPropertiesLandlords =>
       'Search properties, landlords, messages...';
 

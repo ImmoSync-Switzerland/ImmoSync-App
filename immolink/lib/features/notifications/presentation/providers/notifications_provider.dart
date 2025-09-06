@@ -35,8 +35,8 @@ class NotificationsNotifier
     await refresh();
   }
 
-  Future<void> refresh() async {
-    if (_userId == null) return;
+  Future<bool> refresh() async {
+    if (_userId == null) return true; // nothing to load
     state = const AsyncLoading();
     try {
       final resp = await http
@@ -47,22 +47,30 @@ class NotificationsNotifier
             .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
             .toList();
         state = AsyncData(list);
+        return true;
       } else {
         state = AsyncError('HTTP ${resp.statusCode}', StackTrace.current);
+        return false;
       }
     } catch (e, st) {
       state = AsyncError(e, st);
+      return false;
     }
   }
 
-  Future<void> markAllRead() async {
-    if (_userId == null) return;
+  Future<int> markAllRead() async {
+    if (_userId == null) return 0;
     try {
-      await http.post(
+      final resp = await http.post(
         Uri.parse('$_baseUrl/notifications/mark-read'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': _userId, 'all': true}),
       );
+      int updated = 0;
+      try {
+        final body = jsonDecode(resp.body);
+        updated = (body is Map && body['updated'] is num) ? (body['updated'] as num).toInt() : 0;
+      } catch (_) {}
       final current = state.value ?? [];
       state = AsyncData(current
           .map((n) => AppNotification(
@@ -75,7 +83,10 @@ class NotificationsNotifier
                 read: true,
               ))
           .toList());
-    } catch (_) {}
+      return updated;
+    } catch (_) {
+      return 0;
+    }
   }
 
   // Internal helper for UI single-tap marking (local only for now)

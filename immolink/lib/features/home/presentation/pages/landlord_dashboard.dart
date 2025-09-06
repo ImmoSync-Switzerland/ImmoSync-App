@@ -17,6 +17,7 @@ import '../../../../core/providers/currency_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/mongo_image.dart';
 import '../../../../core/utils/image_resolver.dart';
+import 'package:immosync/core/widgets/user_avatar.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
@@ -1680,25 +1681,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colors.primaryAccent.withValues(alpha: 0.2),
-                    colors.primaryAccent.withValues(alpha: 0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors.primaryAccent.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              child: Icon(Icons.chat_bubble_outline,
-                  color: colors.primaryAccent, size: 20),
+            UserAvatar(
+              imageRef: conversation.otherParticipantAvatar,
+              name: conversation.otherParticipantName,
+              size: 44,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1813,8 +1799,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     final colors = ref.read(dynamicColorsProvider);
     try {
       // Navigate to chat page with conversation details
+      final avatar = conversation.otherParticipantAvatar ?? '';
       context.push(
-        '/chat/${conversation.id}?otherUser=${Uri.encodeComponent(conversation.otherParticipantName ?? 'Unknown User')}&otherUserId=${conversation.otherParticipantId ?? ''}',
+        '/chat/${conversation.id}?otherUser=${Uri.encodeComponent(conversation.otherParticipantName ?? 'Unknown User')}&otherUserId=${conversation.otherParticipantId ?? ''}&otherAvatar=${Uri.encodeComponent(avatar)}',
       );
     } catch (e) {
       // Handle any navigation errors

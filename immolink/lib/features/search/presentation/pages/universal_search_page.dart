@@ -8,6 +8,7 @@ import '../../../property/presentation/providers/property_providers.dart';
 import '../../../chat/presentation/providers/contact_providers.dart';
 import '../../../maintenance/presentation/providers/maintenance_providers.dart';
 import '../../../chat/presentation/providers/conversations_provider.dart';
+import '../../../../core/widgets/user_avatar.dart';
 
 class UniversalSearchPage extends ConsumerStatefulWidget {
   const UniversalSearchPage({super.key});
@@ -267,18 +268,7 @@ class _TenantsSearchTab extends ConsumerWidget {
                   color: colors.surfaceCards,
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          colors.primaryAccent.withValues(alpha: 0.2),
-                      child: Text(
-                        tenant.fullName.isNotEmpty
-                            ? tenant.fullName[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                            color: colors.primaryAccent,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
+                    leading: UserAvatar(imageRef: tenant.profileImage, name: tenant.fullName, size: 40),
                     title: Text(
                       tenant.fullName,
                       style: TextStyle(
@@ -489,17 +479,7 @@ class _MessagesSearchTab extends ConsumerWidget {
               color: colors.surfaceCards,
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
-                  child: Text(
-                    (conversation.otherParticipantName?.isNotEmpty ?? false)
-                        ? conversation.otherParticipantName![0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                        color: colors.primaryAccent,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
+                leading: UserAvatar(imageRef: conversation.otherParticipantAvatar, name: conversation.otherParticipantName, size: 40),
                 title: Text(
                   conversation.otherParticipantName ?? 'Unbekannt',
                   style: TextStyle(
@@ -513,7 +493,12 @@ class _MessagesSearchTab extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                onTap: () => context.push('/chat/${conversation.id}'),
+                onTap: () {
+                  final name = conversation.otherParticipantName ?? 'User';
+                  final otherId = conversation.otherParticipantId ?? '';
+                  final avatar = conversation.otherParticipantAvatar ?? '';
+                  context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+                },
               ),
             );
           },
@@ -679,18 +664,7 @@ class _AllSearchTab extends ConsumerWidget {
                       color: colors.surfaceCards,
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              colors.primaryAccent.withValues(alpha: 0.2),
-                          child: Text(
-                            tenant.fullName.isNotEmpty
-                                ? tenant.fullName[0].toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                                color: colors.primaryAccent,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ),
+                        leading: UserAvatar(imageRef: tenant.profileImage, name: tenant.fullName, size: 40),
                         title: Text(
                           tenant.fullName,
                           style: TextStyle(
@@ -847,19 +821,7 @@ class _AllSearchTab extends ConsumerWidget {
                   color: colors.surfaceCards,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          colors.primaryAccent.withValues(alpha: 0.2),
-                      child: Text(
-                        (conversation.otherParticipantName?.isNotEmpty ?? false)
-                            ? conversation.otherParticipantName![0]
-                                .toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                            color: colors.primaryAccent,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
+                    leading: UserAvatar(imageRef: conversation.otherParticipantAvatar, name: conversation.otherParticipantName, size: 40),
                     title: Text(
                       conversation.otherParticipantName ?? 'Unbekannt',
                       style: TextStyle(
@@ -874,7 +836,12 @@ class _AllSearchTab extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    onTap: () => context.push('/chat/${conversation.id}'),
+                    onTap: () {
+                      final name = conversation.otherParticipantName ?? 'User';
+                      final otherId = conversation.otherParticipantId ?? '';
+                      final avatar = conversation.otherParticipantAvatar ?? '';
+                      context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+                    },
                   ),
                 )),
             if (filteredConversations.length > 3)

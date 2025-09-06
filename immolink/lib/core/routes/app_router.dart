@@ -68,7 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/forgot-password',
-        builder: (context, state) => const ForgotPasswordPage(),
+  builder: (context, state) => const _GermanOnly(child: ForgotPasswordPage()),
       ),
       GoRoute(
         path: '/home',
@@ -100,6 +100,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           conversationId: state.pathParameters['conversationId']!,
           otherUserName: state.uri.queryParameters['otherUser'] ?? 'User',
           otherUserId: state.uri.queryParameters['otherUserId'],
+          otherUserAvatar: state.uri.queryParameters['otherAvatar'],
         ),
       ),
       GoRoute(

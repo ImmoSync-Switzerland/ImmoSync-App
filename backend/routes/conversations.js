@@ -52,6 +52,7 @@ router.get('/user/:userId', async (req, res) => {
           otherParticipantName: otherParticipant ? otherParticipant.fullName : 'Unknown User',
           otherParticipantEmail: otherParticipant ? otherParticipant.email : '',
           otherParticipantRole: otherParticipant ? otherParticipant.role : 'unknown',
+          otherParticipantAvatar: otherParticipant ? (otherParticipant.profileImage || null) : null,
           otherParticipantOnline: online,
           otherParticipantLastSeen: lastSeen,
         };

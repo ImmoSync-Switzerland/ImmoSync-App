@@ -81,15 +81,16 @@ class ContactService {
 
         return tenantsData.map((json) {
           return ContactUser(
-            id: json['_id'] ?? '',
-            fullName: json['name'] ?? '',
-            email: json['email'] ?? '',
+            id: json['_id']?.toString() ?? '',
+            fullName: (json['fullName'] ?? json['name'] ?? '').toString(),
+            email: (json['email'] ?? '').toString(),
             role: 'tenant',
-            phone: json['phone'] ?? '',
+            phone: (json['phone'] ?? '').toString(),
             properties:
-                json['propertyId'] != null && json['propertyId'].isNotEmpty
-                    ? [json['propertyId']]
+                json['propertyId'] != null && json['propertyId'].toString().isNotEmpty
+                    ? [json['propertyId'].toString()]
                     : [],
+            profileImage: json['profileImage']?.toString(),
           );
         }).toList();
       } else {

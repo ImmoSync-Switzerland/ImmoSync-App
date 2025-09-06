@@ -6,6 +6,7 @@ import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import '../../../../core/presence/presence_ws_service.dart';
+import 'package:immosync/features/auth/domain/services/user_service.dart';
 
 class AuthState {
   final bool isAuthenticated;
@@ -94,6 +95,10 @@ class CurrentUserNotifier extends StateNotifier<User?> {
       propertyId: propertyId,
     );
   }
+
+  void setUserModel(User user) {
+    state = user;
+  }
 }
 
 final currentUserProvider =
@@ -135,6 +140,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         sessionToken: data['sessionToken'],
         error: null,
       );
+      // Fetch full user profile (includes profileImage)
+      try {
+        final us = UserService();
+        final userModel = await us.fetchCurrentUser();
+        if (userModel != null) {
+          ref.read(currentUserProvider.notifier).setUserModel(userModel);
+        }
+      } catch (_) {}
       // Fire-and-forget identity key publish
       if (data['userId'] != null) {
         _publishIdentityKey(data['userId']);
@@ -150,7 +163,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> _restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
+    String? userId = prefs.getString('userId');
+    // Normalize legacy persisted userId that might be in Extended JSON like '{"$oid":"..."}'
+    if (userId != null) {
+      final match = RegExp(r'\{\s*"?\$oid"?\s*:\s*"([a-fA-F0-9]{24})"\s*\}')
+          .firstMatch(userId);
+      if (match != null) {
+        final normalized = match.group(1);
+        if (normalized != null) {
+          userId = normalized;
+          await prefs.setString('userId', normalized);
+        }
+      }
+    }
     final sessionToken = prefs.getString('sessionToken');
     // Debug: log restore status (helps diagnose missing sessionToken causing WS not to auth)
     // ignore: avoid_print
@@ -161,6 +186,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await ref.read(currentUserProvider.notifier).setUser(userId);
       state = state.copyWith(
           isAuthenticated: true, userId: userId, sessionToken: sessionToken);
+      // Fetch full user to populate fields like profileImage
+      try {
+        final us = UserService();
+        final userModel = await us.fetchCurrentUser();
+        if (userModel != null) {
+          ref.read(currentUserProvider.notifier).setUserModel(userModel);
+        }
+      } catch (_) {}
     }
   }
 
@@ -193,6 +226,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isAuthenticated: true,
           userId: userData['userId'],
           sessionToken: userData['sessionToken']);
+      // Fetch full user profile (includes profileImage) and update provider
+      try {
+        final us = UserService();
+        final userModel = await us.fetchCurrentUser();
+        if (userModel != null) {
+          ref.read(currentUserProvider.notifier).setUserModel(userModel);
+        }
+      } catch (_) {}
       // E2EE: publish identity key (fire and forget)
       _publishIdentityKey(userData['userId']);
       print('AuthProvider: Login state updated - authenticated: true');
@@ -271,6 +312,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           missingFields: [],
           pendingSocialUserId: null,
         );
+        // Fetch full user profile (includes profileImage)
+        try {
+          final us = UserService();
+          final userModel = await us.fetchCurrentUser();
+          if (userModel != null) {
+            ref.read(currentUserProvider.notifier).setUserModel(userModel);
+          }
+        } catch (_) {}
         _publishIdentityKey(user['userId']);
       }
     } catch (e) {

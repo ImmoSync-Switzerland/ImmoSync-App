@@ -196,6 +196,68 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get current user by session token (Authorization header)
+router.get('/me', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+    if (!authHeader || typeof authHeader !== 'string' || !authHeader.trim()) {
+      return res.status(401).json({ message: 'Authorization token required' });
+    }
+    const token = authHeader.trim();
+    const doc = await db.collection('users').findOne({ sessionToken: token });
+    if (!doc) return res.status(404).json({ message: 'User not found' });
+    const serialized = { ...doc };
+    try {
+      if (doc._id) serialized._id = doc._id.toString();
+      if (doc.propertyId) serialized.propertyId = doc.propertyId.toString();
+      if (doc.landlordId) serialized.landlordId = doc.landlordId.toString();
+      ['birthDate','updatedAt','createdAt','lastSeen','passwordChangedAt','sessionTokenCreatedAt']
+        .forEach(k => { if (doc[k]) serialized[k] = new Date(doc[k]).toISOString(); });
+      delete serialized.password;
+    } catch (e) { /* no-op */ }
+    return res.json(serialized);
+  } catch (e) {
+    console.error('GET /users/me error', e);
+    res.status(500).json({ message: 'Failed to fetch current user' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Get user by id without conflicting with specific subroutes
+router.get('/by-id/:userId', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    let { userId } = req.params;
+    userId = (userId || '').toString().trim();
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    const doc = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (!doc) return res.status(404).json({ message: 'User not found' });
+    const serialized = { ...doc };
+    try {
+      if (doc._id) serialized._id = doc._id.toString();
+      if (doc.propertyId) serialized.propertyId = doc.propertyId.toString();
+      if (doc.landlordId) serialized.landlordId = doc.landlordId.toString();
+      ['birthDate','updatedAt','createdAt','lastSeen','passwordChangedAt','sessionTokenCreatedAt']
+        .forEach(k => { if (doc[k]) serialized[k] = new Date(doc[k]).toISOString(); });
+      delete serialized.password;
+    } catch (e) { /* no-op */ }
+    return res.json(serialized);
+  } catch (e) {
+    console.error('GET /users/by-id/:userId error', e);
+    res.status(500).json({ message: 'Failed to fetch user' });
+  } finally {
+    await client.close();
+  }
+});
+
 // Update user profile (extended to allow setting publicKey for E2EE bootstrap)
 router.patch('/:userId', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -204,14 +266,25 @@ router.patch('/:userId', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     
-    const { userId } = req.params;
+    let { userId } = req.params;
   const { fullName, email, phone, address, profileImage, publicKey } = req.body;
     
+    // Normalize id input
+    userId = (userId || '').toString().trim();
     if (!ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID format' });
+      // Try to extract from Extended JSON like '{"$oid":"..."}'
+      const match = /\{\s*"?\$oid"?\s*:\s*"([a-fA-F0-9]{24})"\s*\}/.exec(userId);
+      if (match && match[1]) {
+        userId = match[1];
+      }
     }
+
+  const isValidObjId = ObjectId.isValid(userId);
+  const filter = isValidObjId ? { _id: new ObjectId(userId) } : { _id: userId };
+
+    console.log('[Users PATCH] userId param=%s normalized validObjId=%s filter=%j', req.params.userId, isValidObjId, filter);
     
-    // Prepare update data
+  // Prepare update data
     const updateData = {};
     if (fullName) updateData.fullName = fullName;
     if (email) updateData.email = email;
@@ -228,19 +301,79 @@ router.patch('/:userId', async (req, res) => {
     }
     
     updateData.updatedAt = new Date();
+
+    const updateKeys = Object.keys(updateData);
+    console.log('[Users PATCH] update keys=%s', updateKeys.join(','));
+
+    // If no changes provided, just return current user doc (by id or token)
+    if (updateKeys.length === 1 && updateKeys[0] === 'updatedAt') {
+      // No actual fields to update
+      let doc = await db.collection('users').findOne(filter);
+      if (!doc) {
+        const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+        if (authHeader && typeof authHeader === 'string' && authHeader.trim()) {
+          const token = authHeader.trim();
+          doc = await db.collection('users').findOne({ sessionToken: token });
+        }
+      }
+      if (!doc) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      console.log('[Users PATCH] No-op update, returning current doc id=%s', doc._id?.toString?.());
+      return res.status(200).json(doc);
+    }
     
-    const result = await db.collection('users').findOneAndUpdate(
-      { _id: new ObjectId(userId) },
+    let result = await db.collection('users').findOneAndUpdate(
+      filter,
       { $set: updateData },
       { returnDocument: 'after' }
     );
     
     if (!result.value) {
+      console.warn('[Users PATCH] Not found for filter=%j', filter);
+      // Fallback: try to resolve by session token from Authorization header
+      const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+      if (authHeader && typeof authHeader === 'string' && authHeader.trim()) {
+        const token = authHeader.trim();
+        const byToken = await db.collection('users').findOne({ sessionToken: token });
+        if (byToken) {
+          console.log('[Users PATCH] Resolved user via session token, id=%s', byToken._id.toString());
+          result = await db.collection('users').findOneAndUpdate(
+            { _id: byToken._id },
+            { $set: updateData },
+            { returnDocument: 'after' }
+          );
+          if (!result.value) {
+            console.warn('[Users PATCH] findOneAndUpdate returned null after token resolve; doing updateOne+findOne');
+            await db.collection('users').updateOne({ _id: byToken._id }, { $set: updateData });
+            const fetched = await db.collection('users').findOne({ _id: byToken._id });
+            // Shape like findOneAndUpdate result
+            if (fetched) result = { value: fetched };
+          }
+        }
+      }
+    }
+
+    if (!result.value) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    console.log(`Updated user profile for user: ${userId}`);
-    res.json(result.value);
+    const doc = result.value;
+    // Build a stable JSON-friendly user object
+    const serialized = { ...doc };
+    try {
+      if (doc._id) serialized._id = doc._id.toString();
+      if (doc.propertyId) serialized.propertyId = doc.propertyId.toString();
+      if (doc.landlordId) serialized.landlordId = doc.landlordId.toString();
+      // Coerce dates to ISO strings
+      ['birthDate','updatedAt','createdAt','lastSeen','passwordChangedAt','sessionTokenCreatedAt']
+        .forEach(k => { if (doc[k]) serialized[k] = new Date(doc[k]).toISOString(); });
+      // Remove sensitive fields
+      delete serialized.password;
+    } catch (e) {
+      console.warn('[Users PATCH] serialize warning:', e.message);
+    }
+  console.log('[Users PATCH] Updated user profile id=%s -> 200', serialized._id || userId);
+  return res.status(200).json(serialized);
   } catch (error) {
     console.error('Error updating user profile:', error);
     res.status(500).json({ message: 'Error updating user profile', error: error.message });

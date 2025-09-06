@@ -13,6 +13,7 @@ import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../widgets/invitation_card.dart';
 import '../widgets/property_email_invite_dialog.dart';
+import '../../../../core/widgets/user_avatar.dart';
 
 class ConversationsTabbedPage extends ConsumerStatefulWidget {
   const ConversationsTabbedPage({super.key});
@@ -333,8 +334,9 @@ class _ConversationsTabbedPageState
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
+        final avatar = conversation.otherParticipantAvatar ?? '';
         context.push(
-          '/chat/${conversation.id}?otherUser=${Uri.encodeComponent(conversation.otherParticipantName ?? 'Unknown User')}&otherUserId=$otherUserId',
+          '/chat/${conversation.id}?otherUser=${Uri.encodeComponent(conversation.otherParticipantName ?? 'Unknown User')}&otherUserId=$otherUserId&otherAvatar=${Uri.encodeComponent(avatar)}',
         );
       },
       child: Container(
@@ -359,22 +361,10 @@ class _ConversationsTabbedPageState
         ),
         child: Row(
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: colors.primaryAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colors.primaryAccent.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.person_outline,
-                color: colors.primaryAccent,
-                size: 24,
-              ),
+            UserAvatar(
+              imageRef: conversation.otherParticipantAvatar,
+              name: conversation.otherParticipantName,
+              size: 56,
             ),
             const SizedBox(width: 16),
             Expanded(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
+import 'package:immosync/core/widgets/user_avatar.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../../../core/providers/navigation_provider.dart';
@@ -99,19 +100,7 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
-                  child: Text(
-                    user?.fullName.substring(0, 1) ?? 'U',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: colors.primaryAccent,
-                      inherit: true,
-                    ),
-                  ),
-                ),
+                UserAvatar(imageRef: user?.profileImage, name: user?.fullName, size: 80),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

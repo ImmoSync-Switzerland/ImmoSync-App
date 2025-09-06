@@ -1496,6 +1496,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileImageUpload => 'Profilbild-Upload kommt bald';
 
   @override
+  String get forgotPasswordTitle => 'Passwort vergessen?';
+
+  @override
+  String get forgotPasswordDescription =>
+      'Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.';
+
+  @override
+  String get sendResetEmail => 'E-Mail zum Zurücksetzen senden';
+
+  @override
+  String get backToLogin => 'Zurück zum Login';
+
+  @override
+  String get passwordResetEmailSent =>
+      'E-Mail zum Zurücksetzen gesendet! Bitte prüfen Sie Ihren Posteingang.';
+
+  @override
+  String get pleaseEnterYourEmail => 'Bitte geben Sie Ihre E-Mail ein';
+
+  @override
   String get searchPropertiesLandlords =>
       'Immobilien, Vermieter, Nachrichten suchen...';
 

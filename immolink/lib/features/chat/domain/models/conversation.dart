@@ -13,6 +13,7 @@ class Conversation {
   final String? otherParticipantName;
   final String? otherParticipantEmail;
   final String? otherParticipantRole;
+  final String? otherParticipantAvatar; // GridFS id or URL
   final List<String>? participants;
   final String? matrixRoomId;
 
@@ -31,10 +32,24 @@ class Conversation {
     this.otherParticipantName,
     this.otherParticipantEmail,
     this.otherParticipantRole,
+  this.otherParticipantAvatar,
     this.participants,
   this.matrixRoomId,
   });
   factory Conversation.fromMap(Map<String, dynamic> map) {
+    String? _asId(dynamic v) {
+      if (v == null) return null;
+      if (v is String) return v;
+      if (v is Map) {
+        if (v['\$oid'] != null) return v['\$oid'].toString();
+        if (v['oid'] != null) return v['oid'].toString();
+        if (v['_id'] != null) return v['_id'].toString();
+        if (v['id'] != null) return v['id'].toString();
+      }
+      // Fallback: toString, but avoid meaningless [object Object]
+      final s = v.toString();
+      return s == 'Instance of \"_Map\"' || s == '[object Object]' ? null : s;
+    }
     return Conversation(
       id: map['_id']?.toString() ?? map['id']?.toString() ?? '',
       propertyId: map['propertyId'] ?? '',
@@ -52,6 +67,9 @@ class Conversation {
       otherParticipantName: map['otherParticipantName'],
       otherParticipantEmail: map['otherParticipantEmail'],
       otherParticipantRole: map['otherParticipantRole'],
+      otherParticipantAvatar: _asId(
+        map['otherParticipantAvatar'] ?? map['otherParticipantImage'] ?? map['profileImage']
+      ),
       participants: map['participants'] != null
           ? List<String>.from(map['participants'])
           : null,
@@ -74,6 +92,7 @@ class Conversation {
       'otherParticipantName': otherParticipantName,
       'otherParticipantEmail': otherParticipantEmail,
       'otherParticipantRole': otherParticipantRole,
+  'otherParticipantAvatar': otherParticipantAvatar,
       'participants': participants,
   'matrixRoomId': matrixRoomId,
     };

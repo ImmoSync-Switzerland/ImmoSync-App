@@ -206,7 +206,7 @@ router.post('/login', async (req, res) => {
     await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
 
     const sessionData = {
-      userId: user._id,
+      userId: user._id.toString(),
       email: user.email,
       role: user.role,
       fullName: user.fullName,
@@ -534,7 +534,7 @@ router.post('/social-login', async (req, res) => {
     const missingFields = computeMissingFields(user);
     const needCompletion = missingFields.length > 0 || user.isValidated === false;
 
-    if (!needCompletion) {
+  if (!needCompletion) {
       // Ensure session token exists / rotate
       const sessionToken = crypto.randomBytes(32).toString('hex');
       await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
@@ -542,7 +542,7 @@ router.post('/social-login', async (req, res) => {
         success: true,
         needCompletion: false,
         user: {
-          userId: user._id,
+      userId: user._id.toString(),
           email: user.email,
           role: user.role,
           fullName: user.fullName,
@@ -554,7 +554,7 @@ router.post('/social-login', async (req, res) => {
     res.json({
       success: true,
       needCompletion: true,
-      userId: user._id,
+      userId: user._id.toString(),
       missingFields
     });
   } catch (error) {
@@ -619,10 +619,10 @@ router.post('/social-complete', async (req, res) => {
     const sessionToken = crypto.randomBytes(32).toString('hex');
     await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
 
-    res.json({
+  res.json({
       success: true,
       user: {
-        userId: updatedUser._id,
+    userId: updatedUser._id.toString(),
         email: updatedUser.email,
         role: updatedUser.role,
         fullName: updatedUser.fullName,

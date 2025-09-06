@@ -10,6 +10,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../../../core/widgets/user_avatar.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -329,32 +330,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primaryAccent,
-                AppColors.primaryAccent.withValues(alpha: 0.7),
-              ],
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryAccent.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.person,
-            color: Colors.white,
-            size: 24,
-          ),
+        leading: UserAvatar(
+          imageRef: conversation.otherParticipantAvatar,
+          name: otherUserName,
+          size: 50,
         ),
         title: Text(
           otherUserName,
@@ -413,9 +392,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ),
         onTap: () {
           HapticFeedback.lightImpact();
-          context.push(
-            '/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}',
-          );
+          final avatar = conversation.otherParticipantAvatar ?? '';
+          context.push('/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         },
       ),
     );

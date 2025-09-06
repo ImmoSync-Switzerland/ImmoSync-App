@@ -1,3 +1,4 @@
+import '../../../../core/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
@@ -307,43 +308,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(20),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                isLandlord ? colors.success : colors.luxuryGold,
-                (isLandlord ? colors.success : colors.luxuryGold)
-                    .withValues(alpha: 0.7),
-              ],
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: (isLandlord ? colors.success : colors.luxuryGold)
-                    .withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              contact.fullName.isNotEmpty
-                  ? contact.fullName[0].toUpperCase()
-                  : 'U',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                inherit: true,
-              ),
-            ),
-          ),
-        ),
+  leading: UserAvatar(imageRef: contact.profileImage, name: contact.fullName, size: 50),
         title: Text(
           contact.fullName,
           style: TextStyle(
@@ -504,7 +469,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
 
       // Find or create conversation to preserve chat history
       final chatService = ref.read(chatServiceProvider);
-      final conversationId = await chatService.findOrCreateConversation(
+  final conversationId = await chatService.findOrCreateConversation(
         currentUserId: currentUser!.id,
         otherUserId: contact.id,
       );
@@ -514,8 +479,9 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         Navigator.of(context).pop();
 
         // Navigate to the existing or newly created conversation
-        context.push(
-            '/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}');
+    final avatar = contact.profileImage ?? '';
+    context.push(
+      '/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
       }
     } catch (e) {
       // Close loading dialog if open

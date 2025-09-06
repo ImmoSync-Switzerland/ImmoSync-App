@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import '../../../../core/config/db_config.dart';
+import '../../../../core/widgets/mongo_image.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/domain/services/user_service.dart';
@@ -24,6 +31,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
   bool _isLoading = false;
+  File? _selectedImageFile;
+  String? _uploadedImageIdOrUrl;
 
   @override
   void initState() {
@@ -225,18 +234,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                     ),
                   ],
                 ),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.transparent,
-                  child: Text(
-                    user?.fullName.isNotEmpty == true
-                        ? user!.fullName[0].toUpperCase()
-                        : 'U',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: colors.primaryAccent,
-                    ),
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: _buildAvatarContent(user, colors),
                   ),
                 ),
               ),
@@ -671,15 +673,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         throw Exception('User not logged in');
       }
 
-      await _userService.updateProfile(
+  final updated = await _userService.updateProfile(
         userId: currentUser!.id,
         fullName: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
+        profileImage: _uploadedImageIdOrUrl,
       );
 
-      // Update the user provider
-      ref.invalidate(currentUserProvider);
+  // Update the user provider with new model
+  ref.read(currentUserProvider.notifier).setUserModel(updated);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -773,6 +776,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
             },
             child: const Text('Camera'),
           ),
+          if (_uploadedImageIdOrUrl != null || _selectedImageFile != null)
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _uploadedImageIdOrUrl = null;
+                  _selectedImageFile = null;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Remove'),
+            ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
@@ -782,25 +796,93 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     );
   }
 
-  void _pickImageFromGallery() {
-    final colors = ref.read(dynamicColorsProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-            'Gallery image picker will be implemented with image_picker package'),
-        backgroundColor: colors.info,
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+      if (picked == null) return;
+      setState(() {
+        _selectedImageFile = File(picked.path);
+      });
+      await _uploadSelectedImage();
+    } catch (e) {
+      _showError('Failed to pick image');
+    }
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.camera, maxWidth: 1024, imageQuality: 85);
+      if (picked == null) return;
+      setState(() {
+        _selectedImageFile = File(picked.path);
+      });
+      await _uploadSelectedImage();
+    } catch (e) {
+      _showError('Failed to capture image');
+    }
+  }
+
+  Widget _buildAvatarContent(user, DynamicAppColors colors) {
+    // Priority: chosen file preview -> uploaded image id/url -> existing user.profileImage -> initials
+    if (_selectedImageFile != null) {
+      return Image.file(_selectedImageFile!, fit: BoxFit.cover);
+    }
+    final refStr = _uploadedImageIdOrUrl ?? user?.profileImage;
+    if (refStr != null && refStr.toString().isNotEmpty) {
+      return MongoImage(imageId: refStr.toString(), width: 80, height: 80, fit: BoxFit.cover);
+    }
+    return Container(
+      color: Colors.transparent,
+      child: Center(
+        child: Text(
+          user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'U',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            color: colors.primaryAccent,
+          ),
+        ),
       ),
     );
   }
 
-  void _pickImageFromCamera() {
+  Future<void> _uploadSelectedImage() async {
+    if (_selectedImageFile == null) return;
     final colors = ref.read(dynamicColorsProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-            'Camera image picker will be implemented with image_picker package'),
-        backgroundColor: colors.info,
-      ),
-    );
+    try {
+      setState(() => _isLoading = true);
+      final uri = Uri.parse('${DbConfig.apiUrl}/images/upload');
+      final req = http.MultipartRequest('POST', uri);
+      req.files.add(await http.MultipartFile.fromPath('image', _selectedImageFile!.path,
+          contentType: MediaType('image', 'jpeg')));
+      final res = await req.send();
+      final body = await res.stream.bytesToString();
+      if (res.statusCode == 200) {
+        final data = jsonDecode(body);
+        setState(() {
+          _uploadedImageIdOrUrl = data['fileId'] ?? data['url'];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Profile image uploaded'),
+          backgroundColor: colors.success,
+        ));
+      } else {
+        _showError('Upload failed (${res.statusCode})');
+      }
+    } catch (e) {
+      _showError('Failed to upload image');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    final colors = ref.read(dynamicColorsProvider);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: colors.error,
+    ));
   }
 }

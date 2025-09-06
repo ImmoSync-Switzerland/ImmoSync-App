@@ -10,6 +10,7 @@ class User {
   final bool isValidated;
   final Address address;
   final String? propertyId; // newly added, optional
+  final String? profileImage; // optional GridFS id or URL
 
   User({
     required this.id,
@@ -20,7 +21,8 @@ class User {
     required this.isAdmin,
     required this.isValidated,
     required this.address,
-    this.propertyId,
+  this.propertyId,
+  this.profileImage,
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -40,14 +42,22 @@ class User {
       userId = map['id'].toString();
     }
 
+    // Safe parse helpers
+    String _asString(dynamic v) => v?.toString() ?? '';
+    bool _asBool(dynamic v, {bool def = false}) => v is bool ? v : def;
+    DateTime _asDate(dynamic v) {
+      if (v == null) return DateTime(1970, 1, 1);
+      try { return DateTime.parse(v.toString()); } catch (_) { return DateTime(1970, 1, 1); }
+    }
+
     return User(
         id: userId,
-        email: map['email'],
-        fullName: map['fullName'],
-        birthDate: DateTime.parse(map['birthDate']),
-        role: map['role'],
-        isAdmin: map['isAdmin'],
-        isValidated: map['isValidated'],
+        email: _asString(map['email']),
+        fullName: _asString(map['fullName']),
+        birthDate: _asDate(map['birthDate']),
+        role: _asString(map['role']),
+        isAdmin: _asBool(map['isAdmin']),
+        isValidated: _asBool(map['isValidated'], def: true),
         // Provide default address when not in response
         address: map['address'] != null
             ? Address.fromMap(map['address'])
@@ -56,7 +66,10 @@ class User {
             ? (map['propertyId'] is Map && map['propertyId']['\$oid'] != null
                 ? map['propertyId']['\$oid']
                 : map['propertyId'].toString())
-            : null);
+      : null,
+    profileImage: map['profileImage'] != null
+      ? map['profileImage'].toString()
+      : null);
   }
 
   Map<String, dynamic> toMap() {
@@ -70,6 +83,7 @@ class User {
       'isValidated': isValidated,
       'address': address.toMap(),
       if (propertyId != null) 'propertyId': propertyId,
+  if (profileImage != null) 'profileImage': profileImage,
     };
   }
 }
