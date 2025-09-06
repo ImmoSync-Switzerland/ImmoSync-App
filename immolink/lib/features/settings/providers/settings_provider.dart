@@ -66,7 +66,7 @@ class AppSettings {
 // Settings notifier
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final Ref ref;
-  
+
   SettingsNotifier(this.ref) : super(AppSettings()) {
     _loadSettings();
   }
@@ -89,7 +89,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         pushNotifications: pushNotifications,
         paymentReminders: paymentReminders,
       );
-      
+
       // Update providers with loaded settings
       _updateProviders();
     } catch (e) {
@@ -97,13 +97,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       print('Error loading settings: $e');
     }
   }
+
   void _updateProviders() {
     // Update locale provider
     ref.read(localeProvider.notifier).updateLanguage(state.language);
-    
+
     // Update currency provider
     ref.read(currencyProvider.notifier).setCurrency(state.currency);
-    
+
     // Update theme provider
     ref.read(themeModeProvider.notifier).updateTheme(state.theme);
   }
@@ -121,6 +122,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       print('Error saving settings: $e');
     }
   }
+
   Future<void> updateLanguage(String language) async {
     state = state.copyWith(language: language);
     await _saveSettings();
@@ -161,6 +163,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 }
 
 // Provider
-final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
   return SettingsNotifier(ref);
 });

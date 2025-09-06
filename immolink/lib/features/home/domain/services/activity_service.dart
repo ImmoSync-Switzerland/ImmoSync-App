@@ -7,7 +7,8 @@ class ActivityService {
   static String get baseUrl => DbConfig.apiUrl;
 
   // Get recent activities for a user
-  Future<List<Activity>> getRecentActivities(String userId, {int limit = 10}) async {
+  Future<List<Activity>> getRecentActivities(String userId,
+      {int limit = 10}) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/activities/user/$userId?limit=$limit'),
@@ -65,7 +66,8 @@ class ActivityService {
       Activity(
         id: '1',
         title: 'Rent Payment Processed',
-        description: 'Monthly rent payment of \$1,200 was successfully processed',
+        description:
+            'Monthly rent payment of \$1,200 was successfully processed',
         type: 'payment',
         timestamp: now.subtract(Duration(hours: 2)),
         relatedId: 'payment_123',
@@ -101,7 +103,8 @@ class ActivityService {
       Activity(
         id: '5',
         title: 'Service Booking Confirmed',
-        description: 'Trash collection service booking confirmed for weekly pickup',
+        description:
+            'Trash collection service booking confirmed for weekly pickup',
         type: 'service',
         timestamp: now.subtract(Duration(days: 7)),
         relatedId: 'service_202',

@@ -25,11 +25,12 @@ class LandlordDashboard extends ConsumerStatefulWidget {
   ConsumerState<LandlordDashboard> createState() => _LandlordDashboardState();
 }
 
-class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with TickerProviderStateMixin {
+class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
-  
+
   // Dashboard data
   final DashboardService _dashboardService = DashboardService();
   List<Conversation> _recentMessages = [];
@@ -43,7 +44,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     if (screenWidth < 360) {
       return baseFontSize * 0.85; // Smaller phones
     } else if (screenWidth < 400) {
-      return baseFontSize * 0.9;  // Medium phones
+      return baseFontSize * 0.9; // Medium phones
     }
     return baseFontSize; // Tablets and larger
   }
@@ -107,13 +108,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
-  final l10n = AppLocalizations.of(context)!;
-    
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: AppTopBar(
-  title: null,
+        title: null,
         leading: IconButton(
           tooltip: 'Refresh',
           icon: Icon(Icons.refresh, color: colors.primaryAccent, size: 22),
@@ -133,101 +134,106 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           ),
         ),
         child: SafeArea(
-        child: propertiesAsync.when(
-          data: (properties) => AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _slideAnimation.value),
-                child: Opacity(
-                  opacity: _fadeAnimation.value,
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      HapticFeedback.lightImpact();
-                      // Manually trigger property refresh
-                      final t = ref.read(propertyRefreshTriggerProvider.notifier);
-                      t.state = t.state + 1;
-                      // Also reload dashboard-specific aggregates
-                      await _loadDashboardData();
-                    },
-                    color: colors.primaryAccent,
-                    backgroundColor: colors.primaryBackground,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildWelcomeSection(currentUser?.fullName ?? AppLocalizations.of(context)!.propertyManager),
-                          const SizedBox(height: 32),
-                          _buildSearchBar(),
-                          const SizedBox(height: 32),
-                          _buildFinancialOverview(properties, l10n),
-                          const SizedBox(height: 24),
-                          _buildQuickAccess(),
-                          const SizedBox(height: 24),
-                          _buildPropertyOverview(properties, l10n),
-                          const SizedBox(height: 24),
-                          _buildRecentMessages(),
-                          const SizedBox(height: 24),
-                          _buildMaintenanceRequests(),
-                          const SizedBox(height: 100), // Increased padding for bottom nav + FAB
-                        ],
+          child: propertiesAsync.when(
+            data: (properties) => AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, _slideAnimation.value),
+                  child: Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        HapticFeedback.lightImpact();
+                        // Manually trigger property refresh
+                        final t =
+                            ref.read(propertyRefreshTriggerProvider.notifier);
+                        t.state = t.state + 1;
+                        // Also reload dashboard-specific aggregates
+                        await _loadDashboardData();
+                      },
+                      color: colors.primaryAccent,
+                      backgroundColor: colors.primaryBackground,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildWelcomeSection(currentUser?.fullName ??
+                                AppLocalizations.of(context)!.propertyManager),
+                            const SizedBox(height: 32),
+                            _buildSearchBar(),
+                            const SizedBox(height: 32),
+                            _buildFinancialOverview(properties, l10n),
+                            const SizedBox(height: 24),
+                            _buildQuickAccess(),
+                            const SizedBox(height: 24),
+                            _buildPropertyOverview(properties, l10n),
+                            const SizedBox(height: 24),
+                            _buildRecentMessages(),
+                            const SizedBox(height: 24),
+                            _buildMaintenanceRequests(),
+                            const SizedBox(
+                                height:
+                                    100), // Increased padding for bottom nav + FAB
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-          loading: () => Consumer(
-            builder: (context, ref, child) {
-              final colors = ref.watch(dynamicColorsProvider);
-              return Center(
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-                    strokeWidth: 2.5,
+                );
+              },
+            ),
+            loading: () => Consumer(
+              builder: (context, ref, child) {
+                final colors = ref.watch(dynamicColorsProvider);
+                return Center(
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                      strokeWidth: 2.5,
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-          error: (error, stack) => Consumer(
-            builder: (context, ref, child) {
-              final colors = ref.watch(dynamicColorsProvider);
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: colors.error),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.somethingWentWrong,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                        inherit: true,
+                );
+              },
+            ),
+            error: (error, stack) => Consumer(
+              builder: (context, ref, child) {
+                final colors = ref.watch(dynamicColorsProvider);
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 48, color: colors.error),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)!.somethingWentWrong,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: colors.textPrimary,
+                          inherit: true,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppLocalizations.of(context)!.pleaseTryAgainLater,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textTertiary,
-                        inherit: true,
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context)!.pleaseTryAgainLater,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colors.textTertiary,
+                          inherit: true,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-        ),
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
@@ -239,7 +245,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   Widget _buildWelcomeSection(String name) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -346,6 +352,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       ),
     );
   }
+
   Widget _buildSearchBar() {
     final l10n = AppLocalizations.of(context)!;
     return Container(
@@ -383,7 +390,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           prefixIcon: Container(
             padding: const EdgeInsets.all(12),
             child: Icon(
-              Icons.search_outlined, 
+              Icons.search_outlined,
               color: const Color(0xFF64748B),
               size: 20,
             ),
@@ -391,13 +398,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           suffixIcon: Container(
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _propertyFilter != 'all' 
-                ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
-                : const Color(0xFFF1F5F9),
+              color: _propertyFilter != 'all'
+                  ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+                  : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(8),
-              border: _propertyFilter != 'all' 
-                ? Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3))
-                : null,
+              border: _propertyFilter != 'all'
+                  ? Border.all(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.3))
+                  : null,
             ),
             child: Stack(
               children: [
@@ -408,9 +416,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   },
                   icon: Icon(
                     Icons.filter_list_outlined,
-                    color: _propertyFilter != 'all' 
-                      ? const Color(0xFF3B82F6)
-                      : const Color(0xFF64748B),
+                    color: _propertyFilter != 'all'
+                        ? const Color(0xFF3B82F6)
+                        : const Color(0xFF64748B),
                     size: 18,
                   ),
                 ),
@@ -431,7 +439,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
         style: TextStyle(
           color: const Color(0xFF0F172A),
@@ -443,7 +452,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildFinancialOverview(List<Property> properties, AppLocalizations l10n) {
+  Widget _buildFinancialOverview(
+      List<Property> properties, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     final totalRevenue = properties
         .where((p) => p.status == 'rented')
@@ -527,7 +537,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildFinancialCard(String title, String amount, IconData icon, Color color) {
+  Widget _buildFinancialCard(
+      String title, String amount, IconData icon, Color color) {
     final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
       onTap: () {
@@ -561,15 +572,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: title.toLowerCase().contains('outstanding') 
+                    color: title.toLowerCase().contains('outstanding')
                         ? colors.warningLight
                         : colors.successLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    icon, 
-                    size: 20, 
-                    color: title.toLowerCase().contains('outstanding') 
+                    icon,
+                    size: 20,
+                    color: title.toLowerCase().contains('outstanding')
                         ? colors.warning
                         : colors.success,
                   ),
@@ -904,7 +915,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildQuickAccessButton(String label, IconData icon, Color iconColor, VoidCallback onPressed) {
+  Widget _buildQuickAccessButton(
+      String label, IconData icon, Color iconColor, VoidCallback onPressed) {
     final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
       onTap: onPressed,
@@ -962,7 +974,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 ],
               ),
               child: Icon(
-                icon, 
+                icon,
                 size: 20,
                 color: iconColor,
               ),
@@ -986,16 +998,20 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     );
   }
 
-  Widget _buildSubscriptionAwareButton(String label, IconData icon, Color iconColor, VoidCallback onPressed) {
+  Widget _buildSubscriptionAwareButton(
+      String label, IconData icon, Color iconColor, VoidCallback onPressed) {
     final colors = ref.watch(dynamicColorsProvider);
     final subscriptionAsync = ref.watch(userSubscriptionProvider);
-    
+
     return subscriptionAsync.when(
       data: (subscription) {
-        final hasActiveSubscription = subscription != null && subscription.status == 'active';
-        
+        final hasActiveSubscription =
+            subscription != null && subscription.status == 'active';
+
         return GestureDetector(
-          onTap: hasActiveSubscription ? onPressed : () => _showSubscriptionRequiredDialog(),
+          onTap: hasActiveSubscription
+              ? onPressed
+              : () => _showSubscriptionRequiredDialog(),
           child: Container(
             height: 120, // Fixed height for consistency
             padding: const EdgeInsets.all(14),
@@ -1003,22 +1019,28 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: hasActiveSubscription ? [
-                  iconColor.withValues(alpha: 0.15),
-                  iconColor.withValues(alpha: 0.08),
-                ] : [
-                  colors.textTertiary.withValues(alpha: 0.15),
-                  colors.textTertiary.withValues(alpha: 0.08),
-                ],
+                colors: hasActiveSubscription
+                    ? [
+                        iconColor.withValues(alpha: 0.15),
+                        iconColor.withValues(alpha: 0.08),
+                      ]
+                    : [
+                        colors.textTertiary.withValues(alpha: 0.15),
+                        colors.textTertiary.withValues(alpha: 0.08),
+                      ],
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: hasActiveSubscription ? iconColor.withValues(alpha: 0.2) : colors.textTertiary.withValues(alpha: 0.2),
+                color: hasActiveSubscription
+                    ? iconColor.withValues(alpha: 0.2)
+                    : colors.textTertiary.withValues(alpha: 0.2),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: hasActiveSubscription ? iconColor.withValues(alpha: 0.15) : colors.textTertiary.withValues(alpha: 0.15),
+                  color: hasActiveSubscription
+                      ? iconColor.withValues(alpha: 0.15)
+                      : colors.textTertiary.withValues(alpha: 0.15),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                   spreadRadius: 0,
@@ -1056,9 +1078,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     alignment: Alignment.center,
                     children: [
                       Icon(
-                        icon, 
+                        icon,
                         size: 20,
-                        color: hasActiveSubscription ? iconColor : colors.textTertiary,
+                        color: hasActiveSubscription
+                            ? iconColor
+                            : colors.textTertiary,
                       ),
                       if (!hasActiveSubscription)
                         Positioned(
@@ -1079,7 +1103,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: hasActiveSubscription ? colors.textPrimary : colors.textTertiary,
+                    color: hasActiveSubscription
+                        ? colors.textPrimary
+                        : colors.textTertiary,
                     letterSpacing: -0.2,
                   ),
                   textAlign: TextAlign.center,
@@ -1117,7 +1143,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   void _showSubscriptionRequiredDialog() {
     final colors = ref.read(dynamicColorsProvider);
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1157,11 +1183,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               decoration: BoxDecoration(
                 color: colors.primaryAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: colors.primaryAccent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.star_outline, color: colors.primaryAccent, size: 20),
+                  Icon(Icons.star_outline,
+                      color: colors.primaryAccent, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1194,7 +1222,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: Text(l10n.viewPlans),
           ),
@@ -1231,7 +1260,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     }
   }
 
-  Widget _buildPropertyOverview(List<Property> properties, AppLocalizations l10n) {
+  Widget _buildPropertyOverview(
+      List<Property> properties, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     final filteredProperties = _filterProperties(properties);
     return Container(
@@ -1300,9 +1330,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                     const SizedBox(width: 18),
                     Expanded(
                       child: Text(
-                        _propertyFilter == 'all' 
-                          ? l10n.properties 
-                          : '${l10n.properties} (${_getFilterDisplayName()})',
+                        _propertyFilter == 'all'
+                            ? l10n.properties
+                            : '${l10n.properties} (${_getFilterDisplayName()})',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -1315,11 +1345,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: colors.primaryAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: colors.primaryAccent.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   '${filteredProperties.length} ${l10n.total}',
@@ -1335,9 +1367,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           ),
           const SizedBox(height: 28),
           ...filteredProperties.take(3).map((property) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _buildPropertyCard(property),
-          )),
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildPropertyCard(property),
+              )),
           if (filteredProperties.length > 3)
             GestureDetector(
               onTap: () {
@@ -1348,7 +1380,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
-                  border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: colors.primaryAccent.withValues(alpha: 0.2)),
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
                     begin: Alignment.centerLeft,
@@ -1388,8 +1421,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
 
   Widget _buildPropertyCard(Property property) {
     final colors = ref.watch(dynamicColorsProvider);
-    final statusColor = property.status == 'rented' ? colors.success : 
-                      property.status == 'available' ? colors.primaryAccent : colors.warning;
+    final statusColor = property.status == 'rented'
+        ? colors.success
+        : property.status == 'available'
+            ? colors.primaryAccent
+            : colors.warning;
 
     return GestureDetector(
       onTap: () {
@@ -1431,18 +1467,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   color: statusColor.withValues(alpha: 0.2),
                   width: 1,
                 ),
-                color: property.imageUrls.isEmpty 
-                  ? statusColor.withValues(alpha: 0.1)
-                  : null,
+                color: property.imageUrls.isEmpty
+                    ? statusColor.withValues(alpha: 0.1)
+                    : null,
               ),
               clipBehavior: Clip.antiAlias,
-              child: property.imageUrls.isNotEmpty 
-                ? _buildPropertyImage(property.imageUrls.first)
-                : Icon(
-                    Icons.home_outlined,
-                    color: statusColor,
-                    size: 24,
-                  ),
+              child: property.imageUrls.isNotEmpty
+                  ? _buildPropertyImage(property.imageUrls.first)
+                  : Icon(
+                      Icons.home_outlined,
+                      color: statusColor,
+                      size: 24,
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1494,7 +1530,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   color: statusColor.withValues(alpha: 0.2),
                   width: 1,
                 ),
-              ),              
+              ),
               child: Text(
                 _getLocalizedStatus(property.status),
                 style: TextStyle(
@@ -1601,12 +1637,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               ),
             )
           else
-            ..._recentMessages.map((conversation) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildMessageItem(
-                conversation,
-              ),
-            )).toList(),
+            ..._recentMessages
+                .map((conversation) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildMessageItem(
+                        conversation,
+                      ),
+                    ))
+                .toList(),
         ],
       ),
     );
@@ -1659,7 +1697,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
                   width: 1,
                 ),
               ),
-              child: Icon(Icons.chat_bubble_outline, color: colors.primaryAccent, size: 20),
+              child: Icon(Icons.chat_bubble_outline,
+                  color: colors.primaryAccent, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1724,30 +1763,27 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Amount: $amount', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Total Amount: $amount',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              const Text('Breakdown:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Text('Breakdown:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              if (title.contains('Revenue'))
-                ...[
-                  const Text('• Rent payments: \$8,500'),
-                  const Text('• Late fees: \$200'),
-                  const Text('• Service charges: \$300'),
-                ]
-              else if (title.contains('Expenses'))
-                ...[
-                  const Text('• Maintenance: \$1,200'),
-                  const Text('• Utilities: \$800'),
-                  const Text('• Insurance: \$400'),
-                  const Text('• Property management: \$600'),
-                ]
-              else if (title.contains('Profit'))
-                ...[
-                  const Text('• Total Revenue: \$9,000'),
-                  const Text('• Total Expenses: \$3,000'),
-                  const Text('• Net Profit: \$6,000'),
-                ]
-              else
+              if (title.contains('Revenue')) ...[
+                const Text('• Rent payments: \$8,500'),
+                const Text('• Late fees: \$200'),
+                const Text('• Service charges: \$300'),
+              ] else if (title.contains('Expenses')) ...[
+                const Text('• Maintenance: \$1,200'),
+                const Text('• Utilities: \$800'),
+                const Text('• Insurance: \$400'),
+                const Text('• Property management: \$600'),
+              ] else if (title.contains('Profit')) ...[
+                const Text('• Total Revenue: \$9,000'),
+                const Text('• Total Expenses: \$3,000'),
+                const Text('• Net Profit: \$6,000'),
+              ] else
                 const Text('Detailed breakdown coming soon...'),
             ],
           ),
@@ -1762,7 +1798,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
               Navigator.of(context).pop();
               // Here you would navigate to full financial reports page
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Full financial reports coming soon!')),
+                const SnackBar(
+                    content: Text('Full financial reports coming soon!')),
               );
             },
             child: const Text('View Full Report'),
@@ -1784,7 +1821,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       print('Error navigating to chat: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Chat kann nicht geöffnet werden. Bitte versuchen Sie es erneut.'),
+          content: Text(
+              'Chat kann nicht geöffnet werden. Bitte versuchen Sie es erneut.'),
           backgroundColor: colors.error,
         ),
       );
@@ -1868,7 +1906,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
           const SizedBox(height: 24),
           if (_isLoadingDashboardData)
             const Center(child: CircularProgressIndicator())
-          else if (_recentMaintenanceRequests.where((request) => request.status != 'completed').isEmpty)
+          else if (_recentMaintenanceRequests
+              .where((request) => request.status != 'completed')
+              .isEmpty)
             Container(
               padding: const EdgeInsets.all(20),
               child: Text(
@@ -1884,22 +1924,24 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
             ..._recentMaintenanceRequests
                 .where((request) => request.status != 'completed')
                 .map((request) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildMaintenanceCard(
-                request,
-                context,
-              ),
-            )).toList(),
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildMaintenanceCard(
+                        request,
+                        context,
+                      ),
+                    ))
+                .toList(),
         ],
       ),
     );
   }
 
-  Widget _buildMaintenanceCard(MaintenanceRequest request, BuildContext context) {
+  Widget _buildMaintenanceCard(
+      MaintenanceRequest request, BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
     Color priorityColor = _getPriorityColor(request.priority);
     IconData icon = CategoryUtils.getCategoryIcon(request.category);
-    
+
     return GestureDetector(
       onTap: () {
         context.push('/maintenance/${request.id}');
@@ -2054,7 +2096,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       ),
     );
   }
-  
+
   String _getLocalizedStatus(String status) {
     final l10n = AppLocalizations.of(context)!;
     switch (status.toLowerCase()) {
@@ -2070,7 +2112,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
   String _getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -2174,7 +2216,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
       );
     }
     // Check if it's a MongoDB ObjectId (24 hex characters)
-    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+    if (imageIdOrPath.length == 24 &&
+        RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
       return MongoImage(
         imageId: resolved,
         fit: BoxFit.cover,
@@ -2234,4 +2277,3 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> with Tick
     }
   }
 }
-

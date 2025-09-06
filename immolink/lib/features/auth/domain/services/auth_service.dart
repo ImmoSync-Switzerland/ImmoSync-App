@@ -57,7 +57,7 @@ class AuthService {
   }) async {
     print('AuthService: Making login request to: $_apiUrl/auth/login');
     print('AuthService: Login email: $email');
-    
+
     final response = await http.post(
       Uri.parse('$_apiUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
@@ -99,7 +99,7 @@ class AuthService {
       print('AuthService: Error parsing error response: $e');
       errorMessage = 'Login failed - Invalid response';
     }
-    
+
     print('AuthService: Throwing exception: $errorMessage');
     throw Exception(errorMessage);
   }
@@ -163,7 +163,7 @@ class AuthService {
     final response = await http.post(
       Uri.parse('$_apiUrl/auth/social-login'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({ 'provider': provider, 'idToken': idToken }),
+      body: json.encode({'provider': provider, 'idToken': idToken}),
     );
 
     final data = json.decode(response.body);
@@ -211,4 +211,3 @@ class AuthService {
     throw Exception(data['message'] ?? 'Profile completion failed');
   }
 }
-

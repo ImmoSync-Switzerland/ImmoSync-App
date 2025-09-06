@@ -13,12 +13,12 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> 
+class _LoginPageState extends ConsumerState<LoginPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -37,15 +37,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    
+
     _controller.forward();
   }
 
@@ -53,9 +53,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Widget build(BuildContext context) {
     // Listen to auth state changes
     ref.listen<AuthState>(authProvider, (previous, current) {
-      print('LoginPage: Auth state changed - isAuth=${current.isAuthenticated}, error=${current.error}, loading=${current.isLoading}');
-      print('LoginPage: _isShowingErrorDialog=$_isShowingErrorDialog, mounted=$mounted');
-      
+      print(
+          'LoginPage: Auth state changed - isAuth=${current.isAuthenticated}, error=${current.error}, loading=${current.isLoading}');
+      print(
+          'LoginPage: _isShowingErrorDialog=$_isShowingErrorDialog, mounted=$mounted');
+
       if (current.isAuthenticated) {
         print('LoginPage: User authenticated, navigating to /home');
         // Clear any previous error
@@ -63,7 +65,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           _currentError = null;
         });
         if (mounted) {
-          context.go('/home');  // Navigate when authenticated
+          context.go('/home'); // Navigate when authenticated
         }
       } else if (current.error != null && !current.isLoading) {
         // Set error state to display inline
@@ -73,12 +75,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
           _currentError = current.error;
         });
         print('LoginPage: _currentError after setState: $_currentError');
-        
+
         // Also try dialog if mounted and not already showing
         if (mounted && !_isShowingErrorDialog) {
           print('LoginPage: Showing error dialog for: ${current.error}');
           _isShowingErrorDialog = true;
-          
+
           // Show a SnackBar as a fallback if dialog doesn't work
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -88,7 +90,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               behavior: SnackBarBehavior.floating,
             ),
           );
-          
+
           _showErrorDialog(context, current.error!);
         }
       } else if (current.isLoading) {
@@ -97,7 +99,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
           _currentError = null;
         });
       } else if (current.error != null) {
-        print('LoginPage: Error exists but not showing dialog - loading: ${current.isLoading}, _isShowingErrorDialog: $_isShowingErrorDialog, mounted: $mounted');
+        print(
+            'LoginPage: Error exists but not showing dialog - loading: ${current.isLoading}, _isShowingErrorDialog: $_isShowingErrorDialog, mounted: $mounted');
       }
     });
 
@@ -121,7 +124,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
           child: Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0, vertical: 32.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -140,6 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       ),
     );
   }
+
   Widget _buildLogo() {
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -342,6 +347,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       ),
     );
   }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required IconData icon,
@@ -393,7 +399,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         filled: true,
         fillColor: AppColors.primaryBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: AppColors.borderLight, width: 1.5),
@@ -445,13 +452,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
             print('LoginPage: Login button pressed - calling auth provider');
-            print('LoginPage: Login attempt with: ${_emailController.text}'); // Debug log
-            
+            print(
+                'LoginPage: Login attempt with: ${_emailController.text}'); // Debug log
+
             await ref.read(authProvider.notifier).login(
-              _emailController.text,
-              _passwordController.text,
-            );
-            
+                  _emailController.text,
+                  _passwordController.text,
+                );
+
             if (mounted) {
               print('LoginPage: Auth provider login call completed');
             } else {
@@ -536,7 +544,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           onPressed: _handleGoogle,
         ),
         const SizedBox(width: 16),
-  // Apple login temporarily removed
+        // Apple login temporarily removed
       ],
     );
   }
@@ -579,16 +587,22 @@ class _LoginPageState extends ConsumerState<LoginPage>
       final auth = await account.authentication;
       final idToken = auth.idToken;
       if (idToken == null) {
-        setState(() { _currentError = 'Google Sign-In fehlgeschlagen (kein Token)'; });
+        setState(() {
+          _currentError = 'Google Sign-In fehlgeschlagen (kein Token)';
+        });
         return;
       }
-      await ref.read(authProvider.notifier).socialLogin(provider: 'google', idToken: idToken);
+      await ref
+          .read(authProvider.notifier)
+          .socialLogin(provider: 'google', idToken: idToken);
       final st = ref.read(authProvider);
       if (st.needsProfileCompletion && mounted) {
         context.push('/complete-profile');
       }
     } catch (e) {
-      setState(() { _currentError = 'Google Sign-In Fehler: $e'; });
+      setState(() {
+        _currentError = 'Google Sign-In Fehler: $e';
+      });
     }
   }
 
@@ -628,14 +642,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   void _showErrorDialog(BuildContext context, String error) {
     print('LoginPage: _showErrorDialog called with error: $error');
-    print('LoginPage: Context is valid: ${context.mounted}, Widget mounted: $mounted');
-    
+    print(
+        'LoginPage: Context is valid: ${context.mounted}, Widget mounted: $mounted');
+
     if (!mounted) {
       print('LoginPage: Widget not mounted, skipping dialog');
       _isShowingErrorDialog = false;
       return;
     }
-    
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -735,11 +750,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
   String _formatErrorMessage(String error) {
     // Remove "Exception: " prefix if present
     String cleanError = error.replaceFirst('Exception: ', '');
-    
+
     // Clean up common error messages to be more user-friendly
-    if (cleanError.contains('Invalid credentials') || cleanError.contains('401')) {
+    if (cleanError.contains('Invalid credentials') ||
+        cleanError.contains('401')) {
       return 'Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Zugangsdaten und versuchen Sie es erneut.';
-    } else if (cleanError.contains('Network') || cleanError.contains('connection') || cleanError.contains('Connection refused')) {
+    } else if (cleanError.contains('Network') ||
+        cleanError.contains('connection') ||
+        cleanError.contains('Connection refused')) {
       return 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.';
     } else if (cleanError.contains('timeout')) {
       return 'Zeitüberschreitung der Anfrage. Bitte versuchen Sie es erneut.';
@@ -748,7 +766,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
     } else if (cleanError.toLowerCase().contains('login failed')) {
       return 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.';
     } else {
-      return cleanError.isNotEmpty ? cleanError : 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.';
+      return cleanError.isNotEmpty
+          ? cleanError
+          : 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.';
     }
   }
 

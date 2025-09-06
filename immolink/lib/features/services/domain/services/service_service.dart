@@ -22,10 +22,11 @@ class ServiceService {
       if (availability != null) queryParams['availability'] = availability;
       if (landlordId != null) queryParams['landlordId'] = landlordId;
 
-      final uri = Uri.parse('$_baseUrl/services').replace(queryParameters: queryParams);
-      
+      final uri =
+          Uri.parse('$_baseUrl/services').replace(queryParameters: queryParams);
+
       print('ServiceService: Fetching services from $uri');
-      
+
       final response = await http.get(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -54,12 +55,14 @@ class ServiceService {
 
   // Get services available to a tenant (for a specific landlord)
   Future<List<Service>> getServicesForTenant(String landlordId) async {
-    print('ServiceService: getServicesForTenant called with landlordId: $landlordId');
+    print(
+        'ServiceService: getServicesForTenant called with landlordId: $landlordId');
     final result = await getServices(
       landlordId: landlordId,
       availability: 'available',
     );
-    print('ServiceService: getServicesForTenant returning ${result.length} services');
+    print(
+        'ServiceService: getServicesForTenant returning ${result.length} services');
     return result;
   }
 

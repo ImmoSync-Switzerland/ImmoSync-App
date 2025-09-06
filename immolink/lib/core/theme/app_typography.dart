@@ -8,54 +8,54 @@ class AppTypography {
     fontWeight: FontWeight.w600, // Semibold
     height: 32 / 24, // Line height 32pt / font size 24pt
   );
-  
+
   static TextStyle heading2 = GoogleFonts.inter(
     fontSize: 20,
     fontWeight: FontWeight.w600, // Semibold
     height: 28 / 20, // Line height 28pt / font size 20pt
   );
-  
+
   static TextStyle subhead = GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w500, // Medium
     height: 24 / 16, // Line height 24pt / font size 16pt
   );
-  
+
   static TextStyle body = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w400, // Regular
     height: 20 / 14, // Line height 20pt / font size 14pt
   );
-  
+
   static TextStyle caption = GoogleFonts.inter(
     fontSize: 12,
     fontWeight: FontWeight.w400, // Regular
     height: 16 / 12, // Line height 16pt / font size 12pt
   );
-  
+
   // Additional text styles for specific use cases
   static TextStyle bodySecondary = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 20 / 14,
   );
-  
+
   static TextStyle captionPrimary = GoogleFonts.inter(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 16 / 12,
   );
-  
+
   static TextStyle buttonText = GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w600, // Semibold
   );
-  
+
   static TextStyle tabActive = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w600, // Semibold
   );
-  
+
   static TextStyle tabInactive = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w500, // Medium

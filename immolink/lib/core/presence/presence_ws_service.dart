@@ -5,12 +5,20 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../config/db_config.dart';
 import '../crypto/e2ee_service.dart';
 
+// Global ref holder for components needing access outside widget tree (e.g., history decryption)
+class PresenceWsServiceRefHolder {
+  static Ref? ref;
+  static void bind(Ref r) {
+    ref = r;
+  }
+}
 
 class PresenceUpdate {
   final String userId;
   final bool online;
   final DateTime lastSeen;
-  PresenceUpdate({required this.userId, required this.online, required this.lastSeen});
+  PresenceUpdate(
+      {required this.userId, required this.online, required this.lastSeen});
 }
 
 class PresenceWsService {
@@ -18,23 +26,37 @@ class PresenceWsService {
   IO.Socket? _chatSocket;
   final _controller = StreamController<PresenceUpdate>.broadcast();
   final _chatController = StreamController<Map<String, dynamic>>.broadcast();
-  final _conversationController = StreamController<Map<String, dynamic>>.broadcast();
+  final _conversationController =
+      StreamController<Map<String, dynamic>>.broadcast();
   List<Map<String, dynamic>> _pendingMessages = [];
+  // Pending read receipts keyed by conversationId (values are messageId sets)
+  final Map<String, Set<String>> _pendingReads = {};
   Timer? _pingTimer;
   String? _userId;
   String? _token;
 
   Stream<PresenceUpdate> get stream => _controller.stream;
   Stream<Map<String, dynamic>> get chatStream => _chatController.stream;
-  Stream<Map<String, dynamic>> get conversationStream => _conversationController.stream;
+  Stream<Map<String, dynamic>> get conversationStream =>
+      _conversationController.stream;
 
   Future<void> connect({required String userId, required String token}) async {
-  if (_presenceSocket != null) return;
-  _userId = userId;
-  _token = token;
-  var base = DbConfig.wsUrl; // e.g. wss://host or wss://host/
-  while (base.endsWith('/')) { base = base.substring(0, base.length - 1); }
-  print('[WS][connect] attempting user=$userId base=$base');
+    // If sockets already exist, only keep them if identity (userId/token) matches.
+    if (_presenceSocket != null) {
+      final sameIdentity = (_userId == userId) && (_token == token);
+      if (sameIdentity) {
+        return; // already connected with correct identity
+      }
+      // Identity changed (e.g., switched user). Tear down old sockets and state.
+      _teardownSockets();
+    }
+    _userId = userId;
+    _token = token;
+    var base = DbConfig.wsUrl; // e.g. wss://host or wss://host/
+    while (base.endsWith('/')) {
+      base = base.substring(0, base.length - 1);
+    }
+    print('[WS][connect] attempting user=$userId base=$base');
     final opt = IO.OptionBuilder()
         .setTransports(['websocket'])
         .disableAutoConnect()
@@ -45,47 +67,86 @@ class PresenceWsService {
 
     _presenceSocket!
       ..onConnect((_) {
-    print('[WS][presence] connected id=${_presenceSocket?.id}');
-        _pingTimer = Timer.periodic(const Duration(seconds: 25), (_) => _ping());
+        print('[WS][presence] connected id=${_presenceSocket?.id}');
+        _pingTimer =
+            Timer.periodic(const Duration(seconds: 25), (_) => _ping());
       })
-  ..on('connect_error', (err) { print('[WS][presence][connect_error] $err'); })
-  ..on('reconnect_attempt', (attempt) { print('[WS][presence][reconnect_attempt] $attempt'); })
-  ..on('reconnecting', (attempt) { print('[WS][presence][reconnecting] $attempt'); })
-  ..on('reconnect_failed', (_) { print('[WS][presence][reconnect_failed]'); })
+      ..on('connect_error', (err) {
+        print('[WS][presence][connect_error] $err');
+      })
+      ..on('reconnect_attempt', (attempt) {
+        print('[WS][presence][reconnect_attempt] $attempt');
+      })
+      ..on('reconnecting', (attempt) {
+        print('[WS][presence][reconnecting] $attempt');
+      })
+      ..on('reconnect_failed', (_) {
+        print('[WS][presence][reconnect_failed]');
+      })
       ..on('presence:update', (data) {
         if (data is Map) {
           _controller.add(PresenceUpdate(
             userId: data['userId']?.toString() ?? '',
             online: data['online'] == true,
-            lastSeen: DateTime.tryParse(data['lastSeen']?.toString() ?? '') ?? DateTime.now(),
+            lastSeen: DateTime.tryParse(data['lastSeen']?.toString() ?? '') ??
+                DateTime.now(),
           ));
         }
       })
       ..onDisconnect((_) => _scheduleReconnect())
-      ..onError((err) { print('[WS][presence] error $err'); _scheduleReconnect(); });
+      ..onError((err) {
+        print('[WS][presence] error $err');
+        _scheduleReconnect();
+      });
 
     _chatSocket!
       ..onConnect((_) {
-        print('[WS][chat] connected id=${_chatSocket?.id} pending=${_pendingMessages.length}');
+        print(
+            '[WS][chat] connected id=${_chatSocket?.id} pending=${_pendingMessages.length}');
         // Replay any queued conversation create or message events
-        final queuedCreates = _pendingMessages.where((m) => m['__create'] == true).toList();
-        final queuedMessages = _pendingMessages.where((m) => m['__create'] != true).toList();
+        final queuedCreates =
+            _pendingMessages.where((m) => m['__create'] == true).toList();
+        final queuedMessages =
+            _pendingMessages.where((m) => m['__create'] != true).toList();
         for (final c in queuedCreates) {
           _chatSocket!.emit('chat:create', {
             'otherUserId': c['otherUserId'],
-            if (c['initialMessage'] != null) 'initialMessage': c['initialMessage']
+            if (c['initialMessage'] != null)
+              'initialMessage': c['initialMessage']
           });
         }
         for (final m in queuedMessages) {
           _chatSocket!.emit('chat:message', m);
         }
         _pendingMessages.clear();
+        // Flush any pending read receipts accumulated while disconnected
+        if (_pendingReads.isNotEmpty) {
+          final entries = Map<String, Set<String>>.from(_pendingReads);
+          _pendingReads.clear();
+          entries.forEach((convId, ids) {
+            if (ids.isNotEmpty) {
+              _chatSocket!.emit('chat:read', {
+                'conversationId': convId,
+                'messageIds': ids.toList(),
+              });
+            }
+          });
+          print('[WS][chat] flushed pending read receipts for ${entries.length} conversations');
+        }
         print('[WS][chat] replay complete');
       })
-  ..on('connect_error', (err) { print('[WS][chat][connect_error] $err'); })
-  ..on('reconnect_attempt', (attempt) { print('[WS][chat][reconnect_attempt] $attempt'); })
-  ..on('reconnecting', (attempt) { print('[WS][chat][reconnecting] $attempt'); })
-  ..on('reconnect_failed', (_) { print('[WS][chat][reconnect_failed]'); })
+      ..on('connect_error', (err) {
+        print('[WS][chat][connect_error] $err');
+      })
+      ..on('reconnect_attempt', (attempt) {
+        print('[WS][chat][reconnect_attempt] $attempt');
+      })
+      ..on('reconnecting', (attempt) {
+        print('[WS][chat][reconnecting] $attempt');
+      })
+      ..on('reconnect_failed', (_) {
+        print('[WS][chat][reconnect_failed]');
+      })
       ..on('chat:message', (data) async {
         if (data is Map) {
           await _maybeDecryptAndForward(data, isAck: false);
@@ -97,10 +158,12 @@ class PresenceWsService {
         }
       })
       ..on('chat:conversation:new', (data) {
-        if (data is Map) _conversationController.add({...data, 'type': 'newConversation'});
+        if (data is Map)
+          _conversationController.add({...data, 'type': 'newConversation'});
       })
       ..on('chat:create:ack', (data) {
-        if (data is Map) _conversationController.add({...data, 'type': 'createAck'});
+        if (data is Map)
+          _conversationController.add({...data, 'type': 'createAck'});
       })
       ..on('chat:typing', (data) {
         if (data is Map) _chatController.add({...data, 'type': 'typing'});
@@ -112,28 +175,38 @@ class PresenceWsService {
         if (data is Map) _chatController.add({...data, 'type': 'delivered'});
       })
       ..onDisconnect((_) => _scheduleReconnect())
-  ..onError((err) { print('[WS][chat] error $err'); _scheduleReconnect(); });
+      ..onError((err) {
+        print('[WS][chat] error $err');
+        _scheduleReconnect();
+      });
 
     _presenceSocket!.connect();
     _chatSocket!.connect();
   }
 
-
   void _ping() {
     if (_userId == null) return;
-  _presenceSocket?.emit('presence:ping');
+    _presenceSocket?.emit('presence:ping');
   }
 
   void _scheduleReconnect() {
     _pingTimer?.cancel();
-    if (_userId == null || _token == null) return;
+    final uid = _userId;
+    final tkn = _token;
+    if (uid == null || tkn == null) return;
     Future.delayed(const Duration(seconds: 3), () {
+      // Identity may have changed in the meantime; re-check
+      if (_userId == null || _token == null) return;
       final needs = _presenceSocket == null || _presenceSocket!.disconnected;
       if (needs) {
-        try { _presenceSocket?.dispose(); _chatSocket?.dispose(); } catch (_) {}
-        _presenceSocket = null; _chatSocket = null;
+        try {
+          _presenceSocket?.dispose();
+          _chatSocket?.dispose();
+        } catch (_) {}
+        _presenceSocket = null;
+        _chatSocket = null;
         connect(userId: _userId!, token: _token!);
-  // Pending messages will flush on successful connect
+        // Pending events (messages + reads) will flush on connect
       }
     });
   }
@@ -141,21 +214,49 @@ class PresenceWsService {
   Future<void> dispose() async {
     _pingTimer?.cancel();
     _pingTimer = null;
-    try { _presenceSocket?.dispose(); _chatSocket?.dispose(); } catch (_) {}
-    _presenceSocket = null; _chatSocket = null;
-  await _controller.close();
-  await _chatController.close();
-  await _conversationController.close();
+    try {
+      _presenceSocket?.dispose();
+      _chatSocket?.dispose();
+    } catch (_) {}
+    _presenceSocket = null;
+    _chatSocket = null;
+    await _controller.close();
+    await _chatController.close();
+    await _conversationController.close();
+  }
+
+  // Public reset for auth/logout: disconnect sockets and clear identity.
+  void resetConnections() {
+    _teardownSockets();
+    _userId = null;
+    _token = null;
+  }
+
+  // Internal helper to drop sockets, timers, and pending queue without closing streams.
+  void _teardownSockets() {
+    _pingTimer?.cancel();
+    _pingTimer = null;
+    try {
+      _presenceSocket?.dispose();
+      _chatSocket?.dispose();
+    } catch (_) {}
+    _presenceSocket = null;
+    _chatSocket = null;
+    _pendingMessages.clear();
   }
 
   // Decrypt if e2ee bundle exists. Since this service lacks direct Ref here, we expose
   // an injection point: caller must set a static ref provider before messages start.
   static Ref? _ref;
-  static void bindRef(Ref ref) { _ref = ref; }
+  static void bindRef(Ref ref) {
+    _ref = ref;
+  }
 
   Future<void> _maybeDecryptAndForward(Map data, {required bool isAck}) async {
     try {
-      if (data['e2ee'] != null && data['conversationId'] != null && _ref != null) {
+      if (data['e2ee'] != null &&
+          data['conversationId'] != null &&
+          _ref != null) {
         final e2ee = _ref!.read(e2eeServiceProvider);
         final otherUserId = (data['senderId']?.toString() ?? '') == _userId
             ? (data['receiverId']?.toString() ?? '')
@@ -164,10 +265,17 @@ class PresenceWsService {
           final clear = await e2ee.decryptMessage(
             conversationId: data['conversationId'].toString(),
             otherUserId: otherUserId,
-            payload: Map<String,dynamic>.from(data['e2ee']),
+            payload: Map<String, dynamic>.from(data['e2ee']),
           );
           if (clear != null) {
             data['content'] = clear;
+            // Provide a decryptedPreview for conversation list updates (UI can prefer this)
+            data['decryptedPreview'] = clear;
+            if (data['receiverId'] != null &&
+                data['receiverId'] == data['senderId']) {
+              print(
+                  '[WS][decrypt][anomaly] decrypted message with receiver==sender id=${data['_id'] ?? 'n/a'} sender=${data['senderId']}');
+            }
           } else {
             data['content'] = '[encrypted]';
           }
@@ -179,21 +287,40 @@ class PresenceWsService {
     _chatController.add({...data, 'type': isAck ? 'ack' : 'message'});
   }
 
-  Future<void> sendChatMessage({required String conversationId, required String content, String? receiverId, WidgetRef? ref}) async {
-    Map<String,dynamic> payload = {'conversationId': conversationId};
+  Future<bool> sendChatMessage(
+      {required String conversationId,
+      required String content,
+      String? receiverId,
+      WidgetRef? ref}) async {
+    Map<String, dynamic> payload = {
+      'conversationId': conversationId,
+      if (_userId != null)
+        'senderId': _userId, // explicit sender id for server attribution
+      'clientTime': DateTime.now().toIso8601String(),
+    };
     if (receiverId != null) payload['receiverId'] = receiverId;
-  print('[WS][sendChatMessage] conv=$conversationId recv=$receiverId connected=${_chatSocket?.connected}');
+    bool encryptionUsed = false;
+    print(
+        '[WS][sendChatMessage] conv=$conversationId recv=$receiverId connected=${_chatSocket?.connected}');
+    if (receiverId != null && _userId != null && receiverId == _userId) {
+      print(
+          '[WS][sendChatMessage][warn] receiverId equals senderId ($_userId) – this should not happen for 1:1 chat');
+    }
     // Try encrypt
     try {
-  final effectiveRef = ref ?? _ref; // allow omission where static ref bound
-    final e2ee = (effectiveRef is WidgetRef)
-      ? effectiveRef.read(e2eeServiceProvider)
-      : (_ref?.read(e2eeServiceProvider));
+      final effectiveRef = ref ?? _ref; // allow omission where static ref bound
+      final e2ee = (effectiveRef is WidgetRef)
+          ? effectiveRef.read(e2eeServiceProvider)
+          : (_ref?.read(e2eeServiceProvider));
       final other = receiverId; // if null (group) skip E2EE
       if (other != null && e2ee != null) {
-        final enc = await e2ee.encryptMessage(conversationId: conversationId, otherUserId: other, plaintext: content);
+        final enc = await e2ee.encryptMessage(
+            conversationId: conversationId,
+            otherUserId: other,
+            plaintext: content);
         if (enc != null) {
           payload['e2ee'] = enc; // place encrypted bundle
+          encryptionUsed = true;
         } else {
           payload['content'] = content; // fallback plaintext
         }
@@ -205,11 +332,14 @@ class PresenceWsService {
     }
     if (_chatSocket == null || _chatSocket!.disconnected) {
       _pendingMessages.add(payload);
-      print('[WS][sendChatMessage] queued (socket disconnected) pending=${_pendingMessages.length}');
-      return;
+      print(
+          '[WS][sendChatMessage] queued (socket disconnected) pending=${_pendingMessages.length}');
+      return encryptionUsed;
     }
     _chatSocket!.emit('chat:message', payload);
-    print('[WS][sendChatMessage] emitted payload keys=${payload.keys.toList()}');
+    print(
+        '[WS][sendChatMessage] emitted payload keys=${payload.keys.toList()}');
+    return encryptionUsed;
   }
 
   void flushPending() {
@@ -222,37 +352,48 @@ class PresenceWsService {
 
   // DEBUG helper to print current socket state & send a no-op test message
   void debugStatus() {
-    print('[WS][debug] presence connected=${_presenceSocket?.connected} chat connected=${_chatSocket?.connected} pending=${_pendingMessages.length}');
+    print(
+        '[WS][debug] presence connected=${_presenceSocket?.connected} chat connected=${_chatSocket?.connected} pending=${_pendingMessages.length}');
     if (_chatSocket?.connected == true) {
-      _chatSocket!.emit('chat:typing', { 'conversationId': 'debug', 'isTyping': false });
+      _chatSocket!
+          .emit('chat:typing', {'conversationId': 'debug', 'isTyping': false});
       print('[WS][debug] emitted dummy typing event');
     }
   }
 
-  void createConversation({required String otherUserId, String? initialMessage}) {
+  void createConversation(
+      {required String otherUserId, String? initialMessage}) {
     if (_chatSocket == null || _chatSocket!.disconnected) {
       // Queue as special pending create
-      _pendingMessages.add({'__create': true, 'otherUserId': otherUserId, 'initialMessage': initialMessage});
+      _pendingMessages.add({
+        '__create': true,
+        'otherUserId': otherUserId,
+        'initialMessage': initialMessage
+      });
       return;
     }
     // Try encrypt initial message if provided
     if (initialMessage != null) {
       if (_ref != null) {
         final e2ee = _ref!.read(e2eeServiceProvider);
-        e2ee.encryptMessage(conversationId: 'temp-$otherUserId', otherUserId: otherUserId, plaintext: initialMessage)
-          .then((enc) {
-            if (enc != null) {
-              _chatSocket!.emit('chat:create', {
-                'otherUserId': otherUserId,
-                'initialE2EE': enc,
-              });
-            } else {
-              _chatSocket!.emit('chat:create', {
-                'otherUserId': otherUserId,
-                'initialMessage': initialMessage,
-              });
-            }
-          });
+        e2ee
+            .encryptMessage(
+                conversationId: 'temp-$otherUserId',
+                otherUserId: otherUserId,
+                plaintext: initialMessage)
+            .then((enc) {
+          if (enc != null) {
+            _chatSocket!.emit('chat:create', {
+              'otherUserId': otherUserId,
+              'initialE2EE': enc,
+            });
+          } else {
+            _chatSocket!.emit('chat:create', {
+              'otherUserId': otherUserId,
+              'initialMessage': initialMessage,
+            });
+          }
+        });
       } else {
         _chatSocket!.emit('chat:create', {
           'otherUserId': otherUserId,
@@ -266,15 +407,26 @@ class PresenceWsService {
 
   void sendTyping({required String conversationId, required bool isTyping}) {
     if (_chatSocket == null || _chatSocket!.disconnected) return;
-    _chatSocket!.emit('chat:typing', { 'conversationId': conversationId, 'isTyping': isTyping });
+    _chatSocket!.emit('chat:typing',
+        {'conversationId': conversationId, 'isTyping': isTyping});
   }
 
-  void markMessagesRead({required String conversationId, required List<String> messageIds}) {
-    if (_chatSocket == null || _chatSocket!.disconnected) return;
-    _chatSocket!.emit('chat:read', { 'conversationId': conversationId, 'messageIds': messageIds });
+  void markMessagesRead(
+      {required String conversationId, required List<String> messageIds}) {
+    if (_chatSocket == null || _chatSocket!.disconnected) {
+      // Accumulate to flush on next connect
+      final set = _pendingReads.putIfAbsent(conversationId, () => <String>{});
+      set.addAll(messageIds);
+      return;
+    }
+    _chatSocket!.emit('chat:read', {
+      'conversationId': conversationId,
+      'messageIds': messageIds,
+    });
   }
 
-  void markAllRead({required String conversationId, required List<String> messageIds}) {
+  void markAllRead(
+      {required String conversationId, required List<String> messageIds}) {
     if (messageIds.isEmpty) return;
     markMessagesRead(conversationId: conversationId, messageIds: messageIds);
   }
@@ -284,6 +436,7 @@ final presenceWsServiceProvider = Provider<PresenceWsService>((ref) {
   final service = PresenceWsService();
   // Bind ref for decryption callbacks
   PresenceWsService.bindRef(ref);
+  PresenceWsServiceRefHolder.bind(ref);
   ref.onDispose(() => service.dispose());
   return service;
 });

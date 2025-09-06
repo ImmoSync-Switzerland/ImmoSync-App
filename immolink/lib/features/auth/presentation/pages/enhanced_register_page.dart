@@ -9,15 +9,16 @@ class EnhancedRegisterPage extends ConsumerStatefulWidget {
   const EnhancedRegisterPage({super.key});
 
   @override
-  ConsumerState<EnhancedRegisterPage> createState() => _EnhancedRegisterPageState();
+  ConsumerState<EnhancedRegisterPage> createState() =>
+      _EnhancedRegisterPageState();
 }
 
-class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage> 
+class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -28,7 +29,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
   final _companyNameController = TextEditingController();
   final _companyAddressController = TextEditingController();
   final _taxIdController = TextEditingController();
-  
+
   DateTime? _selectedBirthDate;
   String _selectedRole = 'landlord';
   bool _isCompany = false;
@@ -46,15 +47,15 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    
+
     _controller.forward();
   }
 
@@ -77,7 +78,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       body: SafeArea(
@@ -135,7 +136,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
     );
   }
 
-  Widget _buildRegistrationForm(AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildRegistrationForm(
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32.0),
@@ -161,13 +163,11 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
           children: [
             _buildEntityTypeSwitcher(colors),
             const SizedBox(height: 24),
-            
             if (_isCompany) ...[
               _buildCompanyFields(l10n, colors),
             ] else ...[
               _buildIndividualFields(l10n, colors),
             ],
-            
             const SizedBox(height: 24),
             _buildCommonFields(l10n, colors),
             const SizedBox(height: 32),
@@ -193,9 +193,11 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
             child: GestureDetector(
               onTap: () => setState(() => _isCompany = false),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: !_isCompany ? colors.primaryAccent : Colors.transparent,
+                  color:
+                      !_isCompany ? colors.primaryAccent : Colors.transparent,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(12),
                     bottomLeft: Radius.circular(12),
@@ -216,7 +218,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
             child: GestureDetector(
               onTap: () => setState(() => _isCompany = true),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
                   color: _isCompany ? colors.primaryAccent : Colors.transparent,
                   borderRadius: const BorderRadius.only(
@@ -240,7 +243,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
     );
   }
 
-  Widget _buildIndividualFields(AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildIndividualFields(
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Column(
       children: [
         _buildTextField(
@@ -371,7 +375,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
               _obscurePassword ? Icons.visibility : Icons.visibility_off,
               color: colors.textSecondary,
             ),
-            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -395,7 +400,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
               _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
               color: colors.textSecondary,
             ),
-            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            onPressed: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -478,17 +484,19 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colors.primaryAccent, width: 2),
         ),
-        hintText: _selectedBirthDate != null 
+        hintText: _selectedBirthDate != null
             ? '${_selectedBirthDate!.day}.${_selectedBirthDate!.month}.${_selectedBirthDate!.year}'
             : 'Geburtsdatum auswählen',
         hintStyle: TextStyle(color: colors.textSecondary),
       ),
-      validator: !_isCompany ? (value) {
-        if (_selectedBirthDate == null) {
-          return 'Bitte wählen Sie Ihr Geburtsdatum';
-        }
-        return null;
-      } : null,
+      validator: !_isCompany
+          ? (value) {
+              if (_selectedBirthDate == null) {
+                return 'Bitte wählen Sie Ihr Geburtsdatum';
+              }
+              return null;
+            }
+          : null,
     );
   }
 
@@ -497,7 +505,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
       context: context,
       initialDate: _selectedBirthDate ?? DateTime(1990),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)), // Must be 18+
+      lastDate: DateTime.now()
+          .subtract(const Duration(days: 365 * 18)), // Must be 18+
       builder: (context, child) {
         final colors = ref.read(dynamicColorsProvider);
         return Theme(
@@ -515,7 +524,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
 
   Widget _buildRegisterButton(AppLocalizations l10n, DynamicAppColors colors) {
     final registerState = ref.watch(registerProvider);
-    
+
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -570,7 +579,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
     if (!_formKey.currentState!.validate()) return;
 
     final notifier = ref.read(registerProvider.notifier);
-    
+
     try {
       await notifier.register(
         fullName: _fullNameController.text.trim(),
@@ -580,16 +589,18 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
         phone: _phoneController.text.trim(),
         isCompany: _isCompany,
         companyName: _isCompany ? _companyNameController.text.trim() : null,
-        companyAddress: _isCompany ? _companyAddressController.text.trim() : null,
+        companyAddress:
+            _isCompany ? _companyAddressController.text.trim() : null,
         taxId: _isCompany ? _taxIdController.text.trim() : null,
         address: !_isCompany ? _addressController.text.trim() : null,
         birthDate: !_isCompany ? _selectedBirthDate : null,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registrierung erfolgreich! Sie können sich jetzt anmelden.'),
+            content: Text(
+                'Registrierung erfolgreich! Sie können sich jetzt anmelden.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -600,7 +611,8 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
         final error = ref.read(registerProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Registrierung fehlgeschlagen: ${error ?? "Unbekannter Fehler"}'),
+            content: Text(
+                'Registrierung fehlgeschlagen: ${error ?? "Unbekannter Fehler"}'),
             backgroundColor: Colors.red,
           ),
         );

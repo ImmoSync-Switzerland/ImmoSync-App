@@ -14,6 +14,7 @@ class Conversation {
   final String? otherParticipantEmail;
   final String? otherParticipantRole;
   final List<String>? participants;
+  final String? matrixRoomId;
 
   Conversation({
     required this.id,
@@ -31,6 +32,7 @@ class Conversation {
     this.otherParticipantEmail,
     this.otherParticipantRole,
     this.participants,
+  this.matrixRoomId,
   });
   factory Conversation.fromMap(Map<String, dynamic> map) {
     return Conversation(
@@ -40,7 +42,7 @@ class Conversation {
       tenantId: map['tenantId'] ?? '',
       propertyAddress: map['propertyAddress'] ?? 'Unknown Property',
       lastMessage: map['lastMessage'] ?? '',
-      lastMessageTime: map['lastMessageTime'] != null 
+      lastMessageTime: map['lastMessageTime'] != null
           ? DateTime.parse(map['lastMessageTime'])
           : DateTime.now(),
       landlordName: map['landlordName'],
@@ -50,7 +52,10 @@ class Conversation {
       otherParticipantName: map['otherParticipantName'],
       otherParticipantEmail: map['otherParticipantEmail'],
       otherParticipantRole: map['otherParticipantRole'],
-      participants: map['participants'] != null ? List<String>.from(map['participants']) : null,
+      participants: map['participants'] != null
+          ? List<String>.from(map['participants'])
+          : null,
+  matrixRoomId: map['matrixRoomId'] ?? map['matrix_room_id'] ?? map['roomId'],
     );
   }
   Map<String, dynamic> toMap() {
@@ -70,15 +75,18 @@ class Conversation {
       'otherParticipantEmail': otherParticipantEmail,
       'otherParticipantRole': otherParticipantRole,
       'participants': participants,
-    };  }
+  'matrixRoomId': matrixRoomId,
+    };
+  }
 
   // Helper method to get the display name for the other participant
-  String getOtherParticipantDisplayName(String currentUserId, {bool isLandlord = false}) {
+  String getOtherParticipantDisplayName(String currentUserId,
+      {bool isLandlord = false}) {
     // First try the new API format (otherParticipantName)
     if (otherParticipantName != null && otherParticipantName!.isNotEmpty) {
       return otherParticipantName!;
     }
-    
+
     // Fallback to old format (landlordName/tenantName)
     if (isLandlord) {
       return tenantName ?? 'Tenant';
@@ -93,7 +101,7 @@ class Conversation {
     if (otherParticipantId != null) {
       return otherParticipantId;
     }
-    
+
     // Fallback to participants array
     if (participants != null && participants!.length >= 2) {
       return participants!.firstWhere(
@@ -101,7 +109,7 @@ class Conversation {
         orElse: () => participants!.first,
       );
     }
-    
+
     // Final fallback to landlord/tenant IDs
     return currentUserId == landlordId ? tenantId : landlordId;
   }

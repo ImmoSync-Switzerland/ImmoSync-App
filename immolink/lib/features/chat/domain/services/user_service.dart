@@ -6,7 +6,7 @@ class UserService {
     final currentUser = ref.read(currentUserProvider);
     return currentUser?.id ?? 'current-user-id';
   }
-  
+
   static String? getCurrentUserIdOrNull(Ref ref) {
     final currentUser = ref.read(currentUserProvider);
     return currentUser?.id;

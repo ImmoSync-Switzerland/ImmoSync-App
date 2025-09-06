@@ -130,7 +130,8 @@ class PropertyDetailsPage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Expanded(            child: _buildStatCard(
+          Expanded(
+            child: _buildStatCard(
               context,
               Icons.square_foot,
               '${property.details.size} m²',
@@ -311,7 +312,8 @@ class PropertyDetailsPage extends ConsumerWidget {
                               size: 48,
                               color: Colors.grey[400],
                             ),
-                            const SizedBox(height: 8),                            Text(
+                            const SizedBox(height: 8),
+                            Text(
                               AppLocalizations.of(context)!.noProperties,
                               style: TextStyle(color: Colors.grey[600]),
                             ),
@@ -332,7 +334,8 @@ class PropertyDetailsPage extends ConsumerWidget {
                           position: location,
                           infoWindow: InfoWindow(
                             title: property.address.street,
-                            snippet: '${property.address.city}, ${property.address.postalCode}',
+                            snippet:
+                                '${property.address.city}, ${property.address.postalCode}',
                           ),
                         ),
                       },
@@ -414,7 +417,7 @@ class PropertyDetailsPage extends ConsumerWidget {
       if (location != null) {
         return location;
       }
-      
+
       return null;
     } catch (e) {
       debugPrint('Error getting location: $e');
@@ -424,9 +427,10 @@ class PropertyDetailsPage extends ConsumerWidget {
 
   Future<LatLng?> _tryBuiltInGeocoding(Address address) async {
     try {
-      final query = '${address.street}, ${address.city}, ${address.postalCode}, ${address.country}';
+      final query =
+          '${address.street}, ${address.city}, ${address.postalCode}, ${address.country}';
       final locations = await locationFromAddress(query);
-      
+
       if (locations.isNotEmpty) {
         final location = locations.first;
         return LatLng(location.latitude, location.longitude);
@@ -438,15 +442,17 @@ class PropertyDetailsPage extends ConsumerWidget {
   }
 
   void _openMapsApp(LatLng location) async {
-    final url = 'https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}';
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     }
   }
 
-  Widget _buildFinancialDetails(BuildContext context, Property property, WidgetRef ref) {
+  Widget _buildFinancialDetails(
+      BuildContext context, Property property, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -474,11 +480,13 @@ class PropertyDetailsPage extends ConsumerWidget {
                     Text(
                       AppLocalizations.of(context)!.monthlyRent,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.textSecondary,
-                      ),
+                            color: colors.textSecondary,
+                          ),
                     ),
                     Text(
-                      ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
+                      ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(property.rentAmount),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colors.textPrimary,
@@ -493,11 +501,13 @@ class PropertyDetailsPage extends ConsumerWidget {
                     Text(
                       AppLocalizations.of(context)!.outstandingPayments,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.textSecondary,
-                      ),
+                            color: colors.textSecondary,
+                          ),
                     ),
                     Text(
-                      ref.read(currencyProvider.notifier).formatAmount(property.outstandingPayments),
+                      ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(property.outstandingPayments),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: property.outstandingPayments > 0
@@ -568,9 +578,11 @@ class PropertyDetailsPage extends ConsumerWidget {
       ),
     );
   }
-  Widget _buildContactButton(BuildContext context, Property property, WidgetRef ref) {
+
+  Widget _buildContactButton(
+      BuildContext context, Property property, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
-    
+
     if (currentUser?.role == 'landlord' && property.status == 'available') {
       return FloatingActionButton.extended(
         onPressed: () => _showInviteTenantDialog(context, property),
@@ -582,7 +594,7 @@ class PropertyDetailsPage extends ConsumerWidget {
         ),
       );
     }
-    
+
     return FloatingActionButton.extended(
       onPressed: () {
         GoRouter.of(context).push('/chat/${property.landlordId}');
@@ -608,6 +620,7 @@ class PropertyDetailsPage extends ConsumerWidget {
         return Colors.grey;
     }
   }
+
   String _getStatusText(BuildContext context, String status) {
     switch (status) {
       case 'available':

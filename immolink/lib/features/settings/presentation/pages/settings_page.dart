@@ -16,12 +16,12 @@ class SettingsPage extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Set navigation index to Profile (4) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(routeAwareNavigationProvider.notifier).setIndex(4);
     });
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -73,7 +73,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileSection(BuildContext context, WidgetRef ref, user, AppLocalizations l10n) {
+  Widget _buildProfileSection(
+      BuildContext context, WidgetRef ref, user, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
@@ -181,7 +182,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPreferencesSection(BuildContext context, WidgetRef ref, AppSettings settings, AppLocalizations l10n) {
+  Widget _buildPreferencesSection(BuildContext context, WidgetRef ref,
+      AppSettings settings, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
@@ -242,7 +244,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSecuritySection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildSecuritySection(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
@@ -303,7 +306,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationsSection(BuildContext context, WidgetRef ref, AppSettings settings, AppLocalizations l10n) {
+  Widget _buildNotificationsSection(BuildContext context, WidgetRef ref,
+      AppSettings settings, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
@@ -327,39 +331,57 @@ class SettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text(l10n.emailNotifications, style: TextStyle(color: colors.textPrimary, inherit: true)),
-              subtitle: Text(l10n.receiveUpdatesEmail, style: TextStyle(color: colors.textSecondary, inherit: true)),
+              title: Text(l10n.emailNotifications,
+                  style: TextStyle(color: colors.textPrimary, inherit: true)),
+              subtitle: Text(l10n.receiveUpdatesEmail,
+                  style: TextStyle(color: colors.textSecondary, inherit: true)),
               value: settings.emailNotifications,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).updateEmailNotifications(value);
+                ref
+                    .read(settingsProvider.notifier)
+                    .updateEmailNotifications(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${l10n.emailNotifications} ${value ? l10n.enabled : l10n.disabled}')),
+                  SnackBar(
+                      content: Text(
+                          '${l10n.emailNotifications} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
               secondary: Icon(Icons.email, color: colors.primaryAccent),
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text(l10n.pushNotifications, style: TextStyle(color: colors.textPrimary, inherit: true)),
-              subtitle: Text(l10n.pushNotificationSubtitle, style: TextStyle(color: colors.textSecondary, inherit: true)),
+              title: Text(l10n.pushNotifications,
+                  style: TextStyle(color: colors.textPrimary, inherit: true)),
+              subtitle: Text(l10n.pushNotificationSubtitle,
+                  style: TextStyle(color: colors.textSecondary, inherit: true)),
               value: settings.pushNotifications,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).updatePushNotifications(value);
+                ref
+                    .read(settingsProvider.notifier)
+                    .updatePushNotifications(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${l10n.pushNotifications} ${value ? l10n.enabled : l10n.disabled}')),
+                  SnackBar(
+                      content: Text(
+                          '${l10n.pushNotifications} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
               secondary: Icon(Icons.notifications, color: colors.primaryAccent),
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text(l10n.paymentReminders, style: TextStyle(color: colors.textPrimary, inherit: true)),
-              subtitle: Text(l10n.paymentReminderSubtitle, style: TextStyle(color: colors.textSecondary, inherit: true)),
+              title: Text(l10n.paymentReminders,
+                  style: TextStyle(color: colors.textPrimary, inherit: true)),
+              subtitle: Text(l10n.paymentReminderSubtitle,
+                  style: TextStyle(color: colors.textSecondary, inherit: true)),
               value: settings.paymentReminders,
               onChanged: (value) {
-                ref.read(settingsProvider.notifier).updatePaymentReminders(value);
+                ref
+                    .read(settingsProvider.notifier)
+                    .updatePaymentReminders(value);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${l10n.paymentReminders} ${value ? l10n.enabled : l10n.disabled}')),
+                  SnackBar(
+                      content: Text(
+                          '${l10n.paymentReminders} ${value ? l10n.enabled : l10n.disabled}')),
                 );
               },
               secondary: Icon(Icons.payment, color: colors.primaryAccent),
@@ -370,7 +392,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSupportSection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildSupportSection(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
@@ -442,7 +465,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildLogoutButton(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return ElevatedButton(
       onPressed: () {
@@ -479,8 +503,12 @@ class SettingsPage extends ConsumerWidget {
     final colors = ref.watch(dynamicColorsProvider);
     return ListTile(
       leading: Icon(icon, color: colors.primaryAccent),
-      title: Text(title, style: TextStyle(color: colors.textPrimary, inherit: true)),
-      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(color: colors.textSecondary, inherit: true)) : null,
+      title: Text(title,
+          style: TextStyle(color: colors.textPrimary, inherit: true)),
+      subtitle: subtitle.isNotEmpty
+          ? Text(subtitle,
+              style: TextStyle(color: colors.textSecondary, inherit: true))
+          : null,
       trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
       onTap: onTap,
     );
@@ -513,116 +541,147 @@ class SettingsPage extends ConsumerWidget {
         return l10n.english;
     }
   }
-  void _showLanguageSelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+
+  void _showLanguageSelectionDialog(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     final languages = {
-      l10n.english: 'en', 
-      l10n.german: 'de', 
-      l10n.french: 'fr', 
+      l10n.english: 'en',
+      l10n.german: 'de',
+      l10n.french: 'fr',
       l10n.italian: 'it'
     };
     final settingsNotifier = ref.read(settingsProvider.notifier);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.selectLanguage, style: TextStyle(color: colors.textPrimary, inherit: true)),
+        title: Text(l10n.selectLanguage,
+            style: TextStyle(color: colors.textPrimary, inherit: true)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: languages.entries.map((entry) => ListTile(
-            title: Text(entry.key, style: TextStyle(color: colors.textPrimary, inherit: true)),
-            onTap: () async {
-              await settingsNotifier.updateLanguage(entry.value);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.languageChangedTo(entry.key))),
-                );
-                Navigator.pop(context);
-              }
-            },
-          )).toList(),
+          children: languages.entries
+              .map((entry) => ListTile(
+                    title: Text(entry.key,
+                        style: TextStyle(
+                            color: colors.textPrimary, inherit: true)),
+                    onTap: () async {
+                      await settingsNotifier.updateLanguage(entry.value);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(l10n.languageChangedTo(entry.key))),
+                        );
+                        Navigator.pop(context);
+                      }
+                    },
+                  ))
+              .toList(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: colors.primaryAccent, inherit: true)),
-          ),
-        ],
-      ),
-    );
-  }  void _showThemeSelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
-    final colors = ref.watch(dynamicColorsProvider);
-    final themes = {
-      l10n.light: 'light', 
-      l10n.dark: 'dark', 
-      l10n.system: 'system'
-    };
-    final settingsNotifier = ref.read(settingsProvider.notifier);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.selectTheme, style: TextStyle(color: colors.textPrimary, inherit: true)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: themes.entries.map((entry) => ListTile(
-            title: Text(entry.key, style: TextStyle(color: colors.textPrimary, inherit: true)),
-            trailing: Icon(
-              entry.value == 'light' ? Icons.light_mode :
-              entry.value == 'dark' ? Icons.dark_mode : Icons.brightness_auto,
-              color: colors.primaryAccent,
-            ),
-            onTap: () async {
-              await settingsNotifier.updateTheme(entry.value);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.themeChangedTo(entry.key))),
-                );
-                Navigator.pop(context);
-              }
-            },
-          )).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: colors.primaryAccent, inherit: true)),
+            child: Text(l10n.cancel,
+                style: TextStyle(color: colors.primaryAccent, inherit: true)),
           ),
         ],
       ),
     );
   }
-  void _showCurrencySelectionDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+
+  void _showThemeSelectionDialog(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
-    final currencies = ['CHF', 'EUR', 'USD', 'GBP'];
+    final themes = {
+      l10n.light: 'light',
+      l10n.dark: 'dark',
+      l10n.system: 'system'
+    };
     final settingsNotifier = ref.read(settingsProvider.notifier);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.selectCurrency, style: TextStyle(color: colors.textPrimary, inherit: true)),
+        title: Text(l10n.selectTheme,
+            style: TextStyle(color: colors.textPrimary, inherit: true)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: currencies.map((currency) => ListTile(
-            title: Text(currency, style: TextStyle(color: colors.textPrimary, inherit: true)),
-            onTap: () async {
-              await settingsNotifier.updateCurrency(currency);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.currencyChangedTo(currency))),
-                );
-                Navigator.pop(context);
-              }
-            },
-          )).toList(),
+          children: themes.entries
+              .map((entry) => ListTile(
+                    title: Text(entry.key,
+                        style: TextStyle(
+                            color: colors.textPrimary, inherit: true)),
+                    trailing: Icon(
+                      entry.value == 'light'
+                          ? Icons.light_mode
+                          : entry.value == 'dark'
+                              ? Icons.dark_mode
+                              : Icons.brightness_auto,
+                      color: colors.primaryAccent,
+                    ),
+                    onTap: () async {
+                      await settingsNotifier.updateTheme(entry.value);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(l10n.themeChangedTo(entry.key))),
+                        );
+                        Navigator.pop(context);
+                      }
+                    },
+                  ))
+              .toList(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: TextStyle(color: colors.primaryAccent, inherit: true)),
+            child: Text(l10n.cancel,
+                style: TextStyle(color: colors.primaryAccent, inherit: true)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCurrencySelectionDialog(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
+    final currencies = ['CHF', 'EUR', 'USD', 'GBP'];
+    final settingsNotifier = ref.read(settingsProvider.notifier);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.surfaceCards,
+        title: Text(l10n.selectCurrency,
+            style: TextStyle(color: colors.textPrimary, inherit: true)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: currencies
+              .map((currency) => ListTile(
+                    title: Text(currency,
+                        style: TextStyle(
+                            color: colors.textPrimary, inherit: true)),
+                    onTap: () async {
+                      await settingsNotifier.updateCurrency(currency);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(l10n.currencyChangedTo(currency))),
+                        );
+                        Navigator.pop(context);
+                      }
+                    },
+                  ))
+              .toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel,
+                style: TextStyle(color: colors.primaryAccent, inherit: true)),
           ),
         ],
       ),

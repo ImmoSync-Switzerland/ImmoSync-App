@@ -24,7 +24,7 @@ class TenantDashboard extends ConsumerStatefulWidget {
   ConsumerState<TenantDashboard> createState() => _TenantDashboardState();
 }
 
-class _TenantDashboardState extends ConsumerState<TenantDashboard> 
+class _TenantDashboardState extends ConsumerState<TenantDashboard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -36,7 +36,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     if (screenWidth < 360) {
       return baseFontSize * 0.85; // Smaller phones
     } else if (screenWidth < 400) {
-      return baseFontSize * 0.9;  // Medium phones
+      return baseFontSize * 0.9; // Medium phones
     }
     return baseFontSize; // Tablets and larger
   }
@@ -50,7 +50,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       // Refresh data when returning to dashboard
       ref.invalidate(tenantPropertiesProvider);
     });
-    
+
     _setupAnimations();
   }
 
@@ -68,13 +68,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
-    
-    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0)
-        .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
-    
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+
+    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
+        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+
     _animationController.forward();
   }
 
@@ -122,12 +122,12 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     final propertiesAsync = ref.watch(tenantPropertiesProvider);
     final currency = ref.watch(currencyProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: const AppTopBar(title: null),
-  body: Container(
+      body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -139,73 +139,141 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           ),
         ),
         child: SafeArea(
-        child: propertiesAsync.when(
-          data: (properties) {
-            return AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, _slideAnimation.value),
-                  child: Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        HapticFeedback.lightImpact();
-                        ref.invalidate(tenantPropertiesProvider);
-                        await Future.delayed(const Duration(seconds: 1));
-                      },
-                      color: colors.primaryAccent,
-                      backgroundColor: Colors.white,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildWelcomeSection(currentUser?.fullName ?? AppLocalizations.of(context)!.tenant, colors),
-                            const SizedBox(height: 24),
-                            _buildSearchBar(colors),
-                            const SizedBox(height: 24),
-                            _buildInvitationsSection(colors),
-                            const SizedBox(height: 24),
-                            if (properties.isNotEmpty) 
-                              _buildPropertyCard(properties.first, currency, colors)
-                            else
-                              _buildNoPropertyCard(colors),
-                            const SizedBox(height: 24),
-                            _buildQuickActions(colors),
-                            const SizedBox(height: 24),
-                            _buildRecentActivity(colors),
-                            const SizedBox(height: 100), // Increased padding for bottom nav
-                          ],
+          child: propertiesAsync.when(
+            data: (properties) {
+              return AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, _slideAnimation.value),
+                    child: Opacity(
+                      opacity: _fadeAnimation.value,
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          HapticFeedback.lightImpact();
+                          ref.invalidate(tenantPropertiesProvider);
+                          await Future.delayed(const Duration(seconds: 1));
+                        },
+                        color: colors.primaryAccent,
+                        backgroundColor: Colors.white,
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildWelcomeSection(
+                                  currentUser?.fullName ??
+                                      AppLocalizations.of(context)!.tenant,
+                                  colors),
+                              const SizedBox(height: 24),
+                              _buildSearchBar(colors),
+                              const SizedBox(height: 24),
+                              _buildInvitationsSection(colors),
+                              const SizedBox(height: 24),
+                              if (properties.isNotEmpty)
+                                _buildPropertyCard(
+                                    properties.first, currency, colors)
+                              else
+                                _buildNoPropertyCard(colors),
+                              const SizedBox(height: 24),
+                              _buildQuickActions(colors),
+                              const SizedBox(height: 24),
+                              _buildRecentActivity(colors),
+                              const SizedBox(
+                                  height:
+                                      100), // Increased padding for bottom nav
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-          loading: () => Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.surfaceCards,
-                  colors.surfaceSecondary,
-                ],
+                  );
+                },
+              );
+            },
+            loading: () => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.surfaceCards,
+                    colors.surfaceSecondary,
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colors.surfaceCards.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colors.borderLight,
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.shadowColor,
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  colors.primaryAccent),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Loading your dashboard...',
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              inherit: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
+            error: (error, stackTrace) {
+              print('Tenant Dashboard Error: $error');
+              print('Stack trace: $stackTrace');
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colors.surfaceCards,
+                      colors.surfaceSecondary,
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: colors.surfaceCards.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: colors.borderLight,
                         width: 1,
@@ -221,134 +289,75 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-                            strokeWidth: 3,
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: Icon(Icons.error_outline,
+                              size: 48, color: colors.error),
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Loading your dashboard...',
+                          'Error loading dashboard',
                           style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                             color: colors.textPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
                             inherit: true,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.toString(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                            inherit: true,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colors.primaryAccent,
+                                colors.primaryAccent.withValues(alpha: 0.8),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              ref.invalidate(tenantPropertiesProvider);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
-          error: (error, stackTrace) {
-            print('Tenant Dashboard Error: $error');
-            print('Stack trace: $stackTrace');
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colors.surfaceCards,
-                    colors.surfaceSecondary,
-                  ],
-                ),
-              ),
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.all(20),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceCards.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: colors.borderLight,
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.shadowColor,
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: colors.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(Icons.error_outline, size: 48, color: colors.error),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error loading dashboard',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
-                          inherit: true,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        error.toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colors.textSecondary,
-                          inherit: true,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.primaryAccent,
-                              colors.primaryAccent.withValues(alpha: 0.8),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ref.invalidate(tenantPropertiesProvider);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Retry',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
@@ -428,7 +437,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7), // Grün Background
                   borderRadius: BorderRadius.circular(8),
@@ -532,7 +542,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           prefixIcon: Container(
             padding: const EdgeInsets.all(12),
             child: Icon(
-              Icons.search_outlined, 
+              Icons.search_outlined,
               color: colors.textSecondary,
               size: 20,
             ),
@@ -556,7 +566,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             ),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
         style: TextStyle(
           color: colors.textPrimary,
@@ -569,7 +580,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     );
   }
 
-  Widget _buildPropertyCard(Property property, String currency, DynamicAppColors colors) {
+  Widget _buildPropertyCard(
+      Property property, String currency, DynamicAppColors colors) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -631,7 +643,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 Builder(builder: (context) {
                   final l10n = AppLocalizations.of(context)!;
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: colors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -681,8 +694,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
-                          Icons.location_on_outlined, 
-                          size: 20, 
+                          Icons.location_on_outlined,
+                          size: 20,
                           color: colors.primaryAccent,
                         ),
                       ),
@@ -1103,7 +1116,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     );
   }
 
-  Widget _buildActionCard(String title, IconData icon, Color iconColor, VoidCallback onTap, DynamicAppColors colors) {
+  Widget _buildActionCard(String title, IconData icon, Color iconColor,
+      VoidCallback onTap, DynamicAppColors colors) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1158,7 +1172,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 ],
               ),
               child: Icon(
-                icon, 
+                icon,
                 size: 20, // Reduced from 24
                 color: iconColor,
               ),
@@ -1234,20 +1248,21 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             Consumer(
               builder: (context, ref, child) {
                 final activitiesAsync = ref.watch(recentActivitiesProvider);
-                
+
                 return activitiesAsync.when(
                   data: (activities) {
                     if (activities.isEmpty) {
                       return _buildEmptyActivityState(colors);
                     }
-                    
+
                     return Column(
-                      children: activities.take(3).map((activity) => 
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildActivityItem(activity, colors),
-                        )
-                      ).toList(),
+                      children: activities
+                          .take(3)
+                          .map((activity) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildActivityItem(activity, colors),
+                              ))
+                          .toList(),
                     );
                   },
                   loading: () => Center(
@@ -1255,7 +1270,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                         strokeWidth: 2,
                       ),
                     ),
@@ -1353,7 +1369,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _getActivityColor(activity.type, colors).withValues(alpha: 0.1),
+          color:
+              _getActivityColor(activity.type, colors).withValues(alpha: 0.1),
           width: 1,
         ),
         boxShadow: [
@@ -1371,8 +1388,10 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  _getActivityColor(activity.type, colors).withValues(alpha: 0.2),
-                  _getActivityColor(activity.type, colors).withValues(alpha: 0.1),
+                  _getActivityColor(activity.type, colors)
+                      .withValues(alpha: 0.2),
+                  _getActivityColor(activity.type, colors)
+                      .withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
@@ -1469,7 +1488,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     return pendingInvitations.when(
       data: (invitations) {
         if (invitations.isEmpty) {
-          return const SizedBox.shrink(); // Don't show anything if no invitations
+          return const SizedBox
+              .shrink(); // Don't show anything if no invitations
         }
 
         return Container(
@@ -1515,7 +1535,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: colors.primaryAccent,
                       borderRadius: BorderRadius.circular(12),
@@ -1532,15 +1553,17 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 ],
               ),
               const SizedBox(height: 16),
-              ...invitations.map((invitation) => 
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: InvitationCard(
-                    invitation: invitation, 
-                    isLandlord: false,
-                  ),
-                ),
-              ).toList(),
+              ...invitations
+                  .map(
+                    (invitation) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: InvitationCard(
+                        invitation: invitation,
+                        isLandlord: false,
+                      ),
+                    ),
+                  )
+                  .toList(),
             ],
           ),
         );

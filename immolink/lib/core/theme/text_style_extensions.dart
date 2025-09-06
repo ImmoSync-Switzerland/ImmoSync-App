@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 extension TextStyleExtensions on TextStyle {
   /// Creates a TextStyle with explicit inherit: false to prevent interpolation issues
   TextStyle get noInherit => copyWith(inherit: false);
-  
+
   /// Creates a TextStyle with explicit inherit: true for theme compatibility
   TextStyle get withInherit => copyWith(inherit: true);
 }

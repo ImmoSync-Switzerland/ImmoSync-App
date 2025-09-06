@@ -32,7 +32,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -131,7 +131,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildQuickContactSection(BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildQuickContactSection(
+      BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -187,7 +188,9 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     );
   }
 
-  Widget _buildQuickContactButton(String title, IconData icon, VoidCallback onTap, {bool fullWidth = false, required DynamicAppColors colors}) {
+  Widget _buildQuickContactButton(
+      String title, IconData icon, VoidCallback onTap,
+      {bool fullWidth = false, required DynamicAppColors colors}) {
     return ElevatedButton.icon(
       onPressed: onTap,
       icon: Icon(icon, color: colors.textOnAccent),
@@ -236,7 +239,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // User Info (Read-only)
               Container(
                 padding: const EdgeInsets.all(12),
@@ -255,9 +258,15 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('${l10n.name}: ${currentUser?.fullName ?? l10n.notAvailable}', style: TextStyle(color: colors.textSecondary)),
-                    Text('${l10n.email}: ${currentUser?.email ?? l10n.notAvailable}', style: TextStyle(color: colors.textSecondary)),
-                    Text('${l10n.role}: ${currentUser?.role ?? l10n.notAvailable}', style: TextStyle(color: colors.textSecondary)),
+                    Text(
+                        '${l10n.name}: ${currentUser?.fullName ?? l10n.notAvailable}',
+                        style: TextStyle(color: colors.textSecondary)),
+                    Text(
+                        '${l10n.email}: ${currentUser?.email ?? l10n.notAvailable}',
+                        style: TextStyle(color: colors.textSecondary)),
+                    Text(
+                        '${l10n.role}: ${currentUser?.role ?? l10n.notAvailable}',
+                        style: TextStyle(color: colors.textSecondary)),
                   ],
                 ),
               ),
@@ -268,16 +277,19 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   labelText: l10n.category,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                 ),
-                items: _getLocalizedCategories(l10n).map((category) => DropdownMenuItem(
-                  value: category.key,
-                  child: Text(category.value),
-                )).toList(),
+                items: _getLocalizedCategories(l10n)
+                    .map((category) => DropdownMenuItem(
+                          value: category.key,
+                          child: Text(category.value),
+                        ))
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
                     _selectedCategory = value!;
@@ -291,29 +303,32 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 initialValue: _selectedPriority,
                 decoration: InputDecoration(
                   labelText: l10n.priority,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                 ),
-                items: _getLocalizedPriorities(l10n).map((priority) => DropdownMenuItem(
-                  value: priority.key,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: _getPriorityColor(priority.key),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(priority.value),
-                    ],
-                  ),
-                )).toList(),
+                items: _getLocalizedPriorities(l10n)
+                    .map((priority) => DropdownMenuItem(
+                          value: priority.key,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: _getPriorityColor(priority.key),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(priority.value),
+                            ],
+                          ),
+                        ))
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
                     _selectedPriority = value!;
@@ -328,7 +343,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 decoration: InputDecoration(
                   labelText: l10n.subject,
                   hintText: l10n.subjectHint,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: colors.primaryAccent),
@@ -350,7 +366,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 decoration: InputDecoration(
                   labelText: l10n.describeYourIssue,
                   hintText: l10n.issueDescriptionHint,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: colors.primaryAccent),
@@ -373,7 +390,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : () => _submitSupportRequest(l10n),
+                  onPressed:
+                      _isSubmitting ? null : () => _submitSupportRequest(l10n),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryAccent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -387,7 +405,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(colors.textOnAccent),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                colors.textOnAccent),
                           ),
                         )
                       : Text(
@@ -428,17 +447,22 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(Icons.schedule, l10n.responseTime, l10n.responseTimeInfo, colors),
-            _buildInfoRow(Icons.language, l10n.languages, l10n.languagesSupported, colors),
-            _buildInfoRow(Icons.support, l10n.supportHours, l10n.supportHoursInfo, colors),
-            _buildInfoRow(Icons.emergency, l10n.emergency, l10n.emergencyInfo, colors),
+            _buildInfoRow(Icons.schedule, l10n.responseTime,
+                l10n.responseTimeInfo, colors),
+            _buildInfoRow(Icons.language, l10n.languages,
+                l10n.languagesSupported, colors),
+            _buildInfoRow(Icons.support, l10n.supportHours,
+                l10n.supportHoursInfo, colors),
+            _buildInfoRow(
+                Icons.emergency, l10n.emergency, l10n.emergencyInfo, colors),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String title, String info, DynamicAppColors colors) {
+  Widget _buildInfoRow(
+      IconData icon, String title, String info, DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -486,7 +510,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     }
   }
 
-  List<MapEntry<String, String>> _getLocalizedCategories(AppLocalizations l10n) {
+  List<MapEntry<String, String>> _getLocalizedCategories(
+      AppLocalizations l10n) {
     return [
       MapEntry('General', l10n.general),
       MapEntry('Account & Settings', l10n.accountAndSettings),
@@ -499,7 +524,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     ];
   }
 
-  List<MapEntry<String, String>> _getLocalizedPriorities(AppLocalizations l10n) {
+  List<MapEntry<String, String>> _getLocalizedPriorities(
+      AppLocalizations l10n) {
     return [
       MapEntry('Low', l10n.low),
       MapEntry('Medium', l10n.medium),
@@ -514,7 +540,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       path: 'support@immolink.com',
       query: 'subject=ImmoLink Support Request',
     );
-    
+
     if (await canLaunchUrl(emailUri)) {
       await launchUrl(emailUri);
     } else {
@@ -528,7 +554,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
 
   Future<void> _launchPhone(AppLocalizations l10n) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: '+41800123456');
-    
+
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {
@@ -546,7 +572,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.liveChatTitle, style: TextStyle(color: colors.textPrimary)),
+        title: Text(l10n.liveChatTitle,
+            style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -568,7 +595,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close, style: TextStyle(color: colors.textSecondary)),
+            child:
+                Text(l10n.close, style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -577,8 +605,10 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 SnackBar(content: Text(l10n.liveChatSoon)),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
-            child: Text(l10n.startChat, style: TextStyle(color: colors.textOnAccent)),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
+            child: Text(l10n.startChat,
+                style: TextStyle(color: colors.textOnAccent)),
           ),
         ],
       ),

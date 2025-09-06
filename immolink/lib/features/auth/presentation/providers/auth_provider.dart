@@ -5,6 +5,7 @@ import 'package:immosync/features/auth/presentation/providers/user_role_provider
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/crypto/e2ee_service.dart';
+import '../../../../core/presence/presence_ws_service.dart';
 
 class AuthState {
   final bool isAuthenticated;
@@ -21,14 +22,14 @@ class AuthState {
     required this.isLoading,
     this.error,
     this.userId,
-  this.sessionToken,
+    this.sessionToken,
     this.needsProfileCompletion = false,
     this.missingFields = const [],
     this.pendingSocialUserId,
   });
 
   factory AuthState.initial() {
-  return AuthState(isAuthenticated: false, isLoading: false);
+    return AuthState(isAuthenticated: false, isLoading: false);
   }
 
   AuthState copyWith({
@@ -36,7 +37,7 @@ class AuthState {
     bool? isLoading,
     String? error,
     String? userId,
-  String? sessionToken,
+    String? sessionToken,
     bool? needsProfileCompletion,
     List<String>? missingFields,
     String? pendingSocialUserId,
@@ -46,8 +47,9 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       error: error,
       userId: userId ?? this.userId,
-  sessionToken: sessionToken ?? this.sessionToken,
-      needsProfileCompletion: needsProfileCompletion ?? this.needsProfileCompletion,
+      sessionToken: sessionToken ?? this.sessionToken,
+      needsProfileCompletion:
+          needsProfileCompletion ?? this.needsProfileCompletion,
       missingFields: missingFields ?? this.missingFields,
       pendingSocialUserId: pendingSocialUserId ?? this.pendingSocialUserId,
     );
@@ -61,22 +63,16 @@ class CurrentUserNotifier extends StateNotifier<User?> {
 
   Future<void> setUser(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     state = User(
-      id: userId,
-      email: prefs.getString('email') ?? '',
-      role: prefs.getString('userRole') ?? '',
-      fullName: prefs.getString('fullName') ?? '',
-      birthDate: DateTime.now(),
-      isAdmin: false,
-      isValidated: true,
-      address: Address(
-        street: '',
-        city: '',
-        postalCode: '',
-        country: ''
-      )
-    );
+        id: userId,
+        email: prefs.getString('email') ?? '',
+        role: prefs.getString('userRole') ?? '',
+        fullName: prefs.getString('fullName') ?? '',
+        birthDate: DateTime.now(),
+        isAdmin: false,
+        isValidated: true,
+        address: Address(street: '', city: '', postalCode: '', country: ''));
   }
 
   void clearUser() {
@@ -100,7 +96,8 @@ class CurrentUserNotifier extends StateNotifier<User?> {
   }
 }
 
-final currentUserProvider = StateNotifierProvider<CurrentUserNotifier, User?>((ref) {
+final currentUserProvider =
+    StateNotifierProvider<CurrentUserNotifier, User?>((ref) {
   return CurrentUserNotifier();
 });
 
@@ -113,15 +110,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   // Allow other flows (e.g., legacy loginProvider) to inject a successful login result
-  Future<void> applyExternalLogin(Map<String,dynamic> data) async {
+  Future<void> applyExternalLogin(Map<String, dynamic> data) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([
         if (data['userId'] != null) prefs.setString('userId', data['userId']),
-        if (data['sessionToken'] != null) prefs.setString('sessionToken', data['sessionToken']),
+        if (data['sessionToken'] != null)
+          prefs.setString('sessionToken', data['sessionToken']),
         if (data['email'] != null) prefs.setString('email', data['email']),
         if (data['role'] != null) prefs.setString('userRole', data['role']),
-        if (data['fullName'] != null) prefs.setString('fullName', data['fullName']),
+        if (data['fullName'] != null)
+          prefs.setString('fullName', data['fullName']),
       ]);
       if (data['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(data['role']);
@@ -141,7 +140,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         _publishIdentityKey(data['userId']);
       }
       // ignore: avoid_print
-      print('AuthProvider: applyExternalLogin sessionToken present? ${data['sessionToken'] != null}');
+      print(
+          'AuthProvider: applyExternalLogin sessionToken present? ${data['sessionToken'] != null}');
     } catch (e) {
       // ignore: avoid_print
       print('AuthProvider: applyExternalLogin error $e');
@@ -152,13 +152,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
     final sessionToken = prefs.getString('sessionToken');
-  // Debug: log restore status (helps diagnose missing sessionToken causing WS not to auth)
-  // ignore: avoid_print
-  print('AuthProvider:_restoreSession userId=$userId sessionTokenPresent=${sessionToken != null}');
+    // Debug: log restore status (helps diagnose missing sessionToken causing WS not to auth)
+    // ignore: avoid_print
+    print(
+        'AuthProvider:_restoreSession userId=$userId sessionTokenPresent=${sessionToken != null}');
 
     if (userId != null) {
       await ref.read(currentUserProvider.notifier).setUser(userId);
-      state = state.copyWith(isAuthenticated: true, userId: userId, sessionToken: sessionToken);
+      state = state.copyWith(
+          isAuthenticated: true, userId: userId, sessionToken: sessionToken);
     }
   }
 
@@ -169,13 +171,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       print('AuthProvider: Calling auth service...');
-      final userData = await _authService.loginUser(email: email, password: password);
+      final userData =
+          await _authService.loginUser(email: email, password: password);
       print('AuthProvider: Login successful, userData: $userData');
 
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([
         prefs.setString('userId', userData['userId']),
-  if (userData['sessionToken'] != null) prefs.setString('sessionToken', userData['sessionToken']),
+        if (userData['sessionToken'] != null)
+          prefs.setString('sessionToken', userData['sessionToken']),
         prefs.setString('email', userData['email']),
         prefs.setString('userRole', userData['role']),
         prefs.setString('fullName', userData['fullName'])
@@ -185,28 +189,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await ref.read(currentUserProvider.notifier).setUser(userData['userId']);
 
       state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: true,
-        userId: userData['userId'],
-        sessionToken: userData['sessionToken']
-      );
-  // E2EE: publish identity key (fire and forget)
-  _publishIdentityKey(userData['userId']);
+          isLoading: false,
+          isAuthenticated: true,
+          userId: userData['userId'],
+          sessionToken: userData['sessionToken']);
+      // E2EE: publish identity key (fire and forget)
+      _publishIdentityKey(userData['userId']);
       print('AuthProvider: Login state updated - authenticated: true');
-  print('AuthProvider: sessionToken present? ${userData['sessionToken'] != null}');
+      print(
+          'AuthProvider: sessionToken present? ${userData['sessionToken'] != null}');
     } catch (e) {
       print('AuthProvider: Login failed with error: $e');
       final errorMessage = e.toString().replaceFirst('Exception: ', '');
       state = state.copyWith(
-        isLoading: false,
-        error: errorMessage,
-        isAuthenticated: false
-      );
-      print('AuthProvider: Error state set - error: $errorMessage, loading: false, authenticated: false');
-      
+          isLoading: false, error: errorMessage, isAuthenticated: false);
+      print(
+          'AuthProvider: Error state set - error: $errorMessage, loading: false, authenticated: false');
+
       // Add a small delay to ensure the error state is processed
       await Future.delayed(const Duration(milliseconds: 100));
-      print('AuthProvider: Error state after delay - error: ${state.error}, loading: ${state.isLoading}');
+      print(
+          'AuthProvider: Error state after delay - error: ${state.error}, loading: ${state.isLoading}');
     }
   }
 
@@ -214,11 +217,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
 
     try {
+      // Proactively reset WebSocket connections to avoid stale identity usage.
+      try {
+        ref.read(presenceWsServiceProvider).resetConnections();
+      } catch (_) {}
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-  // Ensure sessionToken removed (prefs.clear should handle but explicit for clarity)
-  // ignore: unused_result
-  prefs.remove('sessionToken');
+      // Ensure sessionToken removed (prefs.clear should handle but explicit for clarity)
+      // ignore: unused_result
+      prefs.remove('sessionToken');
       ref.read(currentUserProvider.notifier).clearUser();
       state = AuthState.initial();
     } catch (e) {
@@ -226,26 +233,30 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> socialLogin({required String provider, required String idToken}) async {
+  Future<void> socialLogin(
+      {required String provider, required String idToken}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final data = await _authService.socialLogin(provider: provider, idToken: idToken);
+      final data =
+          await _authService.socialLogin(provider: provider, idToken: idToken);
       if (data['needCompletion'] == true) {
         state = state.copyWith(
           isLoading: false,
-            needsProfileCompletion: true,
-            missingFields: List<String>.from(data['missingFields'] ?? []),
-            pendingSocialUserId: data['userId'],
+          needsProfileCompletion: true,
+          missingFields: List<String>.from(data['missingFields'] ?? []),
+          pendingSocialUserId: data['userId'],
         );
       } else {
         final user = data['user'];
         final prefs = await SharedPreferences.getInstance();
         await Future.wait([
           prefs.setString('userId', user['userId']),
-          if (user['sessionToken'] != null) prefs.setString('sessionToken', user['sessionToken']),
+          if (user['sessionToken'] != null)
+            prefs.setString('sessionToken', user['sessionToken']),
           prefs.setString('email', user['email'] ?? ''),
           if (user['role'] != null) prefs.setString('userRole', user['role']),
-          if (user['fullName'] != null) prefs.setString('fullName', user['fullName']),
+          if (user['fullName'] != null)
+            prefs.setString('fullName', user['fullName']),
         ]);
         if (user['role'] != null) {
           ref.read(userRoleProvider.notifier).setUserRole(user['role']);
@@ -263,7 +274,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         _publishIdentityKey(user['userId']);
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString(), needsProfileCompletion: false);
+      state = state.copyWith(
+          isLoading: false, error: e.toString(), needsProfileCompletion: false);
     }
   }
 
@@ -298,10 +310,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([
         prefs.setString('userId', user['userId']),
-        if (user['sessionToken'] != null) prefs.setString('sessionToken', user['sessionToken']),
+        if (user['sessionToken'] != null)
+          prefs.setString('sessionToken', user['sessionToken']),
         prefs.setString('email', user['email'] ?? ''),
         if (user['role'] != null) prefs.setString('userRole', user['role']),
-        if (user['fullName'] != null) prefs.setString('fullName', user['fullName']),
+        if (user['fullName'] != null)
+          prefs.setString('fullName', user['fullName']),
       ]);
       if (user['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(user['role']);

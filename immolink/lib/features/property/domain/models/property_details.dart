@@ -2,7 +2,7 @@ class PropertyDetails {
   final double size;
   final int rooms;
   final List<String> amenities;
-  final String propertyId;  // Added propertyId field
+  final String propertyId; // Added propertyId field
 
   PropertyDetails({
     required this.size,

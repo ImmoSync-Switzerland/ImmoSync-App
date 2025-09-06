@@ -54,15 +54,17 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/login',
-  builder: (context, state) => const _GermanOnly(child: LoginPage()),
+        builder: (context, state) => const _GermanOnly(child: LoginPage()),
       ),
       GoRoute(
         path: '/register',
-  builder: (context, state) => const _GermanOnly(child: EnhancedRegisterPage()),
+        builder: (context, state) =>
+            const _GermanOnly(child: EnhancedRegisterPage()),
       ),
       GoRoute(
         path: '/complete-profile',
-        builder: (context, state) => const _GermanOnly(child: CompleteProfilePage()),
+        builder: (context, state) =>
+            const _GermanOnly(child: CompleteProfilePage()),
       ),
       GoRoute(
         path: '/forgot-password',
@@ -169,13 +171,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/subscription/payment',
         builder: (context, state) {
           final planData = state.extra as Map<String, dynamic>?;
-          
+
           if (planData == null) {
             return const Scaffold(
               body: Center(child: Text('Invalid subscription parameters')),
             );
           }
-          
+
           return SubscriptionPaymentPage(
             plan: planData['plan'] as SubscriptionPlan,
             isYearly: planData['isYearly'] as bool,
@@ -187,13 +189,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/payments/tenant',
         builder: (context, state) {
           final property = state.extra as Property?;
-          
+
           if (property == null) {
             return const Scaffold(
               body: Center(child: Text('Invalid payment parameters')),
             );
           }
-          
+
           return TenantPaymentPage(
             property: property,
             paymentType: state.uri.queryParameters['type'] ?? 'rent',
@@ -329,15 +331,19 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
-  final isForgotPassword = state.matchedLocation == '/forgot-password';
-  final isCompleting = state.matchedLocation == '/complete-profile';
+      final isForgotPassword = state.matchedLocation == '/forgot-password';
+      final isCompleting = state.matchedLocation == '/complete-profile';
 
-      if (!authState.isAuthenticated && !isLoggingIn && !isRegistering && !isForgotPassword) {
+      if (!authState.isAuthenticated &&
+          !isLoggingIn &&
+          !isRegistering &&
+          !isForgotPassword) {
         if (isCompleting && authState.needsProfileCompletion) return null;
         return '/login';
       }
 
-      if (authState.isAuthenticated && (isLoggingIn || isRegistering || isForgotPassword || isCompleting)) {
+      if (authState.isAuthenticated &&
+          (isLoggingIn || isRegistering || isForgotPassword || isCompleting)) {
         return '/home';
       }
 
@@ -360,4 +366,3 @@ class _GermanOnly extends StatelessWidget {
     );
   }
 }
-

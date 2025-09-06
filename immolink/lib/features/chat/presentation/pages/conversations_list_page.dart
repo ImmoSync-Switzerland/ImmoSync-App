@@ -14,7 +14,8 @@ class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
 
   @override
-  ConsumerState<ConversationsListPage> createState() => _ConversationsListPageState();
+  ConsumerState<ConversationsListPage> createState() =>
+      _ConversationsListPageState();
 }
 
 class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
@@ -40,7 +41,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final conversationsAsync = ref.watch(conversationsProvider);
-    
+
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
@@ -53,7 +54,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
-        ),        leading: IconButton(
+        ),
+        leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
           onPressed: () {
             if (context.canPop()) {
@@ -80,17 +82,20 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           Expanded(
             child: conversationsAsync.when(
               data: (conversations) {
-                final filteredConversations = _filterConversations(conversations);
+                final filteredConversations =
+                    _filterConversations(conversations);
                 if (filteredConversations.isEmpty) {
                   return _buildEmptyState();
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: filteredConversations.length,                  itemBuilder: (context, index) {
+                  itemCount: filteredConversations.length,
+                  itemBuilder: (context, index) {
                     final conversation = filteredConversations[index];
                     final currentUser = ref.watch(currentUserProvider);
-                    final otherUserId = conversation.getOtherParticipantId(currentUser?.id ?? '');
-                    
+                    final otherUserId = conversation
+                        .getOtherParticipantId(currentUser?.id ?? '');
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _buildConversationTile(
@@ -110,7 +115,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: AppColors.error),
                     const SizedBox(height: 16),
-                    Text('${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
+                    Text(
+                        '${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.invalidate(conversationsProvider),
@@ -194,34 +200,41 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
   }
+
   List<Conversation> _filterConversations(List<Conversation> conversations) {
     if (_searchQuery.isEmpty) {
       return conversations;
     }
-    
+
     final currentUser = ref.watch(currentUserProvider);
     final currentUserId = currentUser?.id ?? '';
     final isLandlord = currentUser?.role == 'landlord';
-    
+
     return conversations.where((conversation) {
       final searchLower = _searchQuery.toLowerCase();
-      
+
       // Get the other participant's name for searching
-      final otherUserName = conversation.getOtherParticipantDisplayName(
-        currentUserId, 
-        isLandlord: isLandlord,
-      ).toLowerCase();
-      
+      final otherUserName = conversation
+          .getOtherParticipantDisplayName(
+            currentUserId,
+            isLandlord: isLandlord,
+          )
+          .toLowerCase();
+
       // Search in multiple fields
       return conversation.propertyAddress.toLowerCase().contains(searchLower) ||
-             conversation.lastMessage.toLowerCase().contains(searchLower) ||
-             otherUserName.contains(searchLower) ||
-             (conversation.otherParticipantEmail?.toLowerCase().contains(searchLower) ?? false);
+          conversation.lastMessage.toLowerCase().contains(searchLower) ||
+          otherUserName.contains(searchLower) ||
+          (conversation.otherParticipantEmail
+                  ?.toLowerCase()
+                  .contains(searchLower) ??
+              false);
     }).toList();
   }
 
@@ -251,7 +264,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           ),
           const SizedBox(height: 24),
           Text(
-            _searchQuery.isNotEmpty ? 'No conversations found' : 'No conversations yet',
+            _searchQuery.isNotEmpty
+                ? 'No conversations found'
+                : 'No conversations yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -260,7 +275,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            _searchQuery.isNotEmpty 
+            _searchQuery.isNotEmpty
                 ? 'Try adjusting your search terms'
                 : 'Start a conversation with your properties',
             style: TextStyle(
@@ -272,17 +287,18 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       ),
     );
   }
+
   Widget _buildConversationTile(
-    BuildContext context, 
+    BuildContext context,
     Conversation conversation,
     String otherUserId,
     String currentUserId,
   ) {
     final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
-    
+
     final otherUserName = conversation.getOtherParticipantDisplayName(
-      currentUserId, 
+      currentUserId,
       isLandlord: isLandlord,
     );
 
@@ -310,7 +326,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         leading: Container(
           width: 50,
           height: 50,
@@ -337,7 +354,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             color: Colors.white,
             size: 24,
           ),
-        ),        title: Text(
+        ),
+        title: Text(
           otherUserName,
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -361,7 +379,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             ],
             const SizedBox(height: 4),
             Text(
-              conversation.lastMessage,
+              conversation.lastMessage == '[encrypted]'
+                  ? 'Encrypted message'
+                  : conversation.lastMessage,
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,

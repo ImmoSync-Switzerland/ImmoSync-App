@@ -98,7 +98,9 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
         );
       },
     );
-  }  void _inviteTenant(User tenant) async {
+  }
+
+  void _inviteTenant(User tenant) async {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,12 +111,13 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
 
     try {
       await ref.read(invitationNotifierProvider.notifier).sendInvitation(
-        propertyId: widget.propertyId,
-        landlordId: currentUser.id,
-        tenantId: tenant.id,
-        message: 'Hello! I would like to invite you to rent my property. Please let me know if you are interested.',
-      );
-      
+            propertyId: widget.propertyId,
+            landlordId: currentUser.id,
+            tenantId: tenant.id,
+            message:
+                'Hello! I would like to invite you to rent my property. Please let me know if you are interested.',
+          );
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,4 +139,3 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
     }
   }
 }
-

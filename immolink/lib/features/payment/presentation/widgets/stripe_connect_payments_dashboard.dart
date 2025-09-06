@@ -62,7 +62,8 @@ class _StripeConnectPaymentsDashboardState
 
       // Initialize Stripe Connect
       final initialized = await StripeConnectJSService.initialize(
-        publishableKey: 'pk_test_LMUiQyn0mBZPsUIhVrVMblov', // Replace with your key
+        publishableKey:
+            'pk_test_LMUiQyn0mBZPsUIhVrVMblov', // Replace with your key
         fetchClientSecret: () => _connectService.createAccountSession(
           accountId: widget.accountId,
           components: _getComponentsConfig(),
@@ -149,7 +150,8 @@ class _StripeConnectPaymentsDashboardState
     }
 
     // Create the Stripe component
-    final component = StripeConnectJSService.createComponent(widget.componentType);
+    final component =
+        StripeConnectJSService.createComponent(widget.componentType);
 
     if (component != null) {
       print('Dashboard component created successfully');
@@ -178,9 +180,12 @@ class _StripeConnectPaymentsDashboardState
   Map<String, String> _getDefaultAppearance() {
     final colors = ref.read(dynamicColorsProvider);
     return {
-      'colorPrimary': '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-      'colorBackground': '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-      'colorText': '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+      'colorPrimary':
+          '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+      'colorBackground':
+          '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+      'colorText':
+          '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
       'borderRadius': '12px',
       'fontFamily': 'system-ui, -apple-system, sans-serif',
     };
@@ -271,12 +276,12 @@ class _StripeConnectPaymentsDashboardState
               width: double.infinity,
               height: double.infinity,
               child: kIsWeb
-                ? const Text(
-                    'Stripe dashboard component will appear here',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
-                  )
-                : _buildMobileNotice(colors),
+                  ? const Text(
+                      'Stripe dashboard component will appear here',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  : _buildMobileNotice(colors),
             ),
           ),
         ],
@@ -331,7 +336,8 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 16),
           Text(
-            AppLocalizations.of(context)!.errorLoadingProperties, // placeholder mapping
+            AppLocalizations.of(context)!
+                .errorLoadingProperties, // placeholder mapping
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -340,7 +346,8 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 8),
           Text(
-            _errorMessage ?? AppLocalizations.of(context)!.dashboardComponentsRequireBrowser,
+            _errorMessage ??
+                AppLocalizations.of(context)!.dashboardComponentsRequireBrowser,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -387,7 +394,8 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.visitWebForFullDashboard(_getComponentTitle().toLowerCase()),
+            AppLocalizations.of(context)!
+                .visitWebForFullDashboard(_getComponentTitle().toLowerCase()),
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,

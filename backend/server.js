@@ -35,6 +35,9 @@ const subscriptionsRoutes = require('./routes/subscriptions');
 const connectRoutes = require('./routes/connect');
 const activitiesRoutes = require('./routes/activities');
 const documentsRoutes = require('./routes/documents');
+const chatAttachmentsRoutes = require('./routes/chat_attachments');
+const matrixProvision = require('./routes/matrix_provision');
+const matrixRooms = require('./routes/matrix_rooms');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -75,6 +78,7 @@ app.use('/api/contacts', contactsRoutes);
 
 app.use('/api/conversations', conversationsRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/chat', chatAttachmentsRoutes); // attachments sub-routes
 app.use('/api/invitations', invitationsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/images', imagesRoutes);
@@ -86,6 +90,8 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/matrix', matrixProvision);
+app.use('/api/matrix/rooms', matrixRooms);
 // Alias singular path to the same router to avoid confusion ("Cannot GET /api/subscription")
 app.use('/api/subscription', subscriptionsRoutes);
 app.use('/api/connect', connectRoutes);
@@ -274,10 +280,24 @@ async function startServer() {
         let firstMessage = null;
         if (initialMessage || initialE2EE) {
           const encrypted = !!initialE2EE && !initialMessage;
+          // Ensure receiverId is the other participant (safeguard)
+          let initialReceiver = otherUserId;
+          if (!initialReceiver || initialReceiver === senderId) {
+            // derive from conversation participants
+            const parts = conversation.participants || [];
+            const inferred = parts.find(p => p !== senderId);
+            if (inferred && inferred !== senderId) {
+              initialReceiver = inferred;
+              console.log('[WS][chat:create] inferred initial receiverId=%s for conversation=%s', inferred, conversation._id.toString());
+            } else if (initialReceiver === senderId) {
+              console.warn('[WS][chat:create] initial receiver would equal sender – forcing null');
+              initialReceiver = null;
+            }
+          }
           const msgDoc = {
             conversationId: conversation._id.toString(),
             senderId,
-            receiverId: otherUserId,
+            receiverId: initialReceiver,
             content: encrypted ? '' : (initialMessage || ''),
             e2ee: initialE2EE || null,
             isEncrypted: encrypted,
@@ -323,10 +343,18 @@ async function startServer() {
         if (!conversationId || !Array.isArray(messageIds) || !messageIds.length) return;
         const db = getDB();
         const readAt = new Date();
-        await db.collection('messages').updateMany(
-          { _id: { $in: messageIds.map(id => new ObjectId(id)) }, conversationId },
-          { $set: { isRead: true, readAt } }
-        );
+        // Validate ObjectIds to avoid BSONError on malformed ids from clients
+        const oids = messageIds
+          .filter((id) => typeof id === 'string' && ObjectId.isValid(id))
+          .map((id) => new ObjectId(id));
+        if (oids.length > 0) {
+          await db.collection('messages').updateMany(
+            { _id: { $in: oids }, conversationId },
+            { $set: { isRead: true, readAt } }
+          );
+        } else {
+          console.warn('chat:read ignored, no valid message ObjectIds provided');
+        }
         socket.broadcast.emit('chat:read', { conversationId, messageIds, userId, readAt });
       } catch (e) {
         console.error('chat:read error', e);
@@ -368,10 +396,74 @@ async function startServer() {
           return; // nothing to store
         }
   console.log('[WS][chat:message] resolved sender=%s conv=%s encrypted=%s', senderId, conversationId, encrypted);
+  // Derive receiverId if omitted (one-to-one conversation safeguard)
+        let resolvedReceiver = receiverId || null;
+  const originalIncomingReceiver = receiverId || null;
+        if (!resolvedReceiver) {
+          try {
+            const conv = await db.collection('conversations').findOne({ _id: new ObjectId(conversationId) }, { projection: { landlordId: 1, tenantId: 1, participants: 1 } });
+            if (conv) {
+              // Prefer explicit participants array, else landlord/tenant pair
+              const ids = Array.isArray(conv.participants) && conv.participants.length === 2
+                ? conv.participants.map(p => p.toString())
+                : [conv.landlordId, conv.tenantId].filter(Boolean).map(p => p.toString());
+              const other = ids.find(id => id && id !== senderId);
+              if (other) {
+                resolvedReceiver = other;
+                console.log('[WS][chat:message] inferred receiverId=%s from conversation %s', resolvedReceiver, conversationId);
+              }
+            }
+          } catch (inferErr) {
+            console.warn('[WS][chat:message] failed to infer receiverId:', inferErr?.message || inferErr);
+          }
+        }
+        if (resolvedReceiver === senderId) {
+          console.warn('[WS][chat:message] receiverId equals senderId (%s) – resetting and attempting re-inference', senderId);
+          resolvedReceiver = null; // prevent storing self as receiver
+          // Second-pass inference now that we cleared the invalid self receiver
+          try {
+            const conv2 = await db.collection('conversations').findOne({ _id: new ObjectId(conversationId) }, { projection: { participants: 1, landlordId: 1, tenantId: 1 } });
+            if (conv2) {
+              const ids2 = Array.isArray(conv2.participants) && conv2.participants.length === 2
+                ? conv2.participants.map(p => p.toString())
+                : [conv2.landlordId, conv2.tenantId].filter(Boolean).map(p => p.toString());
+              const other2 = ids2.find(id => id && id !== senderId);
+              if (other2 && other2 !== senderId) {
+                resolvedReceiver = other2;
+                console.log('[WS][chat:message] second-pass inferred receiverId=%s from conversation %s', resolvedReceiver, conversationId);
+              } else {
+                console.warn('[WS][chat:message] second-pass inference failed participants=%j sender=%s', ids2, senderId);
+              }
+            } else {
+              console.warn('[WS][chat:message] second-pass could not load conversation %s for receiver inference', conversationId);
+            }
+          } catch (secondErr) {
+            console.warn('[WS][chat:message] second-pass inference error %s', secondErr?.message || secondErr);
+          }
+        }
+        // Final fallback: if still null, attempt a last participant-based inference (defensive)
+        if (!resolvedReceiver) {
+          try {
+            const conv3 = await db.collection('conversations').findOne({ _id: new ObjectId(conversationId) }, { projection: { participants: 1, landlordId: 1, tenantId: 1 } });
+            if (conv3) {
+              const ids3 = Array.isArray(conv3.participants) && conv3.participants.length === 2
+                ? conv3.participants.map(p => p.toString())
+                : [conv3.landlordId, conv3.tenantId].filter(Boolean).map(p => p.toString());
+              const other3 = ids3.find(id => id && id !== senderId);
+              if (other3 && other3 !== senderId) {
+                resolvedReceiver = other3;
+                console.log('[WS][chat:message] fallback inferred receiverId=%s from conversation %s', resolvedReceiver, conversationId);
+              }
+            }
+          } catch (fallbackErr) {
+            console.warn('[WS][chat:message] fallback inference error %s', fallbackErr?.message || fallbackErr);
+          }
+        }
+  console.log('[WS][chat:message][resolve] incomingReceiver=%s resolvedReceiver=%s sender=%s conversation=%s', originalIncomingReceiver, resolvedReceiver, senderId, conversationId);
         const doc = {
           conversationId,
           senderId,
-          receiverId: receiverId || null,
+          receiverId: resolvedReceiver,
           content: encrypted ? '' : content,
           e2ee: e2ee || null,
           isEncrypted: encrypted,
@@ -387,6 +479,7 @@ async function startServer() {
           const result = await db.collection('messages').insertOne(doc);
           const fullDoc = { ...doc, _id: result.insertedId };
           console.log('[WS][chat:message] stored message _id=%s conv=%s', result.insertedId.toString(), conversationId);
+          console.log('[WS][chat:message][stored] _id=%s sender=%s receiver=%s encrypted=%s', result.insertedId.toString(), fullDoc.senderId, fullDoc.receiverId, fullDoc.isEncrypted);
           
           // Ack & broadcast early so client UI updates even if conversation update fails (e.g. invalid ObjectId)
           socket.emit('chat:ack', fullDoc);

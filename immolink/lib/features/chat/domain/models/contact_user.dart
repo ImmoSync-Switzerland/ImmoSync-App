@@ -24,9 +24,8 @@ class ContactUser {
       email: map['email'] ?? '',
       role: map['role'] ?? '',
       phone: map['phone'] ?? '',
-      properties: map['properties'] != null 
-          ? List<String>.from(map['properties'])
-          : [],
+      properties:
+          map['properties'] != null ? List<String>.from(map['properties']) : [],
       status: map['status'],
     );
   }

@@ -15,10 +15,11 @@ class TenantDocumentsPage extends ConsumerStatefulWidget {
   const TenantDocumentsPage({super.key});
 
   @override
-  ConsumerState<TenantDocumentsPage> createState() => _TenantDocumentsPageState();
+  ConsumerState<TenantDocumentsPage> createState() =>
+      _TenantDocumentsPageState();
 }
 
-class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage> 
+class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -35,7 +36,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     final authState = ref.read(authProvider);
     if (authState.userId != null) {
       final documentService = ref.read(documentServiceProvider);
-      final counts = await documentService.getDocumentCountsByCategory(authState.userId!);
+      final counts =
+          await documentService.getDocumentCountsByCategory(authState.userId!);
       if (mounted) {
         setState(() {
           _categoryCounts = counts;
@@ -49,10 +51,10 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
-    
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+
     _animationController.forward();
   }
 
@@ -87,7 +89,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildWelcomeSection(currentUser?.fullName ?? '', l10n, colors),
+                  _buildWelcomeSection(
+                      currentUser?.fullName ?? '', l10n, colors),
                   const SizedBox(height: 24),
                   _buildDocumentStats(documentStats, colors),
                   const SizedBox(height: 32),
@@ -108,7 +111,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  PreferredSizeWidget _buildAppBar(AppLocalizations l10n, DynamicAppColors colors) {
+  PreferredSizeWidget _buildAppBar(
+      AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
@@ -131,7 +135,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  Widget _buildWelcomeSection(String userName, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildWelcomeSection(
+      String userName, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -222,35 +227,48 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     }
   }
 
-  Widget _buildDocumentCategories(AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildDocumentCategories(
+      AppLocalizations l10n, DynamicAppColors colors) {
     final categories = [
       {
         'title': l10n.leaseAgreement,
         'subtitle': l10n.leaseAgreementSubtitle,
         'icon': Icons.description,
         'color': Colors.blue,
-        'count': l10n.documentsCount((_categoryCounts['Mietvertrag'] ?? 0).toString(), _docPluralSuffix(_categoryCounts['Mietvertrag'] ?? 0, l10n.localeName)),
+        'count': l10n.documentsCount(
+            (_categoryCounts['Mietvertrag'] ?? 0).toString(),
+            _docPluralSuffix(
+                _categoryCounts['Mietvertrag'] ?? 0, l10n.localeName)),
       },
       {
         'title': l10n.operatingCosts,
         'subtitle': l10n.operatingCostsSubtitle,
         'icon': Icons.receipt_long,
         'color': Colors.green,
-        'count': l10n.documentsCount((_categoryCounts['Nebenkosten'] ?? 0).toString(), _docPluralSuffix(_categoryCounts['Nebenkosten'] ?? 0, l10n.localeName)),
+        'count': l10n.documentsCount(
+            (_categoryCounts['Nebenkosten'] ?? 0).toString(),
+            _docPluralSuffix(
+                _categoryCounts['Nebenkosten'] ?? 0, l10n.localeName)),
       },
       {
         'title': l10n.protocols,
         'subtitle': l10n.protocolsSubtitle,
         'icon': Icons.checklist,
         'color': Colors.orange,
-        'count': l10n.documentsCount((_categoryCounts['Protokolle'] ?? 0).toString(), _docPluralSuffix(_categoryCounts['Protokolle'] ?? 0, l10n.localeName)),
+        'count': l10n.documentsCount(
+            (_categoryCounts['Protokolle'] ?? 0).toString(),
+            _docPluralSuffix(
+                _categoryCounts['Protokolle'] ?? 0, l10n.localeName)),
       },
       {
         'title': l10n.correspondence,
         'subtitle': l10n.correspondenceSubtitle,
         'icon': Icons.email,
         'color': Colors.purple,
-        'count': l10n.documentsCount((_categoryCounts['Korrespondenz'] ?? 0).toString(), _docPluralSuffix(_categoryCounts['Korrespondenz'] ?? 0, l10n.localeName)),
+        'count': l10n.documentsCount(
+            (_categoryCounts['Korrespondenz'] ?? 0).toString(),
+            _docPluralSuffix(
+                _categoryCounts['Korrespondenz'] ?? 0, l10n.localeName)),
       },
     ];
 
@@ -272,7 +290,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
             final crossAxisCount = screenWidth > 600 ? 3 : 2;
             final crossAxisSpacing = 12.0;
             final mainAxisSpacing = 12.0;
-            final itemWidth = (screenWidth - (crossAxisSpacing * (crossAxisCount - 1))) / crossAxisCount;
+            final itemWidth =
+                (screenWidth - (crossAxisSpacing * (crossAxisCount - 1))) /
+                    crossAxisCount;
             final childAspectRatio = itemWidth / 120;
             return GridView.builder(
               shrinkWrap: true,
@@ -310,7 +330,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: (category['color'] as Color).withValues(alpha: 0.1),
+                                color: (category['color'] as Color)
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(
@@ -437,9 +458,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         children: [
           Expanded(
             child: _buildStatItem(
-              l10n.total, 
-              '${stats['total'] ?? 0}', 
-              Icons.folder, 
+              l10n.total,
+              '${stats['total'] ?? 0}',
+              Icons.folder,
               colors.primaryAccent,
               colors,
             ),
@@ -447,9 +468,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           Container(width: 1, height: 40, color: colors.dividerSeparator),
           Expanded(
             child: _buildStatItem(
-              l10n.expiring, 
-              '${stats['expiring'] ?? 0}', 
-              Icons.warning, 
+              l10n.expiring,
+              '${stats['expiring'] ?? 0}',
+              Icons.warning,
               Colors.orange,
               colors,
             ),
@@ -457,9 +478,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           Container(width: 1, height: 40, color: colors.dividerSeparator),
           Expanded(
             child: _buildStatItem(
-              l10n.expired, 
-              '${stats['expired'] ?? 0}', 
-              Icons.error, 
+              l10n.expired,
+              '${stats['expired'] ?? 0}',
+              Icons.error,
               Colors.red,
               colors,
             ),
@@ -469,7 +490,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color, DynamicAppColors colors) {
+  Widget _buildStatItem(String label, String value, IconData icon, Color color,
+      DynamicAppColors colors) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -493,7 +515,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  Widget _buildRecentDocuments(List<DocumentModel> documents, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildRecentDocuments(List<DocumentModel> documents,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -550,20 +573,21 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           )
         else
           ...documents.take(3).map((document) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: DocumentCard(
-              document: document,
-              onTap: () => _viewDocument(document),
-              onDownload: () => _downloadDocument(document),
-              onDelete: null, // Tenants can't delete documents
-              showActions: true,
-            ),
-          )),
+                padding: const EdgeInsets.only(bottom: 12),
+                child: DocumentCard(
+                  document: document,
+                  onTap: () => _viewDocument(document),
+                  onDownload: () => _downloadDocument(document),
+                  onDelete: null, // Tenants can't delete documents
+                  showActions: true,
+                ),
+              )),
       ],
     );
   }
 
-  Widget _buildAllDocuments(AsyncValue<List<DocumentModel>> documentsAsync, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildAllDocuments(AsyncValue<List<DocumentModel>> documentsAsync,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -618,16 +642,18 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
             }
 
             return Column(
-              children: documents.map((document) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: DocumentCard(
-                  document: document,
-                  onTap: () => _viewDocument(document),
-                  onDownload: () => _downloadDocument(document),
-                  onDelete: null, // Tenants can't delete documents
-                  showActions: true,
-                ),
-              )).toList(),
+              children: documents
+                  .map((document) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: DocumentCard(
+                          document: document,
+                          onTap: () => _viewDocument(document),
+                          onDownload: () => _downloadDocument(document),
+                          onDelete: null, // Tenants can't delete documents
+                          showActions: true,
+                        ),
+                      ))
+                  .toList(),
             );
           },
           loading: () => Center(
@@ -676,7 +702,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => ref.read(tenantDocumentsProvider.notifier).refresh(),
+                    onPressed: () =>
+                        ref.read(tenantDocumentsProvider.notifier).refresh(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.error,
                       foregroundColor: colors.textOnAccent,
@@ -709,10 +736,10 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           backgroundColor: Colors.green,
         ),
       );
-      
+
       final documentService = ref.read(documentServiceProvider);
       await documentService.downloadDocument(document);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -739,7 +766,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   Future<void> _uploadDocument() async {
     final colors = ref.read(dynamicColorsProvider);
     final authState = ref.read(authProvider);
-    
+
     if (authState.userId == null) {
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -764,11 +791,11 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
               category: category,
               uploadedBy: authState.userId!,
             );
-            
+
             // Refresh the documents and category counts
             _loadCategoryCounts();
             ref.invalidate(tenantDocumentsProvider);
-            
+
             if (mounted) {
               final l10n = AppLocalizations.of(context)!;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -803,7 +830,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
           backgroundColor: colors.surfaceCards,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             l10n.featureComingSoonTitle,
             style: TextStyle(color: colors.textPrimary),
@@ -828,7 +856,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
 }
 
 class _UploadDocumentDialog extends StatefulWidget {
-  final Function(String name, String description, String category, PlatformFile file) onUpload;
+  final Function(
+          String name, String description, String category, PlatformFile file)
+      onUpload;
   final DynamicAppColors colors;
 
   const _UploadDocumentDialog({
@@ -849,7 +879,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
 
   final List<String> _categories = [
     'Lease Agreement',
-    'Utility Bills', 
+    'Utility Bills',
     'Inspection Reports',
     'Correspondence',
     'Other'
@@ -926,7 +956,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
         _selectedCategory,
         _selectedFile!,
       );
-      
+
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -966,9 +996,13 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
               child: Column(
                 children: [
                   Icon(
-                    _selectedFile != null ? Icons.check_circle : Icons.cloud_upload,
+                    _selectedFile != null
+                        ? Icons.check_circle
+                        : Icons.cloud_upload,
                     size: 48,
-                    color: _selectedFile != null ? Colors.green : widget.colors.textSecondary,
+                    color: _selectedFile != null
+                        ? Colors.green
+                        : widget.colors.textSecondary,
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -988,7 +1022,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Document name
             TextField(
               controller: _nameController,
@@ -1010,7 +1044,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
               style: TextStyle(color: widget.colors.textPrimary),
             ),
             const SizedBox(height: 16),
-            
+
             // Category dropdown
             DropdownButtonFormField<String>(
               initialValue: _selectedCategory,
@@ -1046,7 +1080,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Description
             TextField(
               controller: _descriptionController,

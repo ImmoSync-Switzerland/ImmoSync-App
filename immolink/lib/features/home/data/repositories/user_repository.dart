@@ -15,7 +15,7 @@ class UserRepository {
   Future<UserModel?> getCurrentUser() async {
     final userId = await _getCurrentUserId();
     if (userId == null) return null;
-    
+
     return getUser(userId);
   }
 

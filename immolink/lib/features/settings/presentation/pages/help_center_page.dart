@@ -11,7 +11,7 @@ class HelpCenterPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -112,7 +112,8 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickLinksSection(BuildContext context, AppLocalizations l10n, DynamicAppColors colors, WidgetRef ref) {
+  Widget _buildQuickLinksSection(BuildContext context, AppLocalizations l10n,
+      DynamicAppColors colors, WidgetRef ref) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -171,7 +172,13 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickLinkItem(BuildContext context, String title, String subtitle, IconData icon, VoidCallback onTap, DynamicAppColors colors) {
+  Widget _buildQuickLinkItem(
+      BuildContext context,
+      String title,
+      String subtitle,
+      IconData icon,
+      VoidCallback onTap,
+      DynamicAppColors colors) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -181,14 +188,17 @@ class HelpCenterPage extends ConsumerWidget {
         ),
         child: Icon(icon, color: colors.primaryAccent),
       ),
-      title: Text(title, style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600)),
+      title: Text(title,
+          style: TextStyle(
+              color: colors.textPrimary, fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: TextStyle(color: colors.textSecondary)),
       trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
       onTap: onTap,
     );
   }
 
-  Widget _buildFAQSection(BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildFAQSection(
+      BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -240,7 +250,8 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFAQItem(String question, String answer, DynamicAppColors colors) {
+  Widget _buildFAQItem(
+      String question, String answer, DynamicAppColors colors) {
     return ExpansionTile(
       title: Text(
         question,
@@ -264,7 +275,8 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildGuidesSection(BuildContext context, AppLocalizations l10n, DynamicAppColors colors, WidgetRef ref) {
+  Widget _buildGuidesSection(BuildContext context, AppLocalizations l10n,
+      DynamicAppColors colors, WidgetRef ref) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -312,7 +324,8 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildGuideItem(String title, String subtitle, IconData icon, VoidCallback onTap, DynamicAppColors colors) {
+  Widget _buildGuideItem(String title, String subtitle, IconData icon,
+      VoidCallback onTap, DynamicAppColors colors) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -322,14 +335,17 @@ class HelpCenterPage extends ConsumerWidget {
         ),
         child: Icon(icon, color: colors.primaryAccent),
       ),
-      title: Text(title, style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600)),
+      title: Text(title,
+          style: TextStyle(
+              color: colors.textPrimary, fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: TextStyle(color: colors.textSecondary)),
       trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
       onTap: onTap,
     );
   }
 
-  Widget _buildContactSection(BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildContactSection(
+      BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -364,7 +380,8 @@ class HelpCenterPage extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => context.push('/contact-support'),
                     icon: Icon(Icons.support_agent, color: colors.textOnAccent),
-                    label: Text(l10n.contactSupport, style: TextStyle(color: colors.textOnAccent)),
+                    label: Text(l10n.contactSupport,
+                        style: TextStyle(color: colors.textOnAccent)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryAccent,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -382,25 +399,34 @@ class HelpCenterPage extends ConsumerWidget {
     );
   }
 
-  void _showGettingStartedDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  void _showGettingStartedDialog(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.gettingStarted, style: TextStyle(color: colors.textPrimary)),
+        title: Text(l10n.gettingStarted,
+            style: TextStyle(color: colors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.gettingStartedWelcome, style: TextStyle(color: colors.textPrimary)),
+              Text(l10n.gettingStartedWelcome,
+                  style: TextStyle(color: colors.textPrimary)),
               const SizedBox(height: 16),
-              ...[l10n.gettingStartedStep1, l10n.gettingStartedStep2, l10n.gettingStartedStep3, l10n.gettingStartedStep4].map(
+              ...[
+                l10n.gettingStartedStep1,
+                l10n.gettingStartedStep2,
+                l10n.gettingStartedStep3,
+                l10n.gettingStartedStep4
+              ].map(
                 (step) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(step, style: TextStyle(color: colors.textSecondary)),
+                  child:
+                      Text(step, style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
             ],
@@ -409,32 +435,43 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+            child:
+                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showPropertyManagementDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  void _showPropertyManagementDialog(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.propertyManagement, style: TextStyle(color: colors.textPrimary)),
+        title: Text(l10n.propertyManagement,
+            style: TextStyle(color: colors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.propertyManagementGuide, style: TextStyle(color: colors.textPrimary)),
+              Text(l10n.propertyManagementGuide,
+                  style: TextStyle(color: colors.textPrimary)),
               const SizedBox(height: 16),
-              ...[l10n.propertyManagementTip1, l10n.propertyManagementTip2, l10n.propertyManagementTip3, l10n.propertyManagementTip4, l10n.propertyManagementTip5].map(
+              ...[
+                l10n.propertyManagementTip1,
+                l10n.propertyManagementTip2,
+                l10n.propertyManagementTip3,
+                l10n.propertyManagementTip4,
+                l10n.propertyManagementTip5
+              ].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(tip, style: TextStyle(color: colors.textSecondary)),
+                  child:
+                      Text(tip, style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
             ],
@@ -443,32 +480,43 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+            child:
+                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showPaymentsDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  void _showPaymentsDialog(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.paymentsBilling, style: TextStyle(color: colors.textPrimary)),
+        title: Text(l10n.paymentsBilling,
+            style: TextStyle(color: colors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.paymentsGuide, style: TextStyle(color: colors.textPrimary)),
+              Text(l10n.paymentsGuide,
+                  style: TextStyle(color: colors.textPrimary)),
               const SizedBox(height: 16),
-              ...[l10n.paymentsTip1, l10n.paymentsTip2, l10n.paymentsTip3, l10n.paymentsTip4, l10n.paymentsTip5].map(
+              ...[
+                l10n.paymentsTip1,
+                l10n.paymentsTip2,
+                l10n.paymentsTip3,
+                l10n.paymentsTip4,
+                l10n.paymentsTip5
+              ].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(tip, style: TextStyle(color: colors.textSecondary)),
+                  child:
+                      Text(tip, style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
             ],
@@ -477,32 +525,44 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+            child:
+                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showLandlordGuideDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  void _showLandlordGuideDialog(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.landlordGuide, style: TextStyle(color: colors.textPrimary)),
+        title: Text(l10n.landlordGuide,
+            style: TextStyle(color: colors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.landlordGuideContent, style: TextStyle(color: colors.textPrimary)),
+              Text(l10n.landlordGuideContent,
+                  style: TextStyle(color: colors.textPrimary)),
               const SizedBox(height: 16),
-              ...[l10n.landlordTip1, l10n.landlordTip2, l10n.landlordTip3, l10n.landlordTip4, l10n.landlordTip5, l10n.landlordTip6].map(
+              ...[
+                l10n.landlordTip1,
+                l10n.landlordTip2,
+                l10n.landlordTip3,
+                l10n.landlordTip4,
+                l10n.landlordTip5,
+                l10n.landlordTip6
+              ].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(tip, style: TextStyle(color: colors.textSecondary)),
+                  child:
+                      Text(tip, style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
             ],
@@ -511,32 +571,44 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+            child:
+                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showTenantGuideDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  void _showTenantGuideDialog(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.tenantGuide, style: TextStyle(color: colors.textPrimary)),
+        title:
+            Text(l10n.tenantGuide, style: TextStyle(color: colors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.tenantGuideContent, style: TextStyle(color: colors.textPrimary)),
+              Text(l10n.tenantGuideContent,
+                  style: TextStyle(color: colors.textPrimary)),
               const SizedBox(height: 16),
-              ...[l10n.tenantTip1, l10n.tenantTip2, l10n.tenantTip3, l10n.tenantTip4, l10n.tenantTip5, l10n.tenantTip6].map(
+              ...[
+                l10n.tenantTip1,
+                l10n.tenantTip2,
+                l10n.tenantTip3,
+                l10n.tenantTip4,
+                l10n.tenantTip5,
+                l10n.tenantTip6
+              ].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(tip, style: TextStyle(color: colors.textSecondary)),
+                  child:
+                      Text(tip, style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
             ],
@@ -545,32 +617,44 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+            child:
+                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 
-  void _showSecurityGuideDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  void _showSecurityGuideDialog(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.securityBestPractices, style: TextStyle(color: colors.textPrimary)),
+        title: Text(l10n.securityBestPractices,
+            style: TextStyle(color: colors.textPrimary)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.securityGuideContent, style: TextStyle(color: colors.textPrimary)),
+              Text(l10n.securityGuideContent,
+                  style: TextStyle(color: colors.textPrimary)),
               const SizedBox(height: 16),
-              ...[l10n.securityTip1, l10n.securityTip2, l10n.securityTip3, l10n.securityTip4, l10n.securityTip5, l10n.securityTip6].map(
+              ...[
+                l10n.securityTip1,
+                l10n.securityTip2,
+                l10n.securityTip3,
+                l10n.securityTip4,
+                l10n.securityTip5,
+                l10n.securityTip6
+              ].map(
                 (tip) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(tip, style: TextStyle(color: colors.textSecondary)),
+                  child:
+                      Text(tip, style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
             ],
@@ -579,11 +663,11 @@ class HelpCenterPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+            child:
+                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
           ),
         ],
       ),
     );
   }
 }
-

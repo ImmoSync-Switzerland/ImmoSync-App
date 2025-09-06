@@ -46,6 +46,7 @@ class PropertyService {
       throw Exception('Failed to add property: ${response.statusCode}');
     }
   }
+
   Future<void> inviteTenant(String propertyId, String tenantId) async {
     final prefs = await SharedPreferences.getInstance();
     final landlordId = prefs.getString('userId');
@@ -56,16 +57,18 @@ class PropertyService {
 
     // Use the chat service to send invitation and create conversation
     final chatService = ChatService();
-    
+
     try {
       await chatService.inviteTenant(
         propertyId: propertyId,
         landlordId: landlordId,
         tenantId: tenantId,
-        message: 'Hello! I would like to invite you to rent my property. Please let me know if you are interested.',
+        message:
+            'Hello! I would like to invite you to rent my property. Please let me know if you are interested.',
       );
-      
-      print('Invitation sent successfully to tenant $tenantId for property $propertyId');
+
+      print(
+          'Invitation sent successfully to tenant $tenantId for property $propertyId');
     } catch (e) {
       print('Error sending invitation: $e');
       throw Exception('Failed to send invitation: $e');
@@ -92,7 +95,7 @@ class PropertyService {
       if (response.statusCode != 200) {
         throw Exception('Failed to remove tenant: ${response.statusCode}');
       }
-      
+
       print('Tenant $tenantId removed successfully from property $propertyId');
     } catch (e) {
       print('Error removing tenant: $e');
@@ -207,24 +210,27 @@ class PropertyService {
       throw Exception('Failed to update property: ${response.statusCode}');
     }
   }
+
   // Upload image to MongoDB and return the file ID
   Future<String?> uploadImage(PlatformFile file) async {
     try {
       print('Starting image upload for: ${file.name}');
       print('API URL: $_apiUrl');
-      
+
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$_apiUrl/images/upload'),
-      );      if (file.bytes != null) {
+      );
+      if (file.bytes != null) {
         // For web platform
         print('Uploading image from bytes (web)');
-        
+
         // Determine content type from file extension
         String? contentType;
         if (file.name.toLowerCase().endsWith('.png')) {
           contentType = 'image/png';
-        } else if (file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg')) {
+        } else if (file.name.toLowerCase().endsWith('.jpg') ||
+            file.name.toLowerCase().endsWith('.jpeg')) {
           contentType = 'image/jpeg';
         } else if (file.name.toLowerCase().endsWith('.gif')) {
           contentType = 'image/gif';
@@ -235,9 +241,9 @@ class PropertyService {
         } else {
           contentType = 'image/png'; // Default fallback
         }
-        
+
         print('Setting content type: $contentType');
-        
+
         request.files.add(
           http.MultipartFile.fromBytes(
             'image',
@@ -282,15 +288,14 @@ class PropertyService {
   // Upload multiple images
   Future<List<String>> uploadImages(List<PlatformFile> files) async {
     final urls = <String>[];
-    
+
     for (final file in files) {
       final url = await uploadImage(file);
       if (url != null) {
         urls.add(url);
       }
     }
-    
+
     return urls;
   }
 }
-

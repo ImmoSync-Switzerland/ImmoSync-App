@@ -16,7 +16,7 @@ extension type StripeConnectConfig._(JSObject _) implements JSObject {
   });
 }
 
-/// Stripe Connect appearance configuration  
+/// Stripe Connect appearance configuration
 @JS()
 @anonymous
 extension type StripeConnectAppearance._(JSObject _) implements JSObject {
@@ -28,7 +28,7 @@ extension type StripeConnectAppearance._(JSObject _) implements JSObject {
 
 /// Stripe Connect variables
 @JS()
-@anonymous  
+@anonymous
 extension type StripeConnectVariables._(JSObject _) implements JSObject {
   external StripeConnectVariables({
     String? fontFamily,
@@ -85,7 +85,7 @@ class StripeConnectJSService {
       final result = stripeConnect!.callAsFunction(null, _config);
       _connectInstance = result as JSObject?;
       _isInitialized = true;
-      
+
       return true;
     } catch (e) {
       print('Error initializing Stripe Connect: $e');
@@ -94,7 +94,8 @@ class StripeConnectJSService {
   }
 
   /// Create a Connect component
-  static StripeConnectComponent? createComponent(String componentType, {String? elementId}) {
+  static StripeConnectComponent? createComponent(String componentType,
+      {String? elementId}) {
     if (!_isInitialized || _connectInstance == null) {
       print('Stripe Connect not initialized');
       return null;
@@ -104,8 +105,8 @@ class StripeConnectJSService {
       // For now, create a mock component for testing
       // This will be implemented properly when we test with actual Stripe Connect
       print('Creating component: $componentType');
-      
-      // Return null for now - the actual implementation will depend on 
+
+      // Return null for now - the actual implementation will depend on
       // the exact structure of the Stripe Connect JS library
       return null;
     } catch (e) {
@@ -116,10 +117,8 @@ class StripeConnectJSService {
 
   /// Create and mount component to specific element
   static StripeConnectComponent? createAndMountComponent(
-    String componentType, 
-    String elementId,
-    {Map<String, dynamic>? options}
-  ) {
+      String componentType, String elementId,
+      {Map<String, dynamic>? options}) {
     return createComponent(componentType, elementId: elementId);
   }
 
@@ -134,7 +133,7 @@ class StripeConnectJSService {
   static Future<void> _waitForStripeConnect() async {
     var attempts = 0;
     const maxAttempts = 50; // 5 seconds max wait
-    
+
     while (stripeConnect == null && attempts < maxAttempts) {
       await Future.delayed(Duration(milliseconds: 100));
       attempts++;
@@ -146,7 +145,8 @@ class StripeConnectJSService {
   }
 
   /// Create appearance configuration
-  static StripeConnectAppearance _createAppearance(Map<String, String> appearance) {
+  static StripeConnectAppearance _createAppearance(
+      Map<String, String> appearance) {
     return StripeConnectAppearance(
       overlays: appearance['overlays'] ?? 'dialog',
       variables: StripeConnectVariables(

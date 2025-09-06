@@ -42,6 +42,7 @@ class ContactService {
       throw Exception('Network error: $e');
     }
   }
+
   /// Get all users (for admin or general contact list)
   Future<List<ContactUser>> getAllUsers() async {
     try {
@@ -77,7 +78,7 @@ class ContactService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         final List<dynamic> tenantsData = responseData['tenants'] ?? [];
-        
+
         return tenantsData.map((json) {
           return ContactUser(
             id: json['_id'] ?? '',
@@ -85,9 +86,10 @@ class ContactService {
             email: json['email'] ?? '',
             role: 'tenant',
             phone: json['phone'] ?? '',
-            properties: json['propertyId'] != null && json['propertyId'].isNotEmpty 
-                ? [json['propertyId']] 
-                : [],
+            properties:
+                json['propertyId'] != null && json['propertyId'].isNotEmpty
+                    ? [json['propertyId']]
+                    : [],
           );
         }).toList();
       } else {

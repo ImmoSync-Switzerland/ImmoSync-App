@@ -71,7 +71,8 @@ class PrivacySettingsNotifier extends StateNotifier<PrivacySettings> {
 }
 
 // Provider
-final privacySettingsProvider = StateNotifierProvider<PrivacySettingsNotifier, PrivacySettings>((ref) {
+final privacySettingsProvider =
+    StateNotifierProvider<PrivacySettingsNotifier, PrivacySettings>((ref) {
   return PrivacySettingsNotifier();
 });
 
@@ -112,7 +113,8 @@ class PrivacySettingsPage extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            _buildProfileVisibilitySection(context, ref, privacySettings, colors),
+            _buildProfileVisibilitySection(
+                context, ref, privacySettings, colors),
             const SizedBox(height: 24),
             _buildDataSharingSection(context, ref, privacySettings, colors),
             const SizedBox(height: 24),
@@ -125,7 +127,8 @@ class PrivacySettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileVisibilitySection(BuildContext context, WidgetRef ref, PrivacySettings settings, DynamicAppColors colors) {
+  Widget _buildProfileVisibilitySection(BuildContext context, WidgetRef ref,
+      PrivacySettings settings, DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 4,
@@ -162,22 +165,31 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Profil anderen Benutzern zeigen', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.allowOtherUsersViewProfile, style: TextStyle(color: colors.textSecondary)),
+              title: Text('Profil anderen Benutzern zeigen',
+                  style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(l10n.allowOtherUsersViewProfile,
+                  style: TextStyle(color: colors.textSecondary)),
               value: settings.showProfile,
               onChanged: (value) {
-                ref.read(privacySettingsProvider.notifier).updateShowProfile(value);
+                ref
+                    .read(privacySettingsProvider.notifier)
+                    .updateShowProfile(value);
               },
               secondary: Icon(Icons.person, color: colors.primaryAccent),
               activeThumbColor: colors.primaryAccent,
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text('Kontaktinformationen anzeigen', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('E-Mail und Telefonnummer für verbundene Benutzer anzeigen', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Kontaktinformationen anzeigen',
+                  style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(
+                  'E-Mail und Telefonnummer für verbundene Benutzer anzeigen',
+                  style: TextStyle(color: colors.textSecondary)),
               value: settings.showContactInfo,
               onChanged: (value) {
-                ref.read(privacySettingsProvider.notifier).updateShowContactInfo(value);
+                ref
+                    .read(privacySettingsProvider.notifier)
+                    .updateShowContactInfo(value);
               },
               secondary: Icon(Icons.contact_mail, color: colors.primaryAccent),
               activeThumbColor: colors.primaryAccent,
@@ -188,7 +200,8 @@ class PrivacySettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDataSharingSection(BuildContext context, WidgetRef ref, PrivacySettings settings, DynamicAppColors colors) {
+  Widget _buildDataSharingSection(BuildContext context, WidgetRef ref,
+      PrivacySettings settings, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -224,22 +237,32 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Allow Property Search', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Let other users find your properties in search results', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Allow Property Search',
+                  style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(
+                  'Let other users find your properties in search results',
+                  style: TextStyle(color: colors.textSecondary)),
               value: settings.allowPropertySearch,
               onChanged: (value) {
-                ref.read(privacySettingsProvider.notifier).updateAllowPropertySearch(value);
+                ref
+                    .read(privacySettingsProvider.notifier)
+                    .updateAllowPropertySearch(value);
               },
               secondary: Icon(Icons.search, color: colors.primaryAccent),
               activeThumbColor: colors.primaryAccent,
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text('Share Usage Analytics', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Help improve ImmoLink by sharing anonymous usage data', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Share Usage Analytics',
+                  style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(
+                  'Help improve ImmoLink by sharing anonymous usage data',
+                  style: TextStyle(color: colors.textSecondary)),
               value: settings.shareAnalytics,
               onChanged: (value) {
-                ref.read(privacySettingsProvider.notifier).updateShareAnalytics(value);
+                ref
+                    .read(privacySettingsProvider.notifier)
+                    .updateShareAnalytics(value);
               },
               secondary: Icon(Icons.analytics, color: colors.primaryAccent),
               activeThumbColor: colors.primaryAccent,
@@ -250,7 +273,8 @@ class PrivacySettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMarketingSection(BuildContext context, WidgetRef ref, PrivacySettings settings, DynamicAppColors colors) {
+  Widget _buildMarketingSection(BuildContext context, WidgetRef ref,
+      PrivacySettings settings, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -286,11 +310,16 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Receive Marketing Emails', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Get updates about new features, tips, and special offers', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Receive Marketing Emails',
+                  style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text(
+                  'Get updates about new features, tips, and special offers',
+                  style: TextStyle(color: colors.textSecondary)),
               value: settings.receiveMarketing,
               onChanged: (value) {
-                ref.read(privacySettingsProvider.notifier).updateReceiveMarketing(value);
+                ref
+                    .read(privacySettingsProvider.notifier)
+                    .updateReceiveMarketing(value);
               },
               secondary: Icon(Icons.email, color: colors.primaryAccent),
               activeThumbColor: colors.primaryAccent,
@@ -301,7 +330,8 @@ class PrivacySettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDataManagementSection(BuildContext context, WidgetRef ref, PrivacySettings settings, DynamicAppColors colors) {
+  Widget _buildDataManagementSection(BuildContext context, WidgetRef ref,
+      PrivacySettings settings, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -338,8 +368,10 @@ class PrivacySettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             ListTile(
               leading: Icon(Icons.download, color: colors.primaryAccent),
-              title: Text('Export My Data', style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Download a copy of your personal data', style: TextStyle(color: colors.textSecondary)),
+              title: Text('Export My Data',
+                  style: TextStyle(color: colors.textPrimary)),
+              subtitle: Text('Download a copy of your personal data',
+                  style: TextStyle(color: colors.textSecondary)),
               trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
               onTap: () {
                 _showDataExportDialog(context, ref);
@@ -348,8 +380,10 @@ class PrivacySettingsPage extends ConsumerWidget {
             Divider(color: colors.dividerSeparator),
             ListTile(
               leading: Icon(Icons.delete_forever, color: colors.error),
-              title: Text('Delete Account', style: TextStyle(color: colors.error)),
-              subtitle: Text('Permanently delete your account and all data', style: TextStyle(color: colors.textSecondary)),
+              title:
+                  Text('Delete Account', style: TextStyle(color: colors.error)),
+              subtitle: Text('Permanently delete your account and all data',
+                  style: TextStyle(color: colors.textSecondary)),
               trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
               onTap: () {
                 _showDeleteAccountDialog(context, ref);
@@ -367,7 +401,8 @@ class PrivacySettingsPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text('Export Your Data', style: TextStyle(color: colors.textPrimary)),
+        title: Text('Export Your Data',
+            style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +412,13 @@ class PrivacySettingsPage extends ConsumerWidget {
               style: TextStyle(color: colors.textPrimary),
             ),
             const SizedBox(height: 16),
-            ...['Profile information', 'Property data', 'Messages and conversations', 'Payment history', 'Settings and preferences'].map(
+            ...[
+              'Profile information',
+              'Property data',
+              'Messages and conversations',
+              'Payment history',
+              'Settings and preferences'
+            ].map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
@@ -399,19 +440,23 @@ class PrivacySettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child:
+                Text('Cancel', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Data export request submitted. You will receive an email with the download link.'),
+                  content: Text(
+                      'Data export request submitted. You will receive an email with the download link.'),
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
-            child: Text('Request Export', style: TextStyle(color: colors.textOnAccent)),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
+            child: Text('Request Export',
+                style: TextStyle(color: colors.textOnAccent)),
           ),
         ],
       ),
@@ -431,7 +476,8 @@ class PrivacySettingsPage extends ConsumerWidget {
           children: [
             Text(
               'Are you sure you want to delete your account?',
-              style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: colors.textPrimary, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Text(
@@ -439,14 +485,22 @@ class PrivacySettingsPage extends ConsumerWidget {
               style: TextStyle(color: colors.textPrimary),
             ),
             const SizedBox(height: 8),
-            ...['Your profile and all personal data', 'All properties and property data', 'Messages and conversations', 'Payment history', 'All uploaded documents and images'].map(
+            ...[
+              'Your profile and all personal data',
+              'All properties and property data',
+              'Messages and conversations',
+              'Payment history',
+              'All uploaded documents and images'
+            ].map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
                     Icon(Icons.warning, color: colors.error, size: 16),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(item, style: TextStyle(color: colors.textSecondary))),
+                    Expanded(
+                        child: Text(item,
+                            style: TextStyle(color: colors.textSecondary))),
                   ],
                 ),
               ),
@@ -468,19 +522,22 @@ class PrivacySettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child:
+                Text('Cancel', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Account deletion request submitted. This feature will be available soon.'),
+                  content: Text(
+                      'Account deletion request submitted. This feature will be available soon.'),
                 ),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: colors.error),
-            child: Text('Delete Account', style: TextStyle(color: colors.textOnAccent)),
+            child: Text('Delete Account',
+                style: TextStyle(color: colors.textOnAccent)),
           ),
         ],
       ),

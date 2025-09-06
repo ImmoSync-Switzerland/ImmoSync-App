@@ -29,7 +29,8 @@ class AppSearchBar extends StatelessWidget {
       height: AppSizes.searchBarHeight,
       decoration: BoxDecoration(
         color: AppColors.surfaceCards,
-        borderRadius: BorderRadius.circular(AppSizes.searchBarHeight / 2), // Pill shape
+        borderRadius:
+            BorderRadius.circular(AppSizes.searchBarHeight / 2), // Pill shape
       ),
       child: TextField(
         controller: controller,
@@ -42,12 +43,12 @@ class AppSearchBar extends StatelessWidget {
           hintStyle: AppTypography.body.copyWith(
             color: AppColors.textPlaceholder,
           ),
-          prefixIcon: prefixIcon ?? 
-            const Icon(
-              Icons.search,
-              size: AppSizes.iconSmall,
-              color: AppColors.textPlaceholder,
-            ),
+          prefixIcon: prefixIcon ??
+              const Icon(
+                Icons.search,
+                size: AppSizes.iconSmall,
+                color: AppColors.textPlaceholder,
+              ),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
-import 'package:immosync/features/chat/presentation/providers/chat_service_provider.dart' as chat_providers;
+import 'package:immosync/features/chat/presentation/providers/chat_service_provider.dart'
+    as chat_providers;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -20,6 +22,9 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/presence/presence_ws_service.dart';
 import '../../../../core/presence/presence_cache.dart';
 import '../../../../core/config/db_config.dart';
+import '../../../../core/crypto/e2ee_service.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -39,7 +44,8 @@ class ChatPage extends ConsumerStatefulWidget {
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMixin {
+class _ChatPageState extends ConsumerState<ChatPage>
+    with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late AnimationController _animationController;
@@ -54,6 +60,19 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   ProviderSubscription<dynamic>? _authConnSub;
   Timer? _wsConnectRetry;
   int _wsConnectAttempts = 0;
+  // Stream subscriptions for chat & conversation sockets (to cancel on dispose)
+  StreamSubscription<Map<String, dynamic>>? _chatStreamSub;
+  StreamSubscription<Map<String, dynamic>>? _conversationStreamSub;
+  ProviderSubscription<AsyncValue<List<ChatMessage>>>? _messagesDecryptSub;
+
+  // Pending attachment state
+  XFile? _pendingImage;
+  PlatformFile? _pendingFile;
+  bool _sendingAttachment = false;
+  bool _encryptionReady = false;
+  double? _uploadProgress; // 0..1 while uploading
+  Timer? _encryptionRetryTimer;
+  int _encryptionRetryAttempts = 0;
 
   String? _currentConversationId;
   // Per-message visibility tracking
@@ -72,16 +91,72 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
-    
-  // Start fallback refresh and init layers
-  _currentConversationId = widget.conversationId;
-  // No polling refresh (pure WS)
-  _initPresenceLayer();
-  _initChatWsListener();
-  // Attempt initial read marking shortly after build
-  WidgetsBinding.instance.addPostFrameCallback((_) => _emitReadReceipts());
-  // Attach scroll listener for fine-grained visibility based read detection
-  _scrollController.addListener(_onScrollVisibilityCheck);
+
+    // Start fallback refresh and init layers
+    _currentConversationId = widget.conversationId;
+    // No polling refresh (pure WS)
+    _initPresenceLayer();
+    _initChatWsListener();
+    // Attempt initial read marking shortly after build
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitReadReceipts());
+    // Attach scroll listener for fine-grained visibility based read detection
+    _scrollController.addListener(_onScrollVisibilityCheck);
+    // Pre-derive conversation key (best-effort) for faster first encrypted message
+    if (widget.otherUserId != null) {
+      Future.microtask(() async {
+        try {
+          final e2ee = ref.read(e2eeServiceProvider);
+          await e2ee.ensureInitialized();
+          e2ee
+              .ensureConversationKey(
+                  conversationId: widget.conversationId,
+                  otherUserId: widget.otherUserId!)
+              .then((ok) {
+            if (mounted) {
+              setState(() {
+                _encryptionReady = ok;
+              });
+              if (!ok) _scheduleEncryptionRetry();
+              if (ok) {
+                try {
+                  ref
+                      .read(conversationMessagesProvider(widget.conversationId)
+                          .notifier)
+                      .decryptHistory(
+                          ref: ref, otherUserId: widget.otherUserId!);
+                } catch (_) {}
+              }
+            }
+          });
+          _messagesDecryptSub = ref.listenManual<AsyncValue<List<ChatMessage>>>(
+            conversationMessagesProvider(widget.conversationId),
+            (prev, next) {
+              if (!_encryptionReady) return;
+              next.whenData((msgs) {
+                final needs = msgs.any((m) =>
+                    m.isEncrypted &&
+                    (m.content.isEmpty || m.content == '[encrypted]'));
+                if (needs) {
+                  try {
+                    ref
+                        .read(
+                            conversationMessagesProvider(widget.conversationId)
+                                .notifier)
+                        .decryptHistory(
+                            ref: ref, otherUserId: widget.otherUserId ?? '');
+                  } catch (_) {}
+                }
+              });
+            },
+          );
+        } catch (_) {
+          if (mounted)
+            setState(() {
+              _encryptionReady = false;
+            });
+        }
+      });
+    }
   }
 
   @override
@@ -89,12 +164,16 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     _messageController.dispose();
     _scrollController.dispose();
     _animationController.dispose();
-  // no polling timer to cancel
-  _presenceTimer?.cancel();
+    // no polling timer to cancel
+    _presenceTimer?.cancel();
     _visibilityDebounce?.cancel();
-  _presenceCacheRemove?.close();
-  _authConnSub?.close();
-  _wsConnectRetry?.cancel();
+    _presenceCacheRemove?.close();
+    _authConnSub?.close();
+    _wsConnectRetry?.cancel();
+    _encryptionRetryTimer?.cancel();
+    _chatStreamSub?.cancel();
+    _conversationStreamSub?.cancel();
+    _messagesDecryptSub?.close();
     super.dispose();
   }
 
@@ -107,24 +186,29 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (userId != null && userId.isNotEmpty) {
       void tryConnect() {
         final token = ref.read(authProvider).sessionToken;
-        print('[ChatPage][tryConnect] attempt=$_wsConnectAttempts token=${token != null}');
+        print(
+            '[ChatPage][tryConnect] attempt=$_wsConnectAttempts token=${token != null}');
         if (token != null) {
-          ref.read(presenceWsServiceProvider).connect(userId: userId, token: token);
+          ref
+              .read(presenceWsServiceProvider)
+              .connect(userId: userId, token: token);
           _authConnSub?.close();
           _authConnSub = null;
           _wsConnectRetry?.cancel();
           // After short delay, dump debug status
-          Future.delayed(const Duration(seconds:1), () {
+          Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
               ref.read(presenceWsServiceProvider).debugStatus();
             }
           });
         }
       }
+
       // Attempt now (post frame) and if token not yet ready, listen for it
       WidgetsBinding.instance.addPostFrameCallback((_) {
         tryConnect();
-        if (_authConnSub == null && ref.read(authProvider).sessionToken == null) {
+        if (_authConnSub == null &&
+            ref.read(authProvider).sessionToken == null) {
           _authConnSub = ref.listenManual(authProvider, (prev, next) {
             if (mounted) tryConnect();
           });
@@ -133,16 +217,21 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       // Also start a periodic retry (in case listenManual misses initial change)
       _wsConnectRetry = Timer.periodic(const Duration(seconds: 2), (t) {
         _wsConnectAttempts++;
-        if (_wsConnectAttempts > 10) { t.cancel(); return; }
+        if (_wsConnectAttempts > 10) {
+          t.cancel();
+          return;
+        }
         // Just attempt; PresenceWsService internally ignores duplicate connects
         tryConnect();
       });
       // Fallback REST heartbeat every 45s (server also gets WS pings)
-      _presenceTimer = Timer.periodic(const Duration(seconds: 45), (_) => _sendHeartbeat());
+      _presenceTimer =
+          Timer.periodic(const Duration(seconds: 45), (_) => _sendHeartbeat());
       _sendHeartbeat();
     }
     // Listen to presence cache for other user updates (manual listen allowed outside build)
-    _presenceCacheRemove = ref.listenManual<Map<String, PresenceInfo>>(presenceCacheProvider, (prev, next) {
+    _presenceCacheRemove = ref.listenManual<Map<String, PresenceInfo>>(
+        presenceCacheProvider, (prev, next) {
       final oid = widget.otherUserId;
       if (oid != null && next.containsKey(oid)) {
         final info = next[oid]!;
@@ -160,33 +249,51 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   void _initChatWsListener() {
     final ws = ref.read(presenceWsServiceProvider);
-    ws.chatStream.listen((data) {
-      final type = data['type'];
-      final convId = _currentConversationId ?? widget.conversationId;
-      final notifier = ref.read(conversationMessagesProvider(convId).notifier);
-      if (type == 'message') {
-        notifier.applyWsMessage(data, isAck: false);
-      } else if (type == 'ack') {
-        notifier.applyWsMessage(data, isAck: true);
-      } else if (type == 'delivered' || type == 'read') {
-        notifier.applyDeliveryOrRead(data);
-      } else if (type == 'typing') {
-        if (data['conversationId'] == convId && data['userId'] != ref.read(currentUserProvider)?.id) {
-          setState(() { _otherTyping = data['isTyping'] == true; });
+    // Cancel existing subs if reinitializing
+    _chatStreamSub?.cancel();
+    _conversationStreamSub?.cancel();
+    _chatStreamSub = ws.chatStream.listen((data) {
+      if (!mounted) return; // prevent ref usage after dispose
+      try {
+        final type = data['type'];
+        final convId = _currentConversationId ?? widget.conversationId;
+        final notifier =
+            ref.read(conversationMessagesProvider(convId).notifier);
+        if (type == 'message') {
+          notifier.applyWsMessage(data, isAck: false);
+          // If an encrypted message arrives, we know key is established
+          if (!_encryptionReady &&
+              (data['e2ee'] != null || data['isEncrypted'] == true)) {
+            setState(() {
+              _encryptionReady = true;
+            });
+          }
+        } else if (type == 'ack') {
+          notifier.applyWsMessage(data, isAck: true);
+        } else if (type == 'delivered' || type == 'read') {
+          notifier.applyDeliveryOrRead(data);
+        } else if (type == 'typing') {
+          if (data['conversationId'] == convId &&
+              data['userId'] != ref.read(currentUserProvider)?.id) {
+            setState(() {
+              _otherTyping = data['isTyping'] == true;
+            });
+          }
         }
-      } else if (type == 'read') {
-        // optional: future read receipt UI updates
-      }
-      // Auto-scroll on new messages
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      } catch (_) {}
     });
-    ws.conversationStream.listen((data) {
+    _conversationStreamSub = ws.conversationStream.listen((data) {
+      if (!mounted) return;
       if (data['type'] == 'createAck') {
         final conv = data['conversation'];
         final newId = conv?['_id']?.toString();
-        if (newId != null) {
-          setState(() { _currentConversationId = newId; });
-          // Replace route to bind to provider keyed by new ID
+        if (newId != null &&
+            newId.isNotEmpty &&
+            newId != _currentConversationId) {
+          setState(() {
+            _currentConversationId = newId;
+          });
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             Navigator.of(context).pushReplacement(
@@ -211,16 +318,17 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (userId == null || userId.isEmpty) return;
     try {
       // Assuming same base API used elsewhere
-  final baseUrl = DbConfig.apiUrl;
-  await http.post(Uri.parse('$baseUrl/users/$userId/heartbeat'));
+      final baseUrl = DbConfig.apiUrl;
+      await http.post(Uri.parse('$baseUrl/users/$userId/heartbeat'));
     } catch (_) {}
   }
 
   Future<void> _fetchOtherStatus() async {
     if (widget.otherUserId == null || widget.otherUserId!.isEmpty) return;
     try {
-  final baseUrl = DbConfig.apiUrl;
-  final resp = await http.get(Uri.parse('$baseUrl/users/online-status?ids=${widget.otherUserId}'));
+      final baseUrl = DbConfig.apiUrl;
+      final resp = await http.get(
+          Uri.parse('$baseUrl/users/online-status?ids=${widget.otherUserId}'));
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body);
         final map = data['statuses'] as Map<String, dynamic>;
@@ -238,7 +346,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync = ref.watch(conversationMessagesProvider(widget.conversationId));
+    final messagesAsync =
+        ref.watch(conversationMessagesProvider(widget.conversationId));
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
 
@@ -267,10 +376,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         children: [
           Expanded(
             child: messagesAsync.when(
-              data: (messages) => _buildMessagesList(messages, currentUser?.id ?? ''),
+              data: (messages) =>
+                  _buildMessagesList(messages, currentUser?.id ?? ''),
               loading: () => Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
               ),
               error: (error, stack) => Center(
@@ -280,7 +391,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
-                      AppLocalizations.of(context)!.failedToLoadImage, // TODO: replace with dedicated failedToLoadMessages key
+                      AppLocalizations.of(context)!
+                          .failedToLoadImage, // TODO: replace with dedicated failedToLoadMessages key
                       style: AppTypography.subhead.copyWith(
                         color: colors.error,
                         inherit: true,
@@ -288,7 +400,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => ref.invalidate(conversationMessagesProvider(widget.conversationId)),
+                      onPressed: () => ref.invalidate(
+                          conversationMessagesProvider(widget.conversationId)),
                       child: Text(AppLocalizations.of(context)!.retry),
                     ),
                   ],
@@ -304,7 +417,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   PreferredSizeWidget _buildAppBar() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
@@ -320,13 +433,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
           CircleAvatar(
             radius: 20,
             backgroundColor: colors.primaryAccent.withValues(alpha: 0.1),
-            backgroundImage: widget.otherUserAvatar != null 
-                ? NetworkImage(widget.otherUserAvatar!) 
+            backgroundImage: widget.otherUserAvatar != null
+                ? NetworkImage(widget.otherUserAvatar!)
                 : null,
             child: widget.otherUserAvatar == null
                 ? Text(
-                    widget.otherUserName.isNotEmpty 
-                        ? widget.otherUserName[0].toUpperCase() 
+                    widget.otherUserName.isNotEmpty
+                        ? widget.otherUserName[0].toUpperCase()
                         : 'U',
                     style: AppTypography.subhead.copyWith(
                       color: colors.primaryAccent,
@@ -366,7 +479,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         height: 8,
                         margin: const EdgeInsets.only(right: 4),
                         decoration: BoxDecoration(
-                          color: _otherOnline ? Colors.green : colors.textTertiary,
+                          color:
+                              _otherOnline ? Colors.green : colors.textTertiary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -429,7 +543,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
             itemBuilder: (context, index) {
               final message = messages[index];
               final isMe = message.senderId == currentUserId;
-              final showDate = index == 0 || 
+              final showDate = index == 0 ||
                   !_isSameDay(message.timestamp, messages[index - 1].timestamp);
               // Ensure a GlobalKey for visibility tracking
               _messageKeys.putIfAbsent(message.id, () => GlobalKey());
@@ -519,11 +633,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   Widget _buildMessageBubble(ChatMessage message, bool isMe) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isMe) ...[
             CircleAvatar(
@@ -557,10 +672,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     : null,
                 color: isMe ? null : colors.surfaceCards,
                 borderRadius: BorderRadius.circular(18),
-                border: isMe ? null : Border.all(
-                  color: colors.borderLight,
-                  width: 1,
-                ),
+                border: isMe
+                    ? null
+                    : Border.all(
+                        color: colors.borderLight,
+                        width: 1,
+                      ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -568,28 +685,28 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if ((message.deliveredAt != null || message.readAt != null) && message.content == '[encrypted]')
-                        const SizedBox.shrink(),
-                      if (message.content == '[encrypted]') ...[
-                        Icon(Icons.lock, size: 14, color: isMe ? Colors.white70 : colors.textSecondary),
+                      if (message.isEncrypted) ...[
+                        Icon(Icons.lock,
+                            size: 14,
+                            color:
+                                isMe ? Colors.white70 : colors.textSecondary),
+                        const SizedBox(width: 4),
+                      ] else if (_encryptionReady &&
+                          message.messageType == 'text') ...[
+                        Icon(Icons.warning_amber_outlined,
+                            size: 14,
+                            color: isMe ? Colors.white70 : Colors.orangeAccent),
                         const SizedBox(width: 4),
                       ],
                       Expanded(
-                        child: Text(
-                          message.content,
-                          style: AppTypography.body.copyWith(
-                            color: isMe ? Colors.white : colors.textPrimary,
-                            inherit: true,
-                          ),
-                        ),
-                      ),
+                          child: _buildMessageContent(message, isMe, colors)),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime(message.timestamp),
                     style: AppTypography.caption.copyWith(
-                      color: isMe 
+                      color: isMe
                           ? Colors.white.withValues(alpha: 0.7)
                           : colors.textTertiary,
                       inherit: true,
@@ -598,11 +715,17 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   if (isMe) ...[
                     const SizedBox(width: 4),
                     Icon(
-                      message.readAt != null ? Icons.done_all : (message.deliveredAt != null ? Icons.check : Icons.access_time),
+                      message.readAt != null
+                          ? Icons.done_all
+                          : (message.deliveredAt != null
+                              ? Icons.check
+                              : Icons.access_time),
                       size: 14,
                       color: message.readAt != null
                           ? Colors.lightBlueAccent
-                          : (message.deliveredAt != null ? Colors.white70 : Colors.white38),
+                          : (message.deliveredAt != null
+                              ? Colors.white70
+                              : Colors.white38),
                     )
                   ]
                 ],
@@ -625,9 +748,101 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       ),
     );
   }
+
+  Widget _buildMessageContent(ChatMessage message, bool isMe, dynamic colors) {
+    // Basic handling for image/file types (no preview yet)
+    if (message.messageType == 'image') {
+      final name = message.metadata?['fileName'] ?? message.content;
+      return GestureDetector(
+        onTap: () async {
+          if (message.metadata?['fileId'] != null) {
+            final other = isMe ? (message.receiverId) : message.senderId;
+            final bytes = await ref
+                .read(chat_providers.chatServiceProvider)
+                .downloadAndDecryptAttachment(
+                  message: message,
+                  currentUserId: ref.read(currentUserProvider)?.id ?? '',
+                  otherUserId: other,
+                  ref: ref,
+                );
+            if (bytes != null && mounted) {
+              showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                        child: Image.memory(Uint8List.fromList(bytes),
+                            fit: BoxFit.contain),
+                      ));
+            }
+          }
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(Icons.image,
+                size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(name,
+                  style: AppTypography.body.copyWith(
+                      color: isMe ? Colors.white : colors.textPrimary,
+                      inherit: true)),
+            ),
+          ],
+        ),
+      );
+    }
+    if (message.messageType == 'file') {
+      final name = message.metadata?['fileName'] ?? message.content;
+      return GestureDetector(
+        onTap: () async {
+          if (message.metadata?['fileId'] != null) {
+            final other = isMe ? (message.receiverId) : message.senderId;
+            final bytes = await ref
+                .read(chat_providers.chatServiceProvider)
+                .downloadAndDecryptAttachment(
+                  message: message,
+                  currentUserId: ref.read(currentUserProvider)?.id ?? '',
+                  otherUserId: other,
+                  ref: ref,
+                );
+            if (bytes != null && mounted) {
+              try {
+                final dir = await getTemporaryDirectory();
+                final path = '${dir.path}/$name';
+                final f = File(path);
+                await f.writeAsBytes(bytes, flush: true);
+                await OpenFilex.open(f.path);
+              } catch (e) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text('Open failed: $e')));
+              }
+            }
+          }
+        },
+        child: Row(children: [
+          Icon(Icons.insert_drive_file,
+              size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
+          const SizedBox(width: 6),
+          Expanded(
+              child: Text(name,
+                  style: AppTypography.body.copyWith(
+                      color: isMe ? Colors.white : colors.textPrimary,
+                      inherit: true))),
+        ]),
+      );
+    }
+    return Text(
+      message.content,
+      style: AppTypography.body.copyWith(
+        color: isMe ? Colors.white : colors.textPrimary,
+        inherit: true,
+      ),
+    );
+  }
+
   Widget _buildMessageInput(String currentUserId) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       decoration: BoxDecoration(
@@ -642,6 +857,10 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       child: SafeArea(
         child: Column(
           children: [
+            if (_pendingImage != null || _pendingFile != null) ...[
+              _buildAttachmentPreview(),
+              const SizedBox(height: 8),
+            ],
             Row(
               children: [
                 // Attachment button
@@ -664,7 +883,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 ),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     decoration: BoxDecoration(
                       color: colors.surfaceCards,
                       borderRadius: BorderRadius.circular(24),
@@ -686,7 +906,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                           inherit: true,
                         ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.md),
                       ),
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
@@ -695,11 +916,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                           _isTyping = text.isNotEmpty;
                           final convId = _currentConversationId;
                           if (convId != null && convId != 'new') {
-                            ref.read(presenceWsServiceProvider).sendTyping(conversationId: convId, isTyping: true);
+                            ref.read(presenceWsServiceProvider).sendTyping(
+                                conversationId: convId, isTyping: true);
                             // Schedule stop typing after debounce
                             Future.delayed(const Duration(seconds: 2), () {
                               if (mounted && _isTyping == false) {
-                                ref.read(presenceWsServiceProvider).sendTyping(conversationId: convId, isTyping: false);
+                                ref.read(presenceWsServiceProvider).sendTyping(
+                                    conversationId: convId, isTyping: false);
                               }
                             });
                           }
@@ -711,7 +934,18 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () {
-                    if (_messageController.text.trim().isNotEmpty) {
+                    if (_sendingAttachment) return; // busy
+                    if (!_encryptionReady &&
+                        widget.otherUserId != null &&
+                        (_currentConversationId ?? widget.conversationId) !=
+                            'new') {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Encryption key not ready yet...')));
+                      return;
+                    }
+                    if (_pendingImage != null || _pendingFile != null) {
+                      _sendPendingAttachment(currentUserId);
+                    } else if (_messageController.text.trim().isNotEmpty) {
                       _sendMessage(currentUserId);
                     }
                   },
@@ -722,8 +956,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          colors.primaryAccent,
-                          colors.primaryAccent.withValues(alpha: 0.8),
+                          _sendingAttachment
+                              ? colors.textTertiary
+                              : colors.primaryAccent,
+                          (_sendingAttachment
+                                  ? colors.textTertiary
+                                  : colors.primaryAccent)
+                              .withValues(alpha: 0.8),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(24),
@@ -735,20 +974,43 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.send,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    child: _sendingAttachment
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white)),
+                          )
+                        : (!_encryptionReady &&
+                                widget.otherUserId != null &&
+                                (_currentConversationId ??
+                                        widget.conversationId) !=
+                                    'new')
+                            ? const Icon(Icons.lock_clock,
+                                color: Colors.white, size: 20)
+                            : Icon(
+                                _pendingImage != null || _pendingFile != null
+                                    ? Icons.cloud_upload
+                                    : Icons.send,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                   ),
                 ),
               ],
             ),
+            if (_uploadProgress != null) ...[
+              const SizedBox(height: 6),
+              LinearProgressIndicator(value: _uploadProgress, minHeight: 4),
+            ],
           ],
         ),
       ),
     );
   }
+
   void _sendMessage(String senderId) async {
     if (_messageController.text.trim().isEmpty) return;
 
@@ -769,15 +1031,16 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       // Get the real current user ID from auth provider
       final currentUser = ref.read(currentUserProvider);
       final realSenderId = currentUser?.id ?? 'unknown-user';
-      
-      print('Sending message with senderId: $realSenderId, otherUserId: ${widget.otherUserId}');
+
+      print(
+          'Sending message with senderId: $realSenderId, otherUserId: ${widget.otherUserId}');
 
       final convId = _currentConversationId ?? widget.conversationId;
       if (convId == 'new') {
         ref.read(presenceWsServiceProvider).createConversation(
-          otherUserId: widget.otherUserId ?? '',
-          initialMessage: content,
-        );
+              otherUserId: widget.otherUserId ?? '',
+              initialMessage: content,
+            );
       } else {
         final ws = ref.read(presenceWsServiceProvider);
         final optimistic = ChatMessage(
@@ -787,11 +1050,30 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
           content: content,
           timestamp: DateTime.now(),
         );
-        ref.read(conversationMessagesProvider(convId).notifier).addOptimisticMessage(optimistic);
-  ws.sendChatMessage(conversationId: convId, content: content, receiverId: widget.otherUserId, ref: ref);
+        if (optimistic.receiverId.isNotEmpty &&
+            optimistic.receiverId == optimistic.senderId) {
+          debugPrint(
+              '[ChatPage][warn] Creating optimistic message where receiver==sender (${optimistic.senderId})');
+        }
+        ref
+            .read(conversationMessagesProvider(convId).notifier)
+            .addOptimisticMessage(optimistic);
+        ws
+            .sendChatMessage(
+                conversationId: convId,
+                content: content,
+                receiverId: widget.otherUserId,
+                ref: ref)
+            .then((encUsed) {
+          if (encUsed && mounted && !_encryptionReady) {
+            setState(() {
+              _encryptionReady = true;
+            });
+          }
+        });
       }
-      
-  _scrollToBottom();
+
+      _scrollToBottom();
     } catch (error) {
       // Show error message
       if (mounted) {
@@ -816,6 +1098,30 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     _emitReadReceipts();
   }
 
+  void _scheduleEncryptionRetry() {
+    if (widget.otherUserId == null) return;
+    if (_encryptionRetryAttempts >= 8) return; // cap retries (~8 * 2s = 16s)
+    _encryptionRetryAttempts++;
+    _encryptionRetryTimer?.cancel();
+    _encryptionRetryTimer = Timer(const Duration(seconds: 2), () async {
+      if (!mounted) return;
+      try {
+        final e2ee = ref.read(e2eeServiceProvider);
+        final ok = await e2ee.ensureConversationKey(
+            conversationId: _currentConversationId ?? widget.conversationId,
+            otherUserId: widget.otherUserId!);
+        if (mounted) {
+          setState(() {
+            _encryptionReady = ok;
+          });
+          if (!ok) _scheduleEncryptionRetry();
+        }
+      } catch (_) {
+        if (mounted) _scheduleEncryptionRetry();
+      }
+    });
+  }
+
   void _emitReadReceipts() {
     final convId = _currentConversationId ?? widget.conversationId;
     if (convId == 'new') return;
@@ -826,21 +1132,31 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (messages.isEmpty) return;
     // Determine visible: if scrolled near bottom treat all as viewed.
     if (_scrollController.hasClients) {
-      final offsetFromBottom = _scrollController.position.maxScrollExtent - _scrollController.offset;
-      if (offsetFromBottom > 150) return; // not near bottom yet
+      final offsetFromBottom =
+          _scrollController.position.maxScrollExtent - _scrollController.offset;
+      // Mark as read only if within 150px of bottom
+      if (offsetFromBottom > 150) {
+        return; // still far from bottom
+      }
     }
-  final unreadIds = messages
-    .where((m) => m.senderId != currentUserId && !m.isRead)
-    .map((m) => m.id as String)
-    .toList(growable: false);
-  if (unreadIds.isNotEmpty) {
-    ref.read(presenceWsServiceProvider).markAllRead(conversationId: convId, messageIds: List<String>.from(unreadIds));
+    final unreadIds = messages
+        .where((m) => m.senderId != currentUserId && !m.isRead)
+        .map((m) => m.id as String)
+        .toList(growable: false);
+    if (unreadIds.isNotEmpty) {
+      ref.read(presenceWsServiceProvider).markAllRead(
+          conversationId: convId, messageIds: List<String>.from(unreadIds));
+      // Optimistically update local state so ticks appear immediately
+      ref
+          .read(conversationMessagesProvider(convId).notifier)
+          .bulkMarkRead(unreadIds);
     }
   }
 
   void _onScrollVisibilityCheck() {
     if (_visibilityDebounce?.isActive ?? false) return;
-    _visibilityDebounce = Timer(const Duration(milliseconds: 120), _computeVisibleMessagesAndMarkRead);
+    _visibilityDebounce = Timer(
+        const Duration(milliseconds: 120), _computeVisibleMessagesAndMarkRead);
   }
 
   void _computeVisibleMessagesAndMarkRead() {
@@ -848,7 +1164,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (convId == 'new') return;
     final currentUserId = ref.read(currentUserProvider)?.id;
     if (currentUserId == null) return;
-    final messages = ref.read(conversationMessagesProvider(convId)).maybeWhen(data: (m)=>m, orElse: ()=>[]);
+    final messages = ref
+        .read(conversationMessagesProvider(convId))
+        .maybeWhen(data: (m) => m, orElse: () => []);
     if (messages.isEmpty) return;
     final unreadToMark = <String>[];
     for (final msg in messages) {
@@ -876,7 +1194,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       }
     }
     if (unreadToMark.isNotEmpty) {
-      ref.read(presenceWsServiceProvider).markAllRead(conversationId: convId, messageIds: unreadToMark);
+      ref
+          .read(presenceWsServiceProvider)
+          .markAllRead(conversationId: convId, messageIds: unreadToMark);
       _readSent.addAll(unreadToMark);
     }
   }
@@ -906,7 +1226,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [                  Text(
+                children: [
+                  Text(
                     'Chat Options',
                     style: AppTypography.heading2.copyWith(
                       color: AppColors.textPrimary,
@@ -923,7 +1244,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   ),
                   ListTile(
                     leading: Icon(Icons.report, color: AppColors.warning),
-                    title: Text(AppLocalizations.of(context)!.reportConversation),
+                    title:
+                        Text(AppLocalizations.of(context)!.reportConversation),
                     onTap: () {
                       Navigator.pop(context);
                       _reportConversation();
@@ -931,7 +1253,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   ),
                   ListTile(
                     leading: Icon(Icons.delete, color: AppColors.error),
-                    title: Text(AppLocalizations.of(context)!.deleteConversation),
+                    title:
+                        Text(AppLocalizations.of(context)!.deleteConversation),
                     onTap: () {
                       Navigator.pop(context);
                       _deleteConversation();
@@ -1141,7 +1464,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       // For demonstration, we'll use tel: URL to initiate a call
       // In a real app, you'd get the contact's phone number
       const phoneNumber = 'tel:+1234567890'; // This would be dynamic
-      
+
       if (await canLaunchUrl(Uri.parse(phoneNumber))) {
         await launchUrl(Uri.parse(phoneNumber));
       } else {
@@ -1167,7 +1490,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Block User'),
-        content: const Text('Are you sure you want to block this user? You will no longer receive messages from them.'),
+        content: const Text(
+            'Are you sure you want to block this user? You will no longer receive messages from them.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1196,7 +1520,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Report Conversation'),
-        content: const Text('Are you sure you want to report this conversation? Our support team will review it.'),
+        content: const Text(
+            'Are you sure you want to report this conversation? Our support team will review it.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1225,7 +1550,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Conversation'),
-        content: const Text('Are you sure you want to delete this conversation? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this conversation? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1252,17 +1578,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   void _pickImageFromGallery() async {
     try {
-      final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      
+      final XFile? image =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+
       if (image != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Image selected: ${image.name}'),
-            backgroundColor: AppColors.primaryAccent,
-          ),
-        );
-        // Here you would normally send the image
-        // await _chatService.sendImage(image);
+        setState(() {
+          _pendingImage = image;
+          _pendingFile = null; // clear file if any
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1276,17 +1599,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   void _pickImageFromCamera() async {
     try {
-      final XFile? image = await ImagePicker().pickImage(source: ImageSource.camera);
-      
+      final XFile? image =
+          await ImagePicker().pickImage(source: ImageSource.camera);
+
       if (image != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Photo taken: ${image.name}'),
-            backgroundColor: AppColors.primaryAccent,
-          ),
-        );
-        // Here you would normally send the image
-        // await _chatService.sendImage(image);
+        setState(() {
+          _pendingImage = image;
+          _pendingFile = null;
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1307,31 +1627,10 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
       if (result != null) {
         PlatformFile file = result.files.first;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sending document: ${file.name}'),
-            backgroundColor: AppColors.primaryAccent,
-          ),
-        );
-        
-        // Send the document
-        final chatService = ref.read(chat_providers.chatServiceProvider);
-        final currentUser = ref.read(currentUserProvider);
-        
-        if (currentUser != null) {
-          await chatService.sendDocument(
-            conversationId: widget.conversationId,
-            senderId: currentUser.id,
-            fileName: file.name,
-            filePath: file.path ?? '',
-            fileSize: file.size.toString(),
-            otherUserId: widget.otherUserId,
-            ref: ref,
-          );
-          
-          // Refresh messages
-          ref.invalidate(conversationMessagesProvider(widget.conversationId));
-        }
+        setState(() {
+          _pendingFile = file;
+          _pendingImage = null; // clear image if any
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1343,16 +1642,193 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     }
   }
 
+  // === Attachment helpers (preview & sending) ===
+  Widget _buildAttachmentPreview() {
+    final colors = ref.watch(dynamicColorsProvider);
+    final isImage = _pendingImage != null;
+    final fileName = isImage
+        ? (_pendingImage!.name.isNotEmpty
+            ? _pendingImage!.name
+            : _pendingImage!.path.split(Platform.pathSeparator).last)
+        : (_pendingFile?.name ?? '');
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surfaceCards,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.borderLight, width: 0.5),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (isImage) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                File(_pendingImage!.path),
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 56,
+                  height: 56,
+                  color: colors.borderLight,
+                  child: const Icon(Icons.broken_image, size: 24),
+                ),
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: colors.primaryAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.insert_drive_file, color: colors.primaryAccent),
+            ),
+          ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.body.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      inherit: true),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isImage ? 'Image ready to send' : 'File ready to send',
+                  style: AppTypography.caption
+                      .copyWith(color: colors.textSecondary, inherit: true),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, color: colors.textSecondary),
+            onPressed: _sendingAttachment ? null : _clearPendingAttachment,
+          ),
+          IconButton(
+            icon: Icon(Icons.cloud_upload, color: colors.primaryAccent),
+            onPressed: _sendingAttachment
+                ? null
+                : () {
+                    final currentUser = ref.read(currentUserProvider);
+                    if (currentUser != null)
+                      _sendPendingAttachment(currentUser.id);
+                  },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _clearPendingAttachment() {
+    setState(() {
+      _pendingImage = null;
+      _pendingFile = null;
+    });
+  }
+
+  Future<void> _sendPendingAttachment(String currentUserId) async {
+    if (_pendingImage == null && _pendingFile == null) return;
+    final convId = _currentConversationId ?? widget.conversationId;
+    if (convId == 'new') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Please send a text message first to start the conversation')),
+      );
+      return;
+    }
+    setState(() {
+      _sendingAttachment = true;
+    });
+    try {
+      final chatService = ref.read(chat_providers.chatServiceProvider);
+      ChatMessage? stored;
+      if (_pendingImage != null) {
+        _uploadProgress = 0.0;
+        stored = await chatService.sendImage(
+          conversationId: convId,
+          senderId: currentUserId,
+          fileName: _pendingImage!.name.isNotEmpty
+              ? _pendingImage!.name
+              : _pendingImage!.path.split(Platform.pathSeparator).last,
+          imagePath: _pendingImage!.path,
+          otherUserId: widget.otherUserId,
+          ref: ref,
+          onProgress: (p) {
+            if (mounted)
+              setState(() {
+                _uploadProgress = p;
+              });
+          },
+        );
+      } else if (_pendingFile != null) {
+        final f = _pendingFile!;
+        _uploadProgress = 0.0;
+        stored = await chatService.sendDocument(
+          conversationId: convId,
+          senderId: currentUserId,
+          fileName: f.name,
+          filePath: f.path ?? '',
+          fileSize: f.size.toString(),
+          otherUserId: widget.otherUserId,
+          ref: ref,
+          onProgress: (p) {
+            if (mounted)
+              setState(() {
+                _uploadProgress = p;
+              });
+          },
+        );
+      }
+      if (stored != null) {
+        ref
+            .read(conversationMessagesProvider(convId).notifier)
+            .addOrReplace(stored);
+      } else {
+        ref.invalidate(conversationMessagesProvider(convId));
+      }
+      setState(() {
+        _pendingImage = null;
+        _pendingFile = null;
+        _uploadProgress = null;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Attachment failed: $e'),
+            backgroundColor: AppColors.error),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _sendingAttachment = false;
+        });
+      }
+    }
+  }
+
   bool _isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
-           date1.month == date2.month &&
-           date1.day == date2.day;
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
-    
+
     if (_isSameDay(date, now)) {
       return 'Today';
     } else if (_isSameDay(date, yesterday)) {
@@ -1365,24 +1841,137 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
+
   // Common emojis for quick access
   static const List<String> _commonEmojis = [
-    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-    '🙂', '🙃', '😉', '😊', '😇', '😍', '🤩', '😘',
-    '😗', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨',
-    '🧐', '🤓', '😎', '🤩', '😏', '😒', '😞', '😔',
-    '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺',
-    '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳',
-    '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
-    '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬',
-    '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴',
-    '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧',
-    '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹',
-    '💀', '☠️', '👻', '👽', '👾', '🤖', '🎃', '😺',
-    '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾',
-    '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤',
-    '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖',
-    '💘', '💝', '💟', '👍', '👎', '👌', '🤏', '✌️',
+    '😀',
+    '😃',
+    '😄',
+    '😁',
+    '😆',
+    '😅',
+    '🤣',
+    '😂',
+    '🙂',
+    '🙃',
+    '😉',
+    '😊',
+    '😇',
+    '😍',
+    '🤩',
+    '😘',
+    '😗',
+    '😚',
+    '😋',
+    '😛',
+    '😝',
+    '😜',
+    '🤪',
+    '🤨',
+    '🧐',
+    '🤓',
+    '😎',
+    '🤩',
+    '😏',
+    '😒',
+    '😞',
+    '😔',
+    '😟',
+    '😕',
+    '🙁',
+    '😣',
+    '😖',
+    '😫',
+    '😩',
+    '🥺',
+    '😢',
+    '😭',
+    '😤',
+    '😠',
+    '😡',
+    '🤬',
+    '🤯',
+    '😳',
+    '🥵',
+    '🥶',
+    '😱',
+    '😨',
+    '😰',
+    '😥',
+    '😓',
+    '🤗',
+    '🤔',
+    '🤭',
+    '🤫',
+    '🤥',
+    '😶',
+    '😐',
+    '😑',
+    '😬',
+    '🙄',
+    '😯',
+    '😦',
+    '😧',
+    '😮',
+    '😲',
+    '🥱',
+    '😴',
+    '🤤',
+    '😪',
+    '😵',
+    '🤐',
+    '🥴',
+    '🤢',
+    '🤮',
+    '🤧',
+    '😷',
+    '🤒',
+    '🤕',
+    '🤑',
+    '🤠',
+    '😈',
+    '👿',
+    '👹',
+    '💀',
+    '☠️',
+    '👻',
+    '👽',
+    '👾',
+    '🤖',
+    '🎃',
+    '😺',
+    '😸',
+    '😹',
+    '😻',
+    '😼',
+    '😽',
+    '🙀',
+    '😿',
+    '😾',
+    '❤️',
+    '🧡',
+    '💛',
+    '💚',
+    '💙',
+    '💜',
+    '🤎',
+    '🖤',
+    '🤍',
+    '💔',
+    '❣️',
+    '💕',
+    '💞',
+    '💓',
+    '💗',
+    '💖',
+    '💘',
+    '💝',
+    '💟',
+    '👍',
+    '👎',
+    '👌',
+    '🤏',
+    '✌️',
   ];
 }
 
@@ -1395,4 +1984,3 @@ class _MessageVisibilityWrapper extends StatelessWidget {
     return child;
   }
 }
-

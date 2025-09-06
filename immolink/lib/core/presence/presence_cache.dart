@@ -11,7 +11,7 @@ class PresenceInfo {
 }
 
 class PresenceCache extends StateNotifier<Map<String, PresenceInfo>> {
-  PresenceCache(): super(const {});
+  PresenceCache() : super(const {});
 
   void upsert(String userId, PresenceInfo info) {
     final copy = Map<String, PresenceInfo>.from(state);
@@ -20,11 +20,13 @@ class PresenceCache extends StateNotifier<Map<String, PresenceInfo>> {
   }
 }
 
-final presenceCacheProvider = StateNotifierProvider<PresenceCache, Map<String, PresenceInfo>>((ref) {
+final presenceCacheProvider =
+    StateNotifierProvider<PresenceCache, Map<String, PresenceInfo>>((ref) {
   final cache = PresenceCache();
   final ws = ref.watch(presenceWsServiceProvider);
   ws.stream.listen((u) {
-    cache.upsert(u.userId, PresenceInfo(online: u.online, lastSeen: u.lastSeen));
+    cache.upsert(
+        u.userId, PresenceInfo(online: u.online, lastSeen: u.lastSeen));
   });
   return cache;
 });

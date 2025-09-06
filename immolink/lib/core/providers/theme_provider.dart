@@ -14,13 +14,14 @@ final savedThemeProvider = FutureProvider<String>((ref) async {
 });
 
 // Theme mode provider that initializes with saved preference
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, String>((ref) {
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, String>((ref) {
   return ThemeModeNotifier(ref);
 });
 
 class ThemeModeNotifier extends StateNotifier<String> {
   final Ref ref;
-  
+
   ThemeModeNotifier(this.ref) : super('light') {
     _initializeTheme();
   }
@@ -62,11 +63,11 @@ final systemBrightnessProvider = Provider<Brightness>((ref) {
 // Provider that determines the effective theme (resolves 'system' to actual theme)
 final effectiveThemeProvider = Provider<String>((ref) {
   final themeMode = ref.watch(themeModeProvider);
-  
+
   if (themeMode == 'system') {
     final systemBrightness = ref.watch(systemBrightnessProvider);
     return systemBrightness == Brightness.dark ? 'dark' : 'light';
   }
-  
+
   return themeMode;
 });

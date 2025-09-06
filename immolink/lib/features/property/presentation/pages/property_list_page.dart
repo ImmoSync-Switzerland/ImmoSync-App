@@ -24,13 +24,13 @@ class PropertyListPage extends ConsumerStatefulWidget {
 class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   String _searchQuery = '';
   String _statusFilter = 'all';
-    @override
+  @override
   void initState() {
     super.initState();
     // Set navigation index to Properties (1) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(routeAwareNavigationProvider.notifier).setIndex(1);
-      
+
       // Check if there's a search query in the URL
       final uri = Uri.parse(ModalRoute.of(context)?.settings.name ?? '');
       final searchQuery = uri.queryParameters['search'];
@@ -41,16 +41,17 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       }
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
-    final l10n = AppLocalizations.of(context)!;;
+    final l10n = AppLocalizations.of(context)!;
+    ;
     final userRole = ref.watch(userRoleProvider);
-    final propertiesAsync = userRole == 'tenant' 
+    final propertiesAsync = userRole == 'tenant'
         ? ref.watch(tenantPropertiesProvider)
         : ref.watch(landlordPropertiesProvider);
-      return Scaffold(
+    return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(l10n),
       bottomNavigationBar: const CommonBottomNav(),
@@ -60,10 +61,12 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             _buildSearchAndFilter(l10n),
             Expanded(
               child: propertiesAsync.when(
-                data: (properties) => _buildPropertyList(_filterProperties(properties), l10n),
+                data: (properties) =>
+                    _buildPropertyList(_filterProperties(properties), l10n),
                 loading: () => Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                   ),
                 ),
                 error: (error, stack) => _buildErrorState(error, l10n),
@@ -76,6 +79,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       floatingActionButton: userRole == 'landlord' ? _buildFAB() : null,
     );
   }
+
   PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return AppBar(
@@ -92,7 +96,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           inherit: true,
         ),
       ),
-      centerTitle: true,      leading: IconButton(
+      centerTitle: true,
+      leading: IconButton(
         icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
         onPressed: () {
           HapticFeedback.lightImpact();
@@ -108,7 +113,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   Widget _buildSearchAndFilter(AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       padding: const EdgeInsets.all(16), // Reduced from 20
       child: Column(
@@ -120,13 +125,15 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               borderRadius: BorderRadius.circular(14), // Reduced from 16
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06), // Reduced opacity
+                  color:
+                      Colors.black.withValues(alpha: 0.06), // Reduced opacity
                   blurRadius: 20, // Reduced from 24
                   offset: const Offset(0, 6), // Reduced from 8
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03), // Reduced opacity
+                  color:
+                      Colors.black.withValues(alpha: 0.03), // Reduced opacity
                   blurRadius: 4, // Reduced from 6
                   offset: const Offset(0, 2),
                   spreadRadius: 0,
@@ -152,7 +159,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 prefixIcon: Container(
                   padding: const EdgeInsets.all(10), // Reduced from 12
                   child: Icon(
-                    Icons.search_outlined, 
+                    Icons.search_outlined,
                     color: colors.textSecondary,
                     size: 18, // Reduced from 20
                   ),
@@ -180,7 +187,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   ),
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), // Reduced padding
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14), // Reduced padding
               ),
             ),
           ),
@@ -192,11 +200,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               children: [
                 _buildFilterChip(_capitalizeFilter(l10n.all), 'all'),
                 const SizedBox(width: 6), // Reduced from 8
-                _buildFilterChip(_capitalizeFilter(l10n.available), 'available'),
+                _buildFilterChip(
+                    _capitalizeFilter(l10n.available), 'available'),
                 const SizedBox(width: 6),
                 _buildFilterChip(_capitalizeFilter(l10n.rented), 'rented'),
                 const SizedBox(width: 6),
-                _buildFilterChip(_capitalizeFilter(l10n.maintenance), 'maintenance'),
+                _buildFilterChip(
+                    _capitalizeFilter(l10n.maintenance), 'maintenance'),
                 const SizedBox(width: 6), // Extra padding at the end
               ],
             ),
@@ -215,18 +225,19 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         setState(() => _statusFilter = value);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Reduced padding
+        padding: const EdgeInsets.symmetric(
+            horizontal: 16, vertical: 10), // Reduced padding
         decoration: BoxDecoration(
-          gradient: isSelected 
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryAccent,
-                  colors.primaryAccent.withValues(alpha: 0.8),
-                ],
-              )
-            : null,
+          gradient: isSelected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.primaryAccent,
+                    colors.primaryAccent.withValues(alpha: 0.8),
+                  ],
+                )
+              : null,
           color: isSelected ? null : colors.surfaceCards,
           borderRadius: BorderRadius.circular(14), // Reduced from 16
           border: Border.all(
@@ -235,9 +246,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected 
-                ? colors.primaryAccent.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.03), // Reduced opacity
+              color: isSelected
+                  ? colors.primaryAccent.withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.03), // Reduced opacity
               blurRadius: isSelected ? 10 : 4, // Reduced blur
               offset: Offset(0, isSelected ? 4 : 2), // Reduced offset
               spreadRadius: 0,
@@ -260,20 +271,27 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   List<Property> _filterProperties(List<Property> properties) {
     var filtered = properties;
-    
+
     // Filter by search query
     if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((property) =>
-        property.address.street.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        property.address.city.toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
+      filtered = filtered
+          .where((property) =>
+              property.address.street
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase()) ||
+              property.address.city
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase()))
+          .toList();
     }
-    
+
     // Filter by status
     if (_statusFilter != 'all') {
-      filtered = filtered.where((property) => property.status == _statusFilter).toList();
+      filtered = filtered
+          .where((property) => property.status == _statusFilter)
+          .toList();
     }
-    
+
     return filtered;
   }
 
@@ -282,7 +300,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     if (properties.isEmpty) {
       return _buildEmptyState(l10n);
     }
-    
+
     return RefreshIndicator(
       onRefresh: () async {
         HapticFeedback.lightImpact();
@@ -306,8 +324,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   Widget _buildPropertyCard(Property property, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
-    final statusColor = property.status == 'rented' ? colors.success : 
-                      property.status == 'available' ? colors.primaryAccent : colors.warning;
+    final statusColor = property.status == 'rented'
+        ? colors.success
+        : property.status == 'available'
+            ? colors.primaryAccent
+            : colors.warning;
 
     return GestureDetector(
       onTap: () {
@@ -360,18 +381,18 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                       color: statusColor.withValues(alpha: 0.2),
                       width: 1,
                     ),
-                    color: property.imageUrls.isEmpty 
-                      ? statusColor.withValues(alpha: 0.1)
-                      : null,
+                    color: property.imageUrls.isEmpty
+                        ? statusColor.withValues(alpha: 0.1)
+                        : null,
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: property.imageUrls.isNotEmpty 
-                    ? _buildPropertyImage(property.imageUrls.first)
-                    : Icon(
-                        Icons.home_outlined,
-                        color: statusColor,
-                        size: 28, // Reduced from 32
-                      ),
+                  child: property.imageUrls.isNotEmpty
+                      ? _buildPropertyImage(property.imageUrls.first)
+                      : Icon(
+                          Icons.home_outlined,
+                          color: statusColor,
+                          size: 28, // Reduced from 32
+                        ),
                 ),
                 const SizedBox(width: 16), // Reduced from 20
                 Expanded(
@@ -420,7 +441,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 ),
                 const SizedBox(width: 12), // Reduced from 16
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Reduced padding
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5), // Reduced padding
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6), // Reduced from 8
@@ -460,7 +482,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     child: _buildDetailColumn(
                       icon: Icons.attach_money,
                       label: l10n.monthlyRent,
-                      value: ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
+                      value: ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(property.rentAmount),
                       iconColor: colors.success,
                       isPrice: true,
                       colors: colors,
@@ -520,7 +544,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             borderRadius: BorderRadius.circular(6), // Reduced from 8
           ),
           child: Icon(
-            icon, 
+            icon,
             size: 14, // Reduced from 16
             color: iconColor,
           ),
@@ -560,7 +584,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   Widget _buildEmptyState(AppLocalizations l10n) {
     final userRole = ref.watch(userRoleProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -570,8 +594,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             size: 64,
             color: colors.textTertiary.withValues(alpha: 0.5),
           ),
-          const SizedBox(height: 16),          Text(
-            userRole == 'tenant' ? l10n.noPropertiesAssigned : l10n.noPropertiesFound,
+          const SizedBox(height: 16),
+          Text(
+            userRole == 'tenant'
+                ? l10n.noPropertiesAssigned
+                : l10n.noPropertiesFound,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -579,9 +606,10 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               inherit: true,
             ),
           ),
-          const SizedBox(height: 8),          Text(
-            userRole == 'tenant' 
-                ? l10n.contactLandlordForAccess 
+          const SizedBox(height: 8),
+          Text(
+            userRole == 'tenant'
+                ? l10n.contactLandlordForAccess
                 : l10n.addFirstProperty,
             style: TextStyle(
               fontSize: 14,
@@ -597,8 +625,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 final subscriptionAsync = ref.watch(userSubscriptionProvider);
                 return subscriptionAsync.when(
                   data: (subscription) {
-                    final hasActiveSubscription = subscription != null && subscription.status == 'active';
-                    
+                    final hasActiveSubscription =
+                        subscription != null && subscription.status == 'active';
+
                     return ElevatedButton(
                       onPressed: () {
                         HapticFeedback.mediumImpact();
@@ -609,9 +638,12 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: hasActiveSubscription ? colors.primaryAccent : colors.textTertiary,
+                        backgroundColor: hasActiveSubscription
+                            ? colors.primaryAccent
+                            : colors.textTertiary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -623,7 +655,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                             Icon(Icons.lock, size: 16),
                             const SizedBox(width: 8),
                           ],
-                          Text(hasActiveSubscription ? l10n.addProperty : l10n.subscriptionRequired),
+                          Text(hasActiveSubscription
+                              ? l10n.addProperty
+                              : l10n.subscriptionRequired),
                         ],
                       ),
                     );
@@ -633,7 +667,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.textTertiary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -641,7 +676,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     child: const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     ),
                   ),
                   error: (_, __) => const SizedBox.shrink(),
@@ -664,7 +700,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             size: 64,
             color: Colors.red,
           ),
-          const SizedBox(height: 16),          Text(
+          const SizedBox(height: 16),
+          Text(
             l10n.somethingWentWrong,
             style: TextStyle(
               fontSize: 18,
@@ -709,11 +746,12 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   Widget _buildFAB() {
     final colors = ref.watch(dynamicColorsProvider);
     final subscriptionAsync = ref.watch(userSubscriptionProvider);
-    
+
     return subscriptionAsync.when(
       data: (subscription) {
-        final hasActiveSubscription = subscription != null && subscription.status == 'active';
-        
+        final hasActiveSubscription =
+            subscription != null && subscription.status == 'active';
+
         return FloatingActionButton(
           onPressed: () {
             HapticFeedback.mediumImpact();
@@ -723,11 +761,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               _showSubscriptionRequiredDialog();
             }
           },
-          backgroundColor: hasActiveSubscription ? colors.primaryAccent : colors.textTertiary,
+          backgroundColor: hasActiveSubscription
+              ? colors.primaryAccent
+              : colors.textTertiary,
           foregroundColor: Colors.white,
           elevation: 4,
-          child: hasActiveSubscription 
-              ? const Icon(Icons.add, size: 24) 
+          child: hasActiveSubscription
+              ? const Icon(Icons.add, size: 24)
               : const Icon(Icons.lock, size: 24),
         );
       },
@@ -736,7 +776,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         backgroundColor: colors.textTertiary,
         foregroundColor: Colors.white,
         elevation: 4,
-        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+        child: const CircularProgressIndicator(
+            strokeWidth: 2, color: Colors.white),
       ),
       error: (_, __) => FloatingActionButton(
         onPressed: () {},
@@ -750,7 +791,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   void _showSubscriptionRequiredDialog() {
     final colors = ref.read(dynamicColorsProvider);
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -790,11 +831,13 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               decoration: BoxDecoration(
                 color: colors.primaryAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: colors.primaryAccent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.star_outline, color: colors.primaryAccent, size: 20),
+                  Icon(Icons.star_outline,
+                      color: colors.primaryAccent, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -827,7 +870,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: Text(l10n.viewPlans),
           ),
@@ -835,7 +879,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       ),
     );
   }
-  
+
   String _getLocalizedStatus(String status, AppLocalizations l10n) {
     switch (status.toLowerCase()) {
       case 'rented':
@@ -918,7 +962,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       );
     }
     // Check if it's a MongoDB ObjectId (24 hex characters)
-    if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+    if (imageIdOrPath.length == 24 &&
+        RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
       // Pass resolved full URL (documents raw) to MongoImage so it doesn't prepend /images/
       return MongoImage(
         imageId: resolved,
@@ -979,4 +1024,3 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     }
   }
 }
-

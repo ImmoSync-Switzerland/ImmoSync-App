@@ -40,11 +40,14 @@ final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
   }
 
   final propertyService = ref.watch(propertyServiceProvider);
-  print('[LandlordPropertiesProvider] Fetching for landlordId=${currentUser.id}');
+  print(
+      '[LandlordPropertiesProvider] Fetching for landlordId=${currentUser.id}');
 
   try {
-    await for (final properties in propertyService.getLandlordProperties(currentUser.id)) {
-      print('[LandlordPropertiesProvider] Emitting ${properties.length} properties');
+    await for (final properties
+        in propertyService.getLandlordProperties(currentUser.id)) {
+      print(
+          '[LandlordPropertiesProvider] Emitting ${properties.length} properties');
       yield properties;
     }
   } catch (e, st) {
@@ -59,10 +62,10 @@ final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
 final tenantPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
   print('TenantPropertiesProvider initialized');
   final currentUser = ref.watch(currentUserProvider);
-  
+
   // Watch the manual refresh trigger (increments cause rebuild)
   ref.watch(propertyRefreshTriggerProvider);
-  
+
   // Early return empty list if no user
   if (currentUser == null) {
     yield [];
@@ -70,10 +73,12 @@ final tenantPropertiesProvider = StreamProvider<List<Property>>((ref) async* {
   }
 
   final propertyService = ref.watch(propertyServiceProvider);
-  print('Calling PropertyService.getTenantProperties with ID: ${currentUser.id}');
-  
+  print(
+      'Calling PropertyService.getTenantProperties with ID: ${currentUser.id}');
+
   // Get initial data
-  await for (final properties in propertyService.getTenantProperties(currentUser.id)) {
+  await for (final properties
+      in propertyService.getTenantProperties(currentUser.id)) {
     print('TenantPropertiesProvider: Yielding ${properties.length} properties');
     yield properties;
   }
@@ -125,7 +130,8 @@ class TenantRemovalNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final availableTenantsProvider = StreamProvider.family<List<User>, String?>((ref, propertyId) {
+final availableTenantsProvider =
+    StreamProvider.family<List<User>, String?>((ref, propertyId) {
   final userService = ref.watch(userServiceProvider);
   return userService.getAvailableTenants(propertyId: propertyId);
 });
@@ -135,4 +141,3 @@ final propertyProvider =
   final propertyService = ref.watch(propertyServiceProvider);
   return propertyService.getPropertyById(propertyId);
 });
-

@@ -11,7 +11,8 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.watch(currentUserProvider);    return Scaffold(
+    final currentUser = ref.watch(currentUserProvider);
+    return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
         title: Text(l10n.profile),
@@ -32,7 +33,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context, AppLocalizations l10n, currentUser) {
+  Widget _buildProfileHeader(
+      BuildContext context, AppLocalizations l10n, currentUser) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -82,7 +84,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileOptions(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  Widget _buildProfileOptions(
+      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     return Column(
       children: [
         _buildOptionTile(

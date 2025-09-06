@@ -19,7 +19,9 @@ class PropertyDetailsSheet extends StatelessWidget {
         children: [
           Text(
             'Property Details',
-            style: Theme.of(context).textTheme.titleLarge, // Updated from headline6
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge, // Updated from headline6
           ),
           const SizedBox(height: 16),
           _buildDetailRow('Size', '${property.details.size}m²'),
@@ -28,13 +30,15 @@ class PropertyDetailsSheet extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Amenities',
-            style: Theme.of(context).textTheme.titleMedium, // Updated from subtitle1
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium, // Updated from subtitle1
           ),
           Wrap(
             spacing: 8,
-            children: property.details.amenities.map((amenity) => 
-              Chip(label: Text(amenity))
-            ).toList(),
+            children: property.details.amenities
+                .map((amenity) => Chip(label: Text(amenity)))
+                .toList(),
           ),
         ],
       ),
@@ -54,4 +58,3 @@ class PropertyDetailsSheet extends StatelessWidget {
     );
   }
 }
-

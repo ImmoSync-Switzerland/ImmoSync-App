@@ -11,7 +11,9 @@ import '../config/db_config.dart';
 String resolvePropertyImage(String ref) {
   if (ref.isEmpty) return '';
   final api = DbConfig.apiUrl; // may end with /api
-  final baseHost = api.endsWith('/api') ? api.substring(0, api.length - 4) : api; // backend host
+  final baseHost = api.endsWith('/api')
+      ? api.substring(0, api.length - 4)
+      : api; // backend host
   final publicHost = DbConfig.primaryHost; // https://immosync.ch
 
   // Full URL already
@@ -20,8 +22,8 @@ String resolvePropertyImage(String ref) {
   // If stored with leading /api/... keep that path exactly once
   if (ref.startsWith('/api/')) {
     // Avoid duplicating /api if apiUrl already includes /api
-  // Serve through API host for authenticated endpoints
-  return baseHost + ref;
+    // Serve through API host for authenticated endpoints
+    return baseHost + ref;
   }
 
   // Document raw endpoints (possible forms): 'documents/<id>/raw', '/documents/<id>/raw'
@@ -31,8 +33,8 @@ String resolvePropertyImage(String ref) {
     if (!path.startsWith('/api/')) {
       path = '/api' + path;
     }
-  // Documents raw should use public host to avoid mixed host issues
-  return publicHost + path;
+    // Documents raw should use public host to avoid mixed host issues
+    return publicHost + path;
   }
 
   // Legacy uploads path or file name inside uploads/documents or uploads/
@@ -40,17 +42,18 @@ String resolvePropertyImage(String ref) {
     // Normalize to starting at /uploads
     final idx = ref.indexOf('uploads/');
     final normalized = '/' + ref.substring(idx);
-  return publicHost + normalized; // prefer public host
+    return publicHost + normalized; // prefer public host
   }
 
   // Local file reference (not loadable remotely)
   if (ref.startsWith('file:')) return '';
 
   // Raw ObjectId for GridFS image
-  final isHex24 = ref.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(ref);
+  final isHex24 =
+      ref.length == 24 && RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(ref);
   if (isHex24) {
     // Treat plain IDs as document-backed image assets
-  return '$publicHost/api/documents/$ref/raw';
+    return '$publicHost/api/documents/$ref/raw';
   }
 
   // Fallback treat as ID

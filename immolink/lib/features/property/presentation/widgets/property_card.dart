@@ -72,7 +72,9 @@ class PropertyCard extends StatelessWidget {
                         ),
                         child: Icon(
                           isWishlisted ? Icons.favorite : Icons.favorite_border,
-                          color: isWishlisted ? AppColors.error : AppColors.textPrimary,
+                          color: isWishlisted
+                              ? AppColors.error
+                              : AppColors.textPrimary,
                           size: AppSizes.iconSmall,
                         ),
                       ),
@@ -80,7 +82,7 @@ class PropertyCard extends StatelessWidget {
                   ),
               ],
             ),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
@@ -94,9 +96,9 @@ class PropertyCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xs),
-                  
+
                   // Location & Distance
                   Row(
                     children: [
@@ -116,9 +118,9 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xs),
-                  
+
                   // Rating (mock data)
                   Row(
                     children: [
@@ -134,9 +136,9 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xs),
-                  
+
                   // Dates (mock data)
                   Row(
                     children: [
@@ -152,9 +154,9 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.md),
-                  
+
                   // Price
                   Text(
                     '€${property.rentAmount.toStringAsFixed(0)}/month',
@@ -171,4 +173,3 @@ class PropertyCard extends StatelessWidget {
     );
   }
 }
-

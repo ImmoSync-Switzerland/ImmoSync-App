@@ -7,7 +7,8 @@ class MaintenanceService {
   final String _apiUrl = DbConfig.apiUrl;
 
   // Get recent maintenance requests for dashboard (last 5)
-  Future<List<MaintenanceRequest>> getRecentMaintenanceRequests(String landlordId) async {
+  Future<List<MaintenanceRequest>> getRecentMaintenanceRequests(
+      String landlordId) async {
     try {
       final response = await http.get(
         Uri.parse('$_apiUrl/maintenance/recent/$landlordId'),
@@ -27,12 +28,13 @@ class MaintenanceService {
   }
 
   // Get all maintenance requests for a tenant
-  Future<List<MaintenanceRequest>> getMaintenanceRequestsByTenant(String tenantId) async {
+  Future<List<MaintenanceRequest>> getMaintenanceRequestsByTenant(
+      String tenantId) async {
     try {
       final url = '$_apiUrl/maintenance/tenant/$tenantId';
       print('DEBUG: Fetching maintenance requests from: $url');
       print('DEBUG: Tenant ID: $tenantId');
-      
+
       final response = await http.get(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -56,7 +58,8 @@ class MaintenanceService {
   }
 
   // Get all maintenance requests for a landlord
-  Future<List<MaintenanceRequest>> getMaintenanceRequestsByLandlord(String landlordId) async {
+  Future<List<MaintenanceRequest>> getMaintenanceRequestsByLandlord(
+      String landlordId) async {
     try {
       final response = await http.get(
         Uri.parse('$_apiUrl/maintenance/landlord/$landlordId'),
@@ -76,7 +79,8 @@ class MaintenanceService {
   }
 
   // Create a new maintenance request
-  Future<MaintenanceRequest> createMaintenanceRequest(MaintenanceRequest request) async {
+  Future<MaintenanceRequest> createMaintenanceRequest(
+      MaintenanceRequest request) async {
     try {
       final response = await http.post(
         Uri.parse('$_apiUrl/maintenance'),
@@ -99,7 +103,9 @@ class MaintenanceService {
   }
 
   // Update maintenance request status
-  Future<MaintenanceRequest> updateMaintenanceRequestStatus(String id, String status, {String? notes, String? authorId}) async {
+  Future<MaintenanceRequest> updateMaintenanceRequestStatus(
+      String id, String status,
+      {String? notes, String? authorId}) async {
     try {
       final response = await http.patch(
         Uri.parse('$_apiUrl/maintenance/$id/status'),
@@ -129,7 +135,7 @@ class MaintenanceService {
       final url = '$_apiUrl/maintenance/$id';
       print('DEBUG: Fetching maintenance request by ID from: $url');
       print('DEBUG: Request ID: $id');
-      
+
       final response = await http.get(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -152,7 +158,8 @@ class MaintenanceService {
   }
 
   // Get maintenance requests by property
-  Future<List<MaintenanceRequest>> getMaintenanceRequestsByProperty(String propertyId) async {
+  Future<List<MaintenanceRequest>> getMaintenanceRequestsByProperty(
+      String propertyId) async {
     try {
       final response = await http.get(
         Uri.parse('$_apiUrl/maintenance/property/$propertyId'),
@@ -172,7 +179,8 @@ class MaintenanceService {
   }
 
   // Update maintenance request (full update)
-  Future<MaintenanceRequest> updateMaintenanceRequest(MaintenanceRequest request) async {
+  Future<MaintenanceRequest> updateMaintenanceRequest(
+      MaintenanceRequest request) async {
     try {
       final response = await http.put(
         Uri.parse('$_apiUrl/maintenance/${request.id}'),
@@ -193,7 +201,8 @@ class MaintenanceService {
   }
 
   // Add a note to maintenance request
-  Future<MaintenanceRequest> addNoteToMaintenanceRequest(String requestId, String content, String authorId) async {
+  Future<MaintenanceRequest> addNoteToMaintenanceRequest(
+      String requestId, String content, String authorId) async {
     try {
       final response = await http.post(
         Uri.parse('$_apiUrl/maintenance/$requestId/notes'),

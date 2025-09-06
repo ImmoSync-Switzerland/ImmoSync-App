@@ -43,18 +43,15 @@ class Invitation {
       tenantId: map['tenantId'] ?? '',
       message: map['message'] ?? '',
       status: map['status'] ?? 'pending',
-      createdAt: map['createdAt'] != null 
+      createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),
-      expiresAt: map['expiresAt'] != null 
-          ? DateTime.parse(map['expiresAt'])
-          : null,
-      acceptedAt: map['acceptedAt'] != null 
-          ? DateTime.parse(map['acceptedAt'])
-          : null,
-      declinedAt: map['declinedAt'] != null 
-          ? DateTime.parse(map['declinedAt'])
-          : null,
+      expiresAt:
+          map['expiresAt'] != null ? DateTime.parse(map['expiresAt']) : null,
+      acceptedAt:
+          map['acceptedAt'] != null ? DateTime.parse(map['acceptedAt']) : null,
+      declinedAt:
+          map['declinedAt'] != null ? DateTime.parse(map['declinedAt']) : null,
       propertyAddress: map['propertyAddress'],
       propertyRent: map['propertyRent']?.toDouble(),
       landlordName: map['landlordName'],

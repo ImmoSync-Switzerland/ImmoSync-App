@@ -19,7 +19,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
@@ -82,7 +82,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Current Password Field
                 _buildPasswordField(
                   controller: _currentPasswordController,
@@ -102,7 +102,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   colors: colors,
                 ),
                 const SizedBox(height: 24),
-                
+
                 // New Password Field
                 _buildPasswordField(
                   controller: _newPasswordController,
@@ -120,7 +120,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     if (value.length < 8) {
                       return 'Password must be at least 8 characters long';
                     }
-                    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+                    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
+                        .hasMatch(value)) {
                       return 'Password must contain uppercase, lowercase, and numbers';
                     }
                     return null;
@@ -128,7 +129,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   colors: colors,
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Confirm Password Field
                 _buildPasswordField(
                   controller: _confirmPasswordController,
@@ -151,7 +152,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   colors: colors,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Security Tips
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -193,14 +194,16 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                       ),
                       const SizedBox(height: 12),
                       _buildRequirement('At least 8 characters long', colors),
-                      _buildRequirement('Contains uppercase letters (A-Z)', colors),
-                      _buildRequirement('Contains lowercase letters (a-z)', colors),
+                      _buildRequirement(
+                          'Contains uppercase letters (A-Z)', colors),
+                      _buildRequirement(
+                          'Contains lowercase letters (a-z)', colors),
                       _buildRequirement('Contains numbers (0-9)', colors),
                     ],
                   ),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Change Password Button
                 SizedBox(
                   width: double.infinity,
@@ -219,7 +222,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(colors.textOnAccent),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  colors.textOnAccent),
                               strokeWidth: 2,
                             ),
                           )
@@ -278,7 +282,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           ),
           suffixIcon: IconButton(
             icon: Icon(
-              obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              obscureText
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               color: colors.textTertiary,
             ),
             onPressed: onToggleVisibility,
@@ -324,7 +330,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
 
   Future<void> _changePassword() async {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -344,11 +350,12 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         currentPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.passwordChangedSuccessfully),
+            content:
+                Text(AppLocalizations.of(context)!.passwordChangedSuccessfully),
             backgroundColor: colors.success,
           ),
         );
@@ -358,7 +365,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.failedToChangePassword}: $e'),
+            content: Text(
+                '${AppLocalizations.of(context)!.failedToChangePassword}: $e'),
             backgroundColor: colors.error,
           ),
         );

@@ -41,4 +41,3 @@ class AuthRepository {
     return userId != null;
   }
 }
-

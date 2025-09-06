@@ -18,10 +18,12 @@ class PropertyEmailInviteDialog extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PropertyEmailInviteDialog> createState() => _PropertyEmailInviteDialogState();
+  ConsumerState<PropertyEmailInviteDialog> createState() =>
+      _PropertyEmailInviteDialogState();
 }
 
-class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteDialog> {
+class _PropertyEmailInviteDialogState
+    extends ConsumerState<PropertyEmailInviteDialog> {
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
   String? _selectedPropertyId;
@@ -49,8 +51,8 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
         'propertyId': _selectedPropertyId!,
         'landlordId': widget.landlordId,
         'tenantEmail': _emailController.text.trim(),
-        'message': _messageController.text.trim().isNotEmpty 
-            ? _messageController.text.trim() 
+        'message': _messageController.text.trim().isNotEmpty
+            ? _messageController.text.trim()
             : 'Sie wurden eingeladen, diese Immobilie zu mieten.',
         'invitationType': 'email', // Mark as email invitation
       };
@@ -61,7 +63,7 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
       if (success && mounted) {
         // Invalidate providers to refresh the UI
         ref.invalidate(userInvitationsProvider);
-        
+
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -101,7 +103,8 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
       } else if (response.statusCode == 404) {
         // Handle the case where user doesn't exist
         final errorResponse = json.decode(response.body);
-        throw Exception(errorResponse['message'] ?? 'User with this email address does not exist in the system');
+        throw Exception(errorResponse['message'] ??
+            'User with this email address does not exist in the system');
       } else {
         throw Exception('Failed to send invitation');
       }
@@ -298,9 +301,9 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _isLoading || 
-                        _emailController.text.trim().isEmpty || 
-                        _selectedPropertyId == null
+                    onPressed: _isLoading ||
+                            _emailController.text.trim().isEmpty ||
+                            _selectedPropertyId == null
                         ? null
                         : _sendInvitation,
                     style: ElevatedButton.styleFrom(
@@ -316,7 +319,8 @@ class _PropertyEmailInviteDialogState extends ConsumerState<PropertyEmailInviteD
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(colors.surfaceCards),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  colors.surfaceCards),
                             ),
                           )
                         : Text(

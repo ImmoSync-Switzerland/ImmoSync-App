@@ -31,7 +31,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
   final _amountController = TextEditingController();
   final _notesController = TextEditingController();
   CardFieldInputDetails? _cardFieldInputDetails;
-  
+
   String? _selectedPropertyId;
   String? _selectedPaymentType;
   bool _isProcessing = false;
@@ -156,7 +156,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
           }
 
           // Set default property if not set
-          if (_selectedPropertyId == null || 
+          if (_selectedPropertyId == null ||
               !properties.any((p) => p.id == _selectedPropertyId)) {
             _selectedPropertyId = properties.first.id;
           }
@@ -171,7 +171,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                _buildPropertySection(properties, selectedProperty, colors, l10n),
+                _buildPropertySection(
+                    properties, selectedProperty, colors, l10n),
                 const SizedBox(height: 24),
                 _buildPaymentDetailsSection(colors, l10n),
                 const SizedBox(height: 24),
@@ -188,7 +189,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
     );
   }
 
-  Widget _buildPropertySection(dynamic properties, dynamic selectedProperty, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPropertySection(dynamic properties, dynamic selectedProperty,
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -221,7 +223,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 items: properties.map<DropdownMenuItem<String>>((property) {
                   return DropdownMenuItem(
                     value: property.id,
-                    child: Text('${property.address.street}, ${property.address.city}'),
+                    child: Text(
+                        '${property.address.street}, ${property.address.city}'),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -258,7 +261,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
     );
   }
 
-  Widget _buildPaymentDetailsSection(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPaymentDetailsSection(
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -314,7 +318,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 validator: (value) {
                   if (value?.isEmpty ?? true) return 'Amount is required';
                   final amount = double.tryParse(value!);
-                  if (amount == null || amount <= 0) return 'Please enter a valid amount';
+                  if (amount == null || amount <= 0)
+                    return 'Please enter a valid amount';
                   return null;
                 },
               ),
@@ -325,7 +330,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
     );
   }
 
-  Widget _buildPaymentMethodSection(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPaymentMethodSection(
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -338,7 +344,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Payment method toggle
         Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -359,7 +365,9 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: _useStripe ? colors.primaryAccent : Colors.transparent,
+                      color: _useStripe
+                          ? colors.primaryAccent
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -368,7 +376,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                         Icon(
                           Icons.credit_card,
                           size: 16,
-                          color: _useStripe ? Colors.white : colors.textSecondary,
+                          color:
+                              _useStripe ? Colors.white : colors.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -376,7 +385,9 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: _useStripe ? Colors.white : colors.textSecondary,
+                            color: _useStripe
+                                ? Colors.white
+                                : colors.textSecondary,
                           ),
                         ),
                       ],
@@ -393,7 +404,9 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: !_useStripe ? colors.primaryAccent : Colors.transparent,
+                      color: !_useStripe
+                          ? colors.primaryAccent
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -402,7 +415,8 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                         Icon(
                           Icons.account_balance,
                           size: 16,
-                          color: !_useStripe ? Colors.white : colors.textSecondary,
+                          color:
+                              !_useStripe ? Colors.white : colors.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -410,7 +424,9 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: !_useStripe ? Colors.white : colors.textSecondary,
+                            color: !_useStripe
+                                ? Colors.white
+                                : colors.textSecondary,
                           ),
                         ),
                       ],
@@ -547,7 +563,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
   }
 
   Widget _buildBottomBar(DynamicAppColors colors, AppLocalizations l10n) {
-    final canPay = _useStripe 
+    final canPay = _useStripe
         ? _cardFieldInputDetails?.complete == true && !_isProcessing
         : !_isProcessing;
 
@@ -636,7 +652,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
       }
 
       final amount = double.parse(_amountController.text);
-      
+
       if (_useStripe) {
         // Process Stripe payment
         await _processStripePayment(user, amount);
@@ -647,7 +663,6 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
 
       // Success
       _showSuccessDialog();
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -662,12 +677,13 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
 
   Future<void> _processStripePayment(dynamic user, double amount) async {
     // Create payment intent through backend
-    final clientSecret = await ref.read(paymentServiceProvider).createPaymentIntent(
-      amount: amount,
-      propertyId: _selectedPropertyId!,
-      tenantId: user.id,
-      paymentType: _selectedPaymentType!.toLowerCase(),
-    );
+    final clientSecret =
+        await ref.read(paymentServiceProvider).createPaymentIntent(
+              amount: amount,
+              propertyId: _selectedPropertyId!,
+              tenantId: user.id,
+              paymentType: _selectedPaymentType!.toLowerCase(),
+            );
 
     // Process through Stripe
     await Stripe.instance.confirmPayment(
@@ -679,40 +695,42 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
 
     // Create payment record
     await ref.read(paymentServiceProvider).createPayment(
-      Payment(
-        id: '',
-        propertyId: _selectedPropertyId!,
-        tenantId: user.id,
-        amount: amount,
-        date: DateTime.now(),
-        status: 'completed',
-        type: _selectedPaymentType!.toLowerCase(),
-        paymentMethod: 'stripe',
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-      ),
-    );
+          Payment(
+            id: '',
+            propertyId: _selectedPropertyId!,
+            tenantId: user.id,
+            amount: amount,
+            date: DateTime.now(),
+            status: 'completed',
+            type: _selectedPaymentType!.toLowerCase(),
+            paymentMethod: 'stripe',
+            notes:
+                _notesController.text.isNotEmpty ? _notesController.text : null,
+          ),
+        );
   }
 
   Future<void> _recordBankTransferPayment(dynamic user, double amount) async {
     // Record bank transfer payment (pending status)
     await ref.read(paymentServiceProvider).createPayment(
-      Payment(
-        id: '',
-        propertyId: _selectedPropertyId!,
-        tenantId: user.id,
-        amount: amount,
-        date: DateTime.now(),
-        status: 'pending',
-        type: _selectedPaymentType!.toLowerCase(),
-        paymentMethod: 'bank_transfer',
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-      ),
-    );
+          Payment(
+            id: '',
+            propertyId: _selectedPropertyId!,
+            tenantId: user.id,
+            amount: amount,
+            date: DateTime.now(),
+            status: 'pending',
+            type: _selectedPaymentType!.toLowerCase(),
+            paymentMethod: 'bank_transfer',
+            notes:
+                _notesController.text.isNotEmpty ? _notesController.text : null,
+          ),
+        );
   }
 
   void _showSuccessDialog() {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -729,7 +747,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
           ],
         ),
         content: Text(
-          _useStripe 
+          _useStripe
               ? 'Your payment has been processed successfully.'
               : 'Your payment has been recorded. Please complete the bank transfer using the provided details.',
           style: TextStyle(color: colors.textSecondary),

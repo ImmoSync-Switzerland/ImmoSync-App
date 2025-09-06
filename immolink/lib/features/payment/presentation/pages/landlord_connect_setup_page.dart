@@ -12,10 +12,12 @@ class LandlordConnectSetupPage extends ConsumerStatefulWidget {
   const LandlordConnectSetupPage({super.key});
 
   @override
-  ConsumerState<LandlordConnectSetupPage> createState() => _LandlordConnectSetupPageState();
+  ConsumerState<LandlordConnectSetupPage> createState() =>
+      _LandlordConnectSetupPageState();
 }
 
-class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupPage> {
+class _LandlordConnectSetupPageState
+    extends ConsumerState<LandlordConnectSetupPage> {
   final ConnectService _connectService = ConnectService();
   bool _isLoading = false;
   Map<String, dynamic>? _accountStatus;
@@ -71,23 +73,23 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
         foregroundColor: colors.textPrimary,
         elevation: 0,
       ),
-      body: _isLoading 
-        ? Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderCard(colors, l10n),
-                const SizedBox(height: 24),
-                _buildStatusCard(colors, l10n),
-                const SizedBox(height: 24),
-                _buildBenefitsCard(colors, l10n),
-                const SizedBox(height: 32),
-                _buildActionButton(colors, l10n, user),
-              ],
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderCard(colors, l10n),
+                  const SizedBox(height: 24),
+                  _buildStatusCard(colors, l10n),
+                  const SizedBox(height: 24),
+                  _buildBenefitsCard(colors, l10n),
+                  const SizedBox(height: 32),
+                  _buildActionButton(colors, l10n, user),
+                ],
+              ),
             ),
-          ),
     );
   }
 
@@ -223,11 +225,11 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
                       ),
                     ),
                     Text(
-                      hasAccount && status == 'pending' 
-                        ? 'Complete your account setup to start receiving payments'
-                        : hasAccount && chargesEnabled
-                          ? 'Your account is ready to receive payments'
-                          : 'Set up your payment account to get started',
+                      hasAccount && status == 'pending'
+                          ? 'Complete your account setup to start receiving payments'
+                          : hasAccount && chargesEnabled
+                              ? 'Your account is ready to receive payments'
+                              : 'Set up your payment account to get started',
                       style: TextStyle(
                         fontSize: 12,
                         color: colors.textSecondary,
@@ -248,7 +250,8 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
       {
         'icon': Icons.flash_on,
         'title': 'Instant Payments',
-        'description': 'Receive rent payments instantly via cards and bank transfers'
+        'description':
+            'Receive rent payments instantly via cards and bank transfers'
       },
       {
         'icon': Icons.security,
@@ -287,53 +290,54 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
           ),
           const SizedBox(height: 16),
           ...benefits.map((benefit) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    benefit['icon'] as IconData,
-                    color: colors.success,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        benefit['title'] as String,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
-                        ),
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      Text(
-                        benefit['description'] as String,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colors.textSecondary,
-                        ),
+                      child: Icon(
+                        benefit['icon'] as IconData,
+                        color: colors.success,
+                        size: 20,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            benefit['title'] as String,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            benefit['description'] as String,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton(DynamicAppColors colors, AppLocalizations l10n, user) {
+  Widget _buildActionButton(
+      DynamicAppColors colors, AppLocalizations l10n, user) {
     if (_accountStatus == null) return SizedBox();
 
     final hasAccount = _accountStatus!['hasAccount'] ?? false;
@@ -366,28 +370,28 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
           elevation: 0,
         ),
         child: _isLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.account_balance, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Set Up Payment Account',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
-              ],
-            ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.account_balance, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Set Up Payment Account',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -422,7 +426,7 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
 
   Widget _buildEmbeddedOnboarding(DynamicAppColors colors, user) {
     final accountId = _accountStatus!['accountId'] as String?;
-    
+
     if (accountId == null) {
       return _buildCreateAccountButton(colors, user);
     }
@@ -437,9 +441,12 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
             returnUrl: 'immolink://connect/return',
             refreshUrl: 'immolink://connect/refresh',
             customAppearance: {
-              'colorPrimary': '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-              'colorBackground': '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-              'colorText': '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+              'colorPrimary':
+                  '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+              'colorBackground':
+                  '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+              'colorText':
+                  '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
             },
           ),
         ],
@@ -521,7 +528,7 @@ class _LandlordConnectSetupPageState extends ConsumerState<LandlordConnectSetupP
       final uri = Uri.parse(onboardingUrl);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-        
+
         // Refresh status when user returns
         if (mounted) {
           Future.delayed(Duration(seconds: 2), () {

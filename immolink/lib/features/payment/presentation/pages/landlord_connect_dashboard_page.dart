@@ -10,10 +10,12 @@ class LandlordConnectDashboardPage extends ConsumerStatefulWidget {
   const LandlordConnectDashboardPage({super.key});
 
   @override
-  ConsumerState<LandlordConnectDashboardPage> createState() => _LandlordConnectDashboardPageState();
+  ConsumerState<LandlordConnectDashboardPage> createState() =>
+      _LandlordConnectDashboardPageState();
 }
 
-class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDashboardPage>
+class _LandlordConnectDashboardPageState
+    extends ConsumerState<LandlordConnectDashboardPage>
     with SingleTickerProviderStateMixin {
   final ConnectService _connectService = ConnectService();
   late TabController _tabController;
@@ -110,10 +112,12 @@ class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDa
                 labelColor: colors.primaryAccent,
                 unselectedLabelColor: colors.textSecondary,
                 indicatorColor: colors.primaryAccent,
-                tabs: _dashboardTabs.map((tab) => Tab(
-                  icon: Icon(tab['icon']),
-                  text: tab['title'],
-                )).toList(),
+                tabs: _dashboardTabs
+                    .map((tab) => Tab(
+                          icon: Icon(tab['icon']),
+                          text: tab['title'],
+                        ))
+                    .toList(),
               )
             : null,
       ),
@@ -128,7 +132,7 @@ class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDa
     final hasAccount = _accountStatus!['hasAccount'] ?? false;
     final status = _accountStatus!['status'] ?? 'not_created';
     final chargesEnabled = _accountStatus!['chargesEnabled'] ?? false;
-    
+
     return hasAccount && status == 'complete' && chargesEnabled;
   }
 
@@ -156,9 +160,12 @@ class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDa
                 accountId: accountId,
                 componentType: tab['component'],
                 customAppearance: {
-                  'colorPrimary': '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-                  'colorBackground': '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-                  'colorText': '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+                  'colorPrimary':
+                      '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+                  'colorBackground':
+                      '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+                  'colorText':
+                      '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
                   'borderRadius': '12px',
                 },
               ),
@@ -224,13 +231,15 @@ class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDa
     final status = _accountStatus?['status'] ?? 'not_created';
 
     String title = 'Set Up Payment Account';
-    String description = 'Complete your account setup to access the payment dashboard';
+    String description =
+        'Complete your account setup to access the payment dashboard';
     IconData icon = Icons.account_balance;
     Color iconColor = colors.warning;
 
     if (hasAccount && status == 'pending') {
       title = 'Complete Account Setup';
-      description = 'Finish your account verification to start receiving payments';
+      description =
+          'Finish your account verification to start receiving payments';
       icon = Icons.hourglass_empty;
     } else if (!hasAccount) {
       title = 'Create Payment Account';
@@ -283,7 +292,8 @@ class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDa
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -345,7 +355,8 @@ class _LandlordConnectDashboardPageState extends ConsumerState<LandlordConnectDa
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

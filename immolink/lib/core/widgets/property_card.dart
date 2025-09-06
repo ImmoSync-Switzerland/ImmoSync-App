@@ -44,7 +44,8 @@ class PropertyCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
+        margin: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.horizontalPadding),
         decoration: BoxDecoration(
           color: AppColors.primaryBackground,
           borderRadius: BorderRadius.circular(AppBorderRadius.cardsButtons),
@@ -96,8 +97,12 @@ class PropertyCard extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        property.isWishlisted ? Icons.favorite : Icons.favorite_border,
-                        color: property.isWishlisted ? AppColors.error : AppColors.textPrimary,
+                        property.isWishlisted
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: property.isWishlisted
+                            ? AppColors.error
+                            : AppColors.textPrimary,
                         size: AppSizes.iconSmall,
                       ),
                     ),
@@ -105,7 +110,7 @@ class PropertyCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
@@ -119,9 +124,9 @@ class PropertyCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xs),
-                  
+
                   // Location & Distance
                   Row(
                     children: [
@@ -141,9 +146,9 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xs),
-                  
+
                   // Rating
                   Row(
                     children: [
@@ -159,9 +164,9 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xs),
-                  
+
                   // Dates
                   Row(
                     children: [
@@ -177,9 +182,9 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.md),
-                  
+
                   // Price
                   Text(
                     property.price,

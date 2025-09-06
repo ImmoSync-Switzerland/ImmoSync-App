@@ -17,7 +17,7 @@ class MaintenanceRequest {
   final MaintenanceCost? cost;
   final ContractorInfo? contractorInfo;
   final List<MaintenanceNote> notes;
-  
+
   // Populated fields
   final PropertyAddress? propertyAddress;
   final String? tenantName;
@@ -64,47 +64,40 @@ class MaintenanceRequest {
       status: map['status'] ?? 'pending',
       location: map['location'] ?? '',
       images: List<String>.from(map['images'] ?? []),
-      requestedDate: map['requestedDate'] != null 
+      requestedDate: map['requestedDate'] != null
           ? DateTime.parse(map['requestedDate'])
-          : (map['createdAt'] != null 
+          : (map['createdAt'] != null
               ? DateTime.parse(map['createdAt'])
-              : (map['dateCreated'] != null 
+              : (map['dateCreated'] != null
                   ? DateTime.parse(map['dateCreated'])
                   : DateTime.now())),
-      scheduledDate: map['scheduledDate'] != null 
+      scheduledDate: map['scheduledDate'] != null
           ? DateTime.parse(map['scheduledDate'])
           : null,
-      completedDate: map['completedDate'] != null 
+      completedDate: map['completedDate'] != null
           ? DateTime.parse(map['completedDate'])
-          : (map['dateResolved'] != null 
+          : (map['dateResolved'] != null
               ? DateTime.parse(map['dateResolved'])
               : null),
       urgencyLevel: map['urgencyLevel'] ?? 3,
       cost: map['cost'] != null ? MaintenanceCost.fromMap(map['cost']) : null,
-      contractorInfo: map['contractorInfo'] != null 
+      contractorInfo: map['contractorInfo'] != null
           ? ContractorInfo.fromMap(map['contractorInfo'])
           : null,
-      notes: map['notes'] != null 
+      notes: map['notes'] != null
           ? List<MaintenanceNote>.from(
-              map['notes'].map((note) => MaintenanceNote.fromMap(note))
-            )
+              map['notes'].map((note) => MaintenanceNote.fromMap(note)))
           : [],
       // Handle populated fields
-      propertyAddress: map['propertyId'] is Map 
+      propertyAddress: map['propertyId'] is Map
           ? PropertyAddress.fromMap(map['propertyId']['address'] ?? {})
           : null,
-      tenantName: map['tenantId'] is Map 
-          ? map['tenantId']['fullName']
-          : null,
-      tenantEmail: map['tenantId'] is Map 
-          ? map['tenantId']['email']
-          : null,
-      landlordName: map['landlordId'] is Map 
-          ? map['landlordId']['fullName']
-          : null,
-      landlordEmail: map['landlordId'] is Map 
-          ? map['landlordId']['email']
-          : null,
+      tenantName: map['tenantId'] is Map ? map['tenantId']['fullName'] : null,
+      tenantEmail: map['tenantId'] is Map ? map['tenantId']['email'] : null,
+      landlordName:
+          map['landlordId'] is Map ? map['landlordId']['fullName'] : null,
+      landlordEmail:
+          map['landlordId'] is Map ? map['landlordId']['email'] : null,
     );
   }
 
@@ -193,7 +186,7 @@ class MaintenanceRequest {
   String get timeAgo {
     final now = DateTime.now();
     final difference = now.difference(requestedDate);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -280,7 +273,7 @@ class MaintenanceNote {
     return MaintenanceNote(
       author: map['author']?.toString() ?? '',
       content: map['content'] ?? '',
-      timestamp: map['timestamp'] != null 
+      timestamp: map['timestamp'] != null
           ? DateTime.parse(map['timestamp'])
           : DateTime.now(),
       authorName: map['authorName'],

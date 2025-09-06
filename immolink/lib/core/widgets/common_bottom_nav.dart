@@ -15,13 +15,15 @@ class CommonBottomNav extends ConsumerWidget {
     final selectedIndex = ref.watch(routeAwareNavigationProvider);
     final colors = ref.watch(dynamicColorsProvider);
     final userRole = ref.watch(userRoleProvider);
-    
+
     // Update navigation index based on current route
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentRoute = GoRouterState.of(context).uri.path;
-      ref.read(routeAwareNavigationProvider.notifier).updateFromRoute(currentRoute);
+      ref
+          .read(routeAwareNavigationProvider.notifier)
+          .updateFromRoute(currentRoute);
     });
-    
+
     return Container(
       padding: const EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
@@ -40,7 +42,7 @@ class CommonBottomNav extends ConsumerWidget {
         onTap: (index) {
           HapticFeedback.lightImpact();
           ref.read(routeAwareNavigationProvider.notifier).setIndex(index);
-          
+
           // Navigate to the appropriate pages based on user role
           switch (index) {
             case 0: // Dashboard
@@ -76,25 +78,32 @@ class CommonBottomNav extends ConsumerWidget {
     );
   }
 
-  List<BottomNavigationBarItem> _buildNavigationItems(BuildContext context, String userRole, int selectedIndex, dynamic colors) {
+  List<BottomNavigationBarItem> _buildNavigationItems(BuildContext context,
+      String userRole, int selectedIndex, dynamic colors) {
     final l10n = AppLocalizations.of(context)!;
     return [
-      _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard, l10n.dashboard, 0, selectedIndex, colors),
+      _buildBottomNavItem(Icons.dashboard_outlined, Icons.dashboard,
+          l10n.dashboard, 0, selectedIndex, colors),
       if (userRole == 'tenant')
-        _buildBottomNavItem(Icons.folder_outlined, Icons.folder, l10n.documents, 1, selectedIndex, colors)
+        _buildBottomNavItem(Icons.folder_outlined, Icons.folder, l10n.documents,
+            1, selectedIndex, colors)
       else
-        _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work, l10n.properties, 1, selectedIndex, colors),
-      _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, l10n.messages, 2, selectedIndex, colors),
-      _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics, l10n.reports, 3, selectedIndex, colors),
-      _buildBottomNavItem(Icons.person_outline, Icons.person, l10n.profile, 4, selectedIndex, colors),
+        _buildBottomNavItem(Icons.home_work_outlined, Icons.home_work,
+            l10n.properties, 1, selectedIndex, colors),
+      _buildBottomNavItem(Icons.chat_bubble_outline, Icons.chat_bubble,
+          l10n.messages, 2, selectedIndex, colors),
+      _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics,
+          l10n.reports, 3, selectedIndex, colors),
+      _buildBottomNavItem(Icons.person_outline, Icons.person, l10n.profile, 4,
+          selectedIndex, colors),
     ];
   }
 
   BottomNavigationBarItem _buildBottomNavItem(
-    IconData icon, 
-    IconData activeIcon, 
-    String label, 
-    int index, 
+    IconData icon,
+    IconData activeIcon,
+    String label,
+    int index,
     int selectedIndex,
     dynamic colors,
   ) {
@@ -103,12 +112,17 @@ class CommonBottomNav extends ConsumerWidget {
       icon: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
-        padding: EdgeInsets.symmetric(horizontal: isSelected ? 14 : 8, vertical: 8),
+        padding:
+            EdgeInsets.symmetric(horizontal: isSelected ? 14 : 8, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? colors.primaryAccent.withValues(alpha: 0.10) : Colors.transparent,
+          color: isSelected
+              ? colors.primaryAccent.withValues(alpha: 0.10)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected ? colors.primaryAccent.withValues(alpha: 0.25) : colors.borderLight.withValues(alpha: 0.4),
+            color: isSelected
+                ? colors.primaryAccent.withValues(alpha: 0.25)
+                : colors.borderLight.withValues(alpha: 0.4),
             width: 1,
           ),
         ),

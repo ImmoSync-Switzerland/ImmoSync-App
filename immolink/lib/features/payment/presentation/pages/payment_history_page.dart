@@ -23,7 +23,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
 
   List<Payment> _filterPayments(List<Payment> payments) {
     return payments.where((payment) {
-      bool statusMatch = _selectedStatus == 'All' || payment.status == _selectedStatus;
+      bool statusMatch =
+          _selectedStatus == 'All' || payment.status == _selectedStatus;
       bool typeMatch = _selectedType == 'All' || payment.type == _selectedType;
       return statusMatch && typeMatch;
     }).toList();
@@ -36,7 +37,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Cancel Payment'),
-          content: const Text('Are you sure you want to cancel this payment? This action cannot be undone.'),
+          content: const Text(
+              'Are you sure you want to cancel this payment? This action cannot be undone.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -61,17 +63,17 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         );
 
         await _paymentService.cancelPayment(payment.id);
-        
+
         // Close loading dialog
         Navigator.of(context).pop();
-        
+
         // Close payment details dialog
         Navigator.of(context).pop();
-        
+
         // Refresh the payments list
         ref.invalidate(landlordPaymentsProvider);
         ref.invalidate(tenantPaymentsProvider);
-        
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -83,7 +85,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     } catch (e) {
       // Close loading dialog if open
       Navigator.of(context).pop();
-      
+
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -106,17 +108,17 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       );
 
       final receiptUrl = await _paymentService.downloadReceipt(payment.id);
-      
+
       // Close loading dialog
       Navigator.of(context).pop();
-      
+
       // Launch the receipt URL
       if (await canLaunchUrl(Uri.parse(receiptUrl))) {
         await launchUrl(Uri.parse(receiptUrl));
       } else {
         throw Exception('Could not open receipt');
       }
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -127,7 +129,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     } catch (e) {
       // Close loading dialog if open
       Navigator.of(context).pop();
-      
+
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -212,7 +214,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                   return ListView.builder(
                     itemCount: filteredPayments.length,
                     itemBuilder: (context, index) {
-                      return _buildPaymentCard(context, filteredPayments[index], colors);
+                      return _buildPaymentCard(
+                          context, filteredPayments[index], colors);
                     },
                   );
                 },
@@ -224,7 +227,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                         width: 32,
                         height: 32,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              colors.primaryAccent),
                           strokeWidth: 2.5,
                         ),
                       ),
@@ -353,10 +357,14 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                       dropdownColor: colors.surfaceCards,
                       items: const [
                         DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                        DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                        DropdownMenuItem(value: 'failed', child: Text('Failed')),
-                        DropdownMenuItem(value: 'refunded', child: Text('Refunded')),
+                        DropdownMenuItem(
+                            value: 'pending', child: Text('Pending')),
+                        DropdownMenuItem(
+                            value: 'completed', child: Text('Completed')),
+                        DropdownMenuItem(
+                            value: 'failed', child: Text('Failed')),
+                        DropdownMenuItem(
+                            value: 'refunded', child: Text('Refunded')),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -401,7 +409,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                       items: const [
                         DropdownMenuItem(value: 'All', child: Text('All')),
                         DropdownMenuItem(value: 'rent', child: Text('Rent')),
-                        DropdownMenuItem(value: 'deposit', child: Text('Deposit')),
+                        DropdownMenuItem(
+                            value: 'deposit', child: Text('Deposit')),
                         DropdownMenuItem(value: 'fee', child: Text('Fee')),
                       ],
                       onChanged: (value) {
@@ -422,7 +431,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildPaymentCard(BuildContext context, Payment payment, DynamicAppColors colors) {
+  Widget _buildPaymentCard(
+      BuildContext context, Payment payment, DynamicAppColors colors) {
     Color statusColor;
     IconData statusIcon;
 
@@ -605,16 +615,20 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildDetailItem('Amount', currencyFormat.format(payment.amount)),
+                    _buildDetailItem(
+                        'Amount', currencyFormat.format(payment.amount)),
                     _buildDetailItem('Status', payment.status.toUpperCase()),
                     _buildDetailItem('Type', payment.type.toUpperCase()),
-                    _buildDetailItem('Date', DateFormat('MMM d, yyyy').format(payment.date)),
+                    _buildDetailItem(
+                        'Date', DateFormat('MMM d, yyyy').format(payment.date)),
                     _buildDetailItem('Property ID', payment.propertyId),
                     _buildDetailItem('Tenant ID', payment.tenantId),
                     if (payment.transactionId != null)
-                      _buildDetailItem('Transaction ID', payment.transactionId!),
+                      _buildDetailItem(
+                          'Transaction ID', payment.transactionId!),
                     if (payment.paymentMethod != null)
-                      _buildDetailItem('Payment Method', payment.paymentMethod!),
+                      _buildDetailItem(
+                          'Payment Method', payment.paymentMethod!),
                     if (payment.notes != null) ...[
                       const SizedBox(height: 16),
                       const Text(
@@ -707,4 +721,3 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 }
-

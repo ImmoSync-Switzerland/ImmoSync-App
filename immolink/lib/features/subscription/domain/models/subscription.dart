@@ -28,12 +28,14 @@ class SubscriptionPlan {
       description: map['description'] ?? '',
       monthlyPrice: (map['monthlyPrice'] ?? 0).toDouble(),
       yearlyPrice: (map['yearlyPrice'] ?? 0).toDouble(),
-      features: map['features'] != null 
+      features: map['features'] != null
           ? List<String>.from(map['features'])
           : <String>[],
       isPopular: map['isPopular'] ?? false,
-      stripePriceIdMonthly: map['monthlyPriceId'] ?? map['stripePriceIdMonthly'] ?? '',
-      stripePriceIdYearly: map['yearlyPriceId'] ?? map['stripePriceIdYearly'] ?? '',
+      stripePriceIdMonthly:
+          map['monthlyPriceId'] ?? map['stripePriceIdMonthly'] ?? '',
+      stripePriceIdYearly:
+          map['yearlyPriceId'] ?? map['stripePriceIdYearly'] ?? '',
     );
   }
 
@@ -85,19 +87,23 @@ class UserSubscription {
       userId: map['userId']?.toString() ?? '',
       planId: map['planId']?.toString() ?? '',
       status: map['status']?.toString() ?? 'unknown',
-      startDate: map['createdAt'] != null 
-        ? DateTime.parse(map['createdAt']) 
-        : (map['startDate'] != null ? DateTime.parse(map['startDate']) : DateTime.now()),
-      endDate: map['currentPeriodEnd'] != null 
-        ? DateTime.parse(map['currentPeriodEnd']) 
-        : (map['endDate'] != null ? DateTime.parse(map['endDate']) : null),
+      startDate: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'])
+          : (map['startDate'] != null
+              ? DateTime.parse(map['startDate'])
+              : DateTime.now()),
+      endDate: map['currentPeriodEnd'] != null
+          ? DateTime.parse(map['currentPeriodEnd'])
+          : (map['endDate'] != null ? DateTime.parse(map['endDate']) : null),
       billingInterval: map['billingInterval']?.toString() ?? 'month',
       stripeSubscriptionId: map['stripeSubscriptionId']?.toString() ?? '',
       stripeCustomerId: map['stripeCustomerId']?.toString(),
       amount: (map['amount'] ?? 0).toDouble(),
-      nextBillingDate: map['currentPeriodEnd'] != null 
-        ? DateTime.parse(map['currentPeriodEnd']) 
-        : (map['nextBillingDate'] != null ? DateTime.parse(map['nextBillingDate']) : DateTime.now()),
+      nextBillingDate: map['currentPeriodEnd'] != null
+          ? DateTime.parse(map['currentPeriodEnd'])
+          : (map['nextBillingDate'] != null
+              ? DateTime.parse(map['nextBillingDate'])
+              : DateTime.now()),
     );
   }
 

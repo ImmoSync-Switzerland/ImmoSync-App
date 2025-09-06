@@ -31,12 +31,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     'Other'
   ];
 
-  final List<String> _paymentTypes = [
-    'Rent',
-    'Deposit',
-    'Fee',
-    'Other'
-  ];
+  final List<String> _paymentTypes = ['Rent', 'Deposit', 'Fee', 'Other'];
 
   @override
   void initState() {
@@ -113,7 +108,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               );
             }
 
-            if (_selectedPropertyId == null || 
+            if (_selectedPropertyId == null ||
                 !properties.any((p) => p.id == _selectedPropertyId)) {
               _selectedPropertyId = properties.first.id;
             }
@@ -124,7 +119,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
             );
 
             if (_amountController.text.isEmpty) {
-              _amountController.text = selectedProperty.outstandingPayments.toString();
+              _amountController.text =
+                  selectedProperty.outstandingPayments.toString();
             }
 
             return Form(
@@ -150,7 +146,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   width: 32,
                   height: 32,
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
                     strokeWidth: 2.5,
                   ),
                 ),
@@ -196,7 +193,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     );
   }
 
-  Widget _buildPropertySection(List<dynamic> properties, dynamic selectedProperty) {
+  Widget _buildPropertySection(
+      List<dynamic> properties, dynamic selectedProperty) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceCards,
@@ -237,7 +235,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 ),
               ),
               child: DropdownButtonFormField<String>(
-                value: _selectedPropertyId,
+                initialValue: _selectedPropertyId,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
@@ -259,8 +257,10 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedPropertyId = newValue;
-                    final newProperty = properties.firstWhere((p) => p.id == newValue);
-                    _amountController.text = newProperty.outstandingPayments.toString();
+                    final newProperty =
+                        properties.firstWhere((p) => p.id == newValue);
+                    _amountController.text =
+                        newProperty.outstandingPayments.toString();
                   });
                 },
               ),
@@ -305,10 +305,12 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 
   Widget _buildPaymentDetailsSection() {
     // Ensure selections remain valid & unique
-    if (_selectedPaymentType != null && !_paymentTypes.contains(_selectedPaymentType)) {
+    if (_selectedPaymentType != null &&
+        !_paymentTypes.contains(_selectedPaymentType)) {
       _selectedPaymentType = _paymentTypes.first;
     }
-    if (_selectedPaymentMethod != null && !_paymentMethods.contains(_selectedPaymentMethod)) {
+    if (_selectedPaymentMethod != null &&
+        !_paymentMethods.contains(_selectedPaymentMethod)) {
       _selectedPaymentMethod = _paymentMethods.first;
     }
     return Container(
@@ -366,7 +368,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           ),
                         ),
                         child: DropdownButtonFormField<String>(
-                          value: _selectedPaymentType,
+                          initialValue: _selectedPaymentType,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -419,7 +421,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           ),
                         ),
                         child: DropdownButtonFormField<String>(
-                          value: _selectedPaymentMethod,
+                          initialValue: _selectedPaymentMethod,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -654,7 +656,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -686,7 +689,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 
       if (mounted) {
         Navigator.of(context).pop(); // Close loading dialog
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Payment submitted successfully'),
@@ -700,7 +703,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // Close loading dialog
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to submit payment: $e'),

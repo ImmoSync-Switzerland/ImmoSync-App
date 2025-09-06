@@ -87,11 +87,12 @@ class _FilterPanelState extends State<FilterPanel> {
         children: [
           // Header
           _buildHeader(),
-          
+
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.horizontalPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -109,7 +110,7 @@ class _FilterPanelState extends State<FilterPanel> {
               ),
             ),
           ),
-          
+
           // Save button
           _buildSaveButton(),
         ],
@@ -130,7 +131,8 @@ class _FilterPanelState extends State<FilterPanel> {
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.close, color: AppColors.textPrimary),
-          ),          Expanded(
+          ),
+          Expanded(
             child: Center(
               child: Text(
                 'Filter',
@@ -146,6 +148,7 @@ class _FilterPanelState extends State<FilterPanel> {
       ),
     );
   }
+
   Widget _buildPropertyTypeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +158,9 @@ class _FilterPanelState extends State<FilterPanel> {
         Wrap(
           spacing: AppSpacing.md,
           runSpacing: AppSpacing.md,
-          children: _propertyTypes.map((type) => _buildPropertyTypeChip(type)).toList(),
+          children: _propertyTypes
+              .map((type) => _buildPropertyTypeChip(type))
+              .toList(),
         ),
       ],
     );
@@ -168,9 +173,10 @@ class _FilterPanelState extends State<FilterPanel> {
         width: AppSizes.propertyTypeIconSize + AppSpacing.lg * 2,
         height: AppSizes.propertyTypeIconSize + AppSpacing.lg * 2,
         decoration: BoxDecoration(
-          color: type.isSelected ? AppColors.accentLight : AppColors.surfaceCards,
+          color:
+              type.isSelected ? AppColors.accentLight : AppColors.surfaceCards,
           borderRadius: BorderRadius.circular(AppBorderRadius.cardsButtons),
-          border: type.isSelected 
+          border: type.isSelected
               ? Border.all(color: AppColors.primaryAccent)
               : null,
         ),
@@ -180,13 +186,17 @@ class _FilterPanelState extends State<FilterPanel> {
             Icon(
               type.icon,
               size: AppSizes.iconMedium,
-              color: type.isSelected ? AppColors.primaryAccent : AppColors.textSecondary,
+              color: type.isSelected
+                  ? AppColors.primaryAccent
+                  : AppColors.textSecondary,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               type.label,
               style: AppTypography.caption.copyWith(
-                color: type.isSelected ? AppColors.primaryAccent : AppColors.textSecondary,
+                color: type.isSelected
+                    ? AppColors.primaryAccent
+                    : AppColors.textSecondary,
               ),
             ),
           ],
@@ -194,6 +204,7 @@ class _FilterPanelState extends State<FilterPanel> {
       ),
     );
   }
+
   Widget _buildPriceRangeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,12 +253,14 @@ class _FilterPanelState extends State<FilterPanel> {
         children: List.generate(10, (index) {
           final isInRange = index >= 3 && index <= 7; // Mock data
           final height = 20.0 + (index % 3) * 15; // Mock heights
-          
+
           return Container(
             width: AppSizes.histogramBarWidth,
             height: height,
             decoration: BoxDecoration(
-              color: isInRange ? AppColors.primaryAccent : AppColors.dividerSeparator,
+              color: isInRange
+                  ? AppColors.primaryAccent
+                  : AppColors.dividerSeparator,
               borderRadius: BorderRadius.circular(2),
             ),
           );
@@ -255,6 +268,7 @@ class _FilterPanelState extends State<FilterPanel> {
       ),
     );
   }
+
   Widget _buildBedroomsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,6 +291,7 @@ class _FilterPanelState extends State<FilterPanel> {
       ],
     );
   }
+
   Widget _buildBedsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,6 +337,7 @@ class _FilterPanelState extends State<FilterPanel> {
       ),
     );
   }
+
   Widget _buildAmenitiesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,11 +425,13 @@ class _FilterPanelState extends State<FilterPanel> {
 
   void _handleReset() {
     setState(() {
-      _propertyTypes = widget.propertyTypes.map((type) => PropertyType(
-        label: type.label,
-        icon: type.icon,
-        isSelected: false,
-      )).toList();
+      _propertyTypes = widget.propertyTypes
+          .map((type) => PropertyType(
+                label: type.label,
+                icon: type.icon,
+                isSelected: false,
+              ))
+          .toList();
       _priceRange = RangeValues(widget.minPrice, widget.maxPrice);
       _bedrooms = 1;
       _beds = 1;

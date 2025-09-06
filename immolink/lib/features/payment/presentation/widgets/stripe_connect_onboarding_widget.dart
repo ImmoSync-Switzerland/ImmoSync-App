@@ -22,11 +22,11 @@ class StripeConnectOnboardingWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<StripeConnectOnboardingWidget> createState() => 
-    _StripeConnectOnboardingWidgetState();
+  ConsumerState<StripeConnectOnboardingWidget> createState() =>
+      _StripeConnectOnboardingWidgetState();
 }
 
-class _StripeConnectOnboardingWidgetState 
+class _StripeConnectOnboardingWidgetState
     extends ConsumerState<StripeConnectOnboardingWidget> {
   final ConnectService _connectService = ConnectService();
   bool _isLoading = true;
@@ -61,7 +61,8 @@ class _StripeConnectOnboardingWidgetState
 
       // Initialize Stripe Connect if not already done
       final initialized = await StripeConnectJSService.initialize(
-        publishableKey: 'pk_test_LMUiQyn0mBZPsUIhVrVMblov', // Replace with your key
+        publishableKey:
+            'pk_test_LMUiQyn0mBZPsUIhVrVMblov', // Replace with your key
         fetchClientSecret: () => _connectService.createAccountSession(
           accountId: widget.accountId,
           components: {
@@ -88,7 +89,7 @@ class _StripeConnectOnboardingWidgetState
         _hasError = true;
         _errorMessage = e.toString();
       });
-      
+
       // Fall back to hosted onboarding
       _fallbackToHostedOnboarding();
     }
@@ -97,7 +98,7 @@ class _StripeConnectOnboardingWidgetState
   Future<void> _createAndMountComponent() async {
     final componentId = 'stripe-onboarding-${widget.accountId}';
     _componentId = componentId;
-    
+
     // Create container element
     final container = web.HTMLDivElement()
       ..id = componentId
@@ -165,9 +166,12 @@ class _StripeConnectOnboardingWidgetState
   Map<String, String> _getDefaultAppearance() {
     final colors = ref.read(dynamicColorsProvider);
     return {
-      'colorPrimary': '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-      'colorBackground': '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
-      'colorText': '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+      'colorPrimary':
+          '#${(colors.primaryAccent.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryAccent.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+      'colorBackground':
+          '#${(colors.primaryBackground.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.primaryBackground.b * 255).round().toRadixString(16).padLeft(2, '0')}',
+      'colorText':
+          '#${(colors.textPrimary.r * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.g * 255).round().toRadixString(16).padLeft(2, '0')}${(colors.textPrimary.b * 255).round().toRadixString(16).padLeft(2, '0')}',
       'borderRadius': '12px',
       'fontFamily': 'system-ui, -apple-system, sans-serif',
     };
@@ -233,13 +237,13 @@ class _StripeConnectOnboardingWidgetState
             child: Container(
               width: double.infinity,
               height: double.infinity,
-              child: kIsWeb 
-                ? const Text(
-                    'Stripe onboarding component will appear here',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
-                  )
-                : const SizedBox(),
+              child: kIsWeb
+                  ? const Text(
+                      'Stripe onboarding component will appear here',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  : const SizedBox(),
             ),
           ),
         ],

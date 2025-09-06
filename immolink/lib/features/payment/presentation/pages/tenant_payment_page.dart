@@ -40,7 +40,8 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
 
   Future<void> _loadPaymentMethods() async {
     try {
-      final methods = await _connectService.getAvailablePaymentMethods('ch'); // Default to Switzerland
+      final methods = await _connectService
+          .getAvailablePaymentMethods('ch'); // Default to Switzerland
       setState(() {
         _paymentMethods = methods;
         if (methods.isNotEmpty) {
@@ -97,15 +98,15 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             // Property info card
             _buildPropertyCard(colors, l10n),
             const SizedBox(height: 24),
-            
+
             // Payment amount
             _buildAmountSection(colors, l10n),
             const SizedBox(height: 24),
-            
+
             // Payment methods
             _buildPaymentMethodsSection(colors, l10n),
             const SizedBox(height: 32),
-            
+
             // Pay button
             _buildPayButton(colors, l10n, user),
           ],
@@ -260,7 +261,8 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
     );
   }
 
-  Widget _buildPaymentMethodsSection(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPaymentMethodsSection(
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -295,15 +297,17 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             ),
             const SizedBox(height: 12),
           ],
-          ..._paymentMethods.map((method) => _buildPaymentMethodTile(method, colors)),
+          ..._paymentMethods
+              .map((method) => _buildPaymentMethodTile(method, colors)),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentMethodTile(PaymentMethod method, DynamicAppColors colors) {
+  Widget _buildPaymentMethodTile(
+      PaymentMethod method, DynamicAppColors colors) {
     final isSelected = _selectedPaymentMethod == method.type;
-    
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -315,7 +319,9 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? colors.primaryAccent.withValues(alpha: 0.1) : colors.primaryBackground,
+          color: isSelected
+              ? colors.primaryAccent.withValues(alpha: 0.1)
+              : colors.primaryBackground,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? colors.primaryAccent : colors.borderLight,
@@ -354,7 +360,8 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
                       if (method.instant) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: colors.success,
                             borderRadius: BorderRadius.circular(4),
@@ -413,9 +420,9 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isLoading || _selectedPaymentMethod == null || user == null 
-          ? null 
-          : _processPayment,
+        onPressed: _isLoading || _selectedPaymentMethod == null || user == null
+            ? null
+            : _processPayment,
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.success,
           foregroundColor: Colors.white,
@@ -426,28 +433,28 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
           elevation: 0,
         ),
         child: _isLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.payment, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Pay CHF ${_amount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
-              ],
-            ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.payment, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Pay CHF ${_amount.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -465,7 +472,8 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         propertyId: widget.property.id,
         amount: _amount,
         paymentType: widget.paymentType,
-        description: '${widget.paymentType} payment for ${widget.property.address.street}',
+        description:
+            '${widget.paymentType} payment for ${widget.property.address.street}',
         preferredPaymentMethod: _selectedPaymentMethod,
       );
 
@@ -481,7 +489,8 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         // Allow delayed payment methods like bank transfers
         allowsDelayedPaymentMethods: _selectedPaymentMethod != 'card',
       );
-      debugPrint('[Stripe] Init sheet with method=${_selectedPaymentMethod} delayed=${_selectedPaymentMethod != 'card'}');
+      debugPrint(
+          '[Stripe] Init sheet with method=${_selectedPaymentMethod} delayed=${_selectedPaymentMethod != 'card'}');
 
       // Initialize payment sheet
       await Stripe.instance.initPaymentSheet(
@@ -499,11 +508,10 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Navigate back or to success page
         context.pop();
       }
-
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

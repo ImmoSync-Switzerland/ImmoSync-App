@@ -9,27 +9,31 @@ final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
 });
 
 // Provider for available subscription plans
-final subscriptionPlansProvider = FutureProvider<List<SubscriptionPlan>>((ref) async {
+final subscriptionPlansProvider =
+    FutureProvider<List<SubscriptionPlan>>((ref) async {
   final subscriptionService = ref.watch(subscriptionServiceProvider);
   return subscriptionService.getAvailablePlans();
 });
 
 // Provider for user's current subscription
-final userSubscriptionProvider = FutureProvider.autoDispose<UserSubscription?>((ref) async {
+final userSubscriptionProvider =
+    FutureProvider.autoDispose<UserSubscription?>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) {
     return null;
   }
-  
+
   final subscriptionService = ref.watch(subscriptionServiceProvider);
   return subscriptionService.getUserSubscription(user.id);
 });
 
 // State notifier for subscription management
-class SubscriptionNotifier extends StateNotifier<AsyncValue<UserSubscription?>> {
+class SubscriptionNotifier
+    extends StateNotifier<AsyncValue<UserSubscription?>> {
   final SubscriptionService _subscriptionService;
-  
-  SubscriptionNotifier(this._subscriptionService) : super(const AsyncValue.data(null));
+
+  SubscriptionNotifier(this._subscriptionService)
+      : super(const AsyncValue.data(null));
 
   Future<void> createSubscription({
     required String userId,
@@ -45,9 +49,10 @@ class SubscriptionNotifier extends StateNotifier<AsyncValue<UserSubscription?>> 
         billingInterval: billingInterval,
         paymentMethodId: paymentMethodId,
       );
-      
+
       if (result['subscription'] != null) {
-        state = AsyncValue.data(UserSubscription.fromMap(result['subscription']));
+        state =
+            AsyncValue.data(UserSubscription.fromMap(result['subscription']));
       } else {
         throw Exception('Failed to create subscription');
       }
@@ -68,9 +73,10 @@ class SubscriptionNotifier extends StateNotifier<AsyncValue<UserSubscription?>> 
         planId: planId,
         billingInterval: billingInterval,
       );
-      
+
       if (result['subscription'] != null) {
-        state = AsyncValue.data(UserSubscription.fromMap(result['subscription']));
+        state =
+            AsyncValue.data(UserSubscription.fromMap(result['subscription']));
       } else {
         throw Exception('Failed to update subscription');
       }
@@ -107,7 +113,9 @@ class SubscriptionNotifier extends StateNotifier<AsyncValue<UserSubscription?>> 
 }
 
 // Provider for subscription notifier
-final subscriptionNotifierProvider = StateNotifierProvider<SubscriptionNotifier, AsyncValue<UserSubscription?>>((ref) {
+final subscriptionNotifierProvider =
+    StateNotifierProvider<SubscriptionNotifier, AsyncValue<UserSubscription?>>(
+        (ref) {
   final subscriptionService = ref.watch(subscriptionServiceProvider);
   return SubscriptionNotifier(subscriptionService);
 });

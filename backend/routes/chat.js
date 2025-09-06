@@ -54,12 +54,22 @@ router.post('/:conversationId/messages', async (req, res) => {
       attachments: req.body.attachments || [],
       metadata: metadata || null,
       e2ee: e2ee || null,
-      isEncrypted: encrypted
+      isEncrypted: encrypted,
+      deliveredAt: null,
+      readAt: null
     };
     
     // Insert message
     const messageResult = await db.collection('messages').insertOne(message);
     
+    // Mark delivered immediately (REST path mimics WS behaviour)
+    const deliveredAt = new Date();
+    await db.collection('messages').updateOne(
+      { _id: messageResult.insertedId },
+      { $set: { deliveredAt } }
+    );
+    message.deliveredAt = deliveredAt;
+
     // Update conversation's last message and timestamp
     await db.collection('conversations').updateOne(
       { _id: new ObjectId(conversationId) },
@@ -72,9 +82,10 @@ router.post('/:conversationId/messages', async (req, res) => {
       }
     );
     
-    res.status(201).json({ 
+    res.status(201).json({
       messageId: messageResult.insertedId,
-      message: 'Message sent successfully' 
+      message: 'Message sent successfully',
+      stored: { ...message, _id: messageResult.insertedId }
     });
 
     // Notify receiver (now with debug logging)

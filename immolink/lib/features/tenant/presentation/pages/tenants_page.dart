@@ -18,7 +18,8 @@ class TenantsPage extends ConsumerStatefulWidget {
   ConsumerState<TenantsPage> createState() => _TenantsPageState();
 }
 
-class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderStateMixin {
+class _TenantsPageState extends ConsumerState<TenantsPage>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late AnimationController _animationController;
@@ -46,11 +47,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     _searchController.dispose();
     _animationController.dispose();
     super.dispose();
-  }  @override
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    final contactsAsync = ref.watch(userContactsProvider); // Changed from allTenantsProvider
+    final contactsAsync =
+        ref.watch(userContactsProvider); // Changed from allTenantsProvider
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
 
     return Scaffold(
@@ -63,12 +67,14 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             offset: Offset(0, _slideAnimation.value),
             child: Opacity(
               opacity: _fadeAnimation.value,
-              child: RefreshIndicator(              onRefresh: () async {
-                HapticFeedback.lightImpact();
-                ref.invalidate(userContactsProvider); // Changed from allTenantsProvider
-                ref.invalidate(landlordPropertiesProvider);
-                await Future.delayed(const Duration(milliseconds: 500));
-              },
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  HapticFeedback.lightImpact();
+                  ref.invalidate(
+                      userContactsProvider); // Changed from allTenantsProvider
+                  ref.invalidate(landlordPropertiesProvider);
+                  await Future.delayed(const Duration(milliseconds: 500));
+                },
                 color: colors.primaryAccent,
                 backgroundColor: colors.primaryBackground,
                 child: Column(
@@ -80,8 +86,10 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                         data: (tenants) {
                           final filteredTenants = _filterTenants(tenants);
                           return propertiesAsync.when(
-                            data: (properties) => _buildTenantsContent(filteredTenants, properties, l10n, colors),
-                            loading: () => const Center(child: CircularProgressIndicator()),
+                            data: (properties) => _buildTenantsContent(
+                                filteredTenants, properties, l10n, colors),
+                            loading: () => const Center(
+                                child: CircularProgressIndicator()),
                             error: (error, _) => _buildErrorState(colors),
                           );
                         },
@@ -99,6 +107,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       floatingActionButton: _buildFAB(colors),
     );
   }
+
   PreferredSizeWidget _buildAppBar(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return AppBar(
@@ -112,7 +121,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           fontWeight: FontWeight.w600,
           inherit: true,
         ),
-      ),      leading: IconButton(
+      ),
+      leading: IconButton(
         icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
         onPressed: () {
           if (context.canPop()) {
@@ -133,6 +143,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ],
     );
   }
+
   Widget _buildHeader(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
@@ -164,8 +175,10 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
+
   Widget _buildSearchBar(DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;;
+    final l10n = AppLocalizations.of(context)!;
+    ;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
@@ -233,13 +246,18 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
   }
 
-  Widget _buildTenantsContent(List<ContactUser> tenants, List<Property> properties, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildTenantsContent(
+      List<ContactUser> tenants,
+      List<Property> properties,
+      AppLocalizations l10n,
+      DynamicAppColors colors) {
     if (tenants.isEmpty) {
       return _buildEmptyState(colors);
     }
@@ -265,10 +283,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ],
     );
   }
-  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties, DynamicAppColors colors) {
+
+  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties,
+      DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     final totalTenants = tenants.length;
-    final occupiedProperties = properties.where((p) => p.status == 'rented').length;
+    final occupiedProperties =
+        properties.where((p) => p.status == 'rented').length;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -298,7 +319,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, DynamicAppColors colors) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color,
+      DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -357,11 +379,15 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
-  Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties, AppLocalizations l10n, DynamicAppColors colors) {
+
+  Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties,
+      AppLocalizations l10n, DynamicAppColors colors) {
     final hasProperties = tenantProperties.isNotEmpty;
     // Use status from backend if available, otherwise fall back to property-based logic
-    final tenantStatus = tenant.status ?? (hasProperties ? 'active' : 'available');
-    final statusColor = tenantStatus == 'active' ? colors.success : colors.warning;
+    final tenantStatus =
+        tenant.status ?? (hasProperties ? 'active' : 'available');
+    final statusColor =
+        tenantStatus == 'active' ? colors.success : colors.warning;
 
     return GestureDetector(
       onTap: () {
@@ -416,7 +442,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   ),
                   child: Center(
                     child: Text(
-                      tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : 'T',
+                      tenant.fullName.isNotEmpty
+                          ? tenant.fullName[0].toUpperCase()
+                          : 'T',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -471,7 +499,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -479,8 +508,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                       color: statusColor.withValues(alpha: 0.2),
                       width: 1,
                     ),
-                  ),                  child: Text(
-                    tenantStatus == 'active' ? l10n.active.toUpperCase() : l10n.available.toUpperCase(),
+                  ),
+                  child: Text(
+                    tenantStatus == 'active'
+                        ? l10n.active.toUpperCase()
+                        : l10n.available.toUpperCase(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -526,30 +558,32 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                     ),
                     const SizedBox(height: 8),
                     ...tenantProperties.map((property) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: Text(
-                              property.address.street,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.textSecondary,
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: Text(
+                                  property.address.street,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: colors.textSecondary,
+                                  ),
+                                ),
                               ),
-                            ),
+                              Text(
+                                ref
+                                    .read(currencyProvider.notifier)
+                                    .formatAmount(property.rentAmount),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.success,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: colors.success,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
+                        )),
                   ],
                 ),
               ),
@@ -591,7 +625,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onPressed) {
+  Widget _buildActionButton(
+      String label, IconData icon, Color color, VoidCallback onPressed) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -622,6 +657,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
+
   Widget _buildEmptyState(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
@@ -676,7 +712,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -689,6 +726,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       ),
     );
   }
+
   Widget _buildLoadingState(DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
@@ -720,7 +758,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               fontWeight: FontWeight.w600,
               color: colors.textPrimary,
             ),
-          ),          const SizedBox(height: 8),
+          ),
+          const SizedBox(height: 8),
           Text(
             l10n.pleaseTryAgainLater,
             style: TextStyle(
@@ -731,7 +770,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              ref.invalidate(userContactsProvider); // Changed from allTenantsProvider
+              ref.invalidate(
+                  userContactsProvider); // Changed from allTenantsProvider
               ref.invalidate(landlordPropertiesProvider);
             },
             style: ElevatedButton.styleFrom(
@@ -785,17 +825,18 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     if (_searchQuery.isEmpty) {
       return tenants;
     }
-    
+
     return tenants.where((tenant) {
       final searchLower = _searchQuery.toLowerCase();
       return tenant.fullName.toLowerCase().contains(searchLower) ||
-             tenant.email.toLowerCase().contains(searchLower) ||
-             tenant.properties.any((property) => 
-                 property.toLowerCase().contains(searchLower));
+          tenant.email.toLowerCase().contains(searchLower) ||
+          tenant.properties
+              .any((property) => property.toLowerCase().contains(searchLower));
     }).toList();
   }
 
-  List<Property> _getTenantProperties(ContactUser tenant, List<Property> allProperties) {
+  List<Property> _getTenantProperties(
+      ContactUser tenant, List<Property> allProperties) {
     return allProperties.where((property) {
       return property.tenantIds.contains(tenant.id);
     }).toList();
@@ -848,7 +889,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel', style: TextStyle(color: colors.textSecondary, inherit: true)),
+              child: Text('Cancel',
+                  style: TextStyle(color: colors.textSecondary, inherit: true)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -863,7 +905,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Could not make phone call: ${e.toString()}'),
+                      content:
+                          Text('Could not make phone call: ${e.toString()}'),
                       backgroundColor: colors.error,
                     ),
                   );
@@ -890,142 +933,152 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         builder: (context, ref, child) {
           final colors = ref.watch(dynamicColorsProvider);
           return Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: colors.surfaceCards,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.textTertiary,
-                borderRadius: BorderRadius.circular(2),
-              ),
+            height: MediaQuery.of(context).size.height * 0.7,
+            decoration: BoxDecoration(
+              color: colors.surfaceCards,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colors.textTertiary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                colors.primaryAccent,
-                                colors.primaryAccent.withValues(alpha: 0.7),
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              tenant.fullName[0].toUpperCase(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                tenant.fullName,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: colors.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                'Tenant Details',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: Icon(Icons.close, color: colors.textTertiary),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Contact Information
-                    _buildDetailSection('Contact Information', [
-                      _buildDetailItem('Email', tenant.email, Icons.email_outlined, colors),
-                      if (tenant.phone.isNotEmpty)
-                        _buildDetailItem('Phone', tenant.phone, Icons.phone_outlined, colors),
-                    ], colors),
-                    const SizedBox(height: 24),
-                    // Properties
-                    if (tenantProperties.isNotEmpty) ...[
-                      _buildDetailSection('Assigned Properties', 
-                        tenantProperties.map((property) => 
-                          _buildPropertyDetailItem(property, colors)
-                        ).toList(),
-                        colors
-                      ),
-                    ] else ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: colors.warning.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: colors.warning.withValues(alpha: 0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
+                        Row(
                           children: [
-                            Icon(Icons.warning_outlined, color: colors.warning),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'No properties assigned to this tenant',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: colors.warning,
-                                  fontWeight: FontWeight.w500,
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    colors.primaryAccent,
+                                    colors.primaryAccent.withValues(alpha: 0.7),
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  tenant.fullName[0].toUpperCase(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tenant.fullName,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: colors.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Tenant Details',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: colors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon:
+                                  Icon(Icons.close, color: colors.textTertiary),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ],
+                        const SizedBox(height: 24),
+                        // Contact Information
+                        _buildDetailSection(
+                            'Contact Information',
+                            [
+                              _buildDetailItem('Email', tenant.email,
+                                  Icons.email_outlined, colors),
+                              if (tenant.phone.isNotEmpty)
+                                _buildDetailItem('Phone', tenant.phone,
+                                    Icons.phone_outlined, colors),
+                            ],
+                            colors),
+                        const SizedBox(height: 24),
+                        // Properties
+                        if (tenantProperties.isNotEmpty) ...[
+                          _buildDetailSection(
+                              'Assigned Properties',
+                              tenantProperties
+                                  .map((property) => _buildPropertyDetailItem(
+                                      property, colors))
+                                  .toList(),
+                              colors),
+                        ] else ...[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colors.warning.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: colors.warning.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.warning_outlined,
+                                    color: colors.warning),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'No properties assigned to this tenant',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: colors.warning,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      );
+          );
         },
       ),
     );
   }
 
-  Widget _buildDetailSection(String title, List<Widget> children, DynamicAppColors colors) {
+  Widget _buildDetailSection(
+      String title, List<Widget> children, DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1043,7 +1096,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildDetailItem(String label, String value, IconData icon, DynamicAppColors colors) {
+  Widget _buildDetailItem(
+      String label, String value, IconData icon, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -1124,7 +1178,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             ),
           ),
           Text(
-            ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
+            ref
+                .read(currencyProvider.notifier)
+                .formatAmount(property.rentAmount),
             style: TextStyle(
               fontSize: 14,
               color: colors.success,
@@ -1232,9 +1288,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                     if (value == null) return;
                     setState(() {
                       selectedFilter = value;
-                  });
-                  Navigator.of(context).pop();
-                },
+                    });
+                    Navigator.of(context).pop();
+                  },
                 ),
                 title: const Text('By Property Type'),
                 onTap: () {
@@ -1260,7 +1316,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
   void _showRemoveTenantDialog(Property property) {
     final colors = ref.read(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1299,10 +1355,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     final l10n = AppLocalizations.of(context)!;
     Navigator.pop(context); // Close dialog
     Navigator.pop(context); // Close tenant details
-    
+
     try {
       // Find the current tenant that we're viewing
-      final contactsAsync = ref.read(userContactsProvider); // Changed from allTenantsProvider
+      final contactsAsync =
+          ref.read(userContactsProvider); // Changed from allTenantsProvider
       if (contactsAsync.hasValue) {
         final tenants = contactsAsync.value!;
         final tenant = tenants.firstWhere(
@@ -1311,9 +1368,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         );
 
         await ref.read(tenantRemovalProvider.notifier).removeTenant(
-          property.id,
-          tenant.id,
-        );
+              property.id,
+              tenant.id,
+            );
 
         // Refresh the data
         ref.invalidate(userContactsProvider); // Changed from allTenantsProvider

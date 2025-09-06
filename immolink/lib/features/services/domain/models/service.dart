@@ -33,8 +33,10 @@ class Service {
       landlordId: map['landlordId'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
       contactInfo: map['contactInfo'] ?? '',
-      createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : null,
-      updatedAt: map['updatedAt'] != null ? DateTime.parse(map['updatedAt']) : null,
+      createdAt:
+          map['createdAt'] != null ? DateTime.parse(map['createdAt']) : null,
+      updatedAt:
+          map['updatedAt'] != null ? DateTime.parse(map['updatedAt']) : null,
     );
   }
 

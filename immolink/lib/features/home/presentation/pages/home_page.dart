@@ -13,7 +13,7 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Add debug prints to trace the flow
     print('Building HomePage');
-    
+
     ref.listen<AuthState>(authProvider, (previous, current) {
       print('Auth state changed: ${current.isAuthenticated}');
       if (!current.isAuthenticated) {
@@ -29,7 +29,7 @@ class HomePage extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return userRole == 'landlord' 
+    return userRole == 'landlord'
         ? const LandlordDashboard()
         : const TenantDashboard();
   }

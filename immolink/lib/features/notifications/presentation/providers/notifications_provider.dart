@@ -5,12 +5,14 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/core/config/api_config.dart';
 import '../../domain/models/app_notification.dart';
 
-final notificationsProvider = StateNotifierProvider<NotificationsNotifier, AsyncValue<List<AppNotification>>>((ref) {
+final notificationsProvider = StateNotifierProvider<NotificationsNotifier,
+    AsyncValue<List<AppNotification>>>((ref) {
   final auth = ref.watch(authProvider);
   return NotificationsNotifier(ref, auth.userId);
 });
 
-class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotification>>> {
+class NotificationsNotifier
+    extends StateNotifier<AsyncValue<List<AppNotification>>> {
   final Ref ref;
   String? _userId;
   NotificationsNotifier(this.ref, this._userId) : super(const AsyncLoading()) {
@@ -37,7 +39,8 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
     if (_userId == null) return;
     state = const AsyncLoading();
     try {
-  final resp = await http.get(Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'));
+      final resp = await http
+          .get(Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'));
       if (resp.statusCode == 200) {
         final jsonBody = jsonDecode(resp.body) as Map<String, dynamic>;
         final list = (jsonBody['notifications'] as List<dynamic>)
@@ -61,15 +64,17 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
         body: jsonEncode({'userId': _userId, 'all': true}),
       );
       final current = state.value ?? [];
-      state = AsyncData(current.map((n) => AppNotification(
-            id: n.id,
-            title: n.title,
-            body: n.body,
-            type: n.type,
-            data: n.data,
-            timestamp: n.timestamp,
-            read: true,
-          )).toList());
+      state = AsyncData(current
+          .map((n) => AppNotification(
+                id: n.id,
+                title: n.title,
+                body: n.body,
+                type: n.type,
+                data: n.data,
+                timestamp: n.timestamp,
+                read: true,
+              ))
+          .toList());
     } catch (_) {}
   }
 
@@ -79,22 +84,29 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
     // Optimistic local update first
     final current = state.value;
     if (current != null) {
-      final updated = current.map((n) => n.id == id ? AppNotification(
-        id: n.id,
-        title: n.title,
-        body: n.body,
-        type: n.type,
-        data: n.data,
-        timestamp: n.timestamp,
-        read: true,
-      ) : n).toList();
+      final updated = current
+          .map((n) => n.id == id
+              ? AppNotification(
+                  id: n.id,
+                  title: n.title,
+                  body: n.body,
+                  type: n.type,
+                  data: n.data,
+                  timestamp: n.timestamp,
+                  read: true,
+                )
+              : n)
+          .toList();
       state = AsyncData(updated);
     }
     try {
       await http.post(
         Uri.parse('$_baseUrl/notifications/mark-read'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': _userId, 'ids': [id]}),
+        body: jsonEncode({
+          'userId': _userId,
+          'ids': [id]
+        }),
       );
     } catch (_) {
       // silently ignore
@@ -102,5 +114,7 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<AppNotificatio
   }
 
   // Backward compatibility name used by popup
-  void markSingleRead(String id) { markNotificationRead(id); }
+  void markSingleRead(String id) {
+    markNotificationRead(id);
+  }
 }

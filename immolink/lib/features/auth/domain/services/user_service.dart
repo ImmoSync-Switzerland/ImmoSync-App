@@ -8,12 +8,12 @@ class UserService {
 
   Stream<List<User>> getAvailableTenants({String? propertyId}) async* {
     print('Fetching available tenants for property: $propertyId');
-    
+
     String url = '$_apiUrl/users/available-tenants';
     if (propertyId != null) {
       url += '?propertyId=$propertyId';
     }
-    
+
     final response = await http.get(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
@@ -62,4 +62,3 @@ class UserService {
     }
   }
 }
-

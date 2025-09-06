@@ -18,7 +18,8 @@ class DashboardService {
   }
 
   // Get recent maintenance requests for dashboard
-  Future<List<MaintenanceRequest>> getRecentMaintenanceRequests(String landlordId) async {
+  Future<List<MaintenanceRequest>> getRecentMaintenanceRequests(
+      String landlordId) async {
     try {
       return await _maintenanceService.getRecentMaintenanceRequests(landlordId);
     } catch (e) {
@@ -28,7 +29,8 @@ class DashboardService {
   }
 
   // Fetch all dashboard data at once
-  Future<DashboardData> getDashboardData(String userId, {String? landlordId}) async {
+  Future<DashboardData> getDashboardData(String userId,
+      {String? landlordId}) async {
     try {
       final futures = await Future.wait([
         getRecentMessages(userId),

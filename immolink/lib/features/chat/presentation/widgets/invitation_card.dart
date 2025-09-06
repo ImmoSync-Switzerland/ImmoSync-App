@@ -10,7 +10,7 @@ class InvitationCard extends ConsumerWidget {
   final bool isLandlord;
 
   const InvitationCard({
-    required this.invitation, 
+    required this.invitation,
     required this.isLandlord,
     super.key,
   });
@@ -19,9 +19,9 @@ class InvitationCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
     final statusColor = _getStatusColor(invitation.status);
-    final isExpired = invitation.expiresAt != null && 
-                     DateTime.now().isAfter(invitation.expiresAt!);
-    
+    final isExpired = invitation.expiresAt != null &&
+        DateTime.now().isAfter(invitation.expiresAt!);
+
     return Container(
       decoration: BoxDecoration(
         color: colors.surfaceCards,
@@ -70,9 +70,7 @@ class InvitationCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isLandlord 
-                          ? 'Invitation Sent' 
-                          : 'Property Invitation',
+                        isLandlord ? 'Invitation Sent' : 'Property Invitation',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -82,9 +80,9 @@ class InvitationCard extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isLandlord 
-                          ? 'To ${invitation.tenantName ?? "Unknown Tenant"} • ${invitation.propertyAddress ?? "Property"}'
-                          : 'From ${invitation.landlordName ?? "Landlord"}',
+                        isLandlord
+                            ? 'To ${invitation.tenantName ?? "Unknown Tenant"} • ${invitation.propertyAddress ?? "Property"}'
+                            : 'From ${invitation.landlordName ?? "Landlord"}',
                         style: TextStyle(
                           fontSize: 14,
                           color: colors.textSecondary,
@@ -95,7 +93,8 @@ class InvitationCard extends ConsumerWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -117,7 +116,7 @@ class InvitationCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
-            
+
             // Property details
             if (invitation.propertyAddress != null) ...[
               Container(
@@ -229,7 +228,9 @@ class InvitationCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                if (!isLandlord && invitation.status == 'pending' && !isExpired) ...[
+                if (!isLandlord &&
+                    invitation.status == 'pending' &&
+                    !isExpired) ...[
                   _buildActionButton(
                     'Decline',
                     const Color(0xFFEF4444),
@@ -350,7 +351,7 @@ class InvitationCard extends ConsumerWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {
@@ -362,27 +363,28 @@ class InvitationCard extends ConsumerWidget {
     }
   }
 
-  void _respondToInvitation(BuildContext context, WidgetRef ref, String response) async {
+  void _respondToInvitation(
+      BuildContext context, WidgetRef ref, String response) async {
     try {
       final notifier = ref.read(invitationNotifierProvider.notifier);
-      
+
       if (response == 'accepted') {
         await notifier.acceptInvitation(invitation.id);
       } else if (response == 'declined') {
         await notifier.declineInvitation(invitation.id);
       }
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              response == 'accepted' 
-                ? 'Invitation accepted successfully!' 
-                : 'Invitation declined.',
+              response == 'accepted'
+                  ? 'Invitation accepted successfully!'
+                  : 'Invitation declined.',
             ),
-            backgroundColor: response == 'accepted' 
-              ? const Color(0xFF10B981)
-              : const Color(0xFFF59E0B),
+            backgroundColor: response == 'accepted'
+                ? const Color(0xFF10B981)
+                : const Color(0xFFF59E0B),
           ),
         );
       }

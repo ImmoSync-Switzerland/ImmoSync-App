@@ -16,8 +16,8 @@ class ReportsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  final currentUser = ref.watch(currentUserProvider);
-  final l10n = AppLocalizations.of(context)!;
+    final currentUser = ref.watch(currentUserProvider);
+    final l10n = AppLocalizations.of(context)!;
     final isLandlord = currentUser?.role == 'landlord';
 
     // Set navigation index to Reports (3) when this page is loaded
@@ -153,9 +153,9 @@ class ReportsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-  _buildFinancialSummary(context, properties, payments, ref),
+        _buildFinancialSummary(context, properties, payments, ref),
         const SizedBox(height: 24),
-  _buildOccupancySection(context, properties),
+        _buildOccupancySection(context, properties),
       ],
     );
   }
@@ -166,14 +166,15 @@ class ReportsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-  _buildPaymentSummary(context, payments, ref),
+        _buildPaymentSummary(context, payments, ref),
         const SizedBox(height: 24),
-  _buildPaymentHistory(payments, ref),
+        _buildPaymentHistory(payments, ref),
       ],
     );
   }
 
-  Widget _buildFinancialSummary(BuildContext context, AsyncValue properties, AsyncValue payments, WidgetRef ref) {
+  Widget _buildFinancialSummary(BuildContext context, AsyncValue properties,
+      AsyncValue payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -368,7 +369,8 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentSummary(BuildContext context, AsyncValue<List<dynamic>> payments, WidgetRef ref) {
+  Widget _buildPaymentSummary(
+      BuildContext context, AsyncValue<List<dynamic>> payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -428,7 +430,9 @@ class ReportsPage extends ConsumerWidget {
                   _buildFinancialMetric(
                     icon: Icons.attach_money,
                     title: 'Total Payments',
-                    value: ref.read(currencyProvider.notifier).formatAmount(totalPayments),
+                    value: ref
+                        .read(currencyProvider.notifier)
+                        .formatAmount(totalPayments),
                     color: Colors.blue,
                     iconColor: Colors.blue,
                   ),
@@ -436,7 +440,9 @@ class ReportsPage extends ConsumerWidget {
                   _buildFinancialMetric(
                     icon: Icons.check_circle,
                     title: 'Completed Payments',
-                    value: ref.read(currencyProvider.notifier).formatAmount(completedPayments),
+                    value: ref
+                        .read(currencyProvider.notifier)
+                        .formatAmount(completedPayments),
                     color: Colors.green,
                     iconColor: Colors.green,
                   ),
@@ -444,7 +450,9 @@ class ReportsPage extends ConsumerWidget {
                   _buildFinancialMetric(
                     icon: Icons.hourglass_empty,
                     title: 'Pending Payments',
-                    value: ref.read(currencyProvider.notifier).formatAmount(pendingPayments),
+                    value: ref
+                        .read(currencyProvider.notifier)
+                        .formatAmount(pendingPayments),
                     color: Colors.orange,
                     iconColor: Colors.orange,
                   ),
@@ -453,7 +461,8 @@ class ReportsPage extends ConsumerWidget {
             },
             loading: () => Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
               ),
             ),
             error: (error, stack) => Center(
@@ -468,7 +477,8 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentHistory(AsyncValue<List<dynamic>> payments, WidgetRef ref) {
+  Widget _buildPaymentHistory(
+      AsyncValue<List<dynamic>> payments, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -535,7 +545,7 @@ class ReportsPage extends ConsumerWidget {
                 ),
                 itemBuilder: (context, index) {
                   final payment = paymentsList[index];
-                  
+
                   Color statusColor;
                   switch (payment.status) {
                     case 'completed':
@@ -562,8 +572,8 @@ class ReportsPage extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
-                            payment.status == 'completed' 
-                                ? Icons.check_circle 
+                            payment.status == 'completed'
+                                ? Icons.check_circle
                                 : payment.status == 'pending'
                                     ? Icons.hourglass_empty
                                     : Icons.error,
@@ -577,7 +587,9 @@ class ReportsPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                ref.read(currencyProvider.notifier).formatAmount(payment.amount),
+                                ref
+                                    .read(currencyProvider.notifier)
+                                    .formatAmount(payment.amount),
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 16,
@@ -621,7 +633,8 @@ class ReportsPage extends ConsumerWidget {
             },
             loading: () => Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
               ),
             ),
             error: (error, stack) => Center(

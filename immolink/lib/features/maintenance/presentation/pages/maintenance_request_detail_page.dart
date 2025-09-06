@@ -37,7 +37,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ),
       ),
       body: requestAsync.when(
-  data: (request) => _buildRequestDetails(context, request, l10n, ref, colors),
+        data: (request) =>
+            _buildRequestDetails(context, request, l10n, ref, colors),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -78,7 +79,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request, AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
+  Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request,
+      AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
     Color statusColor = _getStatusColor(request.status, colors);
     IconData statusIcon = _getStatusIcon(request.status);
     Color priorityColor = _getPriorityColor(request.priority, colors);
@@ -94,18 +96,22 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.1),
-                  CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.05),
+                  CategoryUtils.getCategoryColor(request.category)
+                      .withValues(alpha: 0.1),
+                  CategoryUtils.getCategoryColor(request.category)
+                      .withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.2),
+                color: CategoryUtils.getCategoryColor(request.category)
+                    .withValues(alpha: 0.2),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.1),
+                  color: CategoryUtils.getCategoryColor(request.category)
+                      .withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -121,15 +127,21 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.15),
+                          color:
+                              CategoryUtils.getCategoryColor(request.category)
+                                  .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.3),
+                            color:
+                                CategoryUtils.getCategoryColor(request.category)
+                                    .withValues(alpha: 0.3),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.2),
+                              color: CategoryUtils.getCategoryColor(
+                                      request.category)
+                                  .withValues(alpha: 0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -137,7 +149,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                         ),
                         child: Icon(
                           CategoryUtils.getCategoryIcon(request.category),
-                          color: CategoryUtils.getCategoryColor(request.category),
+                          color:
+                              CategoryUtils.getCategoryColor(request.category),
                           size: 32,
                         ),
                       ),
@@ -199,10 +212,12 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: priorityColor.withValues(alpha: 0.15),
+                                    color:
+                                        priorityColor.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(25),
                                     border: Border.all(
-                                      color: priorityColor.withValues(alpha: 0.3),
+                                      color:
+                                          priorityColor.withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Text(
@@ -368,11 +383,14 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 20),
                     if (request.contractorInfo!.name != null)
-                      _buildModernDetailRow(Icons.person, l10n.name, request.contractorInfo!.name!, colors),
+                      _buildModernDetailRow(Icons.person, l10n.name,
+                          request.contractorInfo!.name!, colors),
                     if (request.contractorInfo!.contact != null)
-                      _buildModernDetailRow(Icons.phone, l10n.contact, request.contractorInfo!.contact!, colors),
+                      _buildModernDetailRow(Icons.phone, l10n.contact,
+                          request.contractorInfo!.contact!, colors),
                     if (request.contractorInfo!.company != null)
-                      _buildModernDetailRow(Icons.business, l10n.company, request.contractorInfo!.company!, colors),
+                      _buildModernDetailRow(Icons.business, l10n.company,
+                          request.contractorInfo!.company!, colors),
                   ],
                 ),
               ),
@@ -419,39 +437,43 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    ...request.notes.map((note) => Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.primaryBackground,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: colors.textTertiary.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            note.content,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: colors.textSecondary,
-                              height: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            DateFormat('MMM d, yyyy \'at\' h:mm a').format(note.timestamp),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colors.textTertiary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )).toList(),
+                    ...request.notes
+                        .map((note) => Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: colors.primaryBackground,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: colors.textTertiary
+                                      .withValues(alpha: 0.1),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    note.content,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: colors.textSecondary,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    DateFormat('MMM d, yyyy \'at\' h:mm a')
+                                        .format(note.timestamp),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: colors.textTertiary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ))
+                        .toList(),
                   ],
                 ),
               ),
@@ -462,7 +484,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.all(20),
-            child: _buildModernActionButtons(context, ref, request, colors, l10n),
+            child:
+                _buildModernActionButtons(context, ref, request, colors, l10n),
           ),
         ),
 
@@ -474,7 +497,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailGrid(MaintenanceRequest request, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildModernDetailGrid(MaintenanceRequest request,
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Column(
       children: [
         Row(
@@ -538,7 +562,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     colors,
                   ),
                 ),
-              if (request.scheduledDate != null && request.completedDate != null)
+              if (request.scheduledDate != null &&
+                  request.completedDate != null)
                 const SizedBox(width: 12),
               if (request.completedDate != null)
                 Expanded(
@@ -553,7 +578,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ],
           ),
         ],
-        if (request.cost?.estimated != null || request.cost?.actual != null) ...[
+        if (request.cost?.estimated != null ||
+            request.cost?.actual != null) ...[
           const SizedBox(height: 12),
           Row(
             children: [
@@ -567,7 +593,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                     colors,
                   ),
                 ),
-              if (request.cost?.estimated != null && request.cost?.actual != null)
+              if (request.cost?.estimated != null &&
+                  request.cost?.actual != null)
                 const SizedBox(width: 12),
               if (request.cost?.actual != null)
                 Expanded(
@@ -586,7 +613,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailCard(IconData icon, String label, String value, Color color, DynamicAppColors colors) {
+  Widget _buildModernDetailCard(IconData icon, String label, String value,
+      Color color, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -633,7 +661,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernDetailRow(IconData icon, String label, String value, DynamicAppColors colors) {
+  Widget _buildModernDetailRow(
+      IconData icon, String label, String value, DynamicAppColors colors) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -678,13 +707,18 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildModernActionButtons(BuildContext context, WidgetRef ref, MaintenanceRequest request, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildModernActionButtons(
+      BuildContext context,
+      WidgetRef ref,
+      MaintenanceRequest request,
+      DynamicAppColors colors,
+      AppLocalizations l10n) {
     // Only landlords and property managers can update maintenance request status
     final userRole = ref.watch(userRoleProvider);
     if (userRole == 'tenant') {
       return const SizedBox.shrink();
     }
-    
+
     if (request.status == 'completed' || request.status == 'cancelled') {
       return const SizedBox.shrink();
     }
@@ -711,7 +745,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               ],
             ),
             child: ElevatedButton(
-              onPressed: () => _updateStatus(context, ref, request.id, 'in_progress', colors),
+              onPressed: () => _updateStatus(
+                  context, ref, request.id, 'in_progress', colors),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
@@ -761,7 +796,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               ],
             ),
             child: ElevatedButton(
-              onPressed: () => _updateStatus(context, ref, request.id, 'completed', colors),
+              onPressed: () =>
+                  _updateStatus(context, ref, request.id, 'completed', colors),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
@@ -879,7 +915,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  void _updateStatus(BuildContext context, WidgetRef ref, String requestId, String newStatus, DynamicAppColors colors) async {
+  void _updateStatus(BuildContext context, WidgetRef ref, String requestId,
+      String newStatus, DynamicAppColors colors) async {
     final l10n = AppLocalizations.of(context)!;
     try {
       // Show loading indicator
@@ -893,7 +930,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
       final maintenanceService = ref.read(maintenanceServiceProvider);
       await maintenanceService.updateMaintenanceRequestStatus(
-        requestId, 
+        requestId,
         newStatus,
         notes: 'Status updated to ${newStatus.replaceAll('_', ' ')}',
         authorId: ref.read(currentUserProvider)?.id,
@@ -905,11 +942,12 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
-        
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${l10n.statusUpdatedTo} ${newStatus.replaceAll('_', ' ')}'),
+            content: Text(
+                '${l10n.statusUpdatedTo} ${newStatus.replaceAll('_', ' ')}'),
             backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -922,7 +960,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
-        
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -938,10 +976,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId, DynamicAppColors colors) {
+  void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId,
+      DynamicAppColors colors) {
     final TextEditingController noteController = TextEditingController();
     final l10n = AppLocalizations.of(context)!;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1005,7 +1044,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ElevatedButton(
               onPressed: () async {
                 if (noteController.text.trim().isNotEmpty) {
-                  await _addNote(context, ref, requestId, noteController.text.trim(), colors);
+                  await _addNote(context, ref, requestId,
+                      noteController.text.trim(), colors);
                   if (context.mounted) {
                     Navigator.of(context).pop();
                   }
@@ -1017,7 +1057,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               child: Text(
                 l10n.addNote,
@@ -1033,8 +1074,9 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId, String noteContent, DynamicAppColors colors) async {
-  final l10n = AppLocalizations.of(context)!;
+  Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId,
+      String noteContent, DynamicAppColors colors) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       // Show loading indicator
       showDialog(
@@ -1051,7 +1093,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -1069,7 +1112,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
       final maintenanceService = ref.read(maintenanceServiceProvider);
       final currentUser = ref.read(currentUserProvider);
-      
+
       if (currentUser?.id == null) {
         throw Exception('User not authenticated');
       }
@@ -1086,7 +1129,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
-        
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1103,11 +1146,12 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
-        
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.failedToAddNote}: $e'),
+            content:
+                Text('${AppLocalizations.of(context)!.failedToAddNote}: $e'),
             backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -1118,5 +1162,4 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       }
     }
   }
-
 }

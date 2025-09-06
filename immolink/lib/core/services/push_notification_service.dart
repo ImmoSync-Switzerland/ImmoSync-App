@@ -3,16 +3,18 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class PushNotificationService {
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
+  static final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
   // Static callback for navigation
   static void Function(String route)? _navigationCallback;
-  
+
   static void setNavigationCallback(void Function(String route) callback) {
     _navigationCallback = callback;
   }
-  
+
   static Future<void> initialize() async {
     // Request permission for notifications
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
@@ -27,7 +29,8 @@ class PushNotificationService {
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('User granted permission for notifications');
-    } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.provisional) {
       print('User granted provisional permission for notifications');
     } else {
       print('User declined or has not accepted permission for notifications');
@@ -95,7 +98,8 @@ class PushNotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
   }
 
@@ -138,7 +142,8 @@ class PushNotificationService {
     _navigateBasedOnNotification(message.data);
   }
 
-  static Future<void> _handleLocalNotificationTap(NotificationResponse response) async {
+  static Future<void> _handleLocalNotificationTap(
+      NotificationResponse response) async {
     print('Handling local notification tap: ${response.payload}');
     // Handle local notification tap
   }
@@ -199,7 +204,7 @@ class PushNotificationService {
     // Implementation would call your backend API
     print('Sending notification to server for user: $userId');
     print('Title: $title, Body: $body, Type: $type');
-    
+
     // Example API call (implement based on your backend)
     // await http.post(
     //   Uri.parse('${ApiConfig.baseUrl}/notifications/send'),

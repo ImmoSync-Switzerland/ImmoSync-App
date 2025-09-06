@@ -38,7 +38,9 @@ class TenantService {
       description: service.description,
       category: service.category,
       price: service.price,
-      provider: service.contactInfo.isNotEmpty ? service.contactInfo : 'Service Provider',
+      provider: service.contactInfo.isNotEmpty
+          ? service.contactInfo
+          : 'Service Provider',
       contactInfo: service.contactInfo,
       icon: _getIconForCategory(service.category),
       isAvailable: service.availability == 'available',
@@ -65,10 +67,12 @@ class TenantServicesBookingPage extends ConsumerStatefulWidget {
   const TenantServicesBookingPage({super.key});
 
   @override
-  ConsumerState<TenantServicesBookingPage> createState() => _TenantServicesBookingPageState();
+  ConsumerState<TenantServicesBookingPage> createState() =>
+      _TenantServicesBookingPageState();
 }
 
-class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookingPage> {
+class _TenantServicesBookingPageState
+    extends ConsumerState<TenantServicesBookingPage> {
   String _selectedCategory = 'all';
   String _searchQuery = '';
 
@@ -76,10 +80,10 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     // Get tenant properties to find landlords
     final tenantPropertiesAsync = ref.watch(tenantPropertiesProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -93,10 +97,11 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
           if (properties.isEmpty) {
             return _buildNoPropertiesState(l10n, colors);
           }
-          
+
           // Get unique landlord IDs from properties
-          final landlordIds = properties.map((p) => p.landlordId).toSet().toList();
-          
+          final landlordIds =
+              properties.map((p) => p.landlordId).toSet().toList();
+
           return _buildServicesView(landlordIds, l10n, colors);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -124,7 +129,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildNoPropertiesState(AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildNoPropertiesState(
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -157,27 +163,31 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildServicesView(List<String> landlordIds, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildServicesView(List<String> landlordIds, AppLocalizations l10n,
+      DynamicAppColors colors) {
     // For now, get services from the first landlord
     // In a real implementation, you might want to combine services from all landlords
     final firstLandlordId = landlordIds.first;
-    print('TenantServices: Looking for services from landlordId: $firstLandlordId');
+    print(
+        'TenantServices: Looking for services from landlordId: $firstLandlordId');
     print('TenantServices: All landlord IDs: $landlordIds');
-    final servicesAsync = ref.watch(tenantAvailableServicesProvider(firstLandlordId));
-    
+    final servicesAsync =
+        ref.watch(tenantAvailableServicesProvider(firstLandlordId));
+
     return servicesAsync.when(
       data: (services) {
         print('TenantServices: Received ${services.length} services from API');
-        final tenantServices = services.map((s) => TenantService.fromServiceModel(s)).toList();
-        
+        final tenantServices =
+            services.map((s) => TenantService.fromServiceModel(s)).toList();
+
         return Column(
           children: [
             _buildHeader(colors),
             _buildSearchAndFilter(l10n, colors),
             Expanded(
-              child: tenantServices.isEmpty 
-                ? _buildEmptyState(l10n, colors)
-                : _buildServicesList(tenantServices, l10n, colors),
+              child: tenantServices.isEmpty
+                  ? _buildEmptyState(l10n, colors)
+                  : _buildServicesList(tenantServices, l10n, colors),
             ),
           ],
         );
@@ -201,7 +211,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => ref.invalidate(tenantAvailableServicesProvider(firstLandlordId)),
+              onPressed: () => ref
+                  .invalidate(tenantAvailableServicesProvider(firstLandlordId)),
               child: Text('Retry'),
             ),
           ],
@@ -279,9 +290,11 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
               decoration: InputDecoration(
                 hintText: 'Search services...',
                 hintStyle: TextStyle(color: colors.textTertiary),
-                prefixIcon: Icon(Icons.search, color: colors.textTertiary, size: 20),
+                prefixIcon:
+                    Icon(Icons.search, color: colors.textTertiary, size: 20),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               style: TextStyle(color: colors.textPrimary, inherit: true),
             ),
@@ -310,7 +323,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildCategoryChip(String category, String label, DynamicAppColors colors) {
+  Widget _buildCategoryChip(
+      String category, String label, DynamicAppColors colors) {
     final isSelected = _selectedCategory == category;
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = category),
@@ -335,12 +349,16 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildServicesList(List<TenantService> services, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildServicesList(List<TenantService> services, AppLocalizations l10n,
+      DynamicAppColors colors) {
     final filteredServices = services.where((service) {
-      final matchesCategory = _selectedCategory == 'all' || service.category == _selectedCategory;
-      final matchesSearch = _searchQuery.isEmpty || 
+      final matchesCategory =
+          _selectedCategory == 'all' || service.category == _selectedCategory;
+      final matchesSearch = _searchQuery.isEmpty ||
           service.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          service.description.toLowerCase().contains(_searchQuery.toLowerCase());
+          service.description
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     }).toList();
 
@@ -360,7 +378,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  Widget _buildServiceCard(TenantService service, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildServiceCard(
+      TenantService service, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -436,11 +455,13 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: colors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colors.success.withValues(alpha: 0.3)),
+                        border: Border.all(
+                            color: colors.success.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         'CHF ${service.price.toStringAsFixed(0)}',
@@ -499,7 +520,7 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
                 SizedBox(
                   height: 32,
                   child: ElevatedButton(
-                    onPressed: service.isAvailable 
+                    onPressed: service.isAvailable
                         ? () => _showBookingDialog(context, service, colors)
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -563,7 +584,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  void _showBookingDialog(BuildContext context, TenantService service, DynamicAppColors colors) {
+  void _showBookingDialog(
+      BuildContext context, TenantService service, DynamicAppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -594,7 +616,9 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
             ),
             const SizedBox(height: 4),
             Text(
-              service.contactInfo.isNotEmpty ? service.contactInfo : 'No contact info available',
+              service.contactInfo.isNotEmpty
+                  ? service.contactInfo
+                  : 'No contact info available',
               style: TextStyle(color: colors.textSecondary),
             ),
           ],
@@ -620,7 +644,8 @@ class _TenantServicesBookingPageState extends ConsumerState<TenantServicesBookin
     );
   }
 
-  void _showBookingConfirmation(BuildContext context, TenantService service, DynamicAppColors colors) {
+  void _showBookingConfirmation(
+      BuildContext context, TenantService service, DynamicAppColors colors) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

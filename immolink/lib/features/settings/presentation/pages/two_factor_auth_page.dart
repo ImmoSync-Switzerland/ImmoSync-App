@@ -317,9 +317,11 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
                       const SizedBox(height: 16),
                     ],
                     if (!_is2FAEnabled) _buildSetupSection(colors),
-                    if (_is2FAEnabled && !_showDisableVerification) _buildEnabledSection(colors),
+                    if (_is2FAEnabled && !_showDisableVerification)
+                      _buildEnabledSection(colors),
                     if (_showVerification) _buildVerificationSection(colors),
-                    if (_showDisableVerification) _buildDisableVerificationSection(colors),
+                    if (_showDisableVerification)
+                      _buildDisableVerificationSection(colors),
                   ],
                 ),
               ),
@@ -361,7 +363,7 @@ class _TwoFactorAuthPageState extends ConsumerState<TwoFactorAuthPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _is2FAEnabled 
+                color: _is2FAEnabled
                     ? colors.success.withValues(alpha: 0.1)
                     : colors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),

@@ -11,7 +11,8 @@ class TenantMaintenanceRequestsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final maintenanceRequestsAsync = ref.watch(tenantMaintenanceRequestsProvider);
+    final maintenanceRequestsAsync =
+        ref.watch(tenantMaintenanceRequestsProvider);
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
@@ -43,7 +44,8 @@ class TenantMaintenanceRequestsPage extends ConsumerWidget {
       ),
       body: maintenanceRequestsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(context, ref, error.toString()),
+        error: (error, stack) =>
+            _buildErrorState(context, ref, error.toString()),
         data: (requests) => requests.isEmpty
             ? _buildEmptyState(context)
             : _buildRequestsList(context, ref, requests),
@@ -93,7 +95,8 @@ class TenantMaintenanceRequestsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => ref.invalidate(tenantMaintenanceRequestsProvider),
+              onPressed: () =>
+                  ref.invalidate(tenantMaintenanceRequestsProvider),
               child: Text(l10n.retry),
             ),
           ],
@@ -147,7 +150,8 @@ class TenantMaintenanceRequestsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRequestsList(BuildContext context, WidgetRef ref, List<MaintenanceRequest> requests) {
+  Widget _buildRequestsList(
+      BuildContext context, WidgetRef ref, List<MaintenanceRequest> requests) {
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(tenantMaintenanceRequestsProvider);
@@ -240,7 +244,8 @@ class TenantMaintenanceRequestsPage extends ConsumerWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  if (request.completedDate != null && request.completedDate != request.requestedDate)
+                  if (request.completedDate != null &&
+                      request.completedDate != request.requestedDate)
                     Text(
                       '${l10n.updated}: ${_formatDate(request.completedDate!, context)}',
                       style: TextStyle(

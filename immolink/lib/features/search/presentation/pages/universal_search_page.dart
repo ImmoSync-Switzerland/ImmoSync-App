@@ -13,10 +13,12 @@ class UniversalSearchPage extends ConsumerStatefulWidget {
   const UniversalSearchPage({super.key});
 
   @override
-  ConsumerState<UniversalSearchPage> createState() => _UniversalSearchPageState();
+  ConsumerState<UniversalSearchPage> createState() =>
+      _UniversalSearchPageState();
 }
 
-class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> with TickerProviderStateMixin {
+class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late TabController _tabController;
@@ -25,7 +27,8 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> with 
   void initState() {
     super.initState();
     final userRole = ref.read(userRoleProvider);
-    final tabCount = userRole == 'landlord' ? 5 : 4; // Landlords have 5 tabs, tenants have 4
+    final tabCount =
+        userRole == 'landlord' ? 5 : 4; // Landlords have 5 tabs, tenants have 4
     _tabController = TabController(length: tabCount, vsync: this);
   }
 
@@ -40,7 +43,7 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> with 
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
     final userRole = ref.watch(userRoleProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -93,7 +96,7 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage> with 
                   style: TextStyle(color: colors.textPrimary),
                 ),
               ),
-              
+
               // Tabs
               TabBar(
                 controller: _tabController,
@@ -176,7 +179,9 @@ class _PropertiesSearchTab extends ConsumerWidget {
         if (filteredProperties.isEmpty) {
           return Center(
             child: Text(
-              searchQuery.isEmpty ? 'Geben Sie einen Suchbegriff ein' : 'Keine Immobilien gefunden',
+              searchQuery.isEmpty
+                  ? 'Geben Sie einen Suchbegriff ein'
+                  : 'Keine Immobilien gefunden',
               style: TextStyle(color: colors.textSecondary),
             ),
           );
@@ -194,7 +199,8 @@ class _PropertiesSearchTab extends ConsumerWidget {
                 leading: Icon(Icons.home, color: colors.primaryAccent),
                 title: Text(
                   '${property.address.street}, ${property.address.city}',
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: colors.textPrimary, fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
                   'Status: ${property.status} • €${property.rentAmount}',
@@ -231,7 +237,8 @@ class _TenantsSearchTab extends ConsumerWidget {
           data: (properties) {
             // Filter to only show tenants assigned to landlord's properties
             final assignedTenants = tenants.where((tenant) {
-              return properties.any((property) => property.tenantIds.contains(tenant.id));
+              return properties
+                  .any((property) => property.tenantIds.contains(tenant.id));
             }).toList();
 
             final filteredTenants = assignedTenants.where((tenant) {
@@ -243,7 +250,9 @@ class _TenantsSearchTab extends ConsumerWidget {
             if (filteredTenants.isEmpty) {
               return Center(
                 child: Text(
-                  searchQuery.isEmpty ? 'Geben Sie einen Suchbegriff ein' : 'Keine zugewiesenen Mieter gefunden',
+                  searchQuery.isEmpty
+                      ? 'Geben Sie einen Suchbegriff ein'
+                      : 'Keine zugewiesenen Mieter gefunden',
                   style: TextStyle(color: colors.textSecondary),
                 ),
               );
@@ -259,21 +268,29 @@ class _TenantsSearchTab extends ConsumerWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
+                      backgroundColor:
+                          colors.primaryAccent.withValues(alpha: 0.2),
                       child: Text(
-                        tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?',
-                        style: TextStyle(color: colors.primaryAccent, fontWeight: FontWeight.w600),
+                        tenant.fullName.isNotEmpty
+                            ? tenant.fullName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                            color: colors.primaryAccent,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                     title: Text(
                       tenant.fullName,
-                      style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
                       tenant.email,
                       style: TextStyle(color: colors.textSecondary),
                     ),
-                    onTap: () => context.push('/chat/new?otherUserId=${tenant.id}&otherUserName=${tenant.fullName}'),
+                    onTap: () => context.push(
+                        '/chat/new?otherUserId=${tenant.id}&otherUserName=${tenant.fullName}'),
                   ),
                 );
               },
@@ -281,13 +298,15 @@ class _TenantsSearchTab extends ConsumerWidget {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
-            child: Text('Fehler beim Laden der Eigenschaften: $error', style: TextStyle(color: colors.error)),
+            child: Text('Fehler beim Laden der Eigenschaften: $error',
+                style: TextStyle(color: colors.error)),
           ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
-        child: Text('Fehler beim Laden der Mieter: $error', style: TextStyle(color: colors.error)),
+        child: Text('Fehler beim Laden der Mieter: $error',
+            style: TextStyle(color: colors.error)),
       ),
     );
   }
@@ -306,7 +325,11 @@ class _DocumentsSearchTab extends ConsumerWidget {
     final documents = [
       {'name': 'Mietvertrag.pdf', 'category': 'Verträge', 'date': '15.08.2025'},
       {'name': 'Hausordnung.pdf', 'category': 'Regeln', 'date': '01.08.2025'},
-      {'name': 'Nebenkostenabrechnung.pdf', 'category': 'Abrechnungen', 'date': '10.08.2025'},
+      {
+        'name': 'Nebenkostenabrechnung.pdf',
+        'category': 'Abrechnungen',
+        'date': '10.08.2025'
+      },
     ];
 
     final filteredDocuments = documents.where((doc) {
@@ -318,7 +341,9 @@ class _DocumentsSearchTab extends ConsumerWidget {
     if (filteredDocuments.isEmpty) {
       return Center(
         child: Text(
-          searchQuery.isEmpty ? 'Geben Sie einen Suchbegriff ein' : 'Keine Dokumente gefunden',
+          searchQuery.isEmpty
+              ? 'Geben Sie einen Suchbegriff ein'
+              : 'Keine Dokumente gefunden',
           style: TextStyle(color: colors.textSecondary),
         ),
       );
@@ -336,7 +361,8 @@ class _DocumentsSearchTab extends ConsumerWidget {
             leading: Icon(Icons.description, color: colors.primaryAccent),
             title: Text(
               document['name']!,
-              style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: colors.textPrimary, fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
               '${document['category']} • ${document['date']}',
@@ -361,9 +387,9 @@ class _MaintenanceSearchTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
     final userRole = ref.watch(userRoleProvider);
-    
+
     // Use role-specific maintenance provider
-    final maintenanceAsync = userRole == 'landlord' 
+    final maintenanceAsync = userRole == 'landlord'
         ? ref.watch(landlordMaintenanceRequestsProvider)
         : ref.watch(tenantMaintenanceRequestsProvider);
 
@@ -379,7 +405,9 @@ class _MaintenanceSearchTab extends ConsumerWidget {
         if (filteredRequests.isEmpty) {
           return Center(
             child: Text(
-              searchQuery.isEmpty ? 'Geben Sie einen Suchbegriff ein' : 'Keine Wartungsanfragen gefunden',
+              searchQuery.isEmpty
+                  ? 'Geben Sie einen Suchbegriff ein'
+                  : 'Keine Wartungsanfragen gefunden',
               style: TextStyle(color: colors.textSecondary),
             ),
           );
@@ -397,7 +425,8 @@ class _MaintenanceSearchTab extends ConsumerWidget {
                 leading: Icon(Icons.build, color: colors.primaryAccent),
                 title: Text(
                   request.title,
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: colors.textPrimary, fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
                   'Status: ${request.status} • ${request.description}',
@@ -433,14 +462,19 @@ class _MessagesSearchTab extends ConsumerWidget {
       data: (conversations) {
         final filteredConversations = conversations.where((conversation) {
           return searchQuery.isEmpty ||
-              (conversation.otherParticipantName?.toLowerCase().contains(searchQuery) ?? false) ||
+              (conversation.otherParticipantName
+                      ?.toLowerCase()
+                      .contains(searchQuery) ??
+                  false) ||
               conversation.lastMessage.toLowerCase().contains(searchQuery);
         }).toList();
 
         if (filteredConversations.isEmpty) {
           return Center(
             child: Text(
-              searchQuery.isEmpty ? 'Geben Sie einen Suchbegriff ein' : 'Keine Nachrichten gefunden',
+              searchQuery.isEmpty
+                  ? 'Geben Sie einen Suchbegriff ein'
+                  : 'Keine Nachrichten gefunden',
               style: TextStyle(color: colors.textSecondary),
             ),
           );
@@ -458,16 +492,23 @@ class _MessagesSearchTab extends ConsumerWidget {
                 leading: CircleAvatar(
                   backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
                   child: Text(
-                    (conversation.otherParticipantName?.isNotEmpty ?? false) ? conversation.otherParticipantName![0].toUpperCase() : '?',
-                    style: TextStyle(color: colors.primaryAccent, fontWeight: FontWeight.w600),
+                    (conversation.otherParticipantName?.isNotEmpty ?? false)
+                        ? conversation.otherParticipantName![0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                        color: colors.primaryAccent,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
                 title: Text(
                   conversation.otherParticipantName ?? 'Unbekannt',
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: colors.textPrimary, fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
-                  conversation.lastMessage.isNotEmpty ? conversation.lastMessage : 'Keine Nachrichten',
+                  conversation.lastMessage.isNotEmpty
+                      ? conversation.lastMessage
+                      : 'Keine Nachrichten',
                   style: TextStyle(color: colors.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -509,9 +550,9 @@ class _AllSearchTab extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              userRole == 'landlord' 
-                ? 'Durchsuchen Sie Immobilien, Mieter, Wartung und Nachrichten'
-                : 'Durchsuchen Sie Dokumente, Wartung und Nachrichten',
+              userRole == 'landlord'
+                  ? 'Durchsuchen Sie Immobilien, Mieter, Wartung und Nachrichten'
+                  : 'Durchsuchen Sie Dokumente, Wartung und Nachrichten',
               style: TextStyle(color: colors.textSecondary, fontSize: 14),
               textAlign: TextAlign.center,
             ),
@@ -542,14 +583,19 @@ class _AllSearchTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildPropertiesSection(BuildContext context, WidgetRef ref, dynamic colors) {
+  Widget _buildPropertiesSection(
+      BuildContext context, WidgetRef ref, dynamic colors) {
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
-    
+
     return propertiesAsync.when(
       data: (properties) {
         final filteredProperties = properties.where((property) {
-          return property.address.street.toLowerCase().contains(searchQuery.toLowerCase()) ||
-              property.address.city.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          return property.address.street
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase()) ||
+              property.address.city
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase()) ||
               property.status.toLowerCase().contains(searchQuery.toLowerCase());
         }).toList();
 
@@ -560,27 +606,32 @@ class _AllSearchTab extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeader(title: 'Immobilien (${filteredProperties.length})', colors: colors),
+            _SectionHeader(
+                title: 'Immobilien (${filteredProperties.length})',
+                colors: colors),
             ...filteredProperties.take(3).map((property) => Card(
-              color: colors.surfaceCards,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Icon(Icons.home, color: colors.primaryAccent),
-                title: Text(
-                  '${property.address.street}, ${property.address.city}',
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  'Status: ${property.status} • €${property.rentAmount}',
-                  style: TextStyle(color: colors.textSecondary),
-                ),
-                onTap: () => context.push('/property/${property.id}'),
-              ),
-            )),
+                  color: colors.surfaceCards,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: Icon(Icons.home, color: colors.primaryAccent),
+                    title: Text(
+                      '${property.address.street}, ${property.address.city}',
+                      style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Status: ${property.status} • €${property.rentAmount}',
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
+                    onTap: () => context.push('/property/${property.id}'),
+                  ),
+                )),
             if (filteredProperties.length > 3)
               TextButton(
                 onPressed: () => DefaultTabController.of(context).animateTo(1),
-                child: Text('Alle ${filteredProperties.length} Immobilien anzeigen'),
+                child: Text(
+                    'Alle ${filteredProperties.length} Immobilien anzeigen'),
               ),
           ],
         );
@@ -590,22 +641,28 @@ class _AllSearchTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildTenantsSection(BuildContext context, WidgetRef ref, dynamic colors) {
+  Widget _buildTenantsSection(
+      BuildContext context, WidgetRef ref, dynamic colors) {
     final tenantsAsync = ref.watch(allTenantsProvider);
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
-    
+
     return tenantsAsync.when(
       data: (tenants) {
         return propertiesAsync.when(
           data: (properties) {
             // Filter to only show tenants assigned to landlord's properties
             final assignedTenants = tenants.where((tenant) {
-              return properties.any((property) => property.tenantIds.contains(tenant.id));
+              return properties
+                  .any((property) => property.tenantIds.contains(tenant.id));
             }).toList();
 
             final filteredTenants = assignedTenants.where((tenant) {
-              return tenant.fullName.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                  tenant.email.toLowerCase().contains(searchQuery.toLowerCase());
+              return tenant.fullName
+                      .toLowerCase()
+                      .contains(searchQuery.toLowerCase()) ||
+                  tenant.email
+                      .toLowerCase()
+                      .contains(searchQuery.toLowerCase());
             }).toList();
 
             if (filteredTenants.isEmpty) {
@@ -615,33 +672,45 @@ class _AllSearchTab extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SectionHeader(title: 'Mieter (${filteredTenants.length})', colors: colors),
+                _SectionHeader(
+                    title: 'Mieter (${filteredTenants.length})',
+                    colors: colors),
                 ...filteredTenants.take(3).map((tenant) => Card(
-                  color: colors.surfaceCards,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
-                      child: Text(
-                        tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?',
-                        style: TextStyle(color: colors.primaryAccent, fontWeight: FontWeight.w600),
+                      color: colors.surfaceCards,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              colors.primaryAccent.withValues(alpha: 0.2),
+                          child: Text(
+                            tenant.fullName.isNotEmpty
+                                ? tenant.fullName[0].toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                                color: colors.primaryAccent,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        title: Text(
+                          tenant.fullName,
+                          style: TextStyle(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          tenant.email,
+                          style: TextStyle(color: colors.textSecondary),
+                        ),
+                        onTap: () => context.push(
+                            '/chat/new?otherUserId=${tenant.id}&otherUserName=${tenant.fullName}'),
                       ),
-                    ),
-                    title: Text(
-                      tenant.fullName,
-                      style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      tenant.email,
-                      style: TextStyle(color: colors.textSecondary),
-                    ),
-                    onTap: () => context.push('/chat/new?otherUserId=${tenant.id}&otherUserName=${tenant.fullName}'),
-                  ),
-                )),
+                    )),
                 if (filteredTenants.length > 3)
                   TextButton(
-                    onPressed: () => DefaultTabController.of(context).animateTo(2),
-                    child: Text('Alle ${filteredTenants.length} Mieter anzeigen'),
+                    onPressed: () =>
+                        DefaultTabController.of(context).animateTo(2),
+                    child:
+                        Text('Alle ${filteredTenants.length} Mieter anzeigen'),
                   ),
               ],
             );
@@ -655,7 +724,8 @@ class _AllSearchTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildDocumentsSection(BuildContext context, WidgetRef ref, dynamic colors) {
+  Widget _buildDocumentsSection(
+      BuildContext context, WidgetRef ref, dynamic colors) {
     // For now, just show a placeholder since we don't have documents provider
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,7 +737,8 @@ class _AllSearchTab extends ConsumerWidget {
             leading: Icon(Icons.description, color: colors.primaryAccent),
             title: Text(
               'Dokumentensuche',
-              style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: colors.textPrimary, fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
               'Verwenden Sie die Dokumente-Registerkarte für eine detaillierte Suche',
@@ -680,16 +751,21 @@ class _AllSearchTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildMaintenanceSection(BuildContext context, WidgetRef ref, dynamic colors) {
-    final maintenanceAsync = userRole == 'landlord' 
+  Widget _buildMaintenanceSection(
+      BuildContext context, WidgetRef ref, dynamic colors) {
+    final maintenanceAsync = userRole == 'landlord'
         ? ref.watch(landlordMaintenanceRequestsProvider)
         : ref.watch(tenantMaintenanceRequestsProvider);
-    
+
     return maintenanceAsync.when(
       data: (requests) {
         final filteredRequests = requests.where((request) {
-          return request.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
-              request.description.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          return request.title
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase()) ||
+              request.description
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase()) ||
               request.status.toLowerCase().contains(searchQuery.toLowerCase());
         }).toList();
 
@@ -700,30 +776,38 @@ class _AllSearchTab extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeader(title: 'Wartungsanfragen (${filteredRequests.length})', colors: colors),
+            _SectionHeader(
+                title: 'Wartungsanfragen (${filteredRequests.length})',
+                colors: colors),
             ...filteredRequests.take(3).map((request) => Card(
-              color: colors.surfaceCards,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Icon(
-                  Icons.build,
-                  color: request.status == 'open' ? colors.error : colors.primaryAccent,
-                ),
-                title: Text(
-                  request.title,
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  'Status: ${request.status} • ${request.priority}',
-                  style: TextStyle(color: colors.textSecondary),
-                ),
-                onTap: () => context.push('/maintenance/${request.id}'),
-              ),
-            )),
+                  color: colors.surfaceCards,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.build,
+                      color: request.status == 'open'
+                          ? colors.error
+                          : colors.primaryAccent,
+                    ),
+                    title: Text(
+                      request.title,
+                      style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Status: ${request.status} • ${request.priority}',
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
+                    onTap: () => context.push('/maintenance/${request.id}'),
+                  ),
+                )),
             if (filteredRequests.length > 3)
               TextButton(
-                onPressed: () => DefaultTabController.of(context).animateTo(userRole == 'landlord' ? 3 : 2),
-                child: Text('Alle ${filteredRequests.length} Wartungsanfragen anzeigen'),
+                onPressed: () => DefaultTabController.of(context)
+                    .animateTo(userRole == 'landlord' ? 3 : 2),
+                child: Text(
+                    'Alle ${filteredRequests.length} Wartungsanfragen anzeigen'),
               ),
           ],
         );
@@ -733,14 +817,20 @@ class _AllSearchTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildMessagesSection(BuildContext context, WidgetRef ref, dynamic colors) {
+  Widget _buildMessagesSection(
+      BuildContext context, WidgetRef ref, dynamic colors) {
     final conversationsAsync = ref.watch(conversationsProvider);
-    
+
     return conversationsAsync.when(
       data: (conversations) {
         final filteredConversations = conversations.where((conversation) {
-          return (conversation.otherParticipantName?.toLowerCase().contains(searchQuery.toLowerCase()) ?? false) ||
-              conversation.lastMessage.toLowerCase().contains(searchQuery.toLowerCase());
+          return (conversation.otherParticipantName
+                      ?.toLowerCase()
+                      .contains(searchQuery.toLowerCase()) ??
+                  false) ||
+              conversation.lastMessage
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase());
         }).toList();
 
         if (filteredConversations.isEmpty) {
@@ -750,35 +840,49 @@ class _AllSearchTab extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeader(title: 'Nachrichten (${filteredConversations.length})', colors: colors),
+            _SectionHeader(
+                title: 'Nachrichten (${filteredConversations.length})',
+                colors: colors),
             ...filteredConversations.take(3).map((conversation) => Card(
-              color: colors.surfaceCards,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: colors.primaryAccent.withValues(alpha: 0.2),
-                  child: Text(
-                    (conversation.otherParticipantName?.isNotEmpty ?? false) ? conversation.otherParticipantName![0].toUpperCase() : '?',
-                    style: TextStyle(color: colors.primaryAccent, fontWeight: FontWeight.w600),
+                  color: colors.surfaceCards,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor:
+                          colors.primaryAccent.withValues(alpha: 0.2),
+                      child: Text(
+                        (conversation.otherParticipantName?.isNotEmpty ?? false)
+                            ? conversation.otherParticipantName![0]
+                                .toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                            color: colors.primaryAccent,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    title: Text(
+                      conversation.otherParticipantName ?? 'Unbekannt',
+                      style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      conversation.lastMessage.isNotEmpty
+                          ? conversation.lastMessage
+                          : 'Keine Nachrichten',
+                      style: TextStyle(color: colors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => context.push('/chat/${conversation.id}'),
                   ),
-                ),
-                title: Text(
-                  conversation.otherParticipantName ?? 'Unbekannt',
-                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  conversation.lastMessage.isNotEmpty ? conversation.lastMessage : 'Keine Nachrichten',
-                  style: TextStyle(color: colors.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                onTap: () => context.push('/chat/${conversation.id}'),
-              ),
-            )),
+                )),
             if (filteredConversations.length > 3)
               TextButton(
-                onPressed: () => DefaultTabController.of(context).animateTo(userRole == 'landlord' ? 4 : 3),
-                child: Text('Alle ${filteredConversations.length} Nachrichten anzeigen'),
+                onPressed: () => DefaultTabController.of(context)
+                    .animateTo(userRole == 'landlord' ? 4 : 3),
+                child: Text(
+                    'Alle ${filteredConversations.length} Nachrichten anzeigen'),
               ),
           ],
         );

@@ -42,9 +42,9 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
-    
+
     // Choose appropriate providers based on user role
-    final propertiesAsync = isLandlord 
+    final propertiesAsync = isLandlord
         ? ref.watch(landlordPropertiesProvider)
         : ref.watch(tenantPropertiesProvider);
     final conversationsAsync = ref.watch(conversationsProvider);
@@ -52,7 +52,7 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     return Consumer(
       builder: (context, ref, child) {
         final colors = ref.watch(dynamicColorsProvider);
-        
+
         return Scaffold(
           backgroundColor: colors.primaryBackground,
           appBar: AppBar(
@@ -66,7 +66,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
               _buildSearchHeader(l10n, colors),
               _buildFilterTabs(l10n, isLandlord, colors),
               Expanded(
-                child: _buildSearchResults(l10n, propertiesAsync, conversationsAsync, isLandlord, colors),
+                child: _buildSearchResults(l10n, propertiesAsync,
+                    conversationsAsync, isLandlord, colors),
               ),
             ],
           ),
@@ -140,7 +141,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     );
   }
 
-  Widget _buildFilterTabs(AppLocalizations l10n, bool isLandlord, DynamicAppColors colors) {
+  Widget _buildFilterTabs(
+      AppLocalizations l10n, bool isLandlord, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
@@ -150,13 +152,20 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('all', l10n.all, Icons.search_outlined, colors),
+                  _buildFilterChip(
+                      'all', l10n.all, Icons.search_outlined, colors),
                   const SizedBox(width: 8),
-                  _buildFilterChip('properties', l10n.properties, Icons.home_work_outlined, colors),
+                  _buildFilterChip('properties', l10n.properties,
+                      Icons.home_work_outlined, colors),
                   const SizedBox(width: 8),
-                  _buildFilterChip('landlords', isLandlord ? l10n.tenants : 'Landlords', Icons.people_outline, colors),
+                  _buildFilterChip(
+                      'landlords',
+                      isLandlord ? l10n.tenants : 'Landlords',
+                      Icons.people_outline,
+                      colors),
                   const SizedBox(width: 8),
-                  _buildFilterChip('messages', l10n.messages, Icons.chat_bubble_outline, colors),
+                  _buildFilterChip('messages', l10n.messages,
+                      Icons.chat_bubble_outline, colors),
                 ],
               ),
             ),
@@ -166,7 +175,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     );
   }
 
-  Widget _buildFilterChip(String filter, String label, IconData icon, DynamicAppColors colors) {
+  Widget _buildFilterChip(
+      String filter, String label, IconData icon, DynamicAppColors colors) {
     final isSelected = _selectedFilter == filter;
     return GestureDetector(
       onTap: () {
@@ -215,8 +225,12 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     );
   }
 
-  Widget _buildSearchResults(AppLocalizations l10n, AsyncValue<List<Property>> propertiesAsync, 
-      AsyncValue<List<Conversation>> conversationsAsync, bool isLandlord, DynamicAppColors colors) {
+  Widget _buildSearchResults(
+      AppLocalizations l10n,
+      AsyncValue<List<Property>> propertiesAsync,
+      AsyncValue<List<Conversation>> conversationsAsync,
+      bool isLandlord,
+      DynamicAppColors colors) {
     if (_searchQuery.isEmpty) {
       return _buildEmptyState(l10n, colors);
     }
@@ -225,8 +239,9 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
       data: (properties) {
         return conversationsAsync.when(
           data: (conversations) {
-            final filteredResults = _filterResults(properties, conversations, isLandlord);
-            
+            final filteredResults =
+                _filterResults(properties, conversations, isLandlord);
+
             if (filteredResults.isEmpty) {
               return _buildNoResultsState(l10n, colors);
             }
@@ -253,14 +268,16 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     );
   }
 
-  List<SearchResult> _filterResults(List<Property> properties, List<Conversation> conversations, bool isLandlord) {
+  List<SearchResult> _filterResults(List<Property> properties,
+      List<Conversation> conversations, bool isLandlord) {
     final searchLower = _searchQuery.toLowerCase();
     List<SearchResult> results = [];
 
     // Filter properties
     if (_selectedFilter == 'all' || _selectedFilter == 'properties') {
       for (final property in properties) {
-        final addressString = '${property.address.street}, ${property.address.city}';
+        final addressString =
+            '${property.address.street}, ${property.address.city}';
         if (addressString.toLowerCase().contains(searchLower) ||
             property.address.city.toLowerCase().contains(searchLower) ||
             property.address.street.toLowerCase().contains(searchLower) ||
@@ -268,7 +285,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
           results.add(SearchResult(
             type: 'property',
             title: addressString,
-            subtitle: '${property.details.rooms} rooms • ${_getStatusTranslation(property.status)}',
+            subtitle:
+                '${property.details.rooms} rooms • ${_getStatusTranslation(property.status)}',
             data: property,
           ));
         }
@@ -281,27 +299,34 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
         // Search in conversation participants
         bool matchesParticipant = false;
         String participantName = '';
-        
+
         if (conversation.otherParticipantName != null &&
-            conversation.otherParticipantName!.toLowerCase().contains(searchLower)) {
+            conversation.otherParticipantName!
+                .toLowerCase()
+                .contains(searchLower)) {
           matchesParticipant = true;
           participantName = conversation.otherParticipantName!;
         }
 
         if (conversation.otherParticipantEmail != null &&
-            conversation.otherParticipantEmail!.toLowerCase().contains(searchLower)) {
+            conversation.otherParticipantEmail!
+                .toLowerCase()
+                .contains(searchLower)) {
           matchesParticipant = true;
           participantName = conversation.otherParticipantName ?? 'User';
         }
 
         // Search in recent messages
-        bool matchesMessage = conversation.lastMessage.toLowerCase().contains(searchLower);
+        bool matchesMessage =
+            conversation.lastMessage.toLowerCase().contains(searchLower);
 
         if (matchesParticipant || matchesMessage) {
           results.add(SearchResult(
             type: 'conversation',
             title: participantName.isNotEmpty ? participantName : 'Chat',
-            subtitle: conversation.lastMessage.isNotEmpty ? conversation.lastMessage : 'No messages yet',
+            subtitle: conversation.lastMessage.isNotEmpty
+                ? conversation.lastMessage
+                : 'No messages yet',
             data: conversation,
           ));
         }
@@ -313,12 +338,16 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
       for (final conversation in conversations) {
         // For tenants: show landlords, For landlords: show tenants
         final targetRole = isLandlord ? 'tenant' : 'landlord';
-        
+
         if (conversation.otherParticipantRole == targetRole &&
             conversation.otherParticipantName != null &&
-            (conversation.otherParticipantName!.toLowerCase().contains(searchLower) ||
-             (conversation.otherParticipantEmail != null && 
-              conversation.otherParticipantEmail!.toLowerCase().contains(searchLower)))) {
+            (conversation.otherParticipantName!
+                    .toLowerCase()
+                    .contains(searchLower) ||
+                (conversation.otherParticipantEmail != null &&
+                    conversation.otherParticipantEmail!
+                        .toLowerCase()
+                        .contains(searchLower)))) {
           results.add(SearchResult(
             type: isLandlord ? 'tenant' : 'landlord',
             title: conversation.otherParticipantName!,
@@ -347,7 +376,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
     }
   }
 
-  Widget _buildResultItem(SearchResult result, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildResultItem(
+      SearchResult result, AppLocalizations l10n, DynamicAppColors colors) {
     IconData icon;
     Color iconColor;
     VoidCallback? onTap;
@@ -508,4 +538,3 @@ class SearchResult {
     this.data,
   });
 }
-

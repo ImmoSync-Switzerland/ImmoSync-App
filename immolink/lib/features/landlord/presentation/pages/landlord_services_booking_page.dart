@@ -37,7 +37,9 @@ class BookableService {
       description: service.description,
       category: service.category,
       price: service.price,
-      provider: service.contactInfo.isNotEmpty ? service.contactInfo : 'Service Provider',
+      provider: service.contactInfo.isNotEmpty
+          ? service.contactInfo
+          : 'Service Provider',
       contactInfo: service.contactInfo,
       icon: _getIconForCategory(service.category),
       isAvailable: service.availability == 'available',
@@ -70,10 +72,12 @@ class LandlordServicesBookingPage extends ConsumerStatefulWidget {
   const LandlordServicesBookingPage({super.key});
 
   @override
-  ConsumerState<LandlordServicesBookingPage> createState() => _LandlordServicesBookingPageState();
+  ConsumerState<LandlordServicesBookingPage> createState() =>
+      _LandlordServicesBookingPageState();
 }
 
-class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBookingPage> {
+class _LandlordServicesBookingPageState
+    extends ConsumerState<LandlordServicesBookingPage> {
   String _selectedCategory = 'all';
   String _searchQuery = '';
 
@@ -81,10 +85,10 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     // Get all available services (admin-managed)
     final servicesAsync = ref.watch(allAvailableServicesProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -95,16 +99,17 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
       ),
       body: servicesAsync.when(
         data: (services) {
-          final bookableServices = services.map((s) => BookableService.fromServiceModel(s)).toList();
-          
+          final bookableServices =
+              services.map((s) => BookableService.fromServiceModel(s)).toList();
+
           return Column(
             children: [
               _buildHeader(colors),
               _buildSearchAndFilter(l10n, colors),
               Expanded(
-                child: bookableServices.isEmpty 
-                  ? _buildEmptyState(l10n, colors)
-                  : _buildServicesList(bookableServices, l10n, colors),
+                child: bookableServices.isEmpty
+                    ? _buildEmptyState(l10n, colors)
+                    : _buildServicesList(bookableServices, l10n, colors),
               ),
             ],
           );
@@ -209,7 +214,8 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
       child: Column(
         children: [
           TextField(
-            onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+            onChanged: (value) =>
+                setState(() => _searchQuery = value.toLowerCase()),
             decoration: InputDecoration(
               hintText: 'Services durchsuchen...',
               hintStyle: TextStyle(color: colors.textSecondary),
@@ -220,7 +226,8 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             style: TextStyle(color: colors.textPrimary),
           ),
@@ -250,7 +257,8 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
     );
   }
 
-  Widget _buildCategoryChip(String category, String label, DynamicAppColors colors) {
+  Widget _buildCategoryChip(
+      String category, String label, DynamicAppColors colors) {
     final isSelected = _selectedCategory == category;
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = category),
@@ -316,9 +324,11 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
     );
   }
 
-  Widget _buildServicesList(List<BookableService> services, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildServicesList(List<BookableService> services,
+      AppLocalizations l10n, DynamicAppColors colors) {
     final filteredServices = services.where((service) {
-      final matchesCategory = _selectedCategory == 'all' || service.category.toLowerCase() == _selectedCategory;
+      final matchesCategory = _selectedCategory == 'all' ||
+          service.category.toLowerCase() == _selectedCategory;
       final matchesSearch = _searchQuery.isEmpty ||
           service.name.toLowerCase().contains(_searchQuery) ||
           service.description.toLowerCase().contains(_searchQuery) ||
@@ -418,7 +428,8 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: colors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -493,7 +504,7 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
 
   void _showBookingDialog(BookableService service) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -591,7 +602,7 @@ class _LandlordServicesBookingPageState extends ConsumerState<LandlordServicesBo
 
   void _bookService(BookableService service) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     // In a real implementation, this would create a booking request
     // For now, we'll just show a success message
     ScaffoldMessenger.of(context).showSnackBar(

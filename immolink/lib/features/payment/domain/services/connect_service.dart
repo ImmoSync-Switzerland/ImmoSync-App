@@ -25,7 +25,8 @@ class ConnectService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        throw Exception('Failed to create Connect account: ${response.statusCode}');
+        throw Exception(
+            'Failed to create Connect account: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error creating Connect account: $e');
@@ -53,7 +54,8 @@ class ConnectService {
         final data = json.decode(response.body);
         return data['url'];
       } else {
-        throw Exception('Failed to create onboarding link: ${response.statusCode}');
+        throw Exception(
+            'Failed to create onboarding link: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error creating onboarding link: $e');
@@ -97,7 +99,8 @@ class ConnectService {
         final data = json.decode(response.body);
         return data['client_secret'];
       } else {
-        throw Exception('Failed to create account session: ${response.statusCode}');
+        throw Exception(
+            'Failed to create account session: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error creating account session: $e');
@@ -141,7 +144,8 @@ class ConnectService {
   }
 
   // Create setup intent for recurring payments
-  Future<Map<String, dynamic>> createSetupIntent(String paymentMethodType) async {
+  Future<Map<String, dynamic>> createSetupIntent(
+      String paymentMethodType) async {
     try {
       final response = await http.post(
         Uri.parse('$_apiUrl/connect/create-setup-intent'),
@@ -154,7 +158,8 @@ class ConnectService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        throw Exception('Failed to create setup intent: ${response.statusCode}');
+        throw Exception(
+            'Failed to create setup intent: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error creating setup intent: $e');
@@ -162,10 +167,12 @@ class ConnectService {
   }
 
   // Get available payment methods for region
-  Future<List<PaymentMethod>> getAvailablePaymentMethods(String countryCode) async {
+  Future<List<PaymentMethod>> getAvailablePaymentMethods(
+      String countryCode) async {
     try {
       final response = await http.get(
-        Uri.parse('$_apiUrl/connect/payment-methods/${countryCode.toLowerCase()}'),
+        Uri.parse(
+            '$_apiUrl/connect/payment-methods/${countryCode.toLowerCase()}'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -173,7 +180,8 @@ class ConnectService {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => PaymentMethod.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to get payment methods: ${response.statusCode}');
+        throw Exception(
+            'Failed to get payment methods: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error getting payment methods: $e');

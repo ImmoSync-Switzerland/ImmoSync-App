@@ -10,4 +10,3 @@ final landlordPropertiesProvider = StreamProvider<List<Property>>((ref) {
   print('Fetching properties for user ID: ${user.id.toString()}');
   return propertyService.getLandlordProperties(user.id.toString());
 });
-

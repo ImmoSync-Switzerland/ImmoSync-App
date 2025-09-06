@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { getDB } = require('../database');
 
 // Get all conversations for a user
 router.get('/user/:userId', async (req, res) => {
@@ -423,3 +424,17 @@ router.get('/user/current', async (req, res) => {
 });
 
 module.exports = router;
+
+// Additional Matrix mapping endpoint: GET /api/conversations/:conversationId/matrix-room
+// Returns { matrixRoomId: string } if a mapping exists in matrix_conversations
+router.get('/:conversationId/matrix-room', async (req, res) => {
+  try {
+    const db = getDB();
+    const map = await db.collection('matrix_conversations').findOne({ conversationId: req.params.conversationId.toString() });
+    if (!map) return res.status(404).json({ message: 'No Matrix room mapping found' });
+    return res.json({ matrixRoomId: map.roomId });
+  } catch (e) {
+    console.error('error fetching matrix room mapping', e);
+    return res.status(500).json({ message: e.message });
+  }
+});

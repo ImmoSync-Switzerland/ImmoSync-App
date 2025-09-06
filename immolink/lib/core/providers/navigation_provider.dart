@@ -8,9 +8,13 @@ final currentRouteProvider = StateProvider<String>((ref) => '/home');
 
 // Function to get navigation index from route
 int getNavigationIndexFromRoute(String route) {
-  if (route.startsWith('/home') || route.startsWith('/tenant-dashboard') || route.startsWith('/landlord-dashboard')) {
+  if (route.startsWith('/home') ||
+      route.startsWith('/tenant-dashboard') ||
+      route.startsWith('/landlord-dashboard')) {
     return 0; // Dashboard
-  } else if (route.startsWith('/properties') || route.startsWith('/property') || route.startsWith('/documents')) {
+  } else if (route.startsWith('/properties') ||
+      route.startsWith('/property') ||
+      route.startsWith('/documents')) {
     return 1; // Properties/Documents
   } else if (route.startsWith('/conversations') || route.startsWith('/chat')) {
     return 2; // Messages/Nachrichten
@@ -23,7 +27,8 @@ int getNavigationIndexFromRoute(String route) {
 }
 
 // Provider that automatically updates navigation index based on current route
-final routeAwareNavigationProvider = StateNotifierProvider<RouteAwareNavigationNotifier, int>((ref) {
+final routeAwareNavigationProvider =
+    StateNotifierProvider<RouteAwareNavigationNotifier, int>((ref) {
   return RouteAwareNavigationNotifier(ref);
 });
 
@@ -39,7 +44,7 @@ class RouteAwareNavigationNotifier extends StateNotifier<int> {
       _isManualNavigation = false;
       return;
     }
-    
+
     final newIndex = getNavigationIndexFromRoute(route);
     if (state != newIndex) {
       state = newIndex;

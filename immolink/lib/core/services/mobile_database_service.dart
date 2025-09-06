@@ -5,7 +5,7 @@ import '../config/db_config.dart';
 
 class MobileDatabaseService implements IDatabaseService {
   static Db? _db;
-  
+
   @override
   Future<void> connect() async {
     try {
@@ -17,19 +17,19 @@ class MobileDatabaseService implements IDatabaseService {
       throw DatabaseException('Failed to connect: $e');
     }
   }
-  
+
   @override
   Future<void> disconnect() async {
     await _db?.close();
     _db = null;
   }
-  
+
   @override
   Future<dynamic> query(String collection, Map<String, dynamic> filter) async {
     if (_db == null) {
       throw DatabaseException('Database not connected');
     }
-    
+
     try {
       final coll = _db!.collection(collection);
       return await coll.find(filter).toList();
@@ -37,13 +37,14 @@ class MobileDatabaseService implements IDatabaseService {
       throw DatabaseException('Query failed: $e');
     }
   }
-  
+
   @override
-  Future<dynamic> insert(String collection, Map<String, dynamic> document) async {
+  Future<dynamic> insert(
+      String collection, Map<String, dynamic> document) async {
     if (_db == null) {
       throw DatabaseException('Database not connected');
     }
-    
+
     try {
       final coll = _db!.collection(collection);
       return await coll.insertOne(document);
@@ -51,13 +52,14 @@ class MobileDatabaseService implements IDatabaseService {
       throw DatabaseException('Insert failed: $e');
     }
   }
-  
+
   @override
-  Future<dynamic> update(String collection, Map<String, dynamic> filter, Map<String, dynamic> update) async {
+  Future<dynamic> update(String collection, Map<String, dynamic> filter,
+      Map<String, dynamic> update) async {
     if (_db == null) {
       throw DatabaseException('Database not connected');
     }
-    
+
     try {
       final coll = _db!.collection(collection);
       return await coll.updateOne(filter, {'\$set': update});
@@ -65,13 +67,13 @@ class MobileDatabaseService implements IDatabaseService {
       throw DatabaseException('Update failed: $e');
     }
   }
-  
+
   @override
   Future<dynamic> delete(String collection, Map<String, dynamic> filter) async {
     if (_db == null) {
       throw DatabaseException('Database not connected');
     }
-    
+
     try {
       final coll = _db!.collection(collection);
       return await coll.deleteOne(filter);

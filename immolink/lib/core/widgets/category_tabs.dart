@@ -33,18 +33,25 @@ class CategoryTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 48,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.tabVerticalPadding),
+      padding:
+          const EdgeInsets.symmetric(vertical: AppSpacing.tabVerticalPadding),
       child: scrollable
           ? ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.horizontalPadding),
               itemCount: tabs.length,
-              separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(width: AppSpacing.sm),
               itemBuilder: (context, index) => _buildTab(index),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: tabs.asMap().entries.map((entry) => _buildTab(entry.key)).toList(),
+              children: tabs
+                  .asMap()
+                  .entries
+                  .map((entry) => _buildTab(entry.key))
+                  .toList(),
             ),
     );
   }
@@ -71,13 +78,17 @@ class CategoryTabs extends StatelessWidget {
               Icon(
                 tab.icon,
                 size: AppSizes.iconSmall,
-                color: isSelected ? AppColors.primaryAccent : AppColors.textSecondary,
+                color: isSelected
+                    ? AppColors.primaryAccent
+                    : AppColors.textSecondary,
               ),
               const SizedBox(width: AppSpacing.xs),
             ],
             Text(
               tab.label,
-              style: isSelected ? AppTypography.tabActive : AppTypography.tabInactive,
+              style: isSelected
+                  ? AppTypography.tabActive
+                  : AppTypography.tabInactive,
             ),
             if (tab.badge != null) ...[
               const SizedBox(width: AppSpacing.xs),
@@ -87,7 +98,9 @@ class CategoryTabs extends StatelessWidget {
                   vertical: 2,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryAccent : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primaryAccent
+                      : AppColors.textSecondary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

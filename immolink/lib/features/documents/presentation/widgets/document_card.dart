@@ -23,7 +23,7 @@ class DocumentCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     final category = DocumentCategory.values.firstWhere(
       (c) => c.id == document.category,
       orElse: () => DocumentCategory.other,
@@ -65,53 +65,59 @@ class DocumentCard extends ConsumerWidget {
                       children: [
                         Text(
                           document.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colors.textPrimary,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.textPrimary,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           category.displayName,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.primaryAccent,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colors.primaryAccent,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                       ],
                     ),
                   ),
                   if (showActions) ...[
-        if (document.isExpiringSoon)
+                    if (document.isExpiringSoon)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-          l10n.expiringSoon,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          l10n.expiringSoon,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ),
                     if (document.isExpired)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-          l10n.expired,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          l10n.expired,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ),
                     PopupMenuButton<String>(
@@ -130,7 +136,8 @@ class DocumentCard extends ConsumerWidget {
                           value: 'download',
                           child: Row(
                             children: [
-                              Icon(Icons.download, size: 20, color: colors.primaryAccent),
+                              Icon(Icons.download,
+                                  size: 20, color: colors.primaryAccent),
                               const SizedBox(width: 8),
                               Text(l10n.download),
                             ],
@@ -140,7 +147,8 @@ class DocumentCard extends ConsumerWidget {
                           value: 'delete',
                           child: Row(
                             children: [
-                              const Icon(Icons.delete, size: 20, color: Colors.red),
+                              const Icon(Icons.delete,
+                                  size: 20, color: Colors.red),
                               const SizedBox(width: 8),
                               Text(l10n.delete),
                             ],
@@ -155,21 +163,21 @@ class DocumentCard extends ConsumerWidget {
                   ],
                 ],
               ),
-              
+
               if (document.description.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
                   document.description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colors.textSecondary,
-                  ),
+                        color: colors.textSecondary,
+                      ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
 
               const SizedBox(height: 12),
-              
+
               // File info and metadata
               Row(
                 children: [
@@ -182,8 +190,8 @@ class DocumentCard extends ConsumerWidget {
                   Text(
                     document.formattedFileSize,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.textSecondary,
-                    ),
+                          color: colors.textSecondary,
+                        ),
                   ),
                   const SizedBox(width: 16),
                   Icon(
@@ -195,37 +203,39 @@ class DocumentCard extends ConsumerWidget {
                   Text(
                     _formatDate(context, document.uploadDate),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.textSecondary,
-                    ),
+                          color: colors.textSecondary,
+                        ),
                   ),
                   if (document.expiryDate != null) ...[
                     const SizedBox(width: 16),
                     Icon(
                       Icons.event,
                       size: 16,
-                      color: document.isExpired 
-                        ? Colors.red 
-                        : document.isExpiringSoon 
-                          ? Colors.orange 
-                          : colors.textSecondary,
+                      color: document.isExpired
+                          ? Colors.red
+                          : document.isExpiringSoon
+                              ? Colors.orange
+                              : colors.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      l10n.expiresOn(_formatDate(context, document.expiryDate!)),
+                      l10n.expiresOn(
+                          _formatDate(context, document.expiryDate!)),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: document.isExpired 
-                          ? Colors.red 
-                          : document.isExpiringSoon 
-                            ? Colors.orange 
-                            : colors.textSecondary,
-                      ),
+                            color: document.isExpired
+                                ? Colors.red
+                                : document.isExpiringSoon
+                                    ? Colors.orange
+                                    : colors.textSecondary,
+                          ),
                     ),
                   ],
                 ],
               ),
 
               // Assignment info
-              if (document.assignedTenantIds.isNotEmpty || document.propertyIds.isNotEmpty) ...[
+              if (document.assignedTenantIds.isNotEmpty ||
+                  document.propertyIds.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -233,7 +243,8 @@ class DocumentCard extends ConsumerWidget {
                   children: [
                     if (document.assignedTenantIds.isNotEmpty)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: colors.primaryAccent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -248,18 +259,23 @@ class DocumentCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              l10n.tenantsCount(document.assignedTenantIds.length),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colors.primaryAccent,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              l10n.tenantsCount(
+                                  document.assignedTenantIds.length),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: colors.primaryAccent,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ],
                         ),
                       ),
                     if (document.propertyIds.isNotEmpty)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: colors.luxuryGold.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -275,10 +291,13 @@ class DocumentCard extends ConsumerWidget {
                             const SizedBox(width: 4),
                             Text(
                               l10n.propertiesCount(document.propertyIds.length),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colors.luxuryGold,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: colors.luxuryGold,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ],
                         ),

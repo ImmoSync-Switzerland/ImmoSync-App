@@ -83,7 +83,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               },
               loading: () => Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
               ),
               error: (error, _) => Center(
@@ -131,7 +132,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
 
   Widget _buildSearchBar() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -201,7 +202,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
@@ -211,13 +213,13 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
     if (_searchQuery.isEmpty) {
       return contacts;
     }
-    
+
     return contacts.where((contact) {
       final searchLower = _searchQuery.toLowerCase();
       return contact.fullName.toLowerCase().contains(searchLower) ||
-             contact.email.toLowerCase().contains(searchLower) ||
-             contact.properties.any((property) => 
-                 property.toLowerCase().contains(searchLower));
+          contact.email.toLowerCase().contains(searchLower) ||
+          contact.properties
+              .any((property) => property.toLowerCase().contains(searchLower));
     }).toList();
   }
 
@@ -247,10 +249,10 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           ),
           const SizedBox(height: 24),
           Text(
-            _searchQuery.isNotEmpty 
-                ? 'No contacts found' 
-                : isLandlord 
-                    ? 'No tenants yet' 
+            _searchQuery.isNotEmpty
+                ? 'No contacts found'
+                : isLandlord
+                    ? 'No tenants yet'
                     : 'No landlords found',
             style: TextStyle(
               fontSize: 18,
@@ -261,7 +263,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            _searchQuery.isNotEmpty 
+            _searchQuery.isNotEmpty
                 ? 'Try adjusting your search terms'
                 : isLandlord
                     ? 'Add properties to connect with tenants'
@@ -278,7 +280,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
     );
   }
 
-  Widget _buildContactTile(ContactUser contact, bool isLandlord, DynamicAppColors colors) {
+  Widget _buildContactTile(
+      ContactUser contact, bool isLandlord, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -313,13 +316,15 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
               end: Alignment.bottomRight,
               colors: [
                 isLandlord ? colors.success : colors.luxuryGold,
-                (isLandlord ? colors.success : colors.luxuryGold).withValues(alpha: 0.7),
+                (isLandlord ? colors.success : colors.luxuryGold)
+                    .withValues(alpha: 0.7),
               ],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: (isLandlord ? colors.success : colors.luxuryGold).withValues(alpha: 0.3),
+                color: (isLandlord ? colors.success : colors.luxuryGold)
+                    .withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -327,7 +332,9 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           ),
           child: Center(
             child: Text(
-              contact.fullName.isNotEmpty ? contact.fullName[0].toUpperCase() : 'U',
+              contact.fullName.isNotEmpty
+                  ? contact.fullName[0].toUpperCase()
+                  : 'U',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 20,
@@ -370,7 +377,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                   ),
                 ),
               ],
-            ),            if (contact.phone.isNotEmpty) ...[
+            ),
+            if (contact.phone.isNotEmpty) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -400,8 +408,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  isLandlord 
-                      ? contact.properties.first 
+                  isLandlord
+                      ? contact.properties.first
                       : '${contact.properties.length} ${contact.properties.length == 1 ? 'Property' : 'Properties'}',
                   style: TextStyle(
                     fontSize: 12,
@@ -427,7 +435,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 // Navigate to chat with this contact
                 _startConversationWith(contact);
               },
-            ),            if (contact.phone.isNotEmpty)
+            ),
+            if (contact.phone.isNotEmpty)
               IconButton(
                 icon: Icon(
                   Icons.phone_outlined,
@@ -444,12 +453,13 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
       ),
     );
   }
+
   void _startConversationWith(ContactUser contact) async {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     try {
       HapticFeedback.lightImpact();
-      
+
       // Show loading dialog
       showDialog(
         context: context,
@@ -466,7 +476,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -484,32 +495,33 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
           );
         },
       );
-      
+
       // Get current user
       final currentUser = ref.read(currentUserProvider);
       if (currentUser?.id == null) {
         throw Exception('User not authenticated');
       }
-      
+
       // Find or create conversation to preserve chat history
       final chatService = ref.read(chatServiceProvider);
       final conversationId = await chatService.findOrCreateConversation(
         currentUserId: currentUser!.id,
         otherUserId: contact.id,
       );
-      
+
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
-        
+
         // Navigate to the existing or newly created conversation
-        context.push('/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}');
+        context.push(
+            '/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}');
       }
     } catch (e) {
       // Close loading dialog if open
       if (mounted) {
         Navigator.of(context).pop();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Unterhaltung konnte nicht gestartet werden: $e'),
@@ -522,7 +534,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
 
   void _callContact(ContactUser contact) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -570,7 +582,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                       color: colors.success,
                       size: 20,
                     ),
-                    const SizedBox(width: 8),                    Text(
+                    const SizedBox(width: 8),
+                    Text(
                       contact.phone,
                       style: TextStyle(
                         color: colors.success,
@@ -609,7 +622,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Could not make phone call: ${e.toString()}'),
+                      content:
+                          Text('Could not make phone call: ${e.toString()}'),
                       backgroundColor: colors.error,
                     ),
                   );

@@ -14,10 +14,12 @@ class MaintenanceRequestPage extends ConsumerStatefulWidget {
   const MaintenanceRequestPage({super.key, this.propertyId});
 
   @override
-  ConsumerState<MaintenanceRequestPage> createState() => _MaintenanceRequestPageState();
+  ConsumerState<MaintenanceRequestPage> createState() =>
+      _MaintenanceRequestPageState();
 }
 
-class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage> {
+class _MaintenanceRequestPageState
+    extends ConsumerState<MaintenanceRequestPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -36,12 +38,7 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
     'Other'
   ];
 
-  final List<String> _priorities = [
-    'Low',
-    'Medium',
-    'High',
-    'Emergency'
-  ];
+  final List<String> _priorities = ['Low', 'Medium', 'High', 'Emergency'];
 
   // Helper method to convert display names to internal values
   String _getCategoryValue(String displayName) {
@@ -151,7 +148,7 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                 ],
               ),
             ),
-            
+
             // Content
             Expanded(
               child: SingleChildScrollView(
@@ -190,7 +187,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                               ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: colors.primaryAccent.withValues(alpha: 0.2),
+                                color:
+                                    colors.primaryAccent.withValues(alpha: 0.2),
                                 width: 1,
                               ),
                             ),
@@ -264,7 +262,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                             const SizedBox(height: 12),
                             properties.when(
                               data: (propertyList) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: colors.surfaceCards,
                                   border: Border.all(
@@ -278,14 +277,16 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                                     value: _selectedPropertyId,
                                     hint: Text(
                                       'Select a property',
-                                      style: TextStyle(color: colors.textSecondary),
+                                      style: TextStyle(
+                                          color: colors.textSecondary),
                                     ),
                                     isExpanded: true,
                                     style: TextStyle(color: colors.textPrimary),
                                     items: propertyList.map((property) {
                                       return DropdownMenuItem<String>(
                                         value: property.id,
-                                        child: Text('${property.address.street}, ${property.address.city}'),
+                                        child: Text(
+                                            '${property.address.street}, ${property.address.city}'),
                                       );
                                     }).toList(),
                                     onChanged: (value) {
@@ -298,7 +299,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                               ),
                               loading: () => Container(
                                 padding: const EdgeInsets.all(16),
-                                child: const Center(child: CircularProgressIndicator()),
+                                child: const Center(
+                                    child: CircularProgressIndicator()),
                               ),
                               error: (error, stack) => Container(
                                 padding: const EdgeInsets.all(16),
@@ -326,7 +328,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                               decoration: InputDecoration(
                                 hintText: 'Brief title for the issue',
                                 hintStyle: TextStyle(
-                                  color: colors.textSecondary.withValues(alpha: 0.7),
+                                  color: colors.textSecondary
+                                      .withValues(alpha: 0.7),
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -371,7 +374,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                             ),
                             const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 4),
                               decoration: BoxDecoration(
                                 color: colors.surfaceCards,
                                 border: Border.all(
@@ -415,7 +419,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                               spacing: 12,
                               runSpacing: 8,
                               children: _priorities.map((priority) {
-                                final isSelected = _selectedPriority == priority;
+                                final isSelected =
+                                    _selectedPriority == priority;
                                 Color chipColor;
                                 switch (priority) {
                                   case 'Emergency':
@@ -441,14 +446,21 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                                     });
                                   },
                                   backgroundColor: colors.surfaceCards,
-                                  selectedColor: chipColor.withValues(alpha: 0.2),
+                                  selectedColor:
+                                      chipColor.withValues(alpha: 0.2),
                                   checkmarkColor: chipColor,
                                   labelStyle: TextStyle(
-                                    color: isSelected ? chipColor : colors.textPrimary,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                    color: isSelected
+                                        ? chipColor
+                                        : colors.textPrimary,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
                                   ),
                                   side: BorderSide(
-                                    color: isSelected ? chipColor : colors.borderLight,
+                                    color: isSelected
+                                        ? chipColor
+                                        : colors.borderLight,
                                     width: 1,
                                   ),
                                 );
@@ -470,9 +482,11 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                               controller: _locationController,
                               style: TextStyle(color: colors.textPrimary),
                               decoration: InputDecoration(
-                                hintText: 'e.g., Kitchen, Bathroom, Living Room',
+                                hintText:
+                                    'e.g., Kitchen, Bathroom, Living Room',
                                 hintStyle: TextStyle(
-                                  color: colors.textSecondary.withValues(alpha: 0.7),
+                                  color: colors.textSecondary
+                                      .withValues(alpha: 0.7),
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -515,9 +529,11 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                               style: TextStyle(color: colors.textPrimary),
                               maxLines: 4,
                               decoration: InputDecoration(
-                                hintText: 'Describe the maintenance issue in detail...',
+                                hintText:
+                                    'Describe the maintenance issue in detail...',
                                 hintStyle: TextStyle(
-                                  color: colors.textSecondary.withValues(alpha: 0.7),
+                                  color: colors.textSecondary
+                                      .withValues(alpha: 0.7),
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -563,7 +579,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colors.primaryAccent.withValues(alpha: 0.3),
+                                    color: colors.primaryAccent
+                                        .withValues(alpha: 0.3),
                                     blurRadius: 15,
                                     offset: const Offset(0, 4),
                                   ),
@@ -574,7 +591,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -635,7 +653,8 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -692,15 +711,16 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
         // Close loading dialog
         if (context.mounted) {
           Navigator.of(context).pop();
-          
+
           // Refresh maintenance requests providers to show the new request
           ref.invalidate(tenantMaintenanceRequestsProvider);
           ref.invalidate(landlordMaintenanceRequestsProvider);
-          
+
           // Show success message and navigate back
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.maintenanceRequestSubmittedSuccessfully),
+              content: Text(AppLocalizations.of(context)!
+                  .maintenanceRequestSubmittedSuccessfully),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -715,11 +735,12 @@ class _MaintenanceRequestPageState extends ConsumerState<MaintenanceRequestPage>
         // Close loading dialog
         if (context.mounted) {
           Navigator.of(context).pop();
-          
+
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${AppLocalizations.of(context)!.failedToSubmitRequest}: $e'),
+              content: Text(
+                  '${AppLocalizations.of(context)!.failedToSubmitRequest}: $e'),
               backgroundColor: colors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(

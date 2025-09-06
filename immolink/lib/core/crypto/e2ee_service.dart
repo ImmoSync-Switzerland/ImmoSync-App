@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'e2ee_key_store.dart';
 import '../config/db_config.dart';
 import 'package:http/http.dart' as http;
@@ -19,34 +20,66 @@ class E2EEService {
     if (pub == null) return null;
     // POST publish-key (best-effort; ignore if already set)
     try {
-      final resp = await http.post(Uri.parse('${DbConfig.apiUrl}/users/publish-key'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': userId, 'publicKey': pub})
-      );
+      final resp = await http.post(
+          Uri.parse('${DbConfig.apiUrl}/users/publish-key'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'userId': userId, 'publicKey': pub}));
       if (resp.statusCode == 200) return pub;
     } catch (_) {}
     return pub;
   }
 
-  Future<List<int>?> _getOrEstablishConversationKey({required String conversationId, required String otherUserId}) async {
+  Future<List<int>?> _getOrEstablishConversationKey(
+      {required String conversationId, required String otherUserId}) async {
     final existing = await _keyStore.getConversationKey(conversationId);
-    if (existing != null) return base64Decode(existing);
+    if (existing != null) {
+      debugPrint(
+          '[E2EE] existing conversation key found cid=$conversationId len=${existing.length}');
+      return base64Decode(existing);
+    }
     // Fetch other user's public key
-    final resp = await http.get(Uri.parse('${DbConfig.apiUrl}/users/$otherUserId/public-key'));
-    if (resp.statusCode != 200) return null; // can't establish yet
-    final data = jsonDecode(resp.body);
-    final otherPub = base64Decode(data['publicKey']);
-    final derived = await _keyStore.deriveConversationKey(otherUserPubKey: otherPub);
-    await _keyStore.storeConversationKey(conversationId, derived);
-    return derived;
+    try {
+      final resp = await http
+          .get(Uri.parse('${DbConfig.apiUrl}/users/$otherUserId/public-key'));
+      if (resp.statusCode != 200) {
+        debugPrint(
+            '[E2EE] remote public key fetch failed status=${resp.statusCode} otherUser=$otherUserId');
+        return null; // can't establish yet
+      }
+      final data = jsonDecode(resp.body);
+      final otherPubB64 = data['publicKey'];
+      if (otherPubB64 == null || otherPubB64 is! String) return null;
+      final otherPub = base64Decode(otherPubB64);
+      if (otherPub.length != 32) {
+        debugPrint(
+            '[E2EE] invalid remote key length=${otherPub.length} expected=32 otherUser=$otherUserId');
+        return null;
+      }
+      debugPrint(
+          '[E2EE] deriving new conversation key cid=$conversationId otherUser=$otherUserId');
+      final derived =
+          await _keyStore.deriveConversationKey(otherUserPubKey: otherPub);
+      debugPrint('[E2EE] derived key length=${derived.length} saving...');
+      await _keyStore.storeConversationKey(conversationId, derived);
+      return derived;
+    } catch (e) {
+      debugPrint(
+          '[E2EE] exception establishing key cid=$conversationId otherUser=$otherUserId err=$e');
+      return null; // swallow for now; caller treats null as 'not ready'
+    }
   }
 
-  Future<Map<String,dynamic>?> encryptMessage({required String conversationId, required String otherUserId, required String plaintext}) async {
-    final keyBytes = await _getOrEstablishConversationKey(conversationId: conversationId, otherUserId: otherUserId);
+  Future<Map<String, dynamic>?> encryptMessage(
+      {required String conversationId,
+      required String otherUserId,
+      required String plaintext}) async {
+    final keyBytes = await _getOrEstablishConversationKey(
+        conversationId: conversationId, otherUserId: otherUserId);
     if (keyBytes == null) return null; // key establishment pending
     final secretKey = SecretKey(keyBytes);
     final iv = _randomBytes(12);
-    final secretBox = await _cipher.encrypt(utf8.encode(plaintext), secretKey: secretKey, nonce: iv);
+    final secretBox = await _cipher.encrypt(utf8.encode(plaintext),
+        secretKey: secretKey, nonce: iv);
     return {
       'ciphertext': base64Encode(secretBox.cipherText),
       'iv': base64Encode(iv),
@@ -55,8 +88,12 @@ class E2EEService {
     };
   }
 
-  Future<String?> decryptMessage({required String conversationId, required String otherUserId, required Map<String,dynamic> payload}) async {
-    final keyBytes = await _getOrEstablishConversationKey(conversationId: conversationId, otherUserId: otherUserId);
+  Future<String?> decryptMessage(
+      {required String conversationId,
+      required String otherUserId,
+      required Map<String, dynamic> payload}) async {
+    final keyBytes = await _getOrEstablishConversationKey(
+        conversationId: conversationId, otherUserId: otherUserId);
     if (keyBytes == null) return null;
     final secretKey = SecretKey(keyBytes);
     try {
@@ -71,16 +108,39 @@ class E2EEService {
     }
   }
 
+  Future<List<int>?> decryptAttachment(
+      {required String conversationId,
+      required String otherUserId,
+      required List<int> ciphertext,
+      required String iv,
+      required String tag}) async {
+    final keyBytes = await _getOrEstablishConversationKey(
+        conversationId: conversationId, otherUserId: otherUserId);
+    if (keyBytes == null) return null;
+    try {
+      final secretKey = SecretKey(keyBytes);
+      final mac = Mac(base64Decode(tag));
+      final nonce = base64Decode(iv);
+      final secretBox = SecretBox(ciphertext, nonce: nonce, mac: mac);
+      final clear = await _cipher.decrypt(secretBox, secretKey: secretKey);
+      return clear;
+    } catch (_) {
+      return null;
+    }
+  }
+
   List<int> _randomBytes(int length) {
     final rnd = Random.secure();
     return List<int>.generate(length, (_) => rnd.nextInt(256));
   }
 
   // Batch ensure key (used when opening a conversation before first message display)
-  Future<bool> ensureConversationKey({required String conversationId, required String otherUserId}) async {
+  Future<bool> ensureConversationKey(
+      {required String conversationId, required String otherUserId}) async {
     final existing = await _keyStore.getConversationKey(conversationId);
     if (existing != null) return true;
-    final derived = await _getOrEstablishConversationKey(conversationId: conversationId, otherUserId: otherUserId);
+    final derived = await _getOrEstablishConversationKey(
+        conversationId: conversationId, otherUserId: otherUserId);
     return derived != null;
   }
 
@@ -94,12 +154,17 @@ class E2EEService {
   }
 
   // Encrypt attachment bytes (returns ciphertext + iv + tag)
-  Future<Map<String, dynamic>?> encryptAttachment({required String conversationId, required String otherUserId, required List<int> bytes}) async {
-    final keyBytes = await _getOrEstablishConversationKey(conversationId: conversationId, otherUserId: otherUserId);
+  Future<Map<String, dynamic>?> encryptAttachment(
+      {required String conversationId,
+      required String otherUserId,
+      required List<int> bytes}) async {
+    final keyBytes = await _getOrEstablishConversationKey(
+        conversationId: conversationId, otherUserId: otherUserId);
     if (keyBytes == null) return null;
     final secretKey = SecretKey(keyBytes);
     final iv = _randomBytes(12);
-    final secretBox = await _cipher.encrypt(bytes, secretKey: secretKey, nonce: iv);
+    final secretBox =
+        await _cipher.encrypt(bytes, secretKey: secretKey, nonce: iv);
     return {
       'ciphertext': base64Encode(secretBox.cipherText),
       'iv': base64Encode(iv),
@@ -111,4 +176,5 @@ class E2EEService {
 }
 
 final e2eeKeyStoreProvider = Provider<E2EEKeyStore>((ref) => E2EEKeyStore());
-final e2eeServiceProvider = Provider<E2EEService>((ref) => E2EEService(ref.read(e2eeKeyStoreProvider)));
+final e2eeServiceProvider =
+    Provider<E2EEService>((ref) => E2EEService(ref.read(e2eeKeyStoreProvider)));

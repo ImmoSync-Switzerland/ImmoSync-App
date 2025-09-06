@@ -17,10 +17,12 @@ class ConversationsTabbedPage extends ConsumerStatefulWidget {
   const ConversationsTabbedPage({super.key});
 
   @override
-  ConsumerState<ConversationsTabbedPage> createState() => _ConversationsTabbedPageState();
+  ConsumerState<ConversationsTabbedPage> createState() =>
+      _ConversationsTabbedPageState();
 }
 
-class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPage> 
+class _ConversationsTabbedPageState
+    extends ConsumerState<ConversationsTabbedPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
@@ -30,12 +32,12 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Add listener to rebuild when tab changes
     _tabController.addListener(() {
       setState(() {});
     });
-    
+
     // Set navigation index to Messages (2) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(routeAwareNavigationProvider.notifier).setIndex(2);
@@ -55,7 +57,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     final colors = ref.watch(dynamicColorsProvider);
     final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -99,7 +101,8 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
               ],
             ),
             child: IconButton(
-              icon: Icon(Icons.contacts_outlined, color: colors.primaryAccent, size: 22),
+              icon: Icon(Icons.contacts_outlined,
+                  color: colors.primaryAccent, size: 22),
               onPressed: () {
                 HapticFeedback.lightImpact();
                 context.push('/address-book');
@@ -132,15 +135,15 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
-      floatingActionButton: isLandlord && _tabController.index == 1 
-        ? FloatingActionButton.extended(
-            onPressed: () => _showInviteTenantDialog(),
-            backgroundColor: colors.primaryAccent,
-            foregroundColor: Colors.white,
-            icon: const Icon(Icons.person_add),
-            label: Text(l10n.addTenant),
-          )
-        : null,
+      floatingActionButton: isLandlord && _tabController.index == 1
+          ? FloatingActionButton.extended(
+              onPressed: () => _showInviteTenantDialog(),
+              backgroundColor: colors.primaryAccent,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.person_add),
+              label: Text(l10n.addTenant),
+            )
+          : null,
       body: Column(
         children: [
           _buildSearchBar(),
@@ -160,7 +163,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
 
   Widget _buildSearchBar() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -200,13 +203,14 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           prefixIcon: Container(
             padding: const EdgeInsets.all(12),
             child: Icon(
-              Icons.search_outlined, 
+              Icons.search_outlined,
               color: colors.textSecondary,
               size: 20,
             ),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
         style: TextStyle(
           color: colors.textPrimary,
@@ -222,12 +226,13 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   Widget _buildMessagesTab() {
     final conversationsAsync = ref.watch(conversationsProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return conversationsAsync.when(
       data: (conversations) {
         final filteredConversations = _filterConversations(conversations);
         if (filteredConversations.isEmpty) {
-          return _buildEmptyState('No conversations yet', 'Start chatting with your tenants or landlord');
+          return _buildEmptyState('No conversations yet',
+              'Start chatting with your tenants or landlord');
         }
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -235,8 +240,9 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
           itemBuilder: (context, index) {
             final conversation = filteredConversations[index];
             final currentUser = ref.watch(currentUserProvider);
-            final otherUserId = conversation.getOtherParticipantId(currentUser?.id ?? '');
-            
+            final otherUserId =
+                conversation.getOtherParticipantId(currentUser?.id ?? '');
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _buildConversationTile(
@@ -267,7 +273,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     final currentUser = ref.watch(currentUserProvider);
     final invitationsAsync = ref.watch(userInvitationsProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return invitationsAsync.when(
       data: (invitations) {
         // Filter invitations based on user role
@@ -281,12 +287,12 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
 
         if (filteredInvitations.isEmpty) {
           return _buildEmptyState(
-            currentUser?.role == 'landlord' 
-              ? 'No invitations sent' 
-              : 'No invitations received',
             currentUser?.role == 'landlord'
-              ? 'Send invitations to potential tenants'
-              : 'Wait for landlord invitations',
+                ? 'No invitations sent'
+                : 'No invitations received',
+            currentUser?.role == 'landlord'
+                ? 'Send invitations to potential tenants'
+                : 'Wait for landlord invitations',
           );
         }
 
@@ -319,14 +325,10 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     );
   }
 
-  Widget _buildConversationTile(
-    BuildContext context, 
-    Conversation conversation, 
-    String otherUserId, 
-    String currentUserId
-  ) {
+  Widget _buildConversationTile(BuildContext context, Conversation conversation,
+      String otherUserId, String currentUserId) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -406,7 +408,9 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    conversation.lastMessage,
+                    conversation.lastMessage == '[encrypted]'
+                        ? 'Encrypted message'
+                        : conversation.lastMessage,
                     style: TextStyle(
                       fontSize: 14,
                       color: colors.textSecondary,
@@ -427,7 +431,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
 
   Widget _buildEmptyState(String title, String subtitle) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -472,7 +476,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
 
   Widget _buildErrorState() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -504,10 +508,14 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
 
   List<Conversation> _filterConversations(List<Conversation> conversations) {
     if (_searchQuery.isEmpty) return conversations;
-    
+
     return conversations.where((conversation) {
-      final searchInName = conversation.otherParticipantName?.toLowerCase().contains(_searchQuery) ?? false;
-      final searchInMessage = conversation.lastMessage.toLowerCase().contains(_searchQuery);
+      final searchInName = conversation.otherParticipantName
+              ?.toLowerCase()
+              .contains(_searchQuery) ??
+          false;
+      final searchInMessage =
+          conversation.lastMessage.toLowerCase().contains(_searchQuery);
       return searchInName || searchInMessage;
     }).toList();
   }
@@ -515,7 +523,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
   String _getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -531,7 +539,7 @@ class _ConversationsTabbedPageState extends ConsumerState<ConversationsTabbedPag
     final currentUser = ref.read(currentUserProvider);
     final colors = ref.read(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    
+
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

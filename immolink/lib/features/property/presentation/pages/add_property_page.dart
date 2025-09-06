@@ -15,14 +15,15 @@ import '../../../../core/providers/dynamic_colors_provider.dart';
 
 class AddPropertyPage extends ConsumerStatefulWidget {
   final Property? propertyToEdit;
-  
+
   const AddPropertyPage({super.key, this.propertyToEdit});
 
   @override
   ConsumerState<AddPropertyPage> createState() => _AddPropertyPageState();
 }
 
-class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerProviderStateMixin {
+class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _rentController = TextEditingController();
@@ -39,10 +40,21 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
   late Animation<double> _slideAnimation;
 
   final List<String> amenitiesList = [
-    'Parking', 'Elevator', 'Balcony', 'Garden', 'Furnished', 
-    'Pet Friendly', 'Storage', 'Laundry', 'Swimming Pool', 
-    'Gym', 'Air Conditioning', 'Heating', 'Dishwasher', 
-    'Internet', 'Security System'
+    'Parking',
+    'Elevator',
+    'Balcony',
+    'Garden',
+    'Furnished',
+    'Pet Friendly',
+    'Storage',
+    'Laundry',
+    'Swimming Pool',
+    'Gym',
+    'Air Conditioning',
+    'Heating',
+    'Dishwasher',
+    'Internet',
+    'Security System'
   ];
 
   @override
@@ -56,12 +68,13 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
-    
+
     // Populate fields if editing existing property
     if (widget.propertyToEdit != null) {
       _populateFields(widget.propertyToEdit!);
     }
   }
+
   void _populateFields(Property property) {
     _addressController.text = property.address.street;
     _cityController.text = property.address.city;
@@ -88,17 +101,20 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
   @override
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         backgroundColor: colors.primaryBackground,
         elevation: 0,
-        systemOverlayStyle: colors.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        systemOverlayStyle: colors.isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
           onPressed: () => context.pop(),
-        ),        title: Text(
+        ),
+        title: Text(
           widget.propertyToEdit != null ? 'Edit Property' : 'Add Property',
           style: TextStyle(
             color: colors.textPrimary,
@@ -161,7 +177,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           ),
           const SizedBox(height: 24),
           Text(
-            widget.propertyToEdit != null ? 'Updating property...' : 'Creating property...',
+            widget.propertyToEdit != null
+                ? 'Updating property...'
+                : 'Creating property...',
             style: TextStyle(
               color: colors.textTertiary,
               fontSize: 16,
@@ -193,7 +211,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         ),
         const SizedBox(height: 8),
         Text(
-          isEditing ? 'Update your property details' : 'Add property details to get started',
+          isEditing
+              ? 'Update your property details'
+              : 'Add property details to get started',
           style: TextStyle(
             fontSize: 16,
             color: colors.textTertiary,
@@ -211,28 +231,34 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       title: 'Location',
       colors: colors,
       children: [
-        _buildTextField(colors: colors, 
+        _buildTextField(
+          colors: colors,
           controller: _addressController,
           label: 'Street Address',
-          validator: (value) => value?.isEmpty ?? true ? 'Address is required' : null,
+          validator: (value) =>
+              value?.isEmpty ?? true ? 'Address is required' : null,
         ),
         const SizedBox(height: 24),
         Row(
           children: [
             Expanded(
               flex: 2,
-              child: _buildTextField(colors: colors, 
+              child: _buildTextField(
+                colors: colors,
                 controller: _cityController,
                 label: 'City',
-                validator: (value) => value?.isEmpty ?? true ? 'City is required' : null,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'City is required' : null,
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildTextField(colors: colors, 
+              child: _buildTextField(
+                colors: colors,
                 controller: _postalCodeController,
                 label: 'Postal Code',
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Required' : null,
               ),
             ),
           ],
@@ -248,7 +274,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       children: [
         _buildTextField(
           controller: _rentController,
-          label: 'Monthly Rent (${ref.read(currencyProvider.notifier).getSymbol()})',
+          label:
+              'Monthly Rent (${ref.read(currencyProvider.notifier).getSymbol()})',
           colors: colors,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -262,16 +289,20 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         Row(
           children: [
             Expanded(
-              child: _buildTextField(colors: colors, 
+              child: _buildTextField(
+                colors: colors,
                 controller: _sizeController,
                 label: 'Size (m²)',
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                ],
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildTextField(colors: colors, 
+              child: _buildTextField(
+                colors: colors,
                 controller: _roomsController,
                 label: 'Rooms',
                 keyboardType: TextInputType.number,
@@ -317,11 +348,15 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? colors.primaryAccent : colors.surfaceCards,
+                  color:
+                      isSelected ? colors.primaryAccent : colors.surfaceCards,
                   borderRadius: BorderRadius.circular(20),
-                  border: isSelected ? null : Border.all(color: colors.borderLight, width: 1),
+                  border: isSelected
+                      ? null
+                      : Border.all(color: colors.borderLight, width: 1),
                 ),
                 child: Text(
                   amenity,
@@ -343,17 +378,22 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
   Widget _buildImagesCard(DynamicAppColors colors) {
     return _buildCard(
       colors: colors,
-      title: 'Images',      children: [
+      title: 'Images',
+      children: [
         GestureDetector(
           onTap: _pickImages,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             height: 120,
             decoration: BoxDecoration(
-              color: selectedImages.isEmpty ? colors.surfaceCards : colors.primaryAccent.withValues(alpha: 0.05),
+              color: selectedImages.isEmpty
+                  ? colors.surfaceCards
+                  : colors.primaryAccent.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: selectedImages.isEmpty ? colors.borderLight : colors.primaryAccent.withValues(alpha: 0.3), 
+                color: selectedImages.isEmpty
+                    ? colors.borderLight
+                    : colors.primaryAccent.withValues(alpha: 0.3),
                 width: 1.5,
               ),
             ),
@@ -362,17 +402,23 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    selectedImages.isEmpty ? Icons.cloud_upload_outlined : Icons.check_circle_outline,
+                    selectedImages.isEmpty
+                        ? Icons.cloud_upload_outlined
+                        : Icons.check_circle_outline,
                     size: 28,
-                    color: selectedImages.isEmpty ? colors.textTertiary : colors.primaryAccent,
+                    color: selectedImages.isEmpty
+                        ? colors.textTertiary
+                        : colors.primaryAccent,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    selectedImages.isEmpty 
-                        ? 'Tap to upload images' 
+                    selectedImages.isEmpty
+                        ? 'Tap to upload images'
                         : '${selectedImages.length} image(s) selected',
                     style: TextStyle(
-                      color: selectedImages.isEmpty ? colors.textTertiary : colors.primaryAccent,
+                      color: selectedImages.isEmpty
+                          ? colors.textTertiary
+                          : colors.primaryAccent,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       letterSpacing: -0.1,
@@ -438,7 +484,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 
-  Widget _buildCard({required String title, required List<Widget> children, required DynamicAppColors colors}) {
+  Widget _buildCard(
+      {required String title,
+      required List<Widget> children,
+      required DynamicAppColors colors}) {
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
@@ -531,7 +580,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: colors.error, width: 1),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],
@@ -556,7 +606,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             ),
           ),
           child: Text(
-            widget.propertyToEdit != null ? 'Update Property' : 'Create Property',
+            widget.propertyToEdit != null
+                ? 'Update Property'
+                : 'Create Property',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -566,7 +618,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         ),
       ),
     );
-  }  Future<void> _pickImages() async {
+  }
+
+  Future<void> _pickImages() async {
     final colors = ref.read(dynamicColorsProvider);
     try {
       HapticFeedback.lightImpact();
@@ -592,13 +646,14 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                 .toList();
           }
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${result.files.length} Bild(er) ausgewählt'),
             backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             margin: const EdgeInsets.all(16),
           ),
         );
@@ -608,7 +663,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             content: const Text('Keine Bilder ausgewählt'),
             backgroundColor: colors.textSecondary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             margin: const EdgeInsets.all(16),
           ),
         );
@@ -626,6 +682,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       );
     }
   }
+
   Widget _buildImagePreview(String imagePath, DynamicAppColors colors) {
     // Check if it's a URL (existing image) or a local file path (new upload)
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
@@ -658,7 +715,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
                 color: colors.primaryAccent,
                 strokeWidth: 2,
                 value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
                     : null,
               ),
             ),
@@ -672,7 +730,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           (file) => file.name == imagePath,
           orElse: () => _pickerResult!.files.first,
         );
-        
+
         if (file.bytes != null) {
           return Image.memory(
             file.bytes!,
@@ -694,7 +752,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           );
         }
       }
-      
+
       // Fallback for web
       return Container(
         width: 100,
@@ -737,7 +795,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         selectedImages.removeAt(index);
       }
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Image removed'),
@@ -749,6 +807,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       ),
     );
   }
+
   void _submitForm() async {
     final colors = ref.read(dynamicColorsProvider);
     if (_formKey.currentState?.validate() ?? false) {
@@ -760,16 +819,16 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       try {
         final currentUser = ref.read(currentUserProvider);
         final landlordId = currentUser?.id.toString() ?? '';
-        
+
         // If creating a new property (not editing), check subscription limits
         if (widget.propertyToEdit == null) {
           final subscriptionAsync = ref.read(userSubscriptionProvider);
           final propertiesAsync = ref.read(landlordPropertiesProvider);
-          
+
           if (subscriptionAsync.hasValue && propertiesAsync.hasValue) {
             final subscription = subscriptionAsync.value;
             final currentProperties = propertiesAsync.value ?? [];
-            
+
             // Check if user has an active subscription
             if (subscription == null || subscription.status != 'active') {
               _showSubscriptionRequiredDialog();
@@ -778,19 +837,24 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
               });
               return;
             }
-            
+
             // Get subscription plan to check property limits
             final plansAsync = ref.read(subscriptionPlansProvider);
             if (plansAsync.hasValue) {
               final plans = plansAsync.value ?? [];
-              final currentPlan = plans.where((plan) => plan.id == subscription.planId).firstOrNull;
-              
+              final currentPlan = plans
+                  .where((plan) => plan.id == subscription.planId)
+                  .firstOrNull;
+
               if (currentPlan != null) {
                 final currentPropertyCount = currentProperties.length;
-                final maxProperties = _extractPropertyLimit(currentPlan.features);
-                
-                if (maxProperties != null && currentPropertyCount >= maxProperties) {
-                  _showPropertyLimitReachedDialog(maxProperties, currentPlan.name);
+                final maxProperties =
+                    _extractPropertyLimit(currentPlan.features);
+
+                if (maxProperties != null &&
+                    currentPropertyCount >= maxProperties) {
+                  _showPropertyLimitReachedDialog(
+                      maxProperties, currentPlan.name);
                   setState(() {
                     _isLoading = false;
                   });
@@ -800,16 +864,17 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             }
           }
         }
-        
+
         // Upload images to MongoDB if any are selected
         List<String> uploadedImageIds = [];
         if (_pickerResult != null && _pickerResult!.files.isNotEmpty) {
           print('Found ${_pickerResult!.files.length} files to upload');
           final propertyService = ref.read(propertyServiceProvider);
-          
+
           for (int i = 0; i < _pickerResult!.files.length; i++) {
             final file = _pickerResult!.files[i];
-            print('Uploading file ${i + 1}/${_pickerResult!.files.length}: ${file.name}');
+            print(
+                'Uploading file ${i + 1}/${_pickerResult!.files.length}: ${file.name}');
             final imageId = await propertyService.uploadImage(file);
             if (imageId != null) {
               uploadedImageIds.add(imageId);
@@ -822,11 +887,11 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
         } else {
           print('No images selected for upload');
         }
-          // Use uploaded image IDs or existing ones for editing
-        final finalImageUrls = uploadedImageIds.isNotEmpty 
-            ? uploadedImageIds 
+        // Use uploaded image IDs or existing ones for editing
+        final finalImageUrls = uploadedImageIds.isNotEmpty
+            ? uploadedImageIds
             : (widget.propertyToEdit?.imageUrls ?? []);
-            
+
         print('Final image URLs for property: $finalImageUrls');
 
         final property = Property(
@@ -847,42 +912,46 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
           ),
           status: widget.propertyToEdit?.status ?? 'available',
           imageUrls: finalImageUrls,
-          outstandingPayments: widget.propertyToEdit?.outstandingPayments ?? 0.0,
-        );        if (widget.propertyToEdit != null) {
+          outstandingPayments:
+              widget.propertyToEdit?.outstandingPayments ?? 0.0,
+        );
+        if (widget.propertyToEdit != null) {
           // Update existing property
           await ref.read(propertyServiceProvider).updateProperty(property);
-          
+
           // Invalidate the property provider to refresh the data
           ref.invalidate(propertyProvider(property.id));
           ref.invalidate(landlordPropertiesProvider);
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Immobilie erfolgreich aktualisiert!'),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
               margin: const EdgeInsets.all(16),
             ),
           );
         } else {
           // Create new property
           await ref.read(propertyServiceProvider).addProperty(property);
-          
+
           // Invalidate the properties provider to refresh the list
           ref.invalidate(landlordPropertiesProvider);
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Immobilie erfolgreich erstellt!'),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
               margin: const EdgeInsets.all(16),
             ),
           );
         }
-        
+
         context.pop();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -890,7 +959,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             content: Text('colors.error: $e'),
             backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             margin: const EdgeInsets.all(16),
           ),
         );
@@ -908,9 +978,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
       if (feature.toLowerCase().contains('unlimited properties')) {
         return null; // Unlimited
       }
-      
+
       // Match patterns like "Up to X properties" or "X properties"
-      final regex = RegExp(r'up to (\d+) properties|\b(\d+) properties', caseSensitive: false);
+      final regex = RegExp(r'up to (\d+) properties|\b(\d+) properties',
+          caseSensitive: false);
       final match = regex.firstMatch(feature);
       if (match != null) {
         final numberStr = match.group(1) ?? match.group(2);
@@ -964,11 +1035,13 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
               decoration: BoxDecoration(
                 color: colors.primaryAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: colors.primaryAccent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.star_outline, color: colors.primaryAccent, size: 20),
+                  Icon(Icons.star_outline,
+                      color: colors.primaryAccent, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1001,7 +1074,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('View Plans'),
           ),
@@ -1052,11 +1126,13 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
               decoration: BoxDecoration(
                 color: colors.luxuryGold.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors.luxuryGold.withValues(alpha: 0.2)),
+                border:
+                    Border.all(color: colors.luxuryGold.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.upgrade_outlined, color: colors.luxuryGold, size: 20),
+                  Icon(Icons.upgrade_outlined,
+                      color: colors.luxuryGold, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1089,7 +1165,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.luxuryGold,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Upgrade Plan'),
           ),
@@ -1098,4 +1175,3 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage> with TickerPr
     );
   }
 }
-

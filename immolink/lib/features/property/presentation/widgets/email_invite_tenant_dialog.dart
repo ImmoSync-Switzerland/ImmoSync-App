@@ -14,10 +14,12 @@ class EmailInviteTenantDialog extends ConsumerStatefulWidget {
   const EmailInviteTenantDialog({required this.propertyId, super.key});
 
   @override
-  ConsumerState<EmailInviteTenantDialog> createState() => _EmailInviteTenantDialogState();
+  ConsumerState<EmailInviteTenantDialog> createState() =>
+      _EmailInviteTenantDialogState();
 }
 
-class _EmailInviteTenantDialogState extends ConsumerState<EmailInviteTenantDialog> {
+class _EmailInviteTenantDialogState
+    extends ConsumerState<EmailInviteTenantDialog> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
@@ -268,8 +270,8 @@ class _EmailInviteTenantDialogState extends ConsumerState<EmailInviteTenantDialo
         'propertyId': widget.propertyId,
         'landlordId': currentUser.id,
         'tenantEmail': _emailController.text.trim(),
-        'message': _messageController.text.trim().isNotEmpty 
-            ? _messageController.text.trim() 
+        'message': _messageController.text.trim().isNotEmpty
+            ? _messageController.text.trim()
             : 'Sie wurden eingeladen, diese Immobilie zu mieten.',
         'invitationType': 'email', // Mark as email invitation
       };
@@ -280,7 +282,7 @@ class _EmailInviteTenantDialogState extends ConsumerState<EmailInviteTenantDialo
       if (success && mounted) {
         // Invalidate providers to refresh the UI
         ref.invalidate(userInvitationsProvider);
-        
+
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -326,7 +328,8 @@ class _EmailInviteTenantDialogState extends ConsumerState<EmailInviteTenantDialo
       } else if (response.statusCode == 404) {
         // Handle the case where user doesn't exist
         final errorResponse = json.decode(response.body);
-        throw Exception(errorResponse['message'] ?? 'Benutzer mit dieser E-Mail-Adresse existiert nicht im System');
+        throw Exception(errorResponse['message'] ??
+            'Benutzer mit dieser E-Mail-Adresse existiert nicht im System');
       } else {
         throw Exception('Fehler beim Senden der Einladung');
       }

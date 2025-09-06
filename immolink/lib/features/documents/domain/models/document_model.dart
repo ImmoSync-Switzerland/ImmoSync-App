@@ -128,9 +128,13 @@ class DocumentModel {
     DateTime parsedUploadDate = DateTime.now();
     final uploadDateVal = json['uploadDate'];
     if (uploadDateVal is String) {
-      try { parsedUploadDate = DateTime.parse(uploadDateVal); } catch (_) {}
+      try {
+        parsedUploadDate = DateTime.parse(uploadDateVal);
+      } catch (_) {}
     } else if (uploadDateVal is Map && uploadDateVal['\$date'] != null) {
-      try { parsedUploadDate = DateTime.parse(uploadDateVal['\$date']); } catch (_) {}
+      try {
+        parsedUploadDate = DateTime.parse(uploadDateVal['\$date']);
+      } catch (_) {}
     }
 
     // uploadedBy may be missing in legacy docs
@@ -160,9 +164,14 @@ class DocumentModel {
 
     DateTime? expiry;
     if (json['expiryDate'] is String) {
-      try { expiry = DateTime.parse(json['expiryDate']); } catch (_) {}
-    } else if (json['expiryDate'] is Map && json['expiryDate']['\$date'] != null) {
-      try { expiry = DateTime.parse(json['expiryDate']['\$date']); } catch (_) {}
+      try {
+        expiry = DateTime.parse(json['expiryDate']);
+      } catch (_) {}
+    } else if (json['expiryDate'] is Map &&
+        json['expiryDate']['\$date'] != null) {
+      try {
+        expiry = DateTime.parse(json['expiryDate']['\$date']);
+      } catch (_) {}
     }
 
     return DocumentModel(
@@ -174,7 +183,9 @@ class DocumentModel {
       mimeType: mime,
       fileSize: documentFileSize,
       uploadDate: parsedUploadDate,
-      lastModified: json['lastModified'] is String ? DateTime.tryParse(json['lastModified']) : null,
+      lastModified: json['lastModified'] is String
+          ? DateTime.tryParse(json['lastModified'])
+          : null,
       uploadedBy: uploadedBy,
       assignedTenantIds: assignedTenantIds,
       propertyIds: propertyIds,
@@ -187,8 +198,10 @@ class DocumentModel {
 
   String get formattedFileSize {
     if (fileSize < 1024) return '$fileSize B';
-    if (fileSize < 1024 * 1024) return '${(fileSize / 1024).toStringAsFixed(1)} KB';
-    if (fileSize < 1024 * 1024 * 1024) return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (fileSize < 1024 * 1024)
+      return '${(fileSize / 1024).toStringAsFixed(1)} KB';
+    if (fileSize < 1024 * 1024 * 1024)
+      return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(fileSize / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
@@ -224,7 +237,7 @@ enum DocumentCategory {
   final String id;
   final String displayName;
   final String iconName;
-  
+
   IconData get icon {
     switch (this) {
       case DocumentCategory.lease:

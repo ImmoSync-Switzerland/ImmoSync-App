@@ -24,10 +24,12 @@ class SubscriptionPaymentPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SubscriptionPaymentPage> createState() => _SubscriptionPaymentPageState();
+  ConsumerState<SubscriptionPaymentPage> createState() =>
+      _SubscriptionPaymentPageState();
 }
 
-class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPage> {
+class _SubscriptionPaymentPageState
+    extends ConsumerState<SubscriptionPaymentPage> {
   final _formKey = GlobalKey<FormState>();
   CardFieldInputDetails? _cardFieldInputDetails;
   bool _isProcessing = false;
@@ -36,9 +38,13 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    
-    final price = widget.isYearly ? widget.plan.yearlyPrice.toDouble() : widget.plan.monthlyPrice.toDouble();
-    final savings = widget.isYearly ? (widget.plan.monthlyPrice * 12) - widget.plan.yearlyPrice : 0;
+
+    final price = widget.isYearly
+        ? widget.plan.yearlyPrice.toDouble()
+        : widget.plan.monthlyPrice.toDouble();
+    final savings = widget.isYearly
+        ? (widget.plan.monthlyPrice * 12) - widget.plan.yearlyPrice
+        : 0;
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -63,11 +69,11 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
             // Plan summary
             _buildPlanSummary(price, savings.toDouble(), colors, l10n),
             const SizedBox(height: 32),
-            
+
             // Payment method section
             _buildPaymentMethodSection(colors, l10n),
             const SizedBox(height: 32),
-            
+
             // Terms and conditions
             _buildTermsSection(colors, l10n),
             const SizedBox(height: 32),
@@ -78,7 +84,8 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
     );
   }
 
-  Widget _buildPlanSummary(double price, double savings, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPlanSummary(double price, double savings,
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -136,7 +143,6 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
               ),
             ],
           ),
-          
           if (widget.isYearly && savings > 0) ...[
             const SizedBox(height: 16),
             Container(
@@ -165,7 +171,6 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
               ),
             ),
           ],
-          
           const SizedBox(height: 20),
           Text(
             l10n.includedFeatures,
@@ -177,33 +182,34 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
           ),
           const SizedBox(height: 8),
           ...widget.plan.features.take(4).map((feature) => Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check,
-                  size: 14,
-                  color: colors.success,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    feature,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colors.textSecondary,
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check,
+                      size: 14,
+                      color: colors.success,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentMethodSection(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPaymentMethodSection(
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,10 +260,11 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
     );
   }
 
-  Widget _buildPlatformAwarePaymentField(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildPlatformAwarePaymentField(
+      DynamicAppColors colors, AppLocalizations l10n) {
     // Check if we're on a supported platform for CardField
-    if (defaultTargetPlatform == TargetPlatform.android || 
-        defaultTargetPlatform == TargetPlatform.iOS || 
+    if (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
         kIsWeb) {
       try {
         return CardField(
@@ -278,7 +285,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   Widget _buildDesktopPaymentUI(DynamicAppColors colors) {
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -324,7 +331,8 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryAccent,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
@@ -337,7 +345,8 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.textSecondary,
                     side: BorderSide(color: colors.borderLight),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ),
@@ -349,9 +358,9 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   void _openWebVersion() async {
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isProcessing = true);
-    
+
     try {
       final user = ref.read(currentUserProvider);
       if (user == null) {
@@ -374,11 +383,12 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final checkoutUrl = data['checkoutUrl'] as String;
-        
+
         // Open Stripe checkout in browser
         if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
-          await launchUrl(Uri.parse(checkoutUrl), mode: LaunchMode.externalApplication);
-          
+          await launchUrl(Uri.parse(checkoutUrl),
+              mode: LaunchMode.externalApplication);
+
           // Show message to user
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -447,9 +457,10 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
     );
   }
 
-  Widget _buildBottomBar(double price, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildBottomBar(
+      double price, DynamicAppColors colors, AppLocalizations l10n) {
     final bool isSupported = _isPlatformSupported();
-    final bool canPay = isSupported 
+    final bool canPay = isSupported
         ? (_cardFieldInputDetails?.complete == true && !_isProcessing)
         : !_isProcessing;
 
@@ -508,8 +519,10 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-          : Text(
-            _isPlatformSupported() ? l10n.subscribeNow : l10n.continueOnWeb,
+                  : Text(
+                      _isPlatformSupported()
+                          ? l10n.subscribeNow
+                          : l10n.continueOnWeb,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -524,12 +537,12 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
 
   bool _isPlatformSupported() {
     return defaultTargetPlatform == TargetPlatform.android ||
-           defaultTargetPlatform == TargetPlatform.iOS ||
-           kIsWeb;
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        kIsWeb;
   }
 
   void _handlePayment() async {
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     // For unsupported platforms, redirect to web
     if (!_isPlatformSupported()) {
       _openWebVersion();
@@ -547,11 +560,14 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
       }
 
       // Create payment intent
-      final price = widget.isYearly ? widget.plan.yearlyPrice : widget.plan.monthlyPrice;
-      final clientSecret = await ref.read(subscriptionNotifierProvider.notifier).createPaymentIntent(
-        amount: price,
-        currency: 'usd',
-      );
+      final price =
+          widget.isYearly ? widget.plan.yearlyPrice : widget.plan.monthlyPrice;
+      final clientSecret = await ref
+          .read(subscriptionNotifierProvider.notifier)
+          .createPaymentIntent(
+            amount: price,
+            currency: 'usd',
+          );
 
       // Confirm payment
       await Stripe.instance.confirmPayment(
@@ -565,15 +581,14 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
 
       // Create subscription
       await ref.read(subscriptionNotifierProvider.notifier).createSubscription(
-        userId: user.id,
-        planId: widget.plan.id,
-        billingInterval: widget.isYearly ? 'yearly' : 'monthly',
-        paymentMethodId: _cardFieldInputDetails!.last4!,
-      );
+            userId: user.id,
+            planId: widget.plan.id,
+            billingInterval: widget.isYearly ? 'yearly' : 'monthly',
+            paymentMethodId: _cardFieldInputDetails!.last4!,
+          );
 
       // Success
       _showSuccessDialog();
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -587,7 +602,7 @@ class _SubscriptionPaymentPageState extends ConsumerState<SubscriptionPaymentPag
   }
 
   void _showSuccessDialog() {
-  final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,

@@ -47,7 +47,7 @@ class RegisterNotifier extends StateNotifier<RegisterState> {
     DateTime? birthDate,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       await _authService.registerUser(
         email: email,
@@ -62,9 +62,9 @@ class RegisterNotifier extends StateNotifier<RegisterState> {
         address: address,
         birthDate: birthDate,
       );
-      
+
       state = state.copyWith(
-        isLoading: false, 
+        isLoading: false,
         isSuccess: true,
         error: null,
       );

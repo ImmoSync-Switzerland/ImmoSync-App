@@ -44,7 +44,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
 
   Future<void> _loadDocument() async {
     if (_isLoading) return; // Prevent multiple simultaneous loads
-    
+
     try {
       setState(() {
         _isLoading = true;
@@ -58,8 +58,10 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
 
       // Fallback: if 404, attempt download endpoint (may differ in older deployments)
       if (response.statusCode == 404) {
-        final altUrl = '${ApiConfig.baseUrl}/documents/download/${widget.document.id}';
-        print('DocumentViewer: raw endpoint 404, trying download endpoint: $altUrl');
+        final altUrl =
+            '${ApiConfig.baseUrl}/documents/download/${widget.document.id}';
+        print(
+            'DocumentViewer: raw endpoint 404, trying download endpoint: $altUrl');
         response = await http.get(Uri.parse(altUrl));
       }
 
@@ -71,10 +73,12 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
             _documentData = response.bodyBytes;
             _isLoading = false;
           });
-          print('DocumentViewer: Successfully loaded ${response.bodyBytes.length} bytes');
+          print(
+              'DocumentViewer: Successfully loaded ${response.bodyBytes.length} bytes');
         }
       } else {
-        throw Exception('Failed to load document: ${response.statusCode} - ${response.reasonPhrase}');
+        throw Exception(
+            'Failed to load document: ${response.statusCode} - ${response.reasonPhrase}');
       }
     } catch (e) {
       print('DocumentViewer: Error loading document: $e');
@@ -114,7 +118,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         downloadsDir = await getApplicationDocumentsDirectory();
       }
 
-  final fileName = widget.document.name;
+      final fileName = widget.document.name;
       final filePath = '${downloadsDir.path}${Platform.pathSeparator}$fileName';
       final file = File(filePath);
 
@@ -123,7 +127,8 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.documentDownloadedTo(filePath)),
+            content: Text(
+                AppLocalizations.of(context)!.documentDownloadedTo(filePath)),
             duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: AppLocalizations.of(context)!.openFolder,
@@ -135,7 +140,9 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.downloadFailed}: $e')),
+          SnackBar(
+              content:
+                  Text('${AppLocalizations.of(context)!.downloadFailed}: $e')),
         );
       }
     }
@@ -165,20 +172,23 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       // Create temporary file
       final tempDir = await getTemporaryDirectory();
       final fileName = widget.document.name;
-      final tempFile = File('${tempDir.path}${Platform.pathSeparator}$fileName');
-      
+      final tempFile =
+          File('${tempDir.path}${Platform.pathSeparator}$fileName');
+
       await tempFile.writeAsBytes(_documentData!);
-      
+
       final uri = Uri.file(tempFile.path);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-  throw Exception(AppLocalizations.of(context)!.noAppToOpenFile);
+        throw Exception(AppLocalizations.of(context)!.noAppToOpenFile);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.failedToOpen}: $e')),
+          SnackBar(
+              content:
+                  Text('${AppLocalizations.of(context)!.failedToOpen}: $e')),
         );
       }
     }
@@ -187,7 +197,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   @override
   Widget build(BuildContext context) {
     final dynamicColors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: dynamicColors.primaryBackground,
       appBar: AppBar(
@@ -340,9 +350,9 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // Action buttons
           Column(
             children: [
@@ -362,7 +372,6 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                 ),
                 const SizedBox(height: 16),
               ],
-              
               if (_documentData == null) ...[
                 SizedBox(
                   width: double.infinity,
@@ -379,7 +388,6 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                 ),
                 const SizedBox(height: 16),
               ],
-              
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -393,9 +401,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                   ),
                 ),
               ),
-              
               const SizedBox(height: 16),
-              
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -419,18 +425,18 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   bool _isImageFile() {
     final mimeType = widget.document.mimeType.toLowerCase();
     final fileName = widget.document.name.toLowerCase();
-    return mimeType.startsWith('image/') || 
-           fileName.endsWith('.png') || 
-           fileName.endsWith('.jpg') || 
-           fileName.endsWith('.jpeg') || 
-           fileName.endsWith('.gif') || 
-           fileName.endsWith('.bmp') || 
-           fileName.endsWith('.webp');
+    return mimeType.startsWith('image/') ||
+        fileName.endsWith('.png') ||
+        fileName.endsWith('.jpg') ||
+        fileName.endsWith('.jpeg') ||
+        fileName.endsWith('.gif') ||
+        fileName.endsWith('.bmp') ||
+        fileName.endsWith('.webp');
   }
 
   void _showImagePreview(DynamicAppColors colors) {
     if (_documentData == null) return;
-    
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -495,19 +501,19 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     final mimeType = widget.document.mimeType.toLowerCase();
 
     if (mimeType.contains('pdf') || fileName.endsWith('.pdf')) {
-  return AppLocalizations.of(context)!.pdfDocument;
+      return AppLocalizations.of(context)!.pdfDocument;
     } else if (mimeType.startsWith('image/')) {
-  return AppLocalizations.of(context)!.imageFile;
+      return AppLocalizations.of(context)!.imageFile;
     } else if (mimeType.startsWith('text/')) {
-  return AppLocalizations.of(context)!.textFile;
+      return AppLocalizations.of(context)!.textFile;
     } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-  return AppLocalizations.of(context)!.wordDocument;
+      return AppLocalizations.of(context)!.wordDocument;
     } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-  return AppLocalizations.of(context)!.excelSpreadsheet;
+      return AppLocalizations.of(context)!.excelSpreadsheet;
     } else if (fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
-  return AppLocalizations.of(context)!.powerPointPresentation;
+      return AppLocalizations.of(context)!.powerPointPresentation;
     } else {
-  return AppLocalizations.of(context)!.documentFile;
+      return AppLocalizations.of(context)!.documentFile;
     }
   }
 }

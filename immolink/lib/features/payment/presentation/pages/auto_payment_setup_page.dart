@@ -12,14 +12,15 @@ class AutoPaymentSetupPage extends ConsumerStatefulWidget {
   const AutoPaymentSetupPage({super.key});
 
   @override
-  ConsumerState<AutoPaymentSetupPage> createState() => _AutoPaymentSetupPageState();
+  ConsumerState<AutoPaymentSetupPage> createState() =>
+      _AutoPaymentSetupPageState();
 }
 
 class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   String _selectedPaymentMethod = 'bank';
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  
+
   // Form controllers
   final _bankAccountController = TextEditingController();
   final _routingNumberController = TextEditingController();
@@ -43,7 +44,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(l10n, colors),
@@ -73,7 +74,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(AppLocalizations l10n, DynamicAppColors colors) {
+  PreferredSizeWidget _buildAppBar(
+      AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
@@ -168,7 +170,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildPaymentMethodSelector(AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildPaymentMethodSelector(
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -208,9 +211,10 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Widget _buildPaymentMethodCard(String title, IconData icon, String value, String subtitle, DynamicAppColors colors) {
+  Widget _buildPaymentMethodCard(String title, IconData icon, String value,
+      String subtitle, DynamicAppColors colors) {
     final isSelected = _selectedPaymentMethod == value;
-    
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -220,8 +224,11 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isSelected 
-                ? [colors.primaryAccent.withValues(alpha: 0.1), colors.primaryAccent.withValues(alpha: 0.05)]
+            colors: isSelected
+                ? [
+                    colors.primaryAccent.withValues(alpha: 0.1),
+                    colors.primaryAccent.withValues(alpha: 0.05)
+                  ]
                 : [colors.surfaceCards, colors.surfaceCards],
           ),
           borderRadius: BorderRadius.circular(16),
@@ -242,7 +249,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected 
+                color: isSelected
                     ? colors.primaryAccent.withValues(alpha: 0.1)
                     : colors.textSecondary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -279,7 +286,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   }
 
   Widget _buildPaymentForm(AppLocalizations l10n, DynamicAppColors colors) {
-    return _selectedPaymentMethod == 'bank' 
+    return _selectedPaymentMethod == 'bank'
         ? _buildBankForm(l10n, colors)
         : _buildCardForm(l10n, colors);
   }
@@ -410,7 +417,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (value?.isEmpty ?? true) return 'Expiry date is required';
+                    if (value?.isEmpty ?? true)
+                      return 'Expiry date is required';
                     return null;
                   },
                 ),
@@ -457,21 +465,21 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           elevation: 0,
         ),
         child: _isLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                'Set Up Auto Payment',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            )
-          : Text(
-              'Set Up Auto Payment',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
       ),
     );
   }
@@ -553,21 +561,23 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     );
   }
 
-  Future<void> _setupAutoPayment(AppLocalizations l10n, DynamicAppColors colors) async {
+  Future<void> _setupAutoPayment(
+      AppLocalizations l10n, DynamicAppColors colors) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    
+
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
-    
+
     try {
       // Create setup intent for recurring payments
       final connectService = ConnectService();
-      final setupResponse = await connectService.createSetupIntent(_selectedPaymentMethod);
-      
+      final setupResponse =
+          await connectService.createSetupIntent(_selectedPaymentMethod);
+
       if (setupResponse['client_secret'] == null) {
         throw Exception('Failed to create setup intent');
       }
-      
+
       if (_selectedPaymentMethod == 'bank') {
         // For bank transfers, we need to collect bank account details
         await _setupBankAccount(setupResponse['client_secret'], connectService);
@@ -575,9 +585,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         // For cards, use Stripe's payment method collection
         await _setupCardPayment(setupResponse['client_secret']);
       }
-      
+
       _showSetupConfirmation(context, colors);
-      
     } catch (e) {
       _showErrorDialog(context, colors, 'Setup failed: ${e.toString()}');
     } finally {
@@ -586,8 +595,9 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
       }
     }
   }
-  
-  Future<void> _setupBankAccount(String clientSecret, ConnectService connectService) async {
+
+  Future<void> _setupBankAccount(
+      String clientSecret, ConnectService connectService) async {
     // For bank transfers, we need to collect the account details
     // and create a setup intent with bank account payment method
     await Stripe.instance.initPaymentSheet(
@@ -597,11 +607,11 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         allowsDelayedPaymentMethods: true,
       ),
     );
-    
+
     await Stripe.instance.presentPaymentSheet();
     // Payment sheet handles the setup - if we get here, it was successful
   }
-  
+
   Future<void> _setupCardPayment(String clientSecret) async {
     await Stripe.instance.initPaymentSheet(
       paymentSheetParameters: SetupPaymentSheetParameters(
@@ -609,12 +619,13 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         merchantDisplayName: 'ImmoSync',
       ),
     );
-    
+
     await Stripe.instance.presentPaymentSheet();
     // Payment sheet handles the setup - if we get here, it was successful
   }
-  
-  void _showErrorDialog(BuildContext context, DynamicAppColors colors, String message) {
+
+  void _showErrorDialog(
+      BuildContext context, DynamicAppColors colors, String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

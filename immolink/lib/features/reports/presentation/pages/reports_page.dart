@@ -32,7 +32,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     if (screenWidth < 360) {
       return baseFontSize * 0.85; // Smaller phones
     } else if (screenWidth < 400) {
-      return baseFontSize * 0.9;  // Medium phones
+      return baseFontSize * 0.9; // Medium phones
     }
     return baseFontSize; // Tablets and larger
   }
@@ -40,7 +40,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   @override
   void initState() {
     super.initState();
-  _animationController = AnimationController(
+    _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
@@ -193,8 +193,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-  title: Text(AppLocalizations.of(context)!.exportReportsTitle),
-  content: Text(AppLocalizations.of(context)!.exportFormatPrompt),
+        title: Text(AppLocalizations.of(context)!.exportReportsTitle),
+        content: Text(AppLocalizations.of(context)!.exportFormatPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -244,7 +244,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPeriodChip(String label, bool isSelected, DynamicAppColors colors) {
+  Widget _buildPeriodChip(
+      String label, bool isSelected, DynamicAppColors colors) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
@@ -252,31 +253,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         gradient: isSelected
-          ? LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.info,
-                colors.info.withValues(alpha: 0.8),
-              ],
-            )
-          : null,
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.info,
+                  colors.info.withValues(alpha: 0.8),
+                ],
+              )
+            : null,
         color: isSelected ? null : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isSelected 
-            ? Colors.transparent 
-            : colors.borderLight,
+          color: isSelected ? Colors.transparent : colors.borderLight,
           width: 1,
         ),
-        boxShadow: isSelected ? [
-          BoxShadow(
-            color: colors.info.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ] : null,
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: colors.info.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+              ]
+            : null,
       ),
       child: Text(
         label,
@@ -291,7 +292,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildLandlordReports(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildLandlordReports(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final properties = ref.watch(landlordPropertiesProvider);
     final payments = ref.watch(landlordPaymentsProvider);
     final maintenanceRequests = ref.watch(landlordMaintenanceRequestsProvider);
@@ -311,7 +313,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildTenantReports(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildTenantReports(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final payments = ref.watch(tenantPaymentsProvider);
     final maintenanceRequests = ref.watch(tenantMaintenanceRequestsProvider);
     final colors = ref.watch(dynamicColorsProvider);
@@ -328,7 +331,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildFinancialOverview(AsyncValue properties, AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildFinancialOverview(AsyncValue properties, AsyncValue payments,
+      WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -395,7 +399,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               final totalRevenue = propertyList
                   .where((p) => p.status == 'rented')
                   .fold(0.0, (sum, p) => sum + p.rentAmount);
-              
+
               return payments.when(
                 data: (paymentsList) {
                   final completedPayments = paymentsList
@@ -404,7 +408,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   final pendingPayments = paymentsList
                       .where((p) => p.status == 'pending')
                       .fold(0.0, (sum, p) => sum + p.amount);
-                  
+
                   return Column(
                     children: [
                       Container(
@@ -470,10 +474,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       default:
         symbol = '\$';
     }
-    return NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(amount);
+    return NumberFormat.currency(symbol: symbol, decimalDigits: 2)
+        .format(amount);
   }
 
-  Widget _buildFinancialMetric(String title, String value, IconData icon, Color color, DynamicAppColors colors) {
+  Widget _buildFinancialMetric(String title, String value, IconData icon,
+      Color color, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -527,7 +533,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPropertyMetrics(AsyncValue properties, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildPropertyMetrics(
+      AsyncValue properties, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -586,9 +593,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           properties.when(
             data: (propertyList) {
               final totalProperties = propertyList.length;
-              final rentedProperties = propertyList.where((p) => p.status == 'rented').length;
-              final availableProperties = propertyList.where((p) => p.status == 'available').length;
-              
+              final rentedProperties =
+                  propertyList.where((p) => p.status == 'rented').length;
+              final availableProperties =
+                  propertyList.where((p) => p.status == 'available').length;
+
               return Column(
                 children: [
                   Container(
@@ -634,7 +643,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -693,9 +703,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           maintenanceRequests.when(
             data: (requestList) {
               final totalRequests = requestList.length;
-              final pendingRequests = requestList.where((r) => r.status == 'pending').length;
-              final completedRequests = requestList.where((r) => r.status == 'completed').length;
-              
+              final pendingRequests =
+                  requestList.where((r) => r.status == 'pending').length;
+              final completedRequests =
+                  requestList.where((r) => r.status == 'completed').length;
+
               return Column(
                 children: [
                   Container(
@@ -741,7 +753,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildRevenueChart(AsyncValue properties, AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildRevenueChart(AsyncValue properties, AsyncValue payments,
+      WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -823,7 +836,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -934,7 +948,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -1020,7 +1035,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
               return Column(
                 children: requestList.take(5).map<Widget>((request) {
-                  final statusColor = _getMaintenanceStatusColor(request.status, colors);
+                  final statusColor =
+                      _getMaintenanceStatusColor(request.status, colors);
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(20),
@@ -1061,7 +1077,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                DateFormat('MMM d, yyyy').format(request.requestedDate),
+                                DateFormat('MMM d, yyyy')
+                                    .format(request.requestedDate),
                                 style: TextStyle(
                                   fontSize: _getResponsiveFontSize(context, 14),
                                   color: Color(0xFF64748B),
@@ -1071,7 +1088,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
@@ -1099,7 +1117,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -1174,10 +1193,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
               return Column(
                 children: paymentsList.take(5).map<Widget>((payment) {
-                  final statusColor = payment.status == 'completed' 
-                    ? const Color(0xFF10B981) 
-                    : const Color(0xFFF59E0B);
-                  
+                  final statusColor = payment.status == 'completed'
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFF59E0B);
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(20),
@@ -1198,9 +1217,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
-                            payment.status == 'completed' 
-                              ? Icons.check_circle_outline 
-                              : Icons.hourglass_empty,
+                            payment.status == 'completed'
+                                ? Icons.check_circle_outline
+                                : Icons.hourglass_empty,
                             color: statusColor,
                             size: 16,
                           ),
@@ -1230,7 +1249,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
@@ -1290,13 +1310,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         .toLowerCase()
         .replaceAll('_', ' ')
         .split(' ')
-        .map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
+        .map((word) =>
+            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
         .join(' ');
   }
 
   void _exportToPDF() {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     // Show loading dialog
     showDialog(
       context: context,
@@ -1316,7 +1337,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     // Simulate PDF generation
     Future.delayed(const Duration(seconds: 2), () {
       Navigator.of(context).pop(); // Close loading dialog
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.pdfExportInfo),

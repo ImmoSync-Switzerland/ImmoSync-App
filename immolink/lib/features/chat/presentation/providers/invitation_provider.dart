@@ -101,9 +101,10 @@ final userInvitationsProvider = FutureProvider<List<Invitation>>((ref) async {
 });
 
 // Provider for pending invitations only
-final pendingInvitationsProvider = Provider<AsyncValue<List<Invitation>>>((ref) {
+final pendingInvitationsProvider =
+    Provider<AsyncValue<List<Invitation>>>((ref) {
   final invitationsAsync = ref.watch(userInvitationsProvider);
-  
+
   return invitationsAsync.when(
     data: (invitations) => AsyncValue.data(
       invitations.where((invitation) => invitation.isPending).toList(),
@@ -118,32 +119,34 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
   final InvitationService _invitationService;
   final Ref _ref;
 
-  InvitationNotifier(this._invitationService, this._ref) 
+  InvitationNotifier(this._invitationService, this._ref)
       : super(const AsyncValue.data(null));
 
   Future<void> acceptInvitation(String invitationId) async {
     state = const AsyncValue.loading();
-    
+
     try {
-  final result = await _invitationService.acceptInvitation(invitationId);
+      final result = await _invitationService.acceptInvitation(invitationId);
       state = const AsyncValue.data(null);
       // If backend returned property & tenantUser, update current user propertyId immediately
       if (result is Map && result['tenantUser'] != null) {
         final tenantUser = result['tenantUser'];
         final property = result['property'];
-        final propertyId = property != null ? property['_id']?.toString() : tenantUser['propertyId']?.toString();
+        final propertyId = property != null
+            ? property['_id']?.toString()
+            : tenantUser['propertyId']?.toString();
         if (propertyId != null) {
           try {
             _ref.read(currentUserProvider.notifier).setPropertyId(propertyId);
           } catch (_) {}
         }
       }
-      
+
       // Immediate refresh (ref.refresh starts fetch now vs invalidate defers)
-  final _ = _ref.refresh(userInvitationsProvider);
-  final __ = _ref.refresh(tenantPropertiesProvider);
-  final ___ = _ref.refresh(propertiesProvider);
-  final ____ = _ref.refresh(landlordPropertiesProvider);
+      final _ = _ref.refresh(userInvitationsProvider);
+      final __ = _ref.refresh(tenantPropertiesProvider);
+      final ___ = _ref.refresh(propertiesProvider);
+      final ____ = _ref.refresh(landlordPropertiesProvider);
       // Trigger manual property refresh tick for any stream listeners
       try {
         _ref.read(propertyRefreshTriggerProvider.notifier).state++;
@@ -162,11 +165,11 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> declineInvitation(String invitationId) async {
     state = const AsyncValue.loading();
-    
+
     try {
       await _invitationService.declineInvitation(invitationId);
       state = const AsyncValue.data(null);
-      
+
       // Refresh invitations after declining
       _ref.invalidate(userInvitationsProvider);
       // Refresh tenant properties in case anything changed
@@ -195,7 +198,7 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
     String? message,
   }) async {
     state = const AsyncValue.loading();
-    
+
     try {
       await _invitationService.sendInvitation(
         propertyId: propertyId,
@@ -210,6 +213,7 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final invitationNotifierProvider = StateNotifierProvider<InvitationNotifier, AsyncValue<void>>((ref) {
+final invitationNotifierProvider =
+    StateNotifierProvider<InvitationNotifier, AsyncValue<void>>((ref) {
   return InvitationNotifier(ref.watch(invitationServiceProvider), ref);
 });

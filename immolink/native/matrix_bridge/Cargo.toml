@@ -1,0 +1,27 @@
+[package]
+name = "matrix_bridge"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Matrix SDK (pick compatible latest version in your environment)
+matrix-sdk = "0.7"
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+# Async runtime
+tokio = { version = "1.28", features = ["rt-multi-thread", "macros"] }
+
+# small helpers
+once_cell = "1.21"
+url = "2"
+
+# flutter_rust_bridge support
+flutter_rust_bridge = "=2.11.1"
+
+# Ensure SQLite is bundled via rusqlite to avoid linking to system sqlite3.lib on Windows
+rusqlite = { version = "0.30", features = ["bundled"] }

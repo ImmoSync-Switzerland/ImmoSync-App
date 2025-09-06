@@ -13,7 +13,8 @@ class EditProfilePage extends ConsumerStatefulWidget {
   ConsumerState<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerProviderStateMixin {
+class _EditProfilePageState extends ConsumerState<EditProfilePage>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -37,7 +38,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     // Load current user data
     final currentUser = ref.read(currentUserProvider);
     if (currentUser != null) {
@@ -45,7 +46,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
       _emailController.text = currentUser.email;
       // _phoneController.text = currentUser.phone ?? '';
     }
-    
+
     _animationController.forward();
   }
 
@@ -62,7 +63,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(colors),
@@ -228,7 +229,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                   radius: 40,
                   backgroundColor: Colors.transparent,
                   child: Text(
-                    user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'U',
+                    user?.fullName.isNotEmpty == true
+                        ? user!.fullName[0].toUpperCase()
+                        : 'U',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
@@ -304,7 +307,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -496,15 +500,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
             size: 20,
           ),
         ),
-        suffixIcon: suffixIcon != null 
-          ? Icon(
-              suffixIcon,
-              color: colors.textTertiary,
-              size: 18,
-            )
-          : null,
+        suffixIcon: suffixIcon != null
+            ? Icon(
+                suffixIcon,
+                color: colors.textTertiary,
+                size: 18,
+              )
+            : null,
         filled: true,
-        fillColor: enabled ? colors.primaryBackground : colors.surfaceCards.withValues(alpha: 0.5),
+        fillColor: enabled
+            ? colors.primaryBackground
+            : colors.surfaceCards.withValues(alpha: 0.5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
@@ -540,7 +546,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
             width: 1,
           ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       ),
     );
   }
@@ -579,34 +586,34 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
               ),
             ),
             child: _isLoading
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    strokeWidth: 2,
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.save_outlined,
-                      color: Colors.white,
-                      size: 20,
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 2,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Save Changes',
-                      style: TextStyle(
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.save_outlined,
                         color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.1,
+                        size: 20,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Save Changes',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
         const SizedBox(height: 16),
@@ -614,10 +621,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
           width: double.infinity,
           height: 56,
           child: OutlinedButton(
-            onPressed: _isLoading ? null : () {
-              HapticFeedback.lightImpact();
-              context.pop();
-            },
+            onPressed: _isLoading
+                ? null
+                : () {
+                    HapticFeedback.lightImpact();
+                    context.pop();
+                  },
             style: OutlinedButton.styleFrom(
               side: BorderSide(
                 color: colors.borderMedium,
@@ -645,7 +654,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
 
   void _saveProfile() async {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -777,7 +786,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     final colors = ref.read(dynamicColorsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Gallery image picker will be implemented with image_picker package'),
+        content: const Text(
+            'Gallery image picker will be implemented with image_picker package'),
         backgroundColor: colors.info,
       ),
     );
@@ -787,10 +797,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> with TickerPr
     final colors = ref.read(dynamicColorsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Camera image picker will be implemented with image_picker package'),
+        content: const Text(
+            'Camera image picker will be implemented with image_picker package'),
         backgroundColor: colors.info,
       ),
     );
   }
 }
-

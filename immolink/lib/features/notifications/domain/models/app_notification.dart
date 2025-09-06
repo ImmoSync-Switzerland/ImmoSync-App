@@ -17,7 +17,8 @@ class AppNotification {
     required this.read,
   });
 
-  factory AppNotification.fromJson(Map<String, dynamic> json) => AppNotification(
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      AppNotification(
         id: json['id'] as String,
         title: json['title'] as String? ?? '',
         body: json['body'] as String? ?? '',

@@ -33,7 +33,8 @@ class _MongoImageState extends State<MongoImage> {
   bool _isLoading = true;
   bool _hasError = false;
   Uint8List? _imageBytes;
-  String? _dataUrl;  @override
+  String? _dataUrl;
+  @override
   void initState() {
     super.initState();
     _loadImage();
@@ -69,15 +70,18 @@ class _MongoImageState extends State<MongoImage> {
       });
     }
   }
+
   Future<void> _loadImageAsBase64() async {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     final response = await http.get(
-      Uri.parse('${DbConfig.apiUrl}/images/base64/${widget.imageId}?v=$cacheBuster'),
+      Uri.parse(
+          '${DbConfig.apiUrl}/images/base64/${widget.imageId}?v=$cacheBuster'),
       headers: {'Content-Type': 'application/json'},
     );
 
-    print('Loading base64 image for ID: ${widget.imageId}, Status: ${response.statusCode}');
+    print(
+        'Loading base64 image for ID: ${widget.imageId}, Status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -90,12 +94,14 @@ class _MongoImageState extends State<MongoImage> {
       throw Exception('Failed to load image: ${response.statusCode}');
     }
   }
+
   Future<void> _loadImageAsBytes() async {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     // Accept raw ID or full URL; if widget.imageId already looks like a URL keep it
     String url;
-    if (widget.imageId.startsWith('http://') || widget.imageId.startsWith('https://')) {
+    if (widget.imageId.startsWith('http://') ||
+        widget.imageId.startsWith('https://')) {
       url = widget.imageId;
     } else {
       // Ensure we don't double append /api when constructing base
@@ -104,7 +110,8 @@ class _MongoImageState extends State<MongoImage> {
     }
     final response = await http.get(Uri.parse(url));
 
-    print('Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
+    print(
+        'Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       setState(() {
@@ -113,7 +120,8 @@ class _MongoImageState extends State<MongoImage> {
       });
       print('Image bytes loaded successfully');
     } else {
-  throw Exception('Failed to load image: ${response.statusCode} (${response.reasonPhrase})');
+      throw Exception(
+          'Failed to load image: ${response.statusCode} (${response.reasonPhrase})');
     }
   }
 

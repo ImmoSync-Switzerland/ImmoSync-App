@@ -6,15 +6,16 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 final conversationsProvider = StreamProvider<List<Conversation>>((ref) async* {
   final chatService = ref.read(chatServiceProvider);
   final currentUser = ref.watch(currentUserProvider);
-  
+
   if (currentUser == null) {
     yield [];
     return;
   }
-  
+
   while (true) {
     try {
-      final conversations = await chatService.getConversationsForUser(currentUser.id);
+      final conversations =
+          await chatService.getConversationsForUser(currentUser.id);
       yield conversations;
     } catch (e) {
       yield [];
@@ -22,4 +23,3 @@ final conversationsProvider = StreamProvider<List<Conversation>>((ref) async* {
     await Future.delayed(const Duration(seconds: 2));
   }
 });
-

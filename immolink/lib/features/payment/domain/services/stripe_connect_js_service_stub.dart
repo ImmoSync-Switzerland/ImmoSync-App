@@ -47,16 +47,15 @@ class StripeConnectJSService {
     return false;
   }
 
-  static StripeConnectComponent? createComponent(String componentType, {String? elementId}) {
+  static StripeConnectComponent? createComponent(String componentType,
+      {String? elementId}) {
     // Not available on native platforms.
     return null;
   }
 
   static StripeConnectComponent? createAndMountComponent(
-    String componentType,
-    String elementId,
-    {Map<String, dynamic>? options}
-  ) {
+      String componentType, String elementId,
+      {Map<String, dynamic>? options}) {
     return null;
   }
 

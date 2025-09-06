@@ -24,11 +24,11 @@ class AppTopBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
     this.location,
     this.onLocationTap,
     this.onNotificationTap,
-  this.onRefresh,
+    this.onRefresh,
     this.leading,
     this.showNotification = true,
     this.showLocation = false,
-  this.showRefresh = false,
+    this.showRefresh = false,
   });
 
   @override
@@ -54,123 +54,132 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
       data: (list) => list.where((n) => !n.read).length,
       orElse: () => 0,
     );
-  return Stack(
+    return Stack(
       clipBehavior: Clip.none,
       children: [
         Container(
-      height: AppSizes.topAppBarHeight,
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColorsDark.appBarBackground
-            : AppColors.primaryBackground,
-        border: Border(
-          bottom: BorderSide(
+          height: AppSizes.topAppBarHeight,
+          decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
-                ? AppColorsDark.dividerSeparator
-                : AppColors.dividerSeparator,
-            width: 1,
+                ? AppColorsDark.appBarBackground
+                : AppColors.primaryBackground,
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColorsDark.dividerSeparator
+                    : AppColors.dividerSeparator,
+                width: 1,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.horizontalPadding),
-          child: Row(
-            children: [
-              // Left: Hamburger or Back icon
-              if (widget.leading != null) ...[
-                widget.leading!
-              ] else if (widget.showRefresh) ...[
-                IconButton(
-                  onPressed: widget.onRefresh,
-                  icon: Icon(
-                    Icons.refresh,
-                    size: AppSizes.iconMedium,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColorsDark.textPrimary
-                        : AppColors.textPrimary,
-                  ),
-                  tooltip: 'Refresh',
-                ),
-              ] else ...[
-                const SizedBox(width: AppSizes.iconMedium + 16), // spacer to keep layout
-              ],
-              
-              // Center: Title or Location
-              Expanded(
-                child: Center(
-                  child: widget.showLocation && widget.location != null
-                      ? GestureDetector(
-                          onTap: widget.onLocationTap,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                widget.location!,
-                                style: AppTypography.body,
-                              ),
-                              const SizedBox(width: AppSpacing.xs),
-                              const Icon(
-                                Icons.keyboard_arrow_down,
-                                size: AppSizes.iconSmall,
-                                color: AppColors.textSecondary,
-                              ),
-                            ],
-                          ),
-                        )
-                      : widget.title != null
-                          ? Text(
-                              widget.title!,
-                              style: AppTypography.subhead,
-                            )
-                          : const SizedBox.shrink(),
-                ),
-              ),
-              
-              // Right: Notification bell
-              if (widget.showNotification)
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.horizontalPadding),
+              child: Row(
+                children: [
+                  // Left: Hamburger or Back icon
+                  if (widget.leading != null) ...[
+                    widget.leading!
+                  ] else if (widget.showRefresh) ...[
                     IconButton(
-                      key: _bellKey,
-                      onPressed: widget.onNotificationTap ?? _togglePopup,
-            icon: Icon(
-              popupVisible ? Icons.notifications : Icons.notifications_outlined,
-              size: AppSizes.iconMedium,
-              color: Theme.of(context).brightness == Brightness.dark
-                ? AppColorsDark.textPrimary
-                : AppColors.textPrimary,
-              ),
+                      onPressed: widget.onRefresh,
+                      icon: Icon(
+                        Icons.refresh,
+                        size: AppSizes.iconMedium,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColorsDark.textPrimary
+                            : AppColors.textPrimary,
+                      ),
+                      tooltip: 'Refresh',
                     ),
-                    if (unreadCount > 0)
-                      Positioned(
-                        right: 6,
-                        top: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          constraints: const BoxConstraints(minWidth: 18),
-                          child: Text(
-                            unreadCount > 99 ? '99+' : unreadCount.toString(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  ] else ...[
+                    const SizedBox(
+                        width:
+                            AppSizes.iconMedium + 16), // spacer to keep layout
+                  ],
+
+                  // Center: Title or Location
+                  Expanded(
+                    child: Center(
+                      child: widget.showLocation && widget.location != null
+                          ? GestureDetector(
+                              onTap: widget.onLocationTap,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.location!,
+                                    style: AppTypography.body,
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: AppSizes.iconSmall,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : widget.title != null
+                              ? Text(
+                                  widget.title!,
+                                  style: AppTypography.subhead,
+                                )
+                              : const SizedBox.shrink(),
+                    ),
+                  ),
+
+                  // Right: Notification bell
+                  if (widget.showNotification)
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton(
+                          key: _bellKey,
+                          onPressed: widget.onNotificationTap ?? _togglePopup,
+                          icon: Icon(
+                            popupVisible
+                                ? Icons.notifications
+                                : Icons.notifications_outlined,
+                            size: AppSizes.iconMedium,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColorsDark.textPrimary
+                                    : AppColors.textPrimary,
                           ),
                         ),
-                      ),
-                  ],
-                ),
-            ],
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(minWidth: 18),
+                              child: Text(
+                                unreadCount > 99
+                                    ? '99+'
+                                    : unreadCount.toString(),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
         ), // end Container
         // Tap outside to dismiss overlay
         if (popupVisible)

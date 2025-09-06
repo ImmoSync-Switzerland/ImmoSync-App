@@ -39,9 +39,12 @@ class LandlordService {
       description: service.description,
       category: service.category,
       price: service.price,
-      provider: service.contactInfo.split('\n').first, // Extract provider name from contact info
+      provider: service.contactInfo
+          .split('\n')
+          .first, // Extract provider name from contact info
       contactInfo: service.contactInfo,
-      schedule: 'As needed', // Default schedule since backend doesn't have this field
+      schedule:
+          'As needed', // Default schedule since backend doesn't have this field
       isActive: service.availability == 'available',
     );
   }
@@ -64,24 +67,26 @@ class LandlordServicesSetupPage extends ConsumerStatefulWidget {
   const LandlordServicesSetupPage({super.key});
 
   @override
-  ConsumerState<LandlordServicesSetupPage> createState() => _LandlordServicesSetupPageState();
+  ConsumerState<LandlordServicesSetupPage> createState() =>
+      _LandlordServicesSetupPageState();
 }
 
-class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetupPage> {
+class _LandlordServicesSetupPageState
+    extends ConsumerState<LandlordServicesSetupPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
     final user = ref.watch(currentUserProvider);
-    
+
     if (user == null) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    
+
     final servicesAsync = ref.watch(landlordServicesProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -92,15 +97,16 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
       ),
       body: servicesAsync.when(
         data: (services) {
-          final landlordServices = services.map((s) => LandlordService.fromServiceModel(s)).toList();
-          
+          final landlordServices =
+              services.map((s) => LandlordService.fromServiceModel(s)).toList();
+
           return Column(
             children: [
               _buildHeader(colors),
               Expanded(
-                child: landlordServices.isEmpty 
-                  ? _buildEmptyState(l10n, colors)
-                  : _buildServicesList(landlordServices, l10n, colors),
+                child: landlordServices.isEmpty
+                    ? _buildEmptyState(l10n, colors)
+                    : _buildServicesList(landlordServices, l10n, colors),
               ),
             ],
           );
@@ -188,7 +194,8 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 
-  Widget _buildServicesList(List<LandlordService> services, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildServicesList(List<LandlordService> services,
+      AppLocalizations l10n, DynamicAppColors colors) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: services.length,
@@ -201,7 +208,8 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     );
   }
 
-  Widget _buildServiceCard(LandlordService service, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildServiceCard(
+      LandlordService service, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -275,7 +283,8 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: colors.textSecondary, size: 18),
+                  icon: Icon(Icons.more_vert,
+                      color: colors.textSecondary, size: 18),
                   onSelected: (value) => _handleServiceAction(value, service),
                   itemBuilder: (context) => [
                     PopupMenuItem(
@@ -293,7 +302,9 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                       child: Row(
                         children: [
                           Icon(
-                            service.isActive ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                            service.isActive
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
                             size: 18,
                           ),
                           SizedBox(width: 10),
@@ -305,7 +316,8 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, size: 18, color: colors.error),
+                          Icon(Icons.delete_outline,
+                              size: 18, color: colors.error),
                           SizedBox(width: 10),
                           Text('Delete', style: TextStyle(color: colors.error)),
                         ],
@@ -330,12 +342,17 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: service.isActive ? colors.success.withValues(alpha: 0.1) : colors.warning.withValues(alpha: 0.1),
+                    color: service.isActive
+                        ? colors.success.withValues(alpha: 0.1)
+                        : colors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: service.isActive ? colors.success.withValues(alpha: 0.3) : colors.warning.withValues(alpha: 0.3),
+                      color: service.isActive
+                          ? colors.success.withValues(alpha: 0.3)
+                          : colors.warning.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(
@@ -349,11 +366,13 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: colors.primaryAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: colors.primaryAccent.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     'CHF ${service.price.toStringAsFixed(0)}',
@@ -507,16 +526,18 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
   void _toggleServiceStatus(LandlordService service) async {
     final colors = ref.read(dynamicColorsProvider);
     final user = ref.read(currentUserProvider);
-    
+
     if (user == null) return;
-    
+
     try {
       final updatedService = service.toServiceModel(user.id).copyWith(
-        availability: service.isActive ? 'unavailable' : 'available',
-      );
-      
-      await ref.read(serviceNotifierProvider.notifier).updateService(updatedService);
-      
+            availability: service.isActive ? 'unavailable' : 'available',
+          );
+
+      await ref
+          .read(serviceNotifierProvider.notifier)
+          .updateService(updatedService);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -537,7 +558,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
 
   void _showDeleteConfirmation(BuildContext context, LandlordService service) {
     final colors = ref.read(dynamicColorsProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -554,7 +575,9 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
           ElevatedButton(
             onPressed: () async {
               try {
-                await ref.read(serviceNotifierProvider.notifier).deleteService(service.id);
+                await ref
+                    .read(serviceNotifierProvider.notifier)
+                    .deleteService(service.id);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -596,9 +619,9 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
     final user = ref.read(currentUserProvider);
     final isEditing = service != null;
     final formKey = GlobalKey<FormState>();
-    
+
     if (user == null) return;
-    
+
     String name = service?.name ?? '';
     String description = service?.description ?? '';
     String category = service?.category ?? 'maintenance';
@@ -621,9 +644,11 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   initialValue: name,
                   decoration: InputDecoration(
                     labelText: 'Service Name',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Required' : null,
                   onSaved: (value) => name = value ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -631,10 +656,12 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   initialValue: description,
                   decoration: InputDecoration(
                     labelText: 'Description',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   maxLines: 2,
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Required' : null,
                   onSaved: (value) => description = value ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -642,11 +669,14 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   initialValue: category,
                   decoration: InputDecoration(
                     labelText: 'Category',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   items: [
-                    DropdownMenuItem(value: 'maintenance', child: Text('Maintenance')),
-                    DropdownMenuItem(value: 'cleaning', child: Text('Cleaning')),
+                    DropdownMenuItem(
+                        value: 'maintenance', child: Text('Maintenance')),
+                    DropdownMenuItem(
+                        value: 'cleaning', child: Text('Cleaning')),
                     DropdownMenuItem(value: 'repair', child: Text('Repair')),
                     DropdownMenuItem(value: 'general', child: Text('General')),
                   ],
@@ -657,9 +687,11 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   initialValue: provider,
                   decoration: InputDecoration(
                     labelText: 'Provider Name',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Required' : null,
                   onSaved: (value) => provider = value ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -668,10 +700,12 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   decoration: InputDecoration(
                     labelText: 'Contact Information',
                     hintText: 'Phone, email, or other contact details',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   maxLines: 2,
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Required' : null,
                   onSaved: (value) => contactInfo = value ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -679,12 +713,14 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   initialValue: price > 0 ? price.toString() : '',
                   decoration: InputDecoration(
                     labelText: 'Price (CHF)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Required';
-                    if (double.tryParse(value!) == null) return 'Invalid number';
+                    if (double.tryParse(value!) == null)
+                      return 'Invalid number';
                     return null;
                   },
                   onSaved: (value) => price = double.tryParse(value!) ?? 0.0,
@@ -702,7 +738,7 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
             onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
                 formKey.currentState?.save();
-                
+
                 try {
                   final serviceModel = ServiceModel.Service(
                     id: service?.id ?? '',
@@ -716,15 +752,20 @@ class _LandlordServicesSetupPageState extends ConsumerState<LandlordServicesSetu
                   );
 
                   if (isEditing) {
-                    await ref.read(serviceNotifierProvider.notifier).updateService(serviceModel);
+                    await ref
+                        .read(serviceNotifierProvider.notifier)
+                        .updateService(serviceModel);
                   } else {
-                    await ref.read(serviceNotifierProvider.notifier).createService(serviceModel);
+                    await ref
+                        .read(serviceNotifierProvider.notifier)
+                        .createService(serviceModel);
                   }
 
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(isEditing ? 'Service updated' : 'Service added'),
+                      content:
+                          Text(isEditing ? 'Service updated' : 'Service added'),
                       backgroundColor: colors.success,
                     ),
                   );

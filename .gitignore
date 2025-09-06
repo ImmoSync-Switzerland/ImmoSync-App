@@ -6,3 +6,4 @@ backend/config.js
 /immolink/macos
 /immolink/linux
 /immolink/android
+/immolink/native/matrix_bridge/target

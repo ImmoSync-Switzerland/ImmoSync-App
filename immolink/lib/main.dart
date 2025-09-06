@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui'; // For PlatformDispatcher
+// For PlatformDispatcher
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,6 +19,9 @@ import 'package:immosync/l10n_helper.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() async {
   bool _appStarted = false; // track if primary runApp already executed
@@ -153,6 +156,10 @@ class ImmoSync extends ConsumerWidget {
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {
         fcm.updateUserId(next.userId);
+        // Initialize and login Matrix bridge once user is known
+        if (next.isAuthenticated && next.userId != null) {
+          _initMatrixForUser(next.userId!);
+        }
       }
     });
     final router = ref.watch(routerProvider);
@@ -193,6 +200,38 @@ class ImmoSync extends ConsumerWidget {
       ],
       supportedLocales: L10n.all,
     );
+  }
+}
+
+// Fire-and-forget Matrix init+login using backend-provisioned credentials
+Future<void> _initMatrixForUser(String userId) async {
+  try {
+    final api = DbConfig.apiUrl;
+    Future<Map<String, dynamic>?> fetchAccount() async {
+      final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
+      if (r.statusCode != 200) return null;
+      return json.decode(r.body) as Map<String, dynamic>;
+    }
+
+    var data = await fetchAccount();
+    if (data == null) {
+      // Try to provision the account then fetch again
+      await http.post(Uri.parse('$api/matrix/provision'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({'userId': userId}));
+      data = await fetchAccount();
+    }
+    if (data == null) return;
+    final homeserver = (data['baseUrl'] as String?) ?? '';
+    final username = data['username'] as String?;
+    final password = data['password'] as String?;
+    if (homeserver.isEmpty || username == null || password == null) return;
+    await MatrixChatService.instance.ensureInitialized(homeserver: homeserver);
+    await MatrixChatService.instance
+        .login(username: username, password: password);
+  } catch (e, st) {
+    debugPrint('Matrix init/login failed: $e');
+    debugPrint(st.toString());
   }
 }
 

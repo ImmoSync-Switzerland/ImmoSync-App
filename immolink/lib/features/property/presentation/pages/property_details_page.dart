@@ -22,7 +22,8 @@ class PropertyDetailsPage extends ConsumerWidget {
 
   const PropertyDetailsPage({required this.propertyId, super.key});
 
-  String _getImageUrl(String imageIdOrPath) => resolvePropertyImage(imageIdOrPath);
+  String _getImageUrl(String imageIdOrPath) =>
+      resolvePropertyImage(imageIdOrPath);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,7 +62,10 @@ class PropertyDetailsPage extends ConsumerWidget {
               // Fallback generic error message key (adjust if specific key exists)
               AppLocalizations.of(context)!.error,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.red),
             ),
           ),
         ),
@@ -143,7 +147,8 @@ class PropertyDetailsPage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Expanded(            child: _buildStatCard(
+          Expanded(
+            child: _buildStatCard(
               context,
               Icons.square_foot,
               '${property.details.size} m²',
@@ -191,7 +196,8 @@ class PropertyDetailsPage extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, color: ref.read(dynamicColorsProvider).primaryAccent, size: 24),
+          Icon(icon,
+              color: ref.read(dynamicColorsProvider).primaryAccent, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
@@ -235,7 +241,8 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildAmenities(BuildContext context, Property property, WidgetRef ref) {
+  Widget _buildAmenities(
+      BuildContext context, Property property, WidgetRef ref) {
     if (property.details.amenities.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -260,7 +267,10 @@ class PropertyDetailsPage extends ConsumerWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: ref.read(dynamicColorsProvider).primaryAccent.withValues(alpha: 0.1),
+                  color: ref
+                      .read(dynamicColorsProvider)
+                      .primaryAccent
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -291,7 +301,8 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLocation(BuildContext context, Property property, WidgetRef ref) {
+  Widget _buildLocation(
+      BuildContext context, Property property, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -314,7 +325,8 @@ class PropertyDetailsPage extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
               child: FutureBuilder<LatLng?>(
                 future: _getLocationFromAddress(property.address),
-                builder: (context, snapshot) {                  if (snapshot.connectionState == ConnectionState.waiting) {
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return Container(
                       color: Colors.grey[100],
                       child: const Center(child: CircularProgressIndicator()),
@@ -366,7 +378,8 @@ class PropertyDetailsPage extends ConsumerWidget {
                           position: location,
                           infoWindow: InfoWindow(
                             title: property.address.street,
-                            snippet: '${property.address.city}, ${property.address.postalCode}',
+                            snippet:
+                                '${property.address.city}, ${property.address.postalCode}',
                           ),
                         ),
                       },
@@ -391,10 +404,16 @@ class PropertyDetailsPage extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: ref.read(dynamicColorsProvider).primaryAccent.withValues(alpha: 0.1),
+                color: ref
+                    .read(dynamicColorsProvider)
+                    .primaryAccent
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: ref.read(dynamicColorsProvider).primaryAccent.withValues(alpha: 0.3),
+                  color: ref
+                      .read(dynamicColorsProvider)
+                      .primaryAccent
+                      .withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -412,7 +431,8 @@ class PropertyDetailsPage extends ConsumerWidget {
                         Text(
                           AppLocalizations.of(context)!.getDirections,
                           style: TextStyle(
-                            color: ref.read(dynamicColorsProvider).primaryAccent,
+                            color:
+                                ref.read(dynamicColorsProvider).primaryAccent,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                             inherit: true,
@@ -421,7 +441,8 @@ class PropertyDetailsPage extends ConsumerWidget {
                         Text(
                           '${property.address.street}, ${property.address.city}',
                           style: TextStyle(
-                            color: ref.read(dynamicColorsProvider).textSecondary,
+                            color:
+                                ref.read(dynamicColorsProvider).textSecondary,
                             fontSize: 12,
                             inherit: true,
                           ),
@@ -441,31 +462,36 @@ class PropertyDetailsPage extends ConsumerWidget {
         ],
       ),
     );
-  }  Future<LatLng?> _getLocationFromAddress(Address address) async {
+  }
+
+  Future<LatLng?> _getLocationFromAddress(Address address) async {
     try {
-      debugPrint('Trying to geocode: ${address.street}, ${address.city}, ${address.postalCode}, ${address.country}');
-      
+      debugPrint(
+          'Trying to geocode: ${address.street}, ${address.city}, ${address.postalCode}, ${address.country}');
+
       // First try Google Maps Geocoding API directly
       final googleLocation = await _tryGoogleGeocodingAPI(address);
       if (googleLocation != null) {
-        debugPrint('Google Geocoding successful: ${googleLocation.latitude}, ${googleLocation.longitude}');
+        debugPrint(
+            'Google Geocoding successful: ${googleLocation.latitude}, ${googleLocation.longitude}');
         return googleLocation;
       }
-      
+
       // Then try the built-in geocoding service
       final location = await _tryBuiltInGeocoding(address);
       if (location != null) {
-        debugPrint('Built-in geocoding successful: ${location.latitude}, ${location.longitude}');
+        debugPrint(
+            'Built-in geocoding successful: ${location.latitude}, ${location.longitude}');
         return location;
       }
-      
+
       // Fallback: Use approximate coordinates for Swiss cities
       final fallbackLocation = _getSwissCityCoordinates(address.city);
       if (fallbackLocation != null) {
         debugPrint('Using fallback coordinates for ${address.city}');
         return fallbackLocation;
       }
-      
+
       debugPrint('Geocoding failed, returning null');
       return null;
     } catch (e) {
@@ -478,21 +504,24 @@ class PropertyDetailsPage extends ConsumerWidget {
   Future<LatLng?> _tryGoogleGeocodingAPI(Address address) async {
     try {
       const apiKey = 'AIzaSyBn2DBnF5XDD-X4JkrT0XKDJSAZwydyNY4';
-      final query = Uri.encodeComponent('${address.street}, ${address.city}, ${address.postalCode}, ${address.country}');
-      final url = 'https://maps.googleapis.com/maps/api/geocode/json?address=$query&key=$apiKey';
-      
+      final query = Uri.encodeComponent(
+          '${address.street}, ${address.city}, ${address.postalCode}, ${address.country}');
+      final url =
+          'https://maps.googleapis.com/maps/api/geocode/json?address=$query&key=$apiKey';
+
       debugPrint('Trying Google Geocoding API: $url');
-      
+
       final response = await http.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['status'] == 'OK' && data['results'].isNotEmpty) {
           final location = data['results'][0]['geometry']['location'];
           return LatLng(location['lat'].toDouble(), location['lng'].toDouble());
         } else {
-          debugPrint('Google Geocoding API error: ${data['status']} - ${data['error_message'] ?? 'No error message'}');
+          debugPrint(
+              'Google Geocoding API error: ${data['status']} - ${data['error_message'] ?? 'No error message'}');
         }
       } else {
         debugPrint('Google Geocoding API HTTP error: ${response.statusCode}');
@@ -501,11 +530,14 @@ class PropertyDetailsPage extends ConsumerWidget {
       debugPrint('Google Geocoding API exception: $e');
     }
     return null;
-  }  // Fallback coordinates for common Swiss cities and specific addresses
+  } // Fallback coordinates for common Swiss cities and specific addresses
+
   LatLng? _getSwissCityCoordinates(String city) {
     final coordinates = {
-      'Therwil': LatLng(47.4976342, 7.5536007), // Updated with exact coordinates
-      'Hinterkirchweg 78, Therwil': LatLng(47.4976342, 7.5536007), // Exact coordinates from Google API
+      'Therwil':
+          LatLng(47.4976342, 7.5536007), // Updated with exact coordinates
+      'Hinterkirchweg 78, Therwil':
+          LatLng(47.4976342, 7.5536007), // Exact coordinates from Google API
       'Basel': LatLng(47.5596, 7.5886),
       'Zürich': LatLng(47.3769, 8.5417),
       'Bern': LatLng(46.9481, 7.4474),
@@ -515,12 +547,12 @@ class PropertyDetailsPage extends ConsumerWidget {
       'Lucerne': LatLng(47.0502, 8.3093),
       // Add more cities as needed
     };
-    
+
     // Try exact match first
     if (coordinates.containsKey(city)) {
       return coordinates[city];
     }
-    
+
     // Try case-insensitive match
     final cityLower = city.toLowerCase();
     for (final entry in coordinates.entries) {
@@ -528,7 +560,7 @@ class PropertyDetailsPage extends ConsumerWidget {
         return entry.value;
       }
     }
-    
+
     return null;
   }
 
@@ -540,15 +572,16 @@ class PropertyDetailsPage extends ConsumerWidget {
         '${address.city}, ${address.postalCode}, ${address.country}',
         '${address.city}, ${address.country}',
       ];
-      
+
       for (final query in queries) {
         try {
           debugPrint('Trying geocoding query: $query');
           final locations = await locationFromAddress(query);
-          
+
           if (locations.isNotEmpty) {
             final location = locations.first;
-            debugPrint('Found location: ${location.latitude}, ${location.longitude}');
+            debugPrint(
+                'Found location: ${location.latitude}, ${location.longitude}');
             return LatLng(location.latitude, location.longitude);
           }
         } catch (e) {
@@ -563,15 +596,17 @@ class PropertyDetailsPage extends ConsumerWidget {
   }
 
   void _openMapsApp(LatLng location) async {
-    final url = 'https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}';
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     }
   }
 
-  Widget _buildFinancialDetails(BuildContext context, Property property, WidgetRef ref) {
+  Widget _buildFinancialDetails(
+      BuildContext context, Property property, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -599,11 +634,13 @@ class PropertyDetailsPage extends ConsumerWidget {
                     Text(
                       AppLocalizations.of(context)!.monthlyRent,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.textSecondary,
-                      ),
+                            color: colors.textSecondary,
+                          ),
                     ),
                     Text(
-                      ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
+                      ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(property.rentAmount),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colors.textPrimary,
@@ -618,11 +655,13 @@ class PropertyDetailsPage extends ConsumerWidget {
                     Text(
                       AppLocalizations.of(context)!.outstandingPayments,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.textSecondary,
-                      ),
+                            color: colors.textSecondary,
+                          ),
                     ),
                     Text(
-                      ref.read(currencyProvider.notifier).formatAmount(property.outstandingPayments),
+                      ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(property.outstandingPayments),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: property.outstandingPayments > 0
@@ -643,35 +682,40 @@ class PropertyDetailsPage extends ConsumerWidget {
   Widget _buildAppBar(Property property, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
-    
+
     return SliverAppBar(
       expandedHeight: 300,
       pinned: true,
       backgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.white),
-      actions: isLandlord ? [
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
-            onPressed: () {
-              GoRouter.of(ref.context).push('/add-property', extra: property);
-            },
-          ),
-        ),
-      ] : null,      flexibleSpace: FlexibleSpaceBar(
+      actions: isLandlord
+          ? [
+              Container(
+                margin: const EdgeInsets.only(right: 16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  onPressed: () {
+                    GoRouter.of(ref.context)
+                        .push('/add-property', extra: property);
+                  },
+                ),
+              ),
+            ]
+          : null,
+      flexibleSpace: FlexibleSpaceBar(
         background: property.imageUrls.isNotEmpty
             ? PageView.builder(
                 itemCount: property.imageUrls.length,
                 itemBuilder: (context, index) {
                   final imageIdOrPath = property.imageUrls[index];
-                  
+
                   // Check if it's a MongoDB ObjectId (24 hex characters)
-                  if (imageIdOrPath.length == 24 && RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
+                  if (imageIdOrPath.length == 24 &&
+                      RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
                     final resolved = _getImageUrl(imageIdOrPath);
                     return MongoImage(
                       imageId: resolved,
@@ -713,7 +757,8 @@ class PropertyDetailsPage extends ConsumerWidget {
                       return Container(
                         color: Colors.grey[300],
                         child: const Center(
-                          child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
+                          child: Icon(Icons.image_not_supported,
+                              size: 48, color: Colors.grey),
                         ),
                       );
                     }
@@ -786,9 +831,12 @@ class PropertyDetailsPage extends ConsumerWidget {
               ),
       ),
     );
-  }  Widget _buildContactButton(BuildContext context, Property property, WidgetRef ref) {
+  }
+
+  Widget _buildContactButton(
+      BuildContext context, Property property, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
-    
+
     if (currentUser?.role == 'landlord' && property.status == 'available') {
       return FloatingActionButton.extended(
         onPressed: () => _showInviteTenantDialog(context, property),
@@ -800,7 +848,7 @@ class PropertyDetailsPage extends ConsumerWidget {
         ),
       );
     }
-    
+
     // Return empty container instead of message button
     return const SizedBox.shrink();
   }
@@ -817,6 +865,7 @@ class PropertyDetailsPage extends ConsumerWidget {
         return Colors.grey;
     }
   }
+
   String _getStatusText(BuildContext context, String status) {
     switch (status) {
       case 'available':

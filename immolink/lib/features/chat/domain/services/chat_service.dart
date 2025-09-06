@@ -1,4 +1,6 @@
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
@@ -6,9 +8,12 @@ import 'package:immosync/features/chat/domain/models/conversation.dart';
 import 'dart:io';
 import 'package:immosync/core/crypto/e2ee_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+import 'package:immosync/bridge.dart' as frb; // FRB generated helpers
 
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;
+  final Map<String, List<int>> _attachmentCache = {};
 
   Future<List<Conversation>> getConversationsForUser(String userId) async {
     final response = await http.get(
@@ -26,7 +31,8 @@ class ChatService {
   Future<List<Conversation>> getConversations() async {
     // Fallback method - this should be replaced with user-specific calls
     final response = await http.get(
-      Uri.parse('$_apiUrl/conversations/user/current'), // Will need current user ID
+      Uri.parse(
+          '$_apiUrl/conversations/user/current'), // Will need current user ID
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -49,40 +55,74 @@ class ChatService {
     }
     throw Exception('Failed to fetch messages');
   }
+
   Future<void> sendMessage({
     required String conversationId,
     required String senderId,
     required String receiverId,
     required String content,
+    // Removed misplaced import statement
   }) async {
-    final response = await http.post(
-      Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'senderId': senderId,
-        'receiverId': receiverId,
-        'content': content,
-        'timestamp': DateTime.now().toIso8601String(),
-        'messageType': 'text',
-        'isRead': false,
-      }),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception('Failed to send message: ${response.body}');
+  // Resolve Matrix roomId for this conversation (server must provide mapping)
+  final roomId = await _fetchOrCreateMatrixRoomId(
+    conversationId: conversationId,
+    creatorUserId: senderId,
+    otherUserId: receiverId);
+    if (roomId == null || roomId.isEmpty) {
+      throw Exception('Matrix roomId not found for conversation $conversationId');
     }
-    
-    // Also update the conversation's last message
+    // Send via FRB
+    await frb.sendMessage(roomId: roomId, body: content);
+    // Optionally update last message on our backend for dashboard lists
     await _updateConversationLastMessage(conversationId, content);
   }
-  
-  Future<void> _updateConversationLastMessage(String conversationId, String lastMessage) async {
+
+  Future<String?> _fetchOrCreateMatrixRoomId({
+    required String conversationId,
+    required String creatorUserId,
+    required String otherUserId,
+  }) async {
+    // Expect backend to expose mapping endpoint
+    final res = await http.get(
+      Uri.parse('$_apiUrl/conversations/$conversationId/matrix-room'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (res.statusCode == 200) {
+      final data = json.decode(res.body);
+      return data['matrixRoomId'] ?? data['roomId'] ?? data['matrix_room_id'];
+    }
+    if (res.statusCode == 404) {
+      // Ask backend to create the room mapping now
+      final create = await http.post(
+        Uri.parse('$_apiUrl/matrix/create-room'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'conversationId': conversationId,
+          'creatorUserId': creatorUserId,
+          'otherUserId': otherUserId,
+        }),
+      );
+      if (create.statusCode == 200) {
+        final data = json.decode(create.body);
+        return data['roomId'] ?? data['matrixRoomId'];
+      }
+    }
+    return null;
+  }
+
+  Future<void> _updateConversationLastMessage(
+      String conversationId, String lastMessage) async {
     try {
+      // If backend/content indicates encrypted placeholder, normalize preview
+      final normalized =
+          (lastMessage == '[encrypted]' || lastMessage == '[Encrypted]')
+              ? 'Encrypted message'
+              : lastMessage;
       await http.put(
         Uri.parse('$_apiUrl/conversations/$conversationId'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'lastMessage': lastMessage,
+          'lastMessage': normalized,
           'lastMessageTime': DateTime.now().toIso8601String(),
         }),
       );
@@ -155,7 +195,8 @@ class ChatService {
     if (response.statusCode != 201) {
       throw Exception('Failed to send invitation');
     }
-  }  // Create a new conversation (now uses find-or-create to preserve history)
+  } // Create a new conversation (now uses find-or-create to preserve history)
+
   Future<String> createNewConversation({
     required String otherUserId,
     required String initialMessage,
@@ -164,14 +205,14 @@ class ChatService {
     try {
       // Use provided currentUserId or fallback to a temp ID
       final actualCurrentUserId = currentUserId ?? 'current-user-id';
-      
+
       // First try to find existing conversation to preserve history
       try {
         final existingConversationId = await findOrCreateConversation(
           currentUserId: actualCurrentUserId,
           otherUserId: otherUserId,
         );
-        
+
         // If we found an existing conversation, send the initial message to it
         await sendMessage(
           conversationId: existingConversationId,
@@ -179,13 +220,13 @@ class ChatService {
           receiverId: otherUserId,
           content: initialMessage,
         );
-        
+
         return existingConversationId;
       } catch (e) {
         // If find-or-create fails, fall back to creating a new conversation
         print('Find-or-create failed, creating new conversation: $e');
       }
-      
+
       // Fallback: create a completely new conversation
       final response = await http.post(
         Uri.parse('$_apiUrl/conversations'),
@@ -232,7 +273,7 @@ class ChatService {
   }
 
   // Send document/file message
-  Future<void> sendDocument({
+  Future<ChatMessage?> sendDocument({
     required String conversationId,
     required String senderId,
     required String fileName,
@@ -240,87 +281,180 @@ class ChatService {
     String? fileSize,
     String? otherUserId,
     WidgetRef? ref,
+    void Function(double progress)? onProgress,
   }) async {
     try {
-      Map<String,dynamic>? encMeta;
+      final bytes = await File(filePath).readAsBytes();
+      Map<String, dynamic>? encMeta;
       if (ref != null && otherUserId != null) {
-        try {
-          final e2ee = ref.read(e2eeServiceProvider);
-          final bytes = await File(filePath).readAsBytes();
-            final enc = await e2ee.encryptAttachment(conversationId: conversationId, otherUserId: otherUserId, bytes: bytes);
-            if (enc != null) {
-              encMeta = enc;
-            }
-        } catch (_) {}
+        final e2ee = ref.read(e2eeServiceProvider);
+        encMeta = await e2ee.encryptAttachment(
+            conversationId: conversationId,
+            otherUserId: otherUserId,
+            bytes: bytes);
       }
-      final body = {
-        'senderId': senderId,
-        'messageType': 'file',
-        'content': fileName,
-        'metadata': {
-          'fileName': fileName,
-          'filePath': filePath,
-          'fileSize': fileSize,
-          'fileType': fileName.split('.').last,
-          if (encMeta != null) 'ciphertext': encMeta['ciphertext'],
-          if (encMeta != null) 'iv': encMeta['iv'],
-          if (encMeta != null) 'tag': encMeta['tag'],
-          if (encMeta != null) 'encVersion': encMeta['v'],
-        },
-        if (encMeta != null) 'e2ee': {
-          'ciphertext': encMeta['ciphertext'],
-          'iv': encMeta['iv'],
-          'tag': encMeta['tag'],
-          'v': encMeta['v'],
-          'type': 'file'
-        },
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-      final response = await http.post(
-        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(body),
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send document');
+      if (encMeta == null) {
+        throw Exception('Encryption key not established yet');
       }
+      final uri = Uri.parse('$_apiUrl/chat/attachments/$conversationId');
+      final request = http.MultipartRequest('POST', uri);
+      request.fields['senderId'] = senderId;
+      if (otherUserId != null) request.fields['receiverId'] = otherUserId;
+      request.fields['messageType'] = 'file';
+      request.fields['fileName'] = fileName;
+      request.fields['iv'] = encMeta['iv'];
+      request.fields['tag'] = encMeta['tag'];
+      request.fields['v'] = encMeta['v'].toString();
+      final mimeType = lookupMimeType(fileName) ?? 'application/octet-stream';
+      final parts = mimeType.split('/');
+      request.files.add(http.MultipartFile.fromBytes(
+          'file', base64.decode(encMeta['ciphertext']),
+          filename: fileName + '.enc',
+          contentType: MediaType(parts[0], parts[1])));
+      final resp =
+          await _sendMultipartWithProgress(request, onProgress: onProgress);
+      if (resp.statusCode != 201) {
+        throw Exception('Upload failed: ${resp.body}');
+      }
+      final decoded = json.decode(resp.body);
+      if (decoded is Map && decoded['stored'] != null) {
+        return ChatMessage.fromMap(decoded['stored']);
+      }
+      return null;
     } catch (e) {
-      print('Error sending document: $e');
+      print('Error sending encrypted document: $e');
       throw Exception('Failed to send document: $e');
     }
   }
 
   // Send image message
-  Future<void> sendImage({
+  Future<ChatMessage?> sendImage({
     required String conversationId,
     required String senderId,
     required String fileName,
     required String imagePath,
+    String? otherUserId,
+    WidgetRef? ref,
+    void Function(double progress)? onProgress,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'senderId': senderId,
-          'messageType': 'image',
-          'content': fileName,
-          'metadata': {
-            'fileName': fileName,
-            'imagePath': imagePath,
-            'fileType': 'image',
-          },
-          'timestamp': DateTime.now().toIso8601String(),
-        }),
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send image');
+      final bytes = await File(imagePath).readAsBytes();
+      Map<String, dynamic>? encMeta;
+      if (ref != null && otherUserId != null) {
+        final e2ee = ref.read(e2eeServiceProvider);
+        encMeta = await e2ee.encryptAttachment(
+            conversationId: conversationId,
+            otherUserId: otherUserId,
+            bytes: bytes);
       }
+      if (encMeta == null) {
+        throw Exception('Encryption key not established yet');
+      }
+      final uri = Uri.parse('$_apiUrl/chat/attachments/$conversationId');
+      final request = http.MultipartRequest('POST', uri);
+      request.fields['senderId'] = senderId;
+      if (otherUserId != null) request.fields['receiverId'] = otherUserId;
+      request.fields['messageType'] = 'image';
+      request.fields['fileName'] = fileName;
+      request.fields['iv'] = encMeta['iv'];
+      request.fields['tag'] = encMeta['tag'];
+      request.fields['v'] = encMeta['v'].toString();
+      final mimeType = lookupMimeType(fileName) ?? 'image/png';
+      final parts = mimeType.split('/');
+      request.files.add(http.MultipartFile.fromBytes(
+          'file', base64.decode(encMeta['ciphertext']),
+          filename: fileName + '.enc',
+          contentType: MediaType(parts[0], parts[1])));
+      final resp =
+          await _sendMultipartWithProgress(request, onProgress: onProgress);
+      if (resp.statusCode != 201) {
+        throw Exception('Upload failed: ${resp.body}');
+      }
+      final decoded = json.decode(resp.body);
+      if (decoded is Map && decoded['stored'] != null) {
+        return ChatMessage.fromMap(decoded['stored']);
+      }
+      return null;
     } catch (e) {
-      print('Error sending image: $e');
+      print('Error sending encrypted image: $e');
       throw Exception('Failed to send image: $e');
+    }
+  }
+
+  Future<List<int>?> downloadAndDecryptAttachment({
+    required ChatMessage message,
+    required String currentUserId,
+    required String otherUserId,
+    required WidgetRef ref,
+  }) async {
+    if (message.metadata == null) return null;
+    final fileId = message.metadata!['fileId'];
+    if (fileId == null) return null;
+    if (_attachmentCache.containsKey(fileId)) return _attachmentCache[fileId];
+    try {
+      final resp =
+          await http.get(Uri.parse('$_apiUrl/chat/attachments/file/$fileId'));
+      if (resp.statusCode != 200) return null;
+      final bytes = resp.bodyBytes;
+      final iv = message.metadata!['iv'] ??
+          message.metadata!['IV'] ??
+          message.metadata!['Iv'];
+      final tag = message.metadata!['tag'] ??
+          message.metadata!['TAG'] ??
+          message.metadata!['Tag'];
+      if (iv == null || tag == null) return null;
+      final e2ee = ref.read(e2eeServiceProvider);
+      final clear = await e2ee.decryptAttachment(
+        conversationId: message.conversationId ?? message.id,
+        otherUserId: otherUserId,
+        ciphertext: bytes,
+        iv: iv,
+        tag: tag,
+      );
+      if (clear != null) {
+        _attachmentCache[fileId] = clear;
+      }
+      return clear;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Internal helper to send multipart with progress reporting
+  Future<http.Response> _sendMultipartWithProgress(
+      http.MultipartRequest request,
+      {void Function(double progress)? onProgress}) async {
+    final client = http.Client();
+    try {
+      // Consume original to compute total length
+      final total = await request
+          .finalize()
+          .fold<int>(0, (prev, element) => prev + element.length);
+      // Rebuild request (since finalize() consumed streams)
+      final rebuilt = http.MultipartRequest(request.method, request.url);
+      rebuilt.fields.addAll(request.fields);
+      rebuilt.files.addAll(request.files);
+      final finalized = rebuilt.finalize();
+      int sent = 0;
+      final monitored = finalized
+          .transform(StreamTransformer<List<int>, List<int>>.fromHandlers(
+        handleData: (List<int> chunk, EventSink<List<int>> sink) {
+          sent += chunk.length;
+          if (onProgress != null && total > 0) {
+            onProgress((sent / total).clamp(0.0, 1.0));
+          }
+          sink.add(chunk);
+        },
+      ));
+      final streamedReq = http.StreamedRequest(rebuilt.method, rebuilt.url);
+      rebuilt.headers.forEach((k, v) => streamedReq.headers[k] = v);
+      monitored.listen((c) => streamedReq.sink.add(c),
+          onDone: () => streamedReq.sink.close());
+      final streamedResp = await client.send(streamedReq);
+      if (onProgress != null) onProgress(1.0);
+      return http.Response.fromStream(streamedResp);
+    } finally {
+      client.close();
     }
   }
 }

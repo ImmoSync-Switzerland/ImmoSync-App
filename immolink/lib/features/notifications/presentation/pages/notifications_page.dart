@@ -17,7 +17,8 @@ class NotificationsPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.mark_email_read_outlined),
-            onPressed: () => ref.read(notificationsProvider.notifier).markAllRead(),
+            onPressed: () =>
+                ref.read(notificationsProvider.notifier).markAllRead(),
             tooltip: 'Mark all read',
           ),
           IconButton(
@@ -39,10 +40,17 @@ class NotificationsPage extends ConsumerWidget {
                   final n = list[index];
                   return ListTile(
                     leading: Icon(
-                      n.read ? Icons.notifications_none : Icons.notifications_active,
-                      color: n.read ? Colors.grey : Theme.of(context).colorScheme.primary,
+                      n.read
+                          ? Icons.notifications_none
+                          : Icons.notifications_active,
+                      color: n.read
+                          ? Colors.grey
+                          : Theme.of(context).colorScheme.primary,
                     ),
-                    title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.normal : FontWeight.w600)),
+                    title: Text(n.title,
+                        style: TextStyle(
+                            fontWeight:
+                                n.read ? FontWeight.normal : FontWeight.w600)),
                     subtitle: Text(n.body),
                     trailing: Text(
                       _formatTime(n.timestamp),

@@ -9,50 +9,63 @@ final documentServiceProvider = Provider<DocumentService>((ref) {
 });
 
 // All documents provider
-final documentsProvider = StateNotifierProvider<DocumentsNotifier, AsyncValue<List<DocumentModel>>>((ref) {
+final documentsProvider =
+    StateNotifierProvider<DocumentsNotifier, AsyncValue<List<DocumentModel>>>(
+        (ref) {
   return DocumentsNotifier(ref.watch(documentServiceProvider));
 });
 
 // Landlord documents provider (for documents uploaded by the current landlord)
-final landlordDocumentsProvider = StateNotifierProvider<LandlordDocumentsNotifier, AsyncValue<List<DocumentModel>>>((ref) {
-  return LandlordDocumentsNotifier(ref.watch(documentServiceProvider), ref.watch(currentUserProvider));
+final landlordDocumentsProvider = StateNotifierProvider<
+    LandlordDocumentsNotifier, AsyncValue<List<DocumentModel>>>((ref) {
+  return LandlordDocumentsNotifier(
+      ref.watch(documentServiceProvider), ref.watch(currentUserProvider));
 });
 
 // Tenant documents provider (for documents visible to current tenant)
-final tenantDocumentsProvider = StateNotifierProvider<TenantDocumentsNotifier, AsyncValue<List<DocumentModel>>>((ref) {
+final tenantDocumentsProvider = StateNotifierProvider<TenantDocumentsNotifier,
+    AsyncValue<List<DocumentModel>>>((ref) {
   final authState = ref.watch(authProvider);
-  return TenantDocumentsNotifier(ref.watch(documentServiceProvider), authState.userId);
+  return TenantDocumentsNotifier(
+      ref.watch(documentServiceProvider), authState.userId);
 });
 
 // Documents by category provider
-final documentsByCategoryProvider = Provider.family<List<DocumentModel>, String>((ref, category) {
+final documentsByCategoryProvider =
+    Provider.family<List<DocumentModel>, String>((ref, category) {
   final documentsAsync = ref.watch(documentsProvider);
   return documentsAsync.when(
-    data: (documents) => documents.where((doc) => doc.category == category).toList(),
+    data: (documents) =>
+        documents.where((doc) => doc.category == category).toList(),
     loading: () => [],
     error: (_, __) => [],
   );
 });
 
 // Documents for specific tenant provider (family)
-final tenantDocumentsByIdProvider = Provider.family<List<DocumentModel>, String>((ref, tenantId) {
+final tenantDocumentsByIdProvider =
+    Provider.family<List<DocumentModel>, String>((ref, tenantId) {
   final documentsAsync = ref.watch(documentsProvider);
   return documentsAsync.when(
-    data: (documents) => documents.where((doc) => 
-      doc.assignedTenantIds.contains(tenantId) || doc.assignedTenantIds.isEmpty
-    ).toList(),
+    data: (documents) => documents
+        .where((doc) =>
+            doc.assignedTenantIds.contains(tenantId) ||
+            doc.assignedTenantIds.isEmpty)
+        .toList(),
     loading: () => [],
     error: (_, __) => [],
   );
 });
 
 // Documents for specific property provider
-final propertyDocumentsProvider = Provider.family<List<DocumentModel>, String>((ref, propertyId) {
+final propertyDocumentsProvider =
+    Provider.family<List<DocumentModel>, String>((ref, propertyId) {
   final documentsAsync = ref.watch(documentsProvider);
   return documentsAsync.when(
-    data: (documents) => documents.where((doc) => 
-      doc.propertyIds.contains(propertyId) || doc.propertyIds.isEmpty
-    ).toList(),
+    data: (documents) => documents
+        .where((doc) =>
+            doc.propertyIds.contains(propertyId) || doc.propertyIds.isEmpty)
+        .toList(),
     loading: () => [],
     error: (_, __) => [],
   );
@@ -63,12 +76,11 @@ final recentDocumentsProvider = Provider<List<DocumentModel>>((ref) {
   final documentsAsync = ref.watch(documentsProvider);
   final now = DateTime.now();
   final thirtyDaysAgo = now.subtract(const Duration(days: 30));
-  
+
   return documentsAsync.when(
-    data: (documents) => documents
-        .where((doc) => doc.uploadDate.isAfter(thirtyDaysAgo))
-        .toList()
-        ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate)),
+    data: (documents) =>
+        documents.where((doc) => doc.uploadDate.isAfter(thirtyDaysAgo)).toList()
+          ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate)),
     loading: () => [],
     error: (_, __) => [],
   );
@@ -77,12 +89,13 @@ final recentDocumentsProvider = Provider<List<DocumentModel>>((ref) {
 // Document statistics provider
 final documentStatsProvider = Provider<Map<String, int>>((ref) {
   final documentsAsync = ref.watch(documentsProvider);
-  
+
   return documentsAsync.when(
     data: (documents) {
       final stats = <String, int>{};
       for (final category in DocumentCategory.values) {
-        stats[category.id] = documents.where((doc) => doc.category == category.id).length;
+        stats[category.id] =
+            documents.where((doc) => doc.category == category.id).length;
       }
       stats['total'] = documents.length;
       stats['expiring'] = documents.where((doc) => doc.isExpiringSoon).length;
@@ -138,7 +151,8 @@ class DocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentModel>>> {
     }
   }
 
-  Future<void> assignDocumentToTenants(String documentId, List<String> tenantIds) async {
+  Future<void> assignDocumentToTenants(
+      String documentId, List<String> tenantIds) async {
     try {
       await _documentService.assignDocumentToTenants(documentId, tenantIds);
       await _loadDocuments(); // Reload documents
@@ -147,9 +161,11 @@ class DocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentModel>>> {
     }
   }
 
-  Future<void> assignDocumentToProperties(String documentId, List<String> propertyIds) async {
+  Future<void> assignDocumentToProperties(
+      String documentId, List<String> propertyIds) async {
     try {
-      await _documentService.assignDocumentToProperties(documentId, propertyIds);
+      await _documentService.assignDocumentToProperties(
+          documentId, propertyIds);
       await _loadDocuments(); // Reload documents
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -161,8 +177,10 @@ class DocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentModel>>> {
   }
 }
 
-class LandlordDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentModel>>> {
-  LandlordDocumentsNotifier(this._documentService, this._currentUser) : super(const AsyncValue.loading()) {
+class LandlordDocumentsNotifier
+    extends StateNotifier<AsyncValue<List<DocumentModel>>> {
+  LandlordDocumentsNotifier(this._documentService, this._currentUser)
+      : super(const AsyncValue.loading()) {
     _loadDocuments();
   }
 
@@ -175,14 +193,15 @@ class LandlordDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentMo
         state = const AsyncValue.data([]);
         return;
       }
-      
+
       state = const AsyncValue.loading();
-      
+
       // First, try to refresh from database
       await _documentService.refreshFromDatabase(_currentUser.id, 'landlord');
-      
+
       // Then get the documents (which should now include fresh data from database)
-      final documents = await _documentService.getLandlordDocuments(_currentUser.id);
+      final documents =
+          await _documentService.getLandlordDocuments(_currentUser.id);
       state = AsyncValue.data(documents);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -221,8 +240,10 @@ class LandlordDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentMo
   }
 }
 
-class TenantDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentModel>>> {
-  TenantDocumentsNotifier(this._documentService, this._tenantId) : super(const AsyncValue.loading()) {
+class TenantDocumentsNotifier
+    extends StateNotifier<AsyncValue<List<DocumentModel>>> {
+  TenantDocumentsNotifier(this._documentService, this._tenantId)
+      : super(const AsyncValue.loading()) {
     _loadDocuments();
   }
 
@@ -235,9 +256,10 @@ class TenantDocumentsNotifier extends StateNotifier<AsyncValue<List<DocumentMode
       if (_tenantId != null) {
         // First, try to refresh from database
         await _documentService.refreshFromDatabase(_tenantId, 'tenant');
-        
+
         // Then get the documents (which should now include fresh data from database)
-        final documents = await _documentService.getDocumentsForTenant(_tenantId);
+        final documents =
+            await _documentService.getDocumentsForTenant(_tenantId);
         state = AsyncValue.data(documents);
       } else {
         state = const AsyncValue.data([]);

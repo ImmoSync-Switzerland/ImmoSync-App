@@ -11,14 +11,18 @@ class CurrencyNotifier extends StateNotifier<String> {
   String formatAmount(double amount) {
     switch (state) {
       case 'EUR':
-        return NumberFormat.currency(locale: 'de_DE', symbol: '€').format(amount);
+        return NumberFormat.currency(locale: 'de_DE', symbol: '€')
+            .format(amount);
       case 'USD':
-        return NumberFormat.currency(locale: 'en_US', symbol: '\$').format(amount);
+        return NumberFormat.currency(locale: 'en_US', symbol: '\$')
+            .format(amount);
       case 'GBP':
-        return NumberFormat.currency(locale: 'en_GB', symbol: '£').format(amount);
+        return NumberFormat.currency(locale: 'en_GB', symbol: '£')
+            .format(amount);
       case 'CHF':
       default:
-        return NumberFormat.currency(locale: 'de_CH', symbol: 'CHF ').format(amount);
+        return NumberFormat.currency(locale: 'de_CH', symbol: 'CHF ')
+            .format(amount);
     }
   }
 
@@ -48,12 +52,14 @@ extension CurrencyFormatting on double {
       case 'EUR':
         return NumberFormat.currency(locale: 'de_DE', symbol: '€').format(this);
       case 'USD':
-        return NumberFormat.currency(locale: 'en_US', symbol: '\$').format(this);
+        return NumberFormat.currency(locale: 'en_US', symbol: '\$')
+            .format(this);
       case 'GBP':
         return NumberFormat.currency(locale: 'en_GB', symbol: '£').format(this);
       case 'CHF':
       default:
-        return NumberFormat.currency(locale: 'de_CH', symbol: 'CHF ').format(this);
+        return NumberFormat.currency(locale: 'de_CH', symbol: 'CHF ')
+            .format(this);
     }
   }
 }

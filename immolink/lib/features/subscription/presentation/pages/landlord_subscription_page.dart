@@ -13,10 +13,12 @@ class LandlordSubscriptionPage extends ConsumerStatefulWidget {
   const LandlordSubscriptionPage({super.key});
 
   @override
-  ConsumerState<LandlordSubscriptionPage> createState() => _LandlordSubscriptionPageState();
+  ConsumerState<LandlordSubscriptionPage> createState() =>
+      _LandlordSubscriptionPageState();
 }
 
-class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionPage> {
+class _LandlordSubscriptionPageState
+    extends ConsumerState<LandlordSubscriptionPage> {
   bool _isYearlyBilling = false;
   SubscriptionPlan? _selectedPlan;
   bool _isProcessing = false;
@@ -69,13 +71,15 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
         data: (subscription) => plansAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _buildErrorView(colors, error, l10n),
-          data: (plans) => _buildSubscriptionView(subscription, plans, colors, l10n),
+          data: (plans) =>
+              _buildSubscriptionView(subscription, plans, colors, l10n),
         ),
       ),
     );
   }
 
-  Widget _buildErrorView(DynamicAppColors colors, Object error, AppLocalizations l10n) {
+  Widget _buildErrorView(
+      DynamicAppColors colors, Object error, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +88,10 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
           const SizedBox(height: 16),
           Text(
             l10n.subscriptionLoadError,
-            style: TextStyle(fontSize: 18, color: colors.textPrimary, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 18,
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
@@ -111,7 +118,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
     DynamicAppColors colors,
     AppLocalizations l10n,
   ) {
-    final hasActiveSubscription = subscription != null && subscription.status == 'active';
+    final hasActiveSubscription =
+        subscription != null && subscription.status == 'active';
     var availablePlans = plans;
     if (hasActiveSubscription) {
       availablePlans = _getUpgradeOptions(subscription, plans);
@@ -132,7 +140,10 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                       hasActiveSubscription
                           ? l10n.upgradeUnlockFeaturesMessage
                           : l10n.selectPlanIntro,
-                      style: TextStyle(fontSize: 16, color: colors.textSecondary, height: 1.4),
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: colors.textSecondary,
+                          height: 1.4),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -162,7 +173,9 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
     const hierarchy = ['basic', 'pro', 'enterprise'];
     final currentIndex = hierarchy.indexOf(current.planId.toLowerCase());
     if (currentIndex == -1) return allPlans;
-    return allPlans.where((p) => hierarchy.indexOf(p.id.toLowerCase()) > currentIndex).toList();
+    return allPlans
+        .where((p) => hierarchy.indexOf(p.id.toLowerCase()) > currentIndex)
+        .toList();
   }
 
   Widget _buildCurrentSubscriptionHeader(
@@ -262,7 +275,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
     );
   }
 
-  Widget _buildNoUpgradesAvailable(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildNoUpgradesAvailable(
+      DynamicAppColors colors, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -280,8 +294,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             ),
           ),
           const SizedBox(height: 24),
-              Text(
-                l10n.highestPlanTitle,
+          Text(
+            l10n.highestPlanTitle,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w700,
@@ -290,8 +304,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-              Text(
-                l10n.highestPlanDescription,
+          Text(
+            l10n.highestPlanDescription,
             style: TextStyle(
               fontSize: 16,
               color: colors.textSecondary,
@@ -312,8 +326,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
               children: [
                 Icon(Icons.star, color: colors.success, size: 20),
                 const SizedBox(width: 8),
-                    Text(
-                      l10n.premiumThanksMessage,
+                Text(
+                  l10n.premiumThanksMessage,
                   style: TextStyle(
                     color: colors.success,
                     fontWeight: FontWeight.w600,
@@ -347,15 +361,18 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: !_isYearlyBilling ? colors.primaryAccent : Colors.transparent,
+                  color: !_isYearlyBilling
+                      ? colors.primaryAccent
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                      l10n.billingMonthly,
+                  l10n.billingMonthly,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: !_isYearlyBilling ? Colors.white : colors.textSecondary,
+                    color:
+                        !_isYearlyBilling ? Colors.white : colors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -371,17 +388,21 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: _isYearlyBilling ? colors.primaryAccent : Colors.transparent,
+                  color: _isYearlyBilling
+                      ? colors.primaryAccent
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
                   children: [
                     Text(
-                          l10n.billingYearly,
+                      l10n.billingYearly,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: _isYearlyBilling ? Colors.white : colors.textSecondary,
+                        color: _isYearlyBilling
+                            ? Colors.white
+                            : colors.textSecondary,
                       ),
                     ),
                     if (_isYearlyBilling)
@@ -411,7 +432,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
   }) {
     final isSelected = _selectedPlan?.id == plan.id;
     final price = _isYearlyBilling ? plan.yearlyPrice : plan.monthlyPrice;
-    final monthlyPrice = _isYearlyBilling ? plan.yearlyPrice / 12 : plan.monthlyPrice;
+    final monthlyPrice =
+        _isYearlyBilling ? plan.yearlyPrice / 12 : plan.monthlyPrice;
 
     return GestureDetector(
       onTap: () {
@@ -460,7 +482,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                           if (plan.isPopular) ...[
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: colors.primaryAccent,
                                 borderRadius: BorderRadius.circular(12),
@@ -478,7 +501,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                           if (isUpgrade) ...[
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: colors.luxuryGold,
                                 borderRadius: BorderRadius.circular(12),
@@ -498,7 +522,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                       const SizedBox(height: 4),
                       Text(
                         plan.description,
-                        style: TextStyle(fontSize: 14, color: colors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 14, color: colors.textSecondary),
                       ),
                     ],
                   ),
@@ -515,13 +540,17 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                       ),
                     ),
                     Text(
-                      _isYearlyBilling ? l10n.perYearSuffix : l10n.perMonthSuffix,
-                      style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                      _isYearlyBilling
+                          ? l10n.perYearSuffix
+                          : l10n.perMonthSuffix,
+                      style:
+                          TextStyle(fontSize: 12, color: colors.textSecondary),
                     ),
                     if (_isYearlyBilling)
                       Text(
                         '${monthlyPrice.toStringAsFixed(2)} ${l10n.perMonthSuffix}',
-                        style: TextStyle(fontSize: 10, color: colors.textTertiary),
+                        style:
+                            TextStyle(fontSize: 10, color: colors.textTertiary),
                       ),
                   ],
                 ),
@@ -538,7 +567,8 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                     Expanded(
                       child: Text(
                         feature,
-                        style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                        style:
+                            TextStyle(fontSize: 14, color: colors.textPrimary),
                       ),
                     ),
                   ],
@@ -563,10 +593,12 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
         child: ElevatedButton(
           onPressed: _isProcessing ? null : _handleSubscription,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isUpgrade ? colors.luxuryGold : colors.primaryAccent,
+            backgroundColor:
+                isUpgrade ? colors.luxuryGold : colors.primaryAccent,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
           child: _isProcessing
@@ -584,8 +616,11 @@ class _LandlordSubscriptionPageState extends ConsumerState<LandlordSubscriptionP
                     if (isUpgrade) const Icon(Icons.upgrade, size: 20),
                     if (isUpgrade) const SizedBox(width: 8),
                     Text(
-                      isUpgrade ? l10n.upgradePlanButton : l10n.continueToPayment,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      isUpgrade
+                          ? l10n.upgradePlanButton
+                          : l10n.continueToPayment,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),

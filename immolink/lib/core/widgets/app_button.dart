@@ -62,7 +62,7 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final buttonHeight = height ?? AppSizes.buttonHeight;
-    
+
     switch (type) {
       case AppButtonType.primary:
         return SizedBox(
@@ -92,7 +92,7 @@ class AppButton extends StatelessWidget {
                 : _buildButtonContent(),
           ),
         );
-        
+
       case AppButtonType.secondary:
         return SizedBox(
           width: width,
@@ -112,13 +112,14 @@ class AppButton extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryAccent),
                     ),
                   )
                 : _buildButtonContent(),
           ),
         );
-        
+
       case AppButtonType.text:
         return SizedBox(
           width: width,
@@ -137,7 +138,8 @@ class AppButton extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryAccent),
                     ),
                   )
                 : _buildButtonContent(),
@@ -156,17 +158,21 @@ class AppButton extends StatelessWidget {
           Text(
             text,
             style: AppTypography.buttonText.copyWith(
-              color: type == AppButtonType.primary ? Colors.white : AppColors.primaryAccent,
+              color: type == AppButtonType.primary
+                  ? Colors.white
+                  : AppColors.primaryAccent,
             ),
           ),
         ],
       );
     }
-    
+
     return Text(
       text,
       style: AppTypography.buttonText.copyWith(
-        color: type == AppButtonType.primary ? Colors.white : AppColors.primaryAccent,
+        color: type == AppButtonType.primary
+            ? Colors.white
+            : AppColors.primaryAccent,
       ),
     );
   }

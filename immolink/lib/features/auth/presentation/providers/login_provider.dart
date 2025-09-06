@@ -41,26 +41,28 @@ class LoginNotifier extends StateNotifier<LoginState> {
     required String password,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       final userData = await _authService.loginUser(
         email: email,
         password: password,
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
-  userData: userData,
+        userData: userData,
       );
-  // ignore: avoid_print
-  print('LoginProvider: received sessionToken? ${userData['sessionToken'] != null}');
-  // ignore: avoid_print
-  print('LoginProvider: raw userData map = ' + userData.toString());
+      // ignore: avoid_print
+      print(
+          'LoginProvider: received sessionToken? ${userData['sessionToken'] != null}');
+      // ignore: avoid_print
+      print('LoginProvider: raw userData map = ' + userData.toString());
       // Sync into primary auth provider so rest of app (including WS) gets token
       if (userData['sessionToken'] != null) {
         try {
-          Future.microtask(() => _ref.read(authProvider.notifier).applyExternalLogin(userData));
+          Future.microtask(() =>
+              _ref.read(authProvider.notifier).applyExternalLogin(userData));
         } catch (_) {}
       }
     } catch (e) {

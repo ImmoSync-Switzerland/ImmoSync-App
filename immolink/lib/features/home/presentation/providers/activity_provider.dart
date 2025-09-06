@@ -11,18 +11,19 @@ final activityServiceProvider = Provider<ActivityService>((ref) {
 // Recent activities provider for current user
 final recentActivitiesProvider = StreamProvider<List<Activity>>((ref) async* {
   final currentUser = ref.watch(currentUserProvider);
-  
+
   if (currentUser == null) {
     yield [];
     return;
   }
 
   final activityService = ref.watch(activityServiceProvider);
-  
+
   // For now, we'll simulate a stream by fetching data periodically
   // In a real implementation, this could be a WebSocket or periodic polling
   try {
-    final activities = await activityService.getRecentActivities(currentUser.id);
+    final activities =
+        await activityService.getRecentActivities(currentUser.id);
     yield activities;
   } catch (e) {
     print('Error loading activities: $e');
@@ -31,18 +32,20 @@ final recentActivitiesProvider = StreamProvider<List<Activity>>((ref) async* {
 });
 
 // Activities by type provider
-final activitiesByTypeProvider = StreamProvider.family<List<Activity>, String>((ref, type) async* {
+final activitiesByTypeProvider =
+    StreamProvider.family<List<Activity>, String>((ref, type) async* {
   final currentUser = ref.watch(currentUserProvider);
-  
+
   if (currentUser == null) {
     yield [];
     return;
   }
 
   final activityService = ref.watch(activityServiceProvider);
-  
+
   try {
-    final activities = await activityService.getActivitiesByType(currentUser.id, type);
+    final activities =
+        await activityService.getActivitiesByType(currentUser.id, type);
     yield activities;
   } catch (e) {
     print('Error loading activities by type: $e');
@@ -51,14 +54,16 @@ final activitiesByTypeProvider = StreamProvider.family<List<Activity>, String>((
 });
 
 // Activity creation provider
-final activityCreationProvider = StateNotifierProvider<ActivityCreationNotifier, AsyncValue<void>>((ref) {
+final activityCreationProvider =
+    StateNotifierProvider<ActivityCreationNotifier, AsyncValue<void>>((ref) {
   return ActivityCreationNotifier(ref.watch(activityServiceProvider));
 });
 
 class ActivityCreationNotifier extends StateNotifier<AsyncValue<void>> {
   final ActivityService _activityService;
 
-  ActivityCreationNotifier(this._activityService) : super(const AsyncValue.data(null));
+  ActivityCreationNotifier(this._activityService)
+      : super(const AsyncValue.data(null));
 
   Future<void> createActivity({
     required String userId,
@@ -83,7 +88,8 @@ class ActivityCreationNotifier extends StateNotifier<AsyncValue<void>> {
       if (success) {
         state = const AsyncValue.data(null);
       } else {
-        state = AsyncValue.error('Failed to create activity', StackTrace.current);
+        state =
+            AsyncValue.error('Failed to create activity', StackTrace.current);
       }
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

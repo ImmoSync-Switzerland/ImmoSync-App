@@ -13,10 +13,12 @@ class MaintenanceManagementPage extends ConsumerStatefulWidget {
   const MaintenanceManagementPage({super.key});
 
   @override
-  ConsumerState<MaintenanceManagementPage> createState() => _MaintenanceManagementPageState();
+  ConsumerState<MaintenanceManagementPage> createState() =>
+      _MaintenanceManagementPageState();
 }
 
-class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagementPage> {
+class _MaintenanceManagementPageState
+    extends ConsumerState<MaintenanceManagementPage> {
   String? _selectedStatus;
   String? _selectedPriority;
 
@@ -24,11 +26,15 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
     List<MaintenanceRequest> filtered = requests;
 
     if (_selectedStatus != null && _selectedStatus != 'all') {
-      filtered = filtered.where((request) => request.status == _selectedStatus).toList();
+      filtered = filtered
+          .where((request) => request.status == _selectedStatus)
+          .toList();
     }
 
     if (_selectedPriority != null && _selectedPriority != 'all') {
-      filtered = filtered.where((request) => request.priority == _selectedPriority).toList();
+      filtered = filtered
+          .where((request) => request.priority == _selectedPriority)
+          .toList();
     }
 
     return filtered;
@@ -60,10 +66,12 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    return _buildMaintenanceRequestCard(context, filtered[index], l10n, colors, ref);
+                    return _buildMaintenanceRequestCard(
+                        context, filtered[index], l10n, colors, ref);
                   },
                 );
               },
@@ -110,7 +118,9 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
       ),
     );
   }
-  Widget _buildFilterOptions(BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
+
+  Widget _buildFilterOptions(
+      BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -146,10 +156,14 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                   value: 'All',
                   items: [
                     DropdownMenuItem(value: 'All', child: Text(l10n.all)),
-                    DropdownMenuItem(value: 'pending', child: Text(l10n.pending)),
-                    DropdownMenuItem(value: 'in_progress', child: Text(l10n.inProgress)),
-                    DropdownMenuItem(value: 'completed', child: Text(l10n.completed)),
-                    DropdownMenuItem(value: 'cancelled', child: Text(l10n.cancelled)),
+                    DropdownMenuItem(
+                        value: 'pending', child: Text(l10n.pending)),
+                    DropdownMenuItem(
+                        value: 'in_progress', child: Text(l10n.inProgress)),
+                    DropdownMenuItem(
+                        value: 'completed', child: Text(l10n.completed)),
+                    DropdownMenuItem(
+                        value: 'cancelled', child: Text(l10n.cancelled)),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -169,7 +183,8 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                     DropdownMenuItem(value: 'low', child: Text(l10n.low)),
                     DropdownMenuItem(value: 'medium', child: Text(l10n.medium)),
                     DropdownMenuItem(value: 'high', child: Text(l10n.high)),
-                    DropdownMenuItem(value: 'emergency', child: Text(l10n.emergency)),
+                    DropdownMenuItem(
+                        value: 'emergency', child: Text(l10n.emergency)),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -249,7 +264,13 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
       ),
     );
   }
-  Widget _buildMaintenanceRequestCard(BuildContext context, MaintenanceRequest request, AppLocalizations l10n, DynamicAppColors colors, WidgetRef ref) {
+
+  Widget _buildMaintenanceRequestCard(
+      BuildContext context,
+      MaintenanceRequest request,
+      AppLocalizations l10n,
+      DynamicAppColors colors,
+      WidgetRef ref) {
     Color statusColor;
     IconData statusIcon;
     String statusText;
@@ -339,13 +360,16 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: CategoryUtils.getCategoryColor(request.category).withValues(alpha: 0.1),
+                              color: CategoryUtils.getCategoryColor(
+                                      request.category)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Icon(
                               CategoryUtils.getCategoryIcon(request.category),
                               size: 14,
-                              color: CategoryUtils.getCategoryColor(request.category),
+                              color: CategoryUtils.getCategoryColor(
+                                  request.category),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -368,7 +392,8 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                                   request.category,
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: CategoryUtils.getCategoryColor(request.category),
+                                    color: CategoryUtils.getCategoryColor(
+                                        request.category),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -437,7 +462,8 @@ class _MaintenanceManagementPageState extends ConsumerState<MaintenanceManagemen
                     Expanded(
                       child: Consumer(
                         builder: (context, ref, child) {
-                          final propertyAsync = ref.watch(propertyProvider(request.propertyId));
+                          final propertyAsync =
+                              ref.watch(propertyProvider(request.propertyId));
                           return propertyAsync.when(
                             data: (property) => Text(
                               '${property.address.street}, ${property.address.city}',

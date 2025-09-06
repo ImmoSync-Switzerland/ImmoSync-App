@@ -7,7 +7,7 @@ final chatServiceProvider = Provider((ref) => ChatService());
 final chatMessagesProvider = StreamProvider.family<List<ChatMessage>, String>(
   (ref, conversationId) async* {
     final chatService = ref.read(chatServiceProvider);
-    
+
     while (true) {
       try {
         final messages = await chatService.getMessages(conversationId);
@@ -15,9 +15,8 @@ final chatMessagesProvider = StreamProvider.family<List<ChatMessage>, String>(
       } catch (e) {
         yield [];
       }
-      
+
       await Future.delayed(const Duration(seconds: 2));
     }
   },
 );
-
