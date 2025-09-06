@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/chat_preview_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/conversations_provider.dart';
 import '../../domain/models/conversation.dart';
@@ -379,9 +380,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             ],
             const SizedBox(height: 4),
             Text(
-              conversation.lastMessage == '[encrypted]'
-                  ? 'Encrypted message'
-                  : conversation.lastMessage,
+              (() {
+                final previews = ref.read(chatPreviewProvider);
+                final override = previews[conversation.id];
+                if (override != null && override.isNotEmpty) return override;
+                if (conversation.lastMessage == '[encrypted]') return 'Encrypted message';
+                return conversation.lastMessage;
+              })(),
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,

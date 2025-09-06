@@ -5,9 +5,10 @@ const { getDB } = require('../database');
 const router = express.Router();
 
 // Memory storage: we receive ALREADY ENCRYPTED bytes from client (ciphertext only)
+const MAX_MB = parseInt(process.env.CHAT_MAX_ATTACHMENT_MB || process.env.MAX_ATTACHMENT_MB || '20', 10);
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 } // 20MB cap
+  limits: { fileSize: MAX_MB * 1024 * 1024 } // configurable cap (default 20MB)
 });
 
 // POST /api/chat/attachments/:conversationId

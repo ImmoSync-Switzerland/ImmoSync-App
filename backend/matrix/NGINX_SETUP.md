@@ -40,3 +40,10 @@ curl -fsS https://element.example.com/ # should return Element web UI
 - If your Synapse container is not exposing port 8008 on localhost, adapt the proxy_pass to point to the internal container address or map the port when running the container.
 - Federation port 8448 must be reachable for other homeservers to federate with you.
 - Renewals: certbot sets up automatic renewals; test with `sudo certbot renew --dry-run`.
+
+7) Upload size limits (413 Request Entity Too Large)
+- To support larger encrypted chat attachments, increase body size in Nginx:
+	- In the server block handling uploads, set `client_max_body_size 50m;`
+	- Optionally, raise timeouts for slow links: `proxy_read_timeout 300s; proxy_send_timeout 300s;`
+- Align backend multer limit via environment: `CHAT_MAX_ATTACHMENT_MB=50`
+- Reload Nginx after changes and retry the upload.

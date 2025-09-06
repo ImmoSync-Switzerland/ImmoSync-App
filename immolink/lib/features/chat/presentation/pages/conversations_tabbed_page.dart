@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/conversations_provider.dart';
 import '../providers/invitation_provider.dart';
+import '../providers/chat_preview_provider.dart';
 import '../../domain/models/conversation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/navigation_provider.dart';
@@ -408,9 +409,13 @@ class _ConversationsTabbedPageState
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    conversation.lastMessage == '[encrypted]'
-                        ? 'Encrypted message'
-                        : conversation.lastMessage,
+                    (() {
+                      final previews = ref.read(chatPreviewProvider);
+                      final override = previews[conversation.id];
+                      if (override != null && override.isNotEmpty) return override;
+                      if (conversation.lastMessage == '[encrypted]') return 'Encrypted message';
+                      return conversation.lastMessage;
+                    })(),
                     style: TextStyle(
                       fontSize: 14,
                       color: colors.textSecondary,

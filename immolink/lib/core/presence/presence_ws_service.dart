@@ -45,6 +45,24 @@ class PresenceWsService {
     if (_presenceSocket != null) {
       final sameIdentity = (_userId == userId) && (_token == token);
       if (sameIdentity) {
+        // Already connected with correct identity. If any reads were queued while temporarily disconnected,
+        // flush them now instead of waiting for a reconnect event.
+        if (_chatSocket?.connected == true && _pendingReads.isNotEmpty) {
+          final entries = Map<String, Set<String>>.from(_pendingReads);
+          _pendingReads.clear();
+          entries.forEach((convId, ids) {
+            if (ids.isNotEmpty) {
+              try {
+                _chatSocket!.emit('chat:read', {
+                  'conversationId': convId,
+                  'messageIds': ids.toList(),
+                });
+                // ignore: avoid_print
+                print('[WS][chat] flushed pending reads (immediate) conv=$convId count=${ids.length}');
+              } catch (_) {}
+            }
+          });
+        }
         return; // already connected with correct identity
       }
       // Identity changed (e.g., switched user). Tear down old sockets and state.
@@ -129,9 +147,12 @@ class PresenceWsService {
                 'conversationId': convId,
                 'messageIds': ids.toList(),
               });
+        // ignore: avoid_print
+        print('[WS][chat] flushed pending read receipts for conv=$convId count=${ids.length}');
             }
           });
-          print('[WS][chat] flushed pending read receipts for ${entries.length} conversations');
+      // ignore: avoid_print
+      print('[WS][chat] flushed for ${entries.length} conversation(s)');
         }
         print('[WS][chat] replay complete');
       })
@@ -243,6 +264,8 @@ class PresenceWsService {
     _presenceSocket = null;
     _chatSocket = null;
     _pendingMessages.clear();
+  // Clear any read receipts queued under the old identity to avoid cross-account leakage
+  _pendingReads.clear();
   }
 
   // Decrypt if e2ee bundle exists. Since this service lacks direct Ref here, we expose
@@ -417,12 +440,16 @@ class PresenceWsService {
       // Accumulate to flush on next connect
       final set = _pendingReads.putIfAbsent(conversationId, () => <String>{});
       set.addAll(messageIds);
+      // ignore: avoid_print
+      print('[WS][chat] queue read conv=$conversationId count=${messageIds.length} (socket disconnected)');
       return;
     }
     _chatSocket!.emit('chat:read', {
       'conversationId': conversationId,
       'messageIds': messageIds,
     });
+    // ignore: avoid_print
+    print('[WS][chat] emit read conv=$conversationId count=${messageIds.length}');
   }
 
   void markAllRead(

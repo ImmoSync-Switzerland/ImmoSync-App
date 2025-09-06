@@ -178,6 +178,22 @@ BCRYPT_ROUNDS=10
    npm start
    ```
 
+## Nginx reverse proxy for API (413 fix)
+
+If your API is behind Nginx and large encrypted uploads fail with 413, configure the reverse proxy for bigger bodies and streaming:
+
+1. Copy `backend/nginx/api.conf` to `/etc/nginx/sites-available/immolink-api` and adjust `server_name` and `proxy_pass`.
+2. Enable and reload:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/immolink-api /etc/nginx/sites-enabled/immolink-api
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+3. Align backend limit via env:
+   ```env
+   CHAT_MAX_ATTACHMENT_MB=50
+   ```
+4. Restart the backend service to apply the new env.
+
 ## Testing the Payment System
 
 ### Test Stripe Payments

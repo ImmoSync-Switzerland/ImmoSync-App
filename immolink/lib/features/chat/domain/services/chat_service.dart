@@ -424,33 +424,13 @@ class ChatService {
   Future<http.Response> _sendMultipartWithProgress(
       http.MultipartRequest request,
       {void Function(double progress)? onProgress}) async {
+    // Simpler, robust path: avoid double-finalizing multipart files which
+    // causes 'Bad state: Can\'t finalize a finalized MultipartFile'.
+    // We forego fine-grained progress and just emit 0.0 -> 1.0.
     final client = http.Client();
     try {
-      // Consume original to compute total length
-      final total = await request
-          .finalize()
-          .fold<int>(0, (prev, element) => prev + element.length);
-      // Rebuild request (since finalize() consumed streams)
-      final rebuilt = http.MultipartRequest(request.method, request.url);
-      rebuilt.fields.addAll(request.fields);
-      rebuilt.files.addAll(request.files);
-      final finalized = rebuilt.finalize();
-      int sent = 0;
-      final monitored = finalized
-          .transform(StreamTransformer<List<int>, List<int>>.fromHandlers(
-        handleData: (List<int> chunk, EventSink<List<int>> sink) {
-          sent += chunk.length;
-          if (onProgress != null && total > 0) {
-            onProgress((sent / total).clamp(0.0, 1.0));
-          }
-          sink.add(chunk);
-        },
-      ));
-      final streamedReq = http.StreamedRequest(rebuilt.method, rebuilt.url);
-      rebuilt.headers.forEach((k, v) => streamedReq.headers[k] = v);
-      monitored.listen((c) => streamedReq.sink.add(c),
-          onDone: () => streamedReq.sink.close());
-      final streamedResp = await client.send(streamedReq);
+      if (onProgress != null) onProgress(0.0);
+      final streamedResp = await client.send(request);
       if (onProgress != null) onProgress(1.0);
       return http.Response.fromStream(streamedResp);
     } finally {
