@@ -979,6 +979,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteConversation => 'Delete Conversation';
 
   @override
+  String get unblockUser => 'Unblock User';
+
+  @override
+  String get blockedLabel => 'Blocked';
+
+  @override
+  String get block => 'Block';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get report => 'Report';
+
+  @override
+  String get blockConfirmBody =>
+      'Are you sure you want to block this user? You will no longer receive messages from them.';
+
+  @override
+  String get unblockConfirmBody =>
+      'Do you want to unblock this user? You will be able to exchange messages again.';
+
+  @override
+  String get reportConfirmBody =>
+      'Are you sure you want to report this conversation? Our support team will review it.';
+
+  @override
+  String get deleteConversationConfirmBody =>
+      'Are you sure you want to delete this conversation? This action cannot be undone.';
+
+  @override
+  String get chatOptions => 'Chat Options';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get emojis => 'Emojis';
+
+  @override
+  String get imageReadyToSend => 'Image ready to send';
+
+  @override
+  String get fileReadyToSend => 'File ready to send';
+
+  @override
+  String get pleaseSendTextFirst =>
+      'Please send a text message first to start the conversation';
+
+  @override
+  String get encryptionKeyNotReady => 'Encryption key not ready yet...';
+
+  @override
+  String get openFileFailed => 'Open failed';
+
+  @override
+  String get attachmentFailed => 'Attachment failed';
+
+  @override
+  String get errorSelectingImage => 'Error selecting image';
+
+  @override
+  String get errorTakingPhoto => 'Error taking photo';
+
+  @override
+  String get errorSendingDocument => 'Error sending document';
+
+  @override
+  String get cannotMakeCallOnDevice => 'Cannot make phone calls on this device';
+
+  @override
+  String get errorInitiatingCall => 'Error initiating call';
+
+  @override
+  String get invitationSentSuccessfully => 'Invitation sent successfully';
+
+  @override
+  String get failedToSendInvitation => 'Failed to send invitation';
+
+  @override
+  String get invitationAcceptedSuccessfully =>
+      'Invitation accepted successfully!';
+
+  @override
+  String get invitationDeclined => 'Invitation declined.';
+
+  @override
+  String get failedToRespondInvitation => 'Failed to respond to invitation';
+
+  @override
+  String get callPrompt => 'Do you want to make this call?';
+
+  @override
   String get myMaintenanceRequests => 'My Maintenance Requests';
 
   @override

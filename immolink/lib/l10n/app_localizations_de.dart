@@ -1000,6 +1000,108 @@ class AppLocalizationsDe extends AppLocalizations {
   String get deleteConversation => 'Unterhaltung löschen';
 
   @override
+  String get unblockUser => 'Blockierung aufheben';
+
+  @override
+  String get blockedLabel => 'Blockiert';
+
+  @override
+  String get block => 'Blockieren';
+
+  @override
+  String get unblock => 'Entsperren';
+
+  @override
+  String get report => 'Melden';
+
+  @override
+  String get blockConfirmBody =>
+      'Möchten Sie diesen Benutzer wirklich blockieren? Sie erhalten keine Nachrichten mehr von ihm.';
+
+  @override
+  String get unblockConfirmBody =>
+      'Möchten Sie diesen Benutzer entsperren? Sie können wieder Nachrichten austauschen.';
+
+  @override
+  String get reportConfirmBody =>
+      'Möchten Sie diese Unterhaltung wirklich melden? Unser Support-Team wird sie prüfen.';
+
+  @override
+  String get deleteConversationConfirmBody =>
+      'Möchten Sie diese Unterhaltung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get chatOptions => 'Chat-Optionen';
+
+  @override
+  String get gallery => 'Galerie';
+
+  @override
+  String get camera => 'Kamera';
+
+  @override
+  String get document => 'Dokument';
+
+  @override
+  String get emojis => 'Emojis';
+
+  @override
+  String get imageReadyToSend => 'Bild bereit zum Senden';
+
+  @override
+  String get fileReadyToSend => 'Datei bereit zum Senden';
+
+  @override
+  String get pleaseSendTextFirst =>
+      'Bitte senden Sie zuerst eine Textnachricht, um die Unterhaltung zu starten';
+
+  @override
+  String get encryptionKeyNotReady =>
+      'Verschlüsselungsschlüssel noch nicht bereit...';
+
+  @override
+  String get openFileFailed => 'Öffnen fehlgeschlagen';
+
+  @override
+  String get attachmentFailed => 'Anhang fehlgeschlagen';
+
+  @override
+  String get errorSelectingImage => 'Fehler beim Auswählen des Bildes';
+
+  @override
+  String get errorTakingPhoto => 'Fehler beim Aufnehmen des Fotos';
+
+  @override
+  String get errorSendingDocument => 'Fehler beim Senden des Dokuments';
+
+  @override
+  String get cannotMakeCallOnDevice =>
+      'Auf diesem Gerät können keine Anrufe getätigt werden';
+
+  @override
+  String get errorInitiatingCall => 'Fehler beim Starten des Anrufs';
+
+  @override
+  String get invitationSentSuccessfully => 'Einladung erfolgreich gesendet';
+
+  @override
+  String get failedToSendInvitation => 'Senden der Einladung fehlgeschlagen';
+
+  @override
+  String get invitationAcceptedSuccessfully =>
+      'Einladung erfolgreich angenommen!';
+
+  @override
+  String get invitationDeclined => 'Einladung abgelehnt.';
+
+  @override
+  String get failedToRespondInvitation =>
+      'Antwort auf Einladung fehlgeschlagen';
+
+  @override
+  String get callPrompt => 'Möchten Sie diesen Anruf tätigen?';
+
+  @override
   String get myMaintenanceRequests => 'Meine Wartungsanfragen';
 
   @override

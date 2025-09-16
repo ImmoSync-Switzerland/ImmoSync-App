@@ -40,6 +40,22 @@ router.post('/:conversationId/messages', async (req, res) => {
     
     const { conversationId } = req.params;
   const { senderId, receiverId, content, messageType = 'text', metadata, e2ee } = req.body;
+    // Block check: if either user has blocked the other, forbid
+    if (senderId && receiverId) {
+      try {
+        const [sender, receiver] = await Promise.all([
+          db.collection('users').findOne({ _id: new ObjectId(senderId) }, { projection: { blockedUsers: 1 } }),
+          db.collection('users').findOne({ _id: new ObjectId(receiverId) }, { projection: { blockedUsers: 1 } }),
+        ]);
+        const sBlocked = (sender?.blockedUsers || []).map(String);
+        const rBlocked = (receiver?.blockedUsers || []).map(String);
+        if (sBlocked.includes(receiverId.toString()) || rBlocked.includes(senderId.toString())) {
+          return res.status(403).json({ message: 'Messaging blocked between users' });
+        }
+      } catch (e) {
+        // If lookup fails, proceed (don't block sending due to transient db issue)
+      }
+    }
     
     // Create message document
     const encrypted = !!e2ee || (metadata && metadata.ciphertext);

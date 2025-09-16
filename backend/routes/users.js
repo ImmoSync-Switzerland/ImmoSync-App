@@ -493,3 +493,51 @@ router.post('/rotate-key', async (req, res) => {
     res.status(500).json({ message: 'Failed to rotate key' });
   } finally { await client.close(); }
 });
+
+// Block a user: adds targetUserId to caller's blockedUsers array
+router.post('/:userId/block', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId } = req.params;
+    const { targetUserId } = req.body || {};
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(targetUserId)) {
+      return res.status(400).json({ message: 'Invalid user IDs' });
+    }
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $addToSet: { blockedUsers: targetUserId.toString() }, $set: { updatedAt: new Date() } }
+    );
+    res.json({ message: 'User blocked' });
+  } catch (e) {
+    console.error('Block user error:', e);
+    res.status(500).json({ message: 'Failed to block user' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Unblock a user
+router.post('/:userId/unblock', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId } = req.params;
+    const { targetUserId } = req.body || {};
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(targetUserId)) {
+      return res.status(400).json({ message: 'Invalid user IDs' });
+    }
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $pull: { blockedUsers: targetUserId.toString() }, $set: { updatedAt: new Date() } }
+    );
+    res.json({ message: 'User unblocked' });
+  } catch (e) {
+    console.error('Unblock user error:', e);
+    res.status(500).json({ message: 'Failed to unblock user' });
+  } finally {
+    await client.close();
+  }
+});

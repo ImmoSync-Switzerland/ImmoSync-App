@@ -510,7 +510,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            'Call ${contact.fullName}',
+            '${AppLocalizations.of(context)!.call} ${contact.fullName}',
             style: TextStyle(
               color: colors.textPrimary,
               fontSize: 18,
@@ -522,7 +522,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Do you want to call ${contact.phone}?',
+                '${AppLocalizations.of(context)!.callPrompt}\n${contact.phone}',
                 style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 14,
@@ -564,10 +564,10 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             ],
           ),
           actions: [
-            TextButton(
+      TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                'Cancel',
+        AppLocalizations.of(context)!.cancel,
                 style: TextStyle(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w500,
@@ -588,8 +588,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content:
-                          Text('Could not make phone call: ${e.toString()}'),
+                      content: Text('${AppLocalizations.of(context)!.errorInitiatingCall}: ${e.toString()}'),
                       backgroundColor: colors.error,
                     ),
                   );
@@ -602,7 +601,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Call'),
+              child: Text(AppLocalizations.of(context)!.call),
             ),
           ],
         );

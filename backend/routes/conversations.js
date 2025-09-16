@@ -424,6 +424,64 @@ router.get('/user/current', async (req, res) => {
   }
 });
 
+// Delete a conversation and its messages
+router.delete('/:conversationId', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { conversationId } = req.params;
+    if (!ObjectId.isValid(conversationId)) {
+      return res.status(400).json({ message: 'Invalid conversation ID' });
+    }
+    const convObjId = new ObjectId(conversationId);
+    const conv = await db.collection('conversations').findOne({ _id: convObjId });
+    if (!conv) return res.status(404).json({ message: 'Conversation not found' });
+
+    // Delete messages
+    await db.collection('messages').deleteMany({ conversationId: conversationId.toString() });
+    // Optionally delete mapping to Matrix room
+    await db.collection('matrix_conversations').deleteMany({ conversationId: conversationId.toString() });
+    // Delete conversation
+    await db.collection('conversations').deleteOne({ _id: convObjId });
+
+    return res.json({ message: 'Conversation deleted' });
+  } catch (e) {
+    console.error('Error deleting conversation:', e);
+    return res.status(500).json({ message: 'Error deleting conversation' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Report a conversation
+router.post('/:conversationId/report', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { conversationId } = req.params;
+    const { reporterId, reason } = req.body || {};
+    if (!ObjectId.isValid(conversationId)) {
+      return res.status(400).json({ message: 'Invalid conversation ID' });
+    }
+    if (!reporterId) return res.status(400).json({ message: 'reporterId required' });
+    await db.collection('reports').insertOne({
+      type: 'conversation',
+      conversationId: conversationId.toString(),
+      reporterId: reporterId.toString(),
+      reason: (reason || 'unspecified').toString().slice(0, 500),
+      createdAt: new Date(),
+    });
+    return res.status(201).json({ message: 'Conversation reported' });
+  } catch (e) {
+    console.error('Error reporting conversation:', e);
+    return res.status(500).json({ message: 'Failed to report conversation' });
+  } finally {
+    await client.close();
+  }
+});
+
 module.exports = router;
 
 // Additional Matrix mapping endpoint: GET /api/conversations/:conversationId/matrix-room

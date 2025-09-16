@@ -992,6 +992,107 @@ class AppLocalizationsIt extends AppLocalizations {
   String get deleteConversation => 'Elimina conversazione';
 
   @override
+  String get unblockUser => 'Sblocca utente';
+
+  @override
+  String get blockedLabel => 'Bloccato';
+
+  @override
+  String get block => 'Blocca';
+
+  @override
+  String get unblock => 'Sblocca';
+
+  @override
+  String get report => 'Segnala';
+
+  @override
+  String get blockConfirmBody =>
+      'Sei sicuro di voler bloccare questo utente? Non riceverai più i suoi messaggi.';
+
+  @override
+  String get unblockConfirmBody =>
+      'Vuoi sbloccare questo utente? Potrai di nuovo scambiare messaggi.';
+
+  @override
+  String get reportConfirmBody =>
+      'Sei sicuro di voler segnalare questa conversazione? Il nostro team di supporto la esaminerà.';
+
+  @override
+  String get deleteConversationConfirmBody =>
+      'Sei sicuro di voler eliminare questa conversazione? Questa azione non può essere annullata.';
+
+  @override
+  String get chatOptions => 'Opzioni chat';
+
+  @override
+  String get gallery => 'Galleria';
+
+  @override
+  String get camera => 'Fotocamera';
+
+  @override
+  String get document => 'Documento';
+
+  @override
+  String get emojis => 'Emoji';
+
+  @override
+  String get imageReadyToSend => 'Immagine pronta per l\'invio';
+
+  @override
+  String get fileReadyToSend => 'File pronto per l\'invio';
+
+  @override
+  String get pleaseSendTextFirst =>
+      'Invia prima un messaggio di testo per avviare la conversazione';
+
+  @override
+  String get encryptionKeyNotReady =>
+      'La chiave di crittografia non è ancora pronta...';
+
+  @override
+  String get openFileFailed => 'Apertura non riuscita';
+
+  @override
+  String get attachmentFailed => 'Invio allegato non riuscito';
+
+  @override
+  String get errorSelectingImage =>
+      'Errore durante la selezione dell\'immagine';
+
+  @override
+  String get errorTakingPhoto => 'Errore durante lo scatto della foto';
+
+  @override
+  String get errorSendingDocument => 'Errore durante l\'invio del documento';
+
+  @override
+  String get cannotMakeCallOnDevice =>
+      'Impossibile effettuare chiamate su questo dispositivo';
+
+  @override
+  String get errorInitiatingCall => 'Errore durante l\'avvio della chiamata';
+
+  @override
+  String get invitationSentSuccessfully => 'Invito inviato con successo';
+
+  @override
+  String get failedToSendInvitation => 'Invio dell\'invito non riuscito';
+
+  @override
+  String get invitationAcceptedSuccessfully => 'Invito accettato con successo!';
+
+  @override
+  String get invitationDeclined => 'Invito rifiutato.';
+
+  @override
+  String get failedToRespondInvitation => 'Risposta all\'invito non riuscita';
+
+  @override
+  String get callPrompt => 'Vuoi effettuare questa chiamata?';
+
+  @override
   String get myMaintenanceRequests => 'Le mie richieste di manutenzione';
 
   @override

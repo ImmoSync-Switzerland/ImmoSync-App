@@ -247,8 +247,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bool isSmall = screenWidth < 360;
+    final bool isMedium = !isSmall && screenWidth < 400;
+    final double cardPadding = isSmall ? 20 : (isMedium ? 24 : 32);
+    final double iconSize = isSmall ? 20 : (isMedium ? 22 : 24);
+    final double greetingFont = isSmall ? 12 : (isMedium ? 13 : 14);
+
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
@@ -281,7 +288,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                 child: Icon(
                   Icons.waving_hand_rounded,
                   color: colors.textOnAccent,
-                  size: 24,
+                  size: iconSize,
                 ),
               ),
               const SizedBox(width: 20),
@@ -292,7 +299,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     Text(
                       l10n.goodMorning,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: greetingFont,
                         color: colors.textSecondary,
                         fontWeight: FontWeight.w500,
                         letterSpacing: -0.1,

@@ -254,6 +254,27 @@ async function startServer() {
     } else {
       console.log('[WS][chat] connection userId=%s sid=%s', socket.data.userId, socket.id);
     }
+    // Helper: check if either party blocked the other
+    async function isBlockedBetween(db, userA, userB) {
+      try {
+        if (!userA || !userB) return false;
+        if (!ObjectId.isValid(userA) || !ObjectId.isValid(userB)) return false;
+        const ids = [new ObjectId(userA), new ObjectId(userB)];
+        const users = await db.collection('users')
+          .find({ _id: { $in: ids } })
+          .project({ blockedUsers: 1 })
+          .toArray();
+        const a = users.find(u => u._id.toString() === userA);
+        const b = users.find(u => u._id.toString() === userB);
+        const aBlocksB = Array.isArray(a?.blockedUsers) && a.blockedUsers.includes(userB);
+        const bBlocksA = Array.isArray(b?.blockedUsers) && b.blockedUsers.includes(userA);
+        return aBlocksB || bBlocksA;
+      } catch (e) {
+        console.warn('[WS][blocked-check] error', e.message);
+        return false; // fail-open to avoid false positives
+      }
+    }
+
     // Create new conversation and optional first message
     socket.on('chat:create', async (payload) => {
       try {
@@ -261,6 +282,12 @@ async function startServer() {
         const senderId = socket.data.userId;
         if (!otherUserId || !senderId) return;
         const db = getDB();
+        // Block check before creating first message
+        const blocked = await isBlockedBetween(db, senderId, otherUserId);
+        if (blocked && (initialMessage || initialE2EE)) {
+          console.warn('[WS][chat:create] blocked; suppressing first message sender=%s other=%s', senderId, otherUserId);
+          // Create/get conversation without first message so UI can still show it
+        }
         // Find existing conversation between users
         let conversation = await db.collection('conversations').findOne({
           participants: { $all: [senderId, otherUserId], $size: 2 }
@@ -278,7 +305,7 @@ async function startServer() {
           conversation = { _id: convResult.insertedId, ...convDoc };
         }
         let firstMessage = null;
-        if (initialMessage || initialE2EE) {
+  if ((initialMessage || initialE2EE) && !blocked) {
           const encrypted = !!initialE2EE && !initialMessage;
           // Ensure receiverId is the other participant (safeguard)
           let initialReceiver = otherUserId;
@@ -320,6 +347,9 @@ async function startServer() {
         }
         // Ack creator
         socket.emit('chat:create:ack', { conversation, firstMessage });
+        if (blocked) {
+          socket.emit('chat:error', { type: 'blocked', message: 'Messaging is blocked between these users' });
+        }
         // Notify other participant about new conversation
         socket.broadcast.emit('chat:conversation:new', { conversation, firstMessage });
       } catch (e) {
@@ -361,7 +391,7 @@ async function startServer() {
       }
     });
 
-    socket.on('chat:message', async (msg) => {
+  socket.on('chat:message', async (msg) => {
       try {
   console.log('[WS][chat:message][in]', msg);
         // msg may include plaintext content OR e2ee bundle
@@ -460,6 +490,16 @@ async function startServer() {
           }
         }
   console.log('[WS][chat:message][resolve] incomingReceiver=%s resolvedReceiver=%s sender=%s conversation=%s', originalIncomingReceiver, resolvedReceiver, senderId, conversationId);
+        // Block check (only if receiver is resolved)
+        if (resolvedReceiver) {
+          const blocked = await isBlockedBetween(db, senderId, resolvedReceiver);
+          if (blocked) {
+            console.warn('[WS][chat:message] blocked message sender=%s receiver=%s conv=%s', senderId, resolvedReceiver, conversationId);
+            socket.emit('chat:error', { type: 'blocked', message: 'User is blocked' });
+            return;
+          }
+        }
+
         const doc = {
           conversationId,
           senderId,

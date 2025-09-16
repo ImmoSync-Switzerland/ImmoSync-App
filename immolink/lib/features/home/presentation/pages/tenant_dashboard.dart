@@ -367,8 +367,19 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   // Removed legacy _buildAppBar (now using AppTopBar)
 
   Widget _buildWelcomeSection(String userName, DynamicAppColors colors) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bool isSmall = screenWidth < 360;
+    final bool isMedium = !isSmall && screenWidth < 400;
+    final double cardPadding = isSmall ? 20 : (isMedium ? 24 : 32);
+    final double iconSize = isSmall ? 20 : (isMedium ? 22 : 24);
+    final double greetingFont = isSmall ? 12 : (isMedium ? 13 : 14);
+    final double badgeHPad = isSmall ? 10 : 12;
+    final double badgeVPad = isSmall ? 5 : 6;
+    final double badgeText = isSmall ? 10 : 11;
+    final bool placeBadgeBelow = screenWidth < 380;
+
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
@@ -390,57 +401,143 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
-                  borderRadius: BorderRadius.circular(12),
+          if (!placeBadgeBelow)
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3B82F6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.waving_hand_rounded,
+                    color: Colors.white,
+                    size: iconSize,
+                  ),
                 ),
-                child: Icon(
-                  Icons.waving_hand_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getGreeting(context),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: -0.1,
-                        inherit: true,
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getGreeting(context),
+                        style: TextStyle(
+                          fontSize: greetingFont,
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -0.1,
+                          inherit: true,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        fontSize: _getResponsiveFontSize(context, 32),
-                        fontWeight: FontWeight.w800,
-                        color: colors.textPrimary,
-                        letterSpacing: -0.8,
-                        height: 1.1,
-                        inherit: true,
+                      const SizedBox(height: 6),
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          fontSize: _getResponsiveFontSize(context, 32),
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                          letterSpacing: -0.8,
+                          height: 1.1,
+                          inherit: true,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: badgeHPad, vertical: badgeVPad),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Online',
+                        style: TextStyle(
+                          fontSize: badgeText,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF10B981),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          else ...[
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3B82F6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.waving_hand_rounded,
+                    color: Colors.white,
+                    size: iconSize,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getGreeting(context),
+                        style: TextStyle(
+                          fontSize: greetingFont,
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -0.1,
+                          inherit: true,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          fontSize: _getResponsiveFontSize(context, 32),
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                          letterSpacing: -0.8,
+                          height: 1.1,
+                          inherit: true,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: badgeHPad, vertical: badgeVPad),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7), // Grün Background
+                  color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -458,7 +555,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     Text(
                       'Online',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: badgeText,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF10B981),
                         letterSpacing: 0.5,
@@ -467,8 +564,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

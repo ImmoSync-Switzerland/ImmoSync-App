@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../chat/presentation/providers/invitation_provider.dart';
 import '../../../chat/domain/models/invitation.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -379,8 +380,8 @@ class InvitationCard extends ConsumerWidget {
           SnackBar(
             content: Text(
               response == 'accepted'
-                  ? 'Invitation accepted successfully!'
-                  : 'Invitation declined.',
+                  ? AppLocalizations.of(context)!.invitationAcceptedSuccessfully
+                  : AppLocalizations.of(context)!.invitationDeclined,
             ),
             backgroundColor: response == 'accepted'
                 ? const Color(0xFF10B981)
@@ -392,7 +393,7 @@ class InvitationCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to respond to invitation: $error'),
+            content: Text('${AppLocalizations.of(context)!.failedToRespondInvitation}: $error'),
             backgroundColor: const Color(0xFFEF4444),
           ),
         );

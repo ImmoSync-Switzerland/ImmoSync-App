@@ -67,7 +67,7 @@ class _PropertyEmailInviteDialogState
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Invitation sent successfully'),
+            content: Text(AppLocalizations.of(context)!.invitationSentSuccessfully),
             backgroundColor: ref.read(dynamicColorsProvider).success,
           ),
         );
@@ -76,7 +76,7 @@ class _PropertyEmailInviteDialogState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send invitation: $e'),
+            content: Text('${AppLocalizations.of(context)!.failedToSendInvitation}: $e'),
             backgroundColor: ref.read(dynamicColorsProvider).error,
           ),
         );

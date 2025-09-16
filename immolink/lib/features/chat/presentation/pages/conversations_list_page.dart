@@ -214,7 +214,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       return conversations;
     }
 
-    final currentUser = ref.watch(currentUserProvider);
+  final currentUser = ref.watch(currentUserProvider);
     final currentUserId = currentUser?.id ?? '';
     final isLandlord = currentUser?.role == 'landlord';
 
@@ -296,7 +296,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     String otherUserId,
     String currentUserId,
   ) {
-    final currentUser = ref.watch(currentUserProvider);
+  final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
 
     final otherUserName = conversation.getOtherParticipantDisplayName(
@@ -304,7 +304,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       isLandlord: isLandlord,
     );
 
-    return Container(
+  final isBlocked = (currentUser?.blockedUsers ?? const <String>[]).contains(otherUserId);
+  return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -316,7 +317,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: isBlocked ? AppColors.warning : AppColors.borderLight,
           width: 1,
         ),
         boxShadow: [
@@ -335,13 +336,39 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           name: otherUserName,
           size: 50,
         ),
-        title: Text(
-          otherUserName,
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                otherUserName,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isBlocked) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.warning, width: 0.5),
+                ),
+                child: Text(
+                  AppLocalizations.of(context)!.blockedLabel,
+                  style: TextStyle(
+                    color: AppColors.warning,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

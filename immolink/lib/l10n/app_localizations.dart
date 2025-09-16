@@ -1974,6 +1974,192 @@ abstract class AppLocalizations {
   /// **'Delete Conversation'**
   String get deleteConversation;
 
+  /// No description provided for @unblockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock User'**
+  String get unblockUser;
+
+  /// No description provided for @blockedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get blockedLabel;
+
+  /// No description provided for @block.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get block;
+
+  /// No description provided for @unblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblock;
+
+  /// No description provided for @report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get report;
+
+  /// No description provided for @blockConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to block this user? You will no longer receive messages from them.'**
+  String get blockConfirmBody;
+
+  /// No description provided for @unblockConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to unblock this user? You will be able to exchange messages again.'**
+  String get unblockConfirmBody;
+
+  /// No description provided for @reportConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to report this conversation? Our support team will review it.'**
+  String get reportConfirmBody;
+
+  /// No description provided for @deleteConversationConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this conversation? This action cannot be undone.'**
+  String get deleteConversationConfirmBody;
+
+  /// No description provided for @chatOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Options'**
+  String get chatOptions;
+
+  /// No description provided for @gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// No description provided for @camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @document.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get document;
+
+  /// No description provided for @emojis.
+  ///
+  /// In en, this message translates to:
+  /// **'Emojis'**
+  String get emojis;
+
+  /// No description provided for @imageReadyToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Image ready to send'**
+  String get imageReadyToSend;
+
+  /// No description provided for @fileReadyToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'File ready to send'**
+  String get fileReadyToSend;
+
+  /// No description provided for @pleaseSendTextFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please send a text message first to start the conversation'**
+  String get pleaseSendTextFirst;
+
+  /// No description provided for @encryptionKeyNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption key not ready yet...'**
+  String get encryptionKeyNotReady;
+
+  /// No description provided for @openFileFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Open failed'**
+  String get openFileFailed;
+
+  /// No description provided for @attachmentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment failed'**
+  String get attachmentFailed;
+
+  /// No description provided for @errorSelectingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error selecting image'**
+  String get errorSelectingImage;
+
+  /// No description provided for @errorTakingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Error taking photo'**
+  String get errorTakingPhoto;
+
+  /// No description provided for @errorSendingDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Error sending document'**
+  String get errorSendingDocument;
+
+  /// No description provided for @cannotMakeCallOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot make phone calls on this device'**
+  String get cannotMakeCallOnDevice;
+
+  /// No description provided for @errorInitiatingCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Error initiating call'**
+  String get errorInitiatingCall;
+
+  /// No description provided for @invitationSentSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent successfully'**
+  String get invitationSentSuccessfully;
+
+  /// No description provided for @failedToSendInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send invitation'**
+  String get failedToSendInvitation;
+
+  /// No description provided for @invitationAcceptedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation accepted successfully!'**
+  String get invitationAcceptedSuccessfully;
+
+  /// No description provided for @invitationDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation declined.'**
+  String get invitationDeclined;
+
+  /// No description provided for @failedToRespondInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to respond to invitation'**
+  String get failedToRespondInvitation;
+
+  /// No description provided for @callPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to make this call?'**
+  String get callPrompt;
+
   /// No description provided for @myMaintenanceRequests.
   ///
   /// In en, this message translates to:

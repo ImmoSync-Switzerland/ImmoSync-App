@@ -709,7 +709,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 await f.writeAsBytes(bytes, flush: true);
                 await OpenFilex.open(f.path);
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Open failed: $e')));
+                final l10n = AppLocalizations.of(context)!;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.openFileFailed}: $e')));
               }
             }
           }
@@ -821,7 +822,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   onTap: () {
                     if (_sendingAttachment) return; // busy
                     if (!_encryptionReady && widget.otherUserId != null && (_currentConversationId ?? widget.conversationId) != 'new') {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Encryption key not ready yet...')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.encryptionKeyNotReady)));
                       return;
                     }
                     if (_pendingImage != null || _pendingFile != null) {
@@ -932,7 +933,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Nachricht konnte nicht gesendet werden: $error'),
+            content: Text('${AppLocalizations.of(context)!.failedToSendMessage}: $error'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1066,21 +1067,36 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [                  Text(
-                    'Chat Options',
+        children: [                  Text(
+                    AppLocalizations.of(context)!.chatOptions,
                     style: AppTypography.heading2.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ListTile(
-                    leading: Icon(Icons.block, color: AppColors.error),
-                    title: Text(AppLocalizations.of(context)!.blockUser),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _blockUser();
-                    },
-                  ),
+                  Builder(builder: (context) {
+                    final me = ref.read(currentUserProvider);
+                    final oid = widget.otherUserId;
+                    final isBlocked = me != null && oid != null && me.blockedUsers.contains(oid);
+          if (isBlocked) {
+                      return ListTile(
+                        leading: Icon(Icons.lock_open, color: AppColors.primaryAccent),
+            title: Text(AppLocalizations.of(context)!.unblockUser),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _unblockUser();
+                        },
+                      );
+                    }
+                    return ListTile(
+                      leading: Icon(Icons.block, color: AppColors.error),
+                      title: Text(AppLocalizations.of(context)!.blockUser),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _blockUser();
+                      },
+                    );
+                  }),
                   ListTile(
                     leading: Icon(Icons.report, color: AppColors.warning),
                     title: Text(AppLocalizations.of(context)!.reportConversation),
@@ -1133,7 +1149,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Send Attachment',
+                    AppLocalizations.of(context)!.upload,
                     style: AppTypography.heading2.copyWith(
                       color: AppColors.textPrimary,
                     ),
@@ -1144,7 +1160,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     children: [
                       _buildAttachmentOption(
                         icon: Icons.photo_library,
-                        label: 'Gallery',
+                        label: AppLocalizations.of(context)!.gallery,
                         color: AppColors.primaryAccent,
                         onTap: () {
                           Navigator.pop(context);
@@ -1153,7 +1169,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                       ),
                       _buildAttachmentOption(
                         icon: Icons.camera_alt,
-                        label: 'Camera',
+                        label: AppLocalizations.of(context)!.camera,
                         color: AppColors.success,
                         onTap: () {
                           Navigator.pop(context);
@@ -1162,7 +1178,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                       ),
                       _buildAttachmentOption(
                         icon: Icons.attach_file,
-                        label: 'Document',
+                        label: AppLocalizations.of(context)!.document,
                         color: AppColors.warning,
                         onTap: () {
                           Navigator.pop(context);
@@ -1245,7 +1261,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Emojis',
+                    AppLocalizations.of(context)!.emojis,
                     style: AppTypography.heading2.copyWith(
                       color: AppColors.textPrimary,
                     ),
@@ -1326,25 +1342,83 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Block User'),
-        content: const Text('Are you sure you want to block this user? You will no longer receive messages from them.'),
+  title: Text(AppLocalizations.of(context)!.blockUser),
+  content: Text(AppLocalizations.of(context)!.blockConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
-            onPressed: () {
-              // Implement block user functionality
+            onPressed: () async {
+              final me = ref.read(currentUserProvider);
+              final other = widget.otherUserId;
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('User blocked successfully'),
-                  backgroundColor: AppColors.primaryAccent,
-                ),
-              );
+              if (me?.id == null || other == null) return;
+              try {
+                await ref.read(chat_providers.chatServiceProvider).blockUser(userId: me!.id, targetUserId: other);
+                // Optimistically update currentUser provider
+                final updated = me.copyWith(blockedUsers: {...me.blockedUsers, other}.toList());
+                ref.read(currentUserProvider.notifier).setUserModel(updated);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('User blocked successfully'),
+                    backgroundColor: AppColors.primaryAccent,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to block user: $e'), backgroundColor: AppColors.error),
+                );
+              }
             },
-            child: const Text('Block'),
+            child: Text(AppLocalizations.of(context)!.block),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _unblockUser() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+  title: Text(AppLocalizations.of(context)!.unblockUser),
+  content: Text(AppLocalizations.of(context)!.unblockConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              final me = ref.read(currentUserProvider);
+              final other = widget.otherUserId;
+              Navigator.of(context).pop();
+              if (me?.id == null || other == null) return;
+              try {
+                await ref.read(chat_providers.chatServiceProvider).unblockUser(userId: me!.id, targetUserId: other);
+                // Optimistically update currentUser provider
+                final updatedList = List<String>.from(me.blockedUsers)..remove(other);
+                final updated = me.copyWith(blockedUsers: updatedList);
+                ref.read(currentUserProvider.notifier).setUserModel(updated);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('User unblocked successfully'),
+                    backgroundColor: AppColors.primaryAccent,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to unblock user: $e'), backgroundColor: AppColors.error),
+                );
+              }
+            },
+            child: Text(AppLocalizations.of(context)!.unblock),
           ),
         ],
       ),
@@ -1355,25 +1429,38 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Report Conversation'),
-        content: const Text('Are you sure you want to report this conversation? Our support team will review it.'),
+  title: Text(AppLocalizations.of(context)!.reportConversation),
+  content: Text(AppLocalizations.of(context)!.reportConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
-            onPressed: () {
-              // Implement report functionality
+            onPressed: () async {
+              final me = ref.read(currentUserProvider);
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation reported successfully'),
-                  backgroundColor: AppColors.primaryAccent,
-                ),
-              );
+              try {
+                await ref.read(chat_providers.chatServiceProvider).reportConversation(
+                  conversationId: _currentConversationId ?? widget.conversationId,
+                  reporterId: me?.id ?? '',
+                  reason: 'user_report',
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Conversation reported successfully'),
+                    backgroundColor: AppColors.primaryAccent,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to report: $e'), backgroundColor: AppColors.error),
+                );
+              }
             },
-            child: const Text('Report'),
+            child: Text(AppLocalizations.of(context)!.report),
           ),
         ],
       ),
@@ -1384,26 +1471,35 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Conversation'),
-        content: const Text('Are you sure you want to delete this conversation? This action cannot be undone.'),
+  title: Text(AppLocalizations.of(context)!.deleteConversation),
+  content: Text(AppLocalizations.of(context)!.deleteConversationConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
-            onPressed: () {
-              // Implement delete conversation functionality
+            onPressed: () async {
               Navigator.of(context).pop();
-              Navigator.of(context).pop(); // Go back to previous screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conversation deleted successfully'),
-                  backgroundColor: AppColors.primaryAccent,
-                ),
-              );
+              final convId = _currentConversationId ?? widget.conversationId;
+              try {
+                await ref.read(chat_providers.chatServiceProvider).deleteConversation(convId);
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Conversation deleted successfully'),
+                    backgroundColor: AppColors.primaryAccent,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to delete: $e'), backgroundColor: AppColors.error),
+                );
+              }
             },
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -1531,7 +1627,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  isImage ? 'Image ready to send' : 'File ready to send',
+                  isImage ? AppLocalizations.of(context)!.imageReadyToSend : AppLocalizations.of(context)!.fileReadyToSend,
                   style: AppTypography.caption.copyWith(color: colors.textSecondary, inherit: true),
                 ),
               ],
@@ -1565,7 +1661,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     final convId = _currentConversationId ?? widget.conversationId;
     if (convId == 'new') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please send a text message first to start the conversation')),
+  SnackBar(content: Text(AppLocalizations.of(context)!.pleaseSendTextFirst)),
       );
       return;
     }

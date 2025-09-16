@@ -999,6 +999,107 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteConversation => 'Supprimer la conversation';
 
   @override
+  String get unblockUser => 'Débloquer l’utilisateur';
+
+  @override
+  String get blockedLabel => 'Bloqué';
+
+  @override
+  String get block => 'Bloquer';
+
+  @override
+  String get unblock => 'Débloquer';
+
+  @override
+  String get report => 'Signaler';
+
+  @override
+  String get blockConfirmBody =>
+      'Voulez-vous vraiment bloquer cet utilisateur ? Vous ne recevrez plus ses messages.';
+
+  @override
+  String get unblockConfirmBody =>
+      'Voulez-vous débloquer cet utilisateur ? Vous pourrez à nouveau échanger des messages.';
+
+  @override
+  String get reportConfirmBody =>
+      'Voulez-vous vraiment signaler cette conversation ? Notre équipe d\'assistance l\'examinera.';
+
+  @override
+  String get deleteConversationConfirmBody =>
+      'Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible.';
+
+  @override
+  String get chatOptions => 'Options du chat';
+
+  @override
+  String get gallery => 'Galerie';
+
+  @override
+  String get camera => 'Appareil photo';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get emojis => 'Émojis';
+
+  @override
+  String get imageReadyToSend => 'Image prête à être envoyée';
+
+  @override
+  String get fileReadyToSend => 'Fichier prêt à être envoyé';
+
+  @override
+  String get pleaseSendTextFirst =>
+      'Veuillez d\'abord envoyer un message texte pour démarrer la conversation';
+
+  @override
+  String get encryptionKeyNotReady =>
+      'La clé de chiffrement n\'est pas encore prête...';
+
+  @override
+  String get openFileFailed => 'Échec de l\'ouverture';
+
+  @override
+  String get attachmentFailed => 'Échec de la pièce jointe';
+
+  @override
+  String get errorSelectingImage => 'Erreur lors de la sélection de l\'image';
+
+  @override
+  String get errorTakingPhoto => 'Erreur lors de la prise de la photo';
+
+  @override
+  String get errorSendingDocument => 'Erreur lors de l\'envoi du document';
+
+  @override
+  String get cannotMakeCallOnDevice =>
+      'Impossible de passer des appels sur cet appareil';
+
+  @override
+  String get errorInitiatingCall => 'Erreur lors du démarrage de l\'appel';
+
+  @override
+  String get invitationSentSuccessfully => 'Invitation envoyée avec succès';
+
+  @override
+  String get failedToSendInvitation => 'Échec de l\'envoi de l\'invitation';
+
+  @override
+  String get invitationAcceptedSuccessfully =>
+      'Invitation acceptée avec succès !';
+
+  @override
+  String get invitationDeclined => 'Invitation refusée.';
+
+  @override
+  String get failedToRespondInvitation => 'Échec de la réponse à l\'invitation';
+
+  @override
+  String get callPrompt => 'Voulez-vous passer cet appel ?';
+
+  @override
   String get myMaintenanceRequests => 'Mes demandes de maintenance';
 
   @override
