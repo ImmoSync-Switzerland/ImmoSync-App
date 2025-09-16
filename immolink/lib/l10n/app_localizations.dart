@@ -306,6 +306,36 @@ abstract class AppLocalizations {
   /// **'Monthly Revenue'**
   String get monthlyRevenue;
 
+  /// No description provided for @revenueVsExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue vs Expenses'**
+  String get revenueVsExpenses;
+
+  /// No description provided for @totalRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Revenue'**
+  String get totalRevenue;
+
+  /// No description provided for @totalExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Expenses'**
+  String get totalExpenses;
+
+  /// No description provided for @netIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Income'**
+  String get netIncome;
+
+  /// No description provided for @monthlyRentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Rent Due'**
+  String get monthlyRentDue;
+
   /// No description provided for @occupancyRate.
   ///
   /// In en, this message translates to:
@@ -4367,6 +4397,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Size'**
   String get sizeLabel;
+
+  /// No description provided for @recentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get recentLabel;
+
+  /// No description provided for @importantLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Important'**
+  String get importantLabel;
 
   /// No description provided for @documentName.
   ///

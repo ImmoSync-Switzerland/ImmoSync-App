@@ -34,6 +34,11 @@
   "welcome": "Willkommen",
   "totalProperties": "Gesamte Immobilien",
   "monthlyRevenue": "Monatliche Einnahmen",
+  "revenueVsExpenses": "Einnahmen vs. Ausgaben",
+  "totalRevenue": "Gesamteinnahmen",
+  "totalExpenses": "Gesamtausgaben",
+  "netIncome": "Nettogewinn",
+  "monthlyRentDue": "Monatliche Miete fällig",
   "occupancyRate": "Auslastungsgrad",
   "maintenanceRequests": "Wartungsanfragen",
   "search": "Suchen",
@@ -803,6 +808,8 @@
   ,"uploadFirstDocument":"Laden Sie Ihr erstes Dokument hoch, um zu beginnen"
   ,"fileLabel":"Datei"
   ,"sizeLabel":"Größe"
+    ,"recentLabel":"Neueste"
+    ,"importantLabel":"Wichtig"
   ,"documentName":"Dokumentname"
   ,"descriptionOptional":"Beschreibung (optional)"
   ,"assignToPropertyOptional":"Objekt zuweisen (optional)"

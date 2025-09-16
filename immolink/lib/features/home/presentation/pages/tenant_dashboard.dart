@@ -238,7 +238,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Loading your dashboard...',
+                            AppLocalizations.of(context)!.loading,
                             style: TextStyle(
                               color: colors.textPrimary,
                               fontSize: 16,
@@ -300,7 +300,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Error loading dashboard',
+                          AppLocalizations.of(context)!.errorLoadingProperties,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -342,8 +342,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              'Retry',
+                            child: Text(
+                              AppLocalizations.of(context)!.retry,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
@@ -468,7 +468,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Online',
+                        AppLocalizations.of(context)!.statusActiveUpper,
                         style: TextStyle(
                           fontSize: badgeText,
                           fontWeight: FontWeight.w600,
@@ -553,7 +553,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Online',
+                      AppLocalizations.of(context)!.statusActiveUpper,
                       style: TextStyle(
                         fontSize: badgeText,
                         fontWeight: FontWeight.w600,
@@ -628,7 +628,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           context.push('/search');
         },
         decoration: InputDecoration(
-          hintText: 'Immobilien, Wartung, Nachrichten suchen...',
+          hintText: AppLocalizations.of(context)!.searchPropertiesTenantsMessages,
           hintStyle: TextStyle(
             color: colors.textSecondary,
             fontSize: 15,
@@ -835,7 +835,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Monthly Rent',
+                              AppLocalizations.of(context)!.monthlyRent,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -846,7 +846,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              _formatCurrency(property.rentAmount, currency),
+                              '${_formatCurrency(property.rentAmount, currency)}/${AppLocalizations.of(context)!.monthlyInterval}',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w800,
@@ -864,7 +864,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Property Size',
+                              AppLocalizations.of(context)!.sizeLabel,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -875,7 +875,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              '${property.details.size} m²',
+                              '${property.details.size} ${AppLocalizations.of(context)!.squareMeters}',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
@@ -1070,7 +1070,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildActionCard(
-                            'Book Services',
+                            AppLocalizations.of(context)!.services,
                             Icons.room_service_outlined,
                             colors.info,
                             () {
@@ -1122,7 +1122,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       children: [
                         Expanded(
                           child: _buildActionCard(
-                            'Maintenance',
+                            AppLocalizations.of(context)!.maintenance,
                             Icons.build_circle_outlined,
                             colors.error,
                             () {
@@ -1135,7 +1135,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildActionCard(
-                            'Messages',
+                            AppLocalizations.of(context)!.messages,
                             Icons.chat_bubble_outline,
                             colors.success,
                             () {
@@ -1165,7 +1165,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       children: [
                         Expanded(
                           child: _buildActionCard(
-                            'Book Services',
+                            AppLocalizations.of(context)!.services,
                             Icons.room_service_outlined,
                             colors.info,
                             () {
@@ -1676,49 +1676,25 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Filter Options'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Radio<String>(
-                value: 'all',
-                groupValue: selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    selectedFilter = value!;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              const Text('All'),
-              Radio<String>(
-                value: 'recent',
-                groupValue: selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    selectedFilter = value!;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              const Text('Recent'),
-              Radio<String>(
-                value: 'important',
-                groupValue: selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    selectedFilter = value!;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              const Text('Important'),
+          title: Text(AppLocalizations.of(context)!.filterOptions),
+          content: SegmentedButton<String>(
+            segments: [
+              ButtonSegment(value: 'all', label: Text(AppLocalizations.of(context)!.all)),
+              ButtonSegment(value: 'recent', label: Text(AppLocalizations.of(context)!.recentLabel)),
+              ButtonSegment(value: 'important', label: Text(AppLocalizations.of(context)!.importantLabel)),
             ],
+            selected: {selectedFilter},
+            onSelectionChanged: (newSelection) {
+              setState(() {
+                selectedFilter = newSelection.first;
+              });
+              Navigator.of(context).pop();
+            },
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(AppLocalizations.of(context)!.close),
             ),
           ],
         ),

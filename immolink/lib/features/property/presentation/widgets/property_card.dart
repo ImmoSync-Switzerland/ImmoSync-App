@@ -3,6 +3,7 @@ import 'package:immosync/features/property/domain/models/property.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class PropertyCard extends StatelessWidget {
   final Property property;
@@ -159,7 +160,7 @@ class PropertyCard extends StatelessWidget {
 
                   // Price
                   Text(
-                    '€${property.rentAmount.toStringAsFixed(0)}/month',
+                    '€${property.rentAmount.toStringAsFixed(0)}/${AppLocalizations.of(context)!.monthlyInterval}',
                     style: AppTypography.heading2.copyWith(
                       color: AppColors.primaryAccent,
                     ),

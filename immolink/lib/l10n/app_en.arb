@@ -34,6 +34,11 @@
   "welcome": "Welcome",
   "totalProperties": "Total Properties",  
   "monthlyRevenue": "Monthly Revenue",
+  "revenueVsExpenses": "Revenue vs Expenses",
+  "totalRevenue": "Total Revenue",
+  "totalExpenses": "Total Expenses",
+  "netIncome": "Net Income",
+  "monthlyRentDue": "Monthly Rent Due",
   "occupancyRate": "Occupancy Rate",
   "maintenanceRequests": "Maintenance Requests",
   "search": "Search",
@@ -804,6 +809,8 @@
   ,"uploadFirstDocument":"Upload your first document to get started"
   ,"fileLabel":"File"
   ,"sizeLabel":"Size"
+  ,"recentLabel":"Recent"
+  ,"importantLabel":"Important"
   ,"documentName":"Document Name"
   ,"descriptionOptional":"Description (optional)"
   ,"assignToPropertyOptional":"Assign to Property (optional)"

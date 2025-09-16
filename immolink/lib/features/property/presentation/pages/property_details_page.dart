@@ -86,6 +86,10 @@ class PropertyDetailsPage extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
+    final colors = ref.read(dynamicColorsProvider);
+    final street = property.address.street.trim();
+    final cityPostal = '${property.address.city}, ${property.address.postalCode}';
+    final hasStreet = street.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -96,9 +100,10 @@ class PropertyDetailsPage extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${property.address.street}',
+                  hasStreet ? street : cityPostal,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: colors.textPrimary,
                       ),
                 ),
               ),
@@ -122,16 +127,18 @@ class PropertyDetailsPage extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${property.address.city}, ${property.address.postalCode}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
-          ),
+          if (hasStreet) ...[
+            const SizedBox(height: 8),
+            Text(
+              cityPostal,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+            ),
+          ],
           const SizedBox(height: 16),
           Text(
-            '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
+            '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/${AppLocalizations.of(context)!.monthlyInterval}',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: ref.read(dynamicColorsProvider).primaryAccent,
                   fontWeight: FontWeight.bold,
@@ -152,7 +159,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               context,
               Icons.square_foot,
               '${property.details.size} m²',
-              AppLocalizations.of(context)!.rooms, // Using existing key for now
+              AppLocalizations.of(context)!.sizeLabel,
               ref,
             ),
           ),
@@ -188,27 +195,42 @@ class PropertyDetailsPage extends ConsumerWidget {
     String label,
     WidgetRef ref,
   ) {
+    final colors = ref.read(dynamicColorsProvider);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ref.read(dynamicColorsProvider).surfaceSecondary,
+        color: colors.surfaceSecondary,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: colors.shadowColorMedium,
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(icon,
-              color: ref.read(dynamicColorsProvider).primaryAccent, size: 24),
+          Icon(icon, color: colors.primaryAccent, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
                 ),
           ),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ref.read(dynamicColorsProvider).textSecondary,
+                  color: colors.textSecondary,
                 ),
           ),
         ],

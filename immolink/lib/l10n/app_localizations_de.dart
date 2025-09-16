@@ -117,6 +117,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get monthlyRevenue => 'Monatliche Einnahmen';
 
   @override
+  String get revenueVsExpenses => 'Einnahmen vs. Ausgaben';
+
+  @override
+  String get totalRevenue => 'Gesamteinnahmen';
+
+  @override
+  String get totalExpenses => 'Gesamtausgaben';
+
+  @override
+  String get netIncome => 'Nettogewinn';
+
+  @override
+  String get monthlyRentDue => 'Monatliche Miete fällig';
+
+  @override
   String get occupancyRate => 'Auslastungsgrad';
 
   @override
@@ -2332,6 +2347,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sizeLabel => 'Größe';
+
+  @override
+  String get recentLabel => 'Neueste';
+
+  @override
+  String get importantLabel => 'Wichtig';
 
   @override
   String get documentName => 'Dokumentname';

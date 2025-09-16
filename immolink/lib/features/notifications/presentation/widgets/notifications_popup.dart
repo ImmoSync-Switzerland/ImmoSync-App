@@ -55,13 +55,13 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: theme.brightness == Brightness.dark
-                          ? [theme.colorScheme.surface, Colors.black.withOpacity(0.4)]
-                          : [theme.colorScheme.surface, theme.colorScheme.surfaceContainerHighest.withOpacity(0.15)],
+                          ? [theme.colorScheme.surface, Colors.black.withValues(alpha: 0.4)]
+                          : [theme.colorScheme.surface, theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15)],
                     ),
                     border: Border.all(
-                      color: theme.brightness == Brightness.dark
-                          ? Colors.white.withOpacity(0.06)
-                          : Colors.black.withOpacity(0.05),
+            color: theme.brightness == Brightness.dark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.05),
                     ),
                   ),
                   child: asyncList.when(
@@ -202,8 +202,8 @@ class _HeaderBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
     color: theme.brightness == Brightness.dark
-      ? theme.colorScheme.surface.withOpacity(0.92)
-      : theme.colorScheme.surface.withOpacity(0.9),
+      ? theme.colorScheme.surface.withValues(alpha: 0.92)
+      : theme.colorScheme.surface.withValues(alpha: 0.9),
       ),
       child: Row(
         children: [
@@ -313,9 +313,9 @@ class _NotificationTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: n.read ? theme.colorScheme.surface : theme.colorScheme.primary.withOpacity(0.06),
+          color: n.read ? theme.colorScheme.surface : theme.colorScheme.primary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: n.read ? theme.dividerColor : accent.withOpacity(0.4)),
+          border: Border.all(color: n.read ? theme.dividerColor : accent.withValues(alpha: 0.4)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,7 +324,7 @@ class _NotificationTile extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: accent.withOpacity(0.15),
+                color: accent.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(iconData, color: accent, size: 18),
@@ -429,7 +429,7 @@ class _ViewAllButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: theme.dividerColor.withOpacity(theme.brightness == Brightness.dark ? 0.4 : 1))),
+          border: Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: theme.brightness == Brightness.dark ? 0.4 : 1))),
         ),
         child: Center(
           child: Text('View all notifications', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),

@@ -1514,7 +1514,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       ),
                       Expanded(
                         child: Text(
-                          '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
+                          '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/${AppLocalizations.of(context)!.monthlyInterval}',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

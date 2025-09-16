@@ -11,6 +11,7 @@ import 'package:immosync/core/widgets/common_bottom_nav.dart';
 import 'package:immosync/core/providers/currency_provider.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:immosync/features/reports/services/pdf_exporter.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
@@ -1037,11 +1038,16 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 children: requestList.take(5).map<Widget>((request) {
                   final statusColor =
                       _getMaintenanceStatusColor(request.status, colors);
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  final isClosed = request.status.toLowerCase() == 'closed';
+                  final chipTextColor = isClosed
+                      ? (isDark ? colors.textPrimary : colors.textSecondary)
+                      : statusColor;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: colors.surfaceSecondary,
+                      color: isDark ? colors.surfaceCards : colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: colors.borderLight,
@@ -1053,7 +1059,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
+                            color: statusColor.withValues(alpha: isDark ? 0.25 : 0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -1072,7 +1078,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                 style: TextStyle(
                                   fontSize: _getResponsiveFontSize(context, 16),
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0F172A),
+                                  color: colors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -1081,7 +1087,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                     .format(request.requestedDate),
                                 style: TextStyle(
                                   fontSize: _getResponsiveFontSize(context, 14),
-                                  color: Color(0xFF64748B),
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ],
@@ -1091,7 +1097,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
+                            color: statusColor.withValues(alpha: isDark ? 0.28 : 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -1099,7 +1105,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             style: TextStyle(
                               fontSize: _getResponsiveFontSize(context, 12),
                               fontWeight: FontWeight.w600,
-                              color: statusColor,
+                              color: chipTextColor,
                             ),
                           ),
                         ),
@@ -1286,6 +1292,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         return colors.info;
       case 'pending':
         return colors.warning;
+      case 'closed':
+        return Colors.grey;
       default:
         return colors.textSecondary;
     }
@@ -1315,7 +1323,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         .join(' ');
   }
 
-  void _exportToPDF() {
+  Future<void> _exportToPDF() async {
     final colors = ref.read(dynamicColorsProvider);
 
     // Show loading dialog
@@ -1334,20 +1342,189 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       ),
     );
 
-    // Simulate PDF generation
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pop(); // Close loading dialog
+    try {
+      // Determine role
+      final userRole = ref.read(userRoleProvider);
+      final isLandlord = userRole == 'landlord';
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.pdfExportInfo),
-          backgroundColor: colors.info,
-          action: SnackBarAction(
-            label: AppLocalizations.of(context)!.ok,
-            onPressed: () {},
-          ),
-        ),
+      // Build last 6 months list (oldest -> newest)
+      final now = DateTime.now();
+      final months = List<DateTime>.generate(
+        6,
+        (i) => DateTime(now.year, now.month - (5 - i), 1),
       );
-    });
+
+      // Helpers to map dates to yyyy-MM keys
+      String keyFor(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}';
+
+      // Initialize maps for sums
+      final revenueByMonth = <String, double>{
+        for (final m in months) keyFor(m): 0.0,
+      };
+      final expensesByMonth = <String, double>{
+        for (final m in months) keyFor(m): 0.0,
+      };
+
+      // Load payments (role-specific)
+      final payments = await (isLandlord
+          ? ref.read(landlordPaymentsProvider.future)
+          : ref.read(tenantPaymentsProvider.future));
+
+      int pendingCount = 0;
+      int completedCount = 0;
+      double collectedSum = 0.0;
+      double outstandingSum = 0.0;
+      for (final p in payments) {
+        final status = (p.status).toLowerCase();
+        if (status == 'completed') {
+          completedCount++;
+          collectedSum += p.amount;
+          final k = keyFor(DateTime(p.date.year, p.date.month, 1));
+          if (revenueByMonth.containsKey(k)) {
+            revenueByMonth[k] = (revenueByMonth[k] ?? 0) + p.amount;
+          }
+        } else if (status == 'pending') {
+          pendingCount++;
+          outstandingSum += p.amount;
+        }
+      }
+
+      // Load maintenance to approximate expenses from actual/estimated cost
+      final maintenance = await (isLandlord
+          ? ref.read(landlordMaintenanceRequestsProvider.future)
+          : ref.read(tenantMaintenanceRequestsProvider.future));
+
+      for (final r in maintenance) {
+        final when = r.completedDate ?? r.scheduledDate ?? r.requestedDate;
+        final k = keyFor(DateTime(when.year, when.month, 1));
+        final cost = r.cost?.actual ?? r.cost?.estimated ?? 0.0;
+        if (expensesByMonth.containsKey(k)) {
+          expensesByMonth[k] = (expensesByMonth[k] ?? 0) + cost;
+        }
+      }
+
+      // Convert to aligned int lists for PDF
+      final revenue = months
+          .map((m) => revenueByMonth[keyFor(m)]?.round() ?? 0)
+          .toList();
+      final expenses = months
+          .map((m) => expensesByMonth[keyFor(m)]?.round() ?? 0)
+          .toList();
+
+      // Compute occupancy (landlord only)
+      double occupancyRate = 1.0;
+      if (isLandlord) {
+        try {
+          final properties = await ref.read(landlordPropertiesProvider.future);
+          if (properties.isNotEmpty) {
+            final total = properties.length;
+            final rented = properties
+                .where((p) => p.status.toLowerCase() == 'rented')
+                .length;
+            occupancyRate = total == 0 ? 0.0 : rented / total;
+          } else {
+            occupancyRate = 0.0;
+          }
+        } catch (_) {
+          occupancyRate = 1.0;
+        }
+      }
+
+      // Currency formatting based on app currency setting
+      final appCurrency = ref.read(currencyProvider);
+      NumberFormat currencyFmt;
+      switch (appCurrency) {
+        case 'EUR':
+          currencyFmt = NumberFormat.currency(locale: 'de_DE', symbol: '€');
+          break;
+        case 'USD':
+          currencyFmt = NumberFormat.currency(locale: 'en_US', symbol: '\$');
+          break;
+        case 'GBP':
+          currencyFmt = NumberFormat.currency(locale: 'en_GB', symbol: '£');
+          break;
+        case 'CHF':
+        default:
+          currencyFmt = NumberFormat.currency(locale: 'de_CH', symbol: 'CHF');
+          break;
+      }
+
+      // Compute Month-specific KPIs
+      // Monthly Revenue KPI (landlord): sum of rents of rented properties (align with dashboard)
+      String? monthlyRevenueLabel;
+      String? monthlyRevenueValue;
+      if (isLandlord) {
+        try {
+          final properties = await ref.read(landlordPropertiesProvider.future);
+          final totalMonthlyRent = properties
+              .where((p) => p.status.toLowerCase() == 'rented')
+              .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
+          monthlyRevenueLabel = AppLocalizations.of(context)!.monthlyRevenue;
+          monthlyRevenueValue = currencyFmt.format(totalMonthlyRent);
+        } catch (_) {
+          // ignore – keep KPI hidden if failed
+        }
+      } else {
+        // Tenant: show Monthly Rent Due (sum of tenant properties rent amounts if available)
+        try {
+          final tenantProps = await ref.read(tenantPropertiesProvider.future);
+          final totalMonthlyRent = tenantProps
+              .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
+          monthlyRevenueLabel = AppLocalizations.of(context)!.monthlyRent;
+          monthlyRevenueValue = currencyFmt.format(totalMonthlyRent);
+        } catch (_) {
+          // ignore
+        }
+      }
+
+      // Close loading dialog before invoking share sheet
+      if (mounted) Navigator.of(context).pop();
+
+      // Generate & share PDF
+      await PdfExporter.exportFinancialReport(
+        context: context,
+        currency: currencyFmt,
+        months: months,
+        revenue: revenue,
+        expenses: expenses,
+        occupancyRate: occupancyRate,
+        reportTitle: AppLocalizations.of(context)!.analyticsAndReports,
+        revenueVsExpensesTitle: AppLocalizations.of(context)!.revenueVsExpenses,
+        totalRevenueLabel: AppLocalizations.of(context)!.totalRevenue,
+        totalExpensesLabel: AppLocalizations.of(context)!.totalExpenses,
+        netIncomeLabel: AppLocalizations.of(context)!.netIncome,
+        occupancyLabel: AppLocalizations.of(context)!.occupancyRate,
+        monthlyRevenueLabel: monthlyRevenueLabel,
+        monthlyRevenueValue: monthlyRevenueValue,
+        collectedLabel: AppLocalizations.of(context)!.collected,
+        collectedValue: currencyFmt.format(collectedSum),
+        outstandingLabel: AppLocalizations.of(context)!.outstanding,
+        outstandingValue: currencyFmt.format(outstandingSum),
+        showOccupancy: isLandlord,
+        altKpiLabel: isLandlord ? null : AppLocalizations.of(context)!.status,
+        altKpiValue: isLandlord ? null : '✔ $completedCount • ⏳ $pendingCount',
+      );
+
+      // Optional confirmation
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.exportPdf),
+            backgroundColor: colors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to export PDF: $e'),
+            backgroundColor: colors.error,
+          ),
+        );
+      }
+    }
   }
 }

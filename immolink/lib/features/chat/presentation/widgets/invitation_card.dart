@@ -150,7 +150,7 @@ class InvitationCard extends ConsumerWidget {
                           if (invitation.propertyRent != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Rent: \$${invitation.propertyRent!.toStringAsFixed(0)}/month',
+                              'Rent: \$${invitation.propertyRent!.toStringAsFixed(0)}/${AppLocalizations.of(context)!.monthlyInterval}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: colors.textSecondary,

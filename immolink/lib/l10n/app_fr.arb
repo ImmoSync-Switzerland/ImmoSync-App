@@ -34,6 +34,11 @@
   "welcome": "Bienvenue",
   "totalProperties": "Total des propriétés",
   "monthlyRevenue": "Revenus mensuels",
+  "revenueVsExpenses": "Revenus vs Dépenses",
+  "totalRevenue": "Revenus totaux",
+  "totalExpenses": "Dépenses totales",
+  "netIncome": "Revenu net",
+  "monthlyRentDue": "Loyer mensuel dû",
   "occupancyRate": "Taux d'occupation",
   "maintenanceRequests": "Demandes de maintenance",
   "search": "Rechercher",
@@ -850,6 +855,8 @@
   ,"uploadFirstDocument":"Téléversez votre premier document pour commencer"
   ,"fileLabel":"Fichier"
   ,"sizeLabel":"Taille"
+  ,"recentLabel":"Récent"
+  ,"importantLabel":"Important"
   ,"documentName":"Nom du document"
   ,"descriptionOptional":"Description (optionnel)"
   ,"assignToPropertyOptional":"Associer à une propriété (optionnel)"

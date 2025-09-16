@@ -69,6 +69,9 @@ class PropertyDetailsPage extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
+    final street = property.address.street.trim();
+    final cityPostal = '${property.address.city}, ${property.address.postalCode}';
+    final hasStreet = street.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -79,7 +82,7 @@ class PropertyDetailsPage extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${property.address.street}',
+                  hasStreet ? street : cityPostal,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -105,16 +108,18 @@ class PropertyDetailsPage extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${property.address.city}, ${property.address.postalCode}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
-          ),
+          if (hasStreet) ...[
+            const SizedBox(height: 8),
+            Text(
+              cityPostal,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+          ],
           const SizedBox(height: 16),
           Text(
-            '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/month',
+            '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/${AppLocalizations.of(context)!.monthlyInterval}',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColors.primaryAccent,
                   fontWeight: FontWeight.bold,
