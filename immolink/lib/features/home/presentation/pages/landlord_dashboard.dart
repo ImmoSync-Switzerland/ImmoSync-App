@@ -800,6 +800,22 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.supportRequests,
+                            Icons.support_agent_outlined,
+                            colors.info,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/support-requests');
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 );
               } else {
@@ -908,6 +924,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/subscription/landlord');
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickAccessButton(
+                            AppLocalizations.of(context)!.supportRequests,
+                            Icons.support_agent_outlined,
+                            colors.info,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/support-requests');
                             },
                           ),
                         ),

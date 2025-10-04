@@ -45,6 +45,9 @@ import 'package:immosync/features/payment/presentation/pages/tenant_payment_page
 import 'package:immosync/features/payment/presentation/pages/landlord_connect_setup_page.dart';
 import 'package:immosync/features/payment/presentation/pages/landlord_connect_dashboard_page.dart';
 import 'package:immosync/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:immosync/features/support/presentation/pages/support_requests_page.dart';
+import 'package:immosync/features/support/presentation/pages/support_request_detail_page.dart';
+import 'package:immosync/features/support/presentation/pages/open_tickets_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -291,6 +294,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsPage(),
+      ),
+      GoRoute(
+        path: '/support-requests',
+        builder: (context, state) => const SupportRequestsPage(),
+      ),
+      GoRoute(
+        path: '/support-requests/:id',
+        builder: (context, state) => SupportRequestDetailPage(requestId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/tickets/open',
+        builder: (context, state) => const OpenTicketsPage(),
       ),
       // Search route
       GoRoute(

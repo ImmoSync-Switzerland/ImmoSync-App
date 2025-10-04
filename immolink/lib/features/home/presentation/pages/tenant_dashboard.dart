@@ -1112,6 +1112,23 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildActionCard(
+                            AppLocalizations.of(context)!.supportRequests,
+                            Icons.support_agent_outlined,
+                            colors.info,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/support-requests');
+                            },
+                            colors,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 );
               } else {
@@ -1197,6 +1214,19 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             () {
                               HapticFeedback.mediumImpact();
                               context.push('/settings');
+                            },
+                            colors,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildActionCard(
+                            AppLocalizations.of(context)!.supportRequests,
+                            Icons.support_agent_outlined,
+                            colors.info,
+                            () {
+                              HapticFeedback.mediumImpact();
+                              context.push('/support-requests');
                             },
                             colors,
                           ),

@@ -38,6 +38,7 @@ const documentsRoutes = require('./routes/documents');
 const chatAttachmentsRoutes = require('./routes/chat_attachments');
 const matrixProvision = require('./routes/matrix_provision');
 const matrixRooms = require('./routes/matrix_rooms');
+const supportRequestsRoutes = require('./routes/support_requests');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -97,6 +98,7 @@ app.use('/api/subscription', subscriptionsRoutes);
 app.use('/api/connect', connectRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/documents', documentsRoutes);
+app.use('/api/support-requests', supportRequestsRoutes);
 
 // Add specific route for /api/tenants that points to users/tenants
 app.use('/api/tenants', (req, res, next) => {

@@ -12,6 +12,7 @@ import 'package:immosync/core/providers/currency_provider.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:immosync/features/reports/services/pdf_exporter.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
@@ -176,17 +177,425 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Modern hero header & period selector
+              _buildHeroHeader(l10n, isLandlord, colors),
+              const SizedBox(height: 20),
               _buildPeriodSelector(l10n, colors),
-              const SizedBox(height: 32),
-              if (isLandlord)
-                _buildLandlordReports(context, ref, l10n)
-              else
-                _buildTenantReports(context, ref, l10n),
+              const SizedBox(height: 28),
+              _buildModernReport(isLandlord, l10n, colors),
             ],
           ),
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
+    );
+  }
+
+  Widget _buildHeroHeader(AppLocalizations l10n, bool isLandlord, DynamicAppColors colors) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final compact = w < 360;
+        final titleSize = _getResponsiveFontSize(context, compact ? 22 : 26);
+        final subtitleSize = compact ? 11.5 : 13.0;
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 18 : 24,
+            vertical: compact ? 24 : 30,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.primaryAccent.withValues(alpha: 0.85),
+                colors.info.withValues(alpha: 0.75),
+                colors.surfaceCards.withValues(alpha: 0.10),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: colors.borderLight.withValues(alpha: 0.25), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(compact ? 14 : 16),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          colors.surfaceCards.withValues(alpha: 0.95),
+                          colors.surfaceCards.withValues(alpha: 0.75),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      isLandlord ? Icons.analytics_outlined : Icons.insights_outlined,
+                      size: compact ? 26 : 30,
+                      color: colors.primaryAccent,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          alignment: Alignment.centerLeft,
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            isLandlord ? l10n.analyticsAndReports : l10n.paymentSummary,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: TextStyle(
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.8,
+                              height: 1.05,
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isLandlord ? l10n.financialOverview : l10n.recentActivity,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: subtitleSize,
+                            fontWeight: FontWeight.w500,
+                            color: colors.textPrimary.withValues(alpha: 0.75),
+                            letterSpacing: -0.15,
+                            height: 1.15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildExportPill(l10n, colors),
+                ],
+              ),
+              SizedBox(height: compact ? 18 : 22),
+              _buildKpiStrip(isLandlord, l10n, colors),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildExportPill(AppLocalizations l10n, DynamicAppColors colors) {
+    return GestureDetector(
+      onTap: _showExportDialog,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          gradient: LinearGradient(
+            colors: [colors.info, colors.primaryAccent],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colors.info.withValues(alpha: 0.35),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.picture_as_pdf_outlined, size: 16, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              l10n.export,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKpiStrip(bool isLandlord, AppLocalizations l10n, DynamicAppColors colors) {
+    final payments = ref.watch(isLandlord ? landlordPaymentsProvider : tenantPaymentsProvider);
+    final maintenance = ref.watch(isLandlord ? landlordMaintenanceRequestsProvider : tenantMaintenanceRequestsProvider);
+    final properties = isLandlord ? ref.watch(landlordPropertiesProvider) : ref.watch(tenantPropertiesProvider);
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      int columns;
+      if (width < 340) {
+        columns = 1;
+      } else if (width < 560) {
+        columns = 2;
+      } else if (width < 820) {
+        columns = isLandlord ? 3 : 3;
+      } else {
+        columns = isLandlord ? 4 : 3; // tenant has fewer KPIs
+      }
+      final spacing = 14.0;
+      final cardWidth = (width - spacing * (columns - 1)) / columns;
+
+      List<Widget> cards = [
+        _asyncKpiCard(
+          label: l10n.collected,
+          asyncValue: payments,
+          icon: Icons.check_circle_outline,
+          color: colors.success,
+          valueBuilder: (list) => _formatCurrency(list.where((p) => p.status == 'completed').fold<double>(0, (s, p) => s + p.amount)),
+          minWidth: cardWidth,
+        ),
+        _asyncKpiCard(
+          label: l10n.outstanding,
+          asyncValue: payments,
+          icon: Icons.hourglass_bottom,
+          color: colors.warning,
+          valueBuilder: (list) => _formatCurrency(list.where((p) => p.status == 'pending').fold<double>(0, (s, p) => s + p.amount)),
+          minWidth: cardWidth,
+        ),
+      ];
+      if (isLandlord) {
+        cards.add(
+          _asyncKpiCard(
+            label: l10n.occupancyRate,
+            asyncValue: properties,
+            icon: Icons.apartment_outlined,
+            color: colors.info,
+            valueBuilder: (list) {
+              final total = list.length;
+              final rented = list.where((p) => p.status == 'rented').length;
+              final rate = total == 0 ? 0 : (rented / total * 100);
+              return '${rate.toStringAsFixed(0)}%';
+            },
+            minWidth: cardWidth,
+          ),
+        );
+      }
+      cards.add(
+        _asyncKpiCard(
+          label: l10n.maintenance,
+          asyncValue: maintenance,
+            icon: Icons.build_circle_outlined,
+            color: colors.error,
+            valueBuilder: (list) => list.where((r) => r.status != 'completed' && r.status != 'closed').length.toString(),
+            minWidth: cardWidth,
+          ),
+      );
+
+      return Wrap(
+        spacing: spacing,
+        runSpacing: spacing,
+        children: cards.map((c) => SizedBox(width: cardWidth, child: c)).toList(),
+      );
+    });
+  }
+
+  Widget _asyncKpiCard<T>({
+    required String label,
+    required AsyncValue<List<T>> asyncValue,
+    required String Function(List<T>) valueBuilder,
+    required IconData icon,
+    required Color color,
+    required double minWidth,
+  }) {
+    final colors = ref.watch(dynamicColorsProvider);
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      child: Container(
+        constraints: BoxConstraints(minWidth: minWidth, maxWidth: 240),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surfaceCards,
+              color.withValues(alpha: 0.10),
+            ],
+          ),
+          border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.25),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.10),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: asyncValue.when(
+          data: (data) => _kpiContent(label, valueBuilder(data), icon, color),
+          loading: () => _kpiShimmer(label, icon, color),
+          error: (_, __) => _kpiError(label, icon, color),
+        ),
+      ),
+    );
+  }
+
+  Widget _kpiContent(String label, String value, IconData icon, Color color) {
+    final colors = ref.watch(dynamicColorsProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [color.withValues(alpha: 0.25), color.withValues(alpha: 0.08)]),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+              ),
+              child: Icon(icon, size: 18, color: color),
+            ),
+            const Spacer(),
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+                color: colors.textSecondary,
+              ),
+            )
+          ],
+        ),
+        const SizedBox(height: 10),
+        FittedBox(
+          alignment: Alignment.centerLeft,
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.8,
+              color: colors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _kpiShimmer(String label, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.15),
+          ),
+          child: Icon(icon, color: color.withValues(alpha: 0.5), size: 20),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(height: 16, width: 80, decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: color.withValues(alpha: 0.25))),
+              const SizedBox(height: 6),
+              Container(height: 10, width: 60, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: color.withValues(alpha: 0.18))),
+              const SizedBox(height: 2),
+              Text(label.toUpperCase(), style: TextStyle(fontSize: 9, color: color.withValues(alpha: 0.4), letterSpacing: 0.6)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _kpiError(String label, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Expanded(child: Text('—', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color))),
+        Text(label.toUpperCase(), style: TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  Widget _buildModernReport(bool isLandlord, AppLocalizations l10n, DynamicAppColors colors) {
+    // Use existing detailed sections below but wrap them into a modern layered container set
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isLandlord) ...[
+          _modernSectionHeader(Icons.trending_up, l10n.financialOverview, colors, accent: colors.success),
+          const SizedBox(height: 16),
+          _buildLandlordReports(context, ref, l10n),
+        ] else ...[
+          _modernSectionHeader(Icons.payments_outlined, l10n.paymentSummary, colors, accent: colors.success),
+          const SizedBox(height: 16),
+          _buildTenantReports(context, ref, l10n),
+        ],
+      ],
+    );
+  }
+
+  Widget _modernSectionHeader(IconData icon, String title, DynamicAppColors colors, {required Color accent}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(colors: [accent.withValues(alpha: 0.9), accent.withValues(alpha: 0.6)]),
+            boxShadow: [
+              BoxShadow(color: accent.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6)),
+            ],
+          ),
+          child: Icon(icon, color: Colors.white, size: 22),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: _getResponsiveFontSize(context, 24),
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.8,
+              color: colors.textPrimary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -756,85 +1165,201 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildRevenueChart(AsyncValue properties, AsyncValue payments,
       WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            const Color(0xFF8B5CF6).withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.trending_up,
-                  color: Colors.white,
-                  size: 24,
-                ),
+    return payments.when(
+      data: (paymentsList) {
+        // Aggregate last 6 months revenue from completed payments
+        final now = DateTime.now();
+        final months = List.generate(6, (i) => DateTime(now.year, now.month - (5 - i), 1));
+        final monthKeys = months.map((d) => '${d.year}-${d.month.toString().padLeft(2,'0')}').toList();
+        final totals = {for (final k in monthKeys) k: 0.0};
+        for (final p in paymentsList.where((p) => p.status == 'completed')) {
+          final k = '${p.date.year}-${p.date.month.toString().padLeft(2,'0')}';
+          if (totals.containsKey(k)) totals[k] = (totals[k] ?? 0) + p.amount;
+        }
+        final maxY = (totals.values.fold<double>(0, (m, v) => v > m ? v : m)).clamp(1, double.infinity);
+        final spots = <FlSpot>[];
+        for (var i = 0; i < monthKeys.length; i++) {
+          spots.add(FlSpot(i.toDouble(), totals[monthKeys[i]]!));
+        }
+
+        String monthLabel(int index) {
+          if (index < 0 || index >= months.length) return '';
+            return DateFormat('MMM').format(months[index]);
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(28.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.surfaceCards,
+                const Color(0xFF8B5CF6).withValues(alpha: 0.02),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
               ),
-              const SizedBox(width: 20),
-              Text(
-                l10n.revenueAnalytics,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.trending_up,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(
+                    l10n.revenueAnalytics,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 22),
+                      fontWeight: FontWeight.w800,
+                      color: colors.textPrimary,
+                      letterSpacing: -0.6,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 220,
+                child: LineChart(
+                  LineChartData(
+                    minY: 0,
+                    maxY: maxY * 1.2,
+                    gridData: FlGridData(
+                      show: true,
+                      horizontalInterval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: colors.borderLight.withValues(alpha: 0.5),
+                        strokeWidth: 1,
+                      ),
+                      drawVerticalLine: false,
+                    ),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 44,
+                          interval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
+                          getTitlesWidget: (v, meta) => Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Text(
+                              _compactCurrency(v),
+                              style: TextStyle(fontSize: 10, color: colors.textSecondary),
+                            ),
+                          ),
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 1,
+                          getTitlesWidget: (v, meta) => Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(
+                              monthLabel(v.toInt()),
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.textSecondary),
+                            ),
+                          ),
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        tooltipRoundedRadius: 10,
+                        getTooltipItems: (touched) => touched.map((barSpot) {
+                          final idx = barSpot.x.toInt();
+                          return LineTooltipItem(
+                            '${monthLabel(idx)}\n${_formatCurrency(barSpot.y)}',
+                            TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700, fontSize: 12),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        color: const Color(0xFF8B5CF6),
+                        barWidth: 3,
+                        dotData: FlDotData(show: true),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              const Color(0xFF8B5CF6).withValues(alpha: 0.30),
+                              const Color(0xFF8B5CF6).withValues(alpha: 0.05),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: colors.surfaceSecondary,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colors.borderLight,
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                l10n.revenueChartComingSoon,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 16),
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-            ),
-          ),
-        ],
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: colors.surfaceCards,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.borderLight),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: colors.surfaceCards,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.error.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, color: colors.error),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l10n.errorLoadingPaymentHistory, style: TextStyle(color: colors.textSecondary))),
+          ],
+        ),
       ),
     );
+  }
+
+  String _compactCurrency(double v) {
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}k';
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toStringAsFixed(1);
   }
 
   Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref,

@@ -1044,6 +1044,26 @@ class AppLocalizationsIt extends AppLocalizations {
       'Richiesta di supporto inviata con successo! Ti risponderemo presto.';
 
   @override
+  String get supportRequests => 'Richieste di supporto';
+
+  @override
+  String get noSupportRequests => 'Nessuna richiesta di supporto';
+
+  @override
+  String get supportRequestStatusOpen => 'Aperta';
+
+  @override
+  String get supportRequestStatusInProgress => 'In corso';
+
+  @override
+  String get supportRequestStatusClosed => 'Chiusa';
+
+  @override
+  String supportRequestStatusChanged(Object status) {
+    return 'Stato cambiato in $status';
+  }
+
+  @override
   String get myTenants => 'I miei inquilini';
 
   @override

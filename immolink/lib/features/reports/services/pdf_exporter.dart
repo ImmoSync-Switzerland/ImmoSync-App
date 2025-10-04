@@ -280,7 +280,6 @@ class PdfExporter {
     final safeMax = maxVal == 0 ? 1 : maxVal;
     const chartHeight = 80.0;
     const barWidth = 6.0;
-    const gap = 10.0;
 
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 6),

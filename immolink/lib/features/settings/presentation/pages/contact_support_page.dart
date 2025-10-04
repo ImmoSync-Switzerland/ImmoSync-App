@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -174,14 +176,6 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _buildQuickContactButton(
-              l10n.liveChat,
-              Icons.chat,
-              () => _showLiveChatDialog(context, l10n),
-              fullWidth: true,
-              colors: colors,
-            ),
           ],
         ),
       ),
@@ -273,67 +267,52 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               const SizedBox(height: 20),
 
               // Category dropdown
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCategory,
-                decoration: InputDecoration(
-                  labelText: l10n.category,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: colors.primaryAccent),
-                  ),
-                ),
+              _buildStyledDropdown(
+                context: context,
+                colors: colors,
+                label: l10n.category,
+                value: _selectedCategory,
                 items: _getLocalizedCategories(l10n)
-                    .map((category) => DropdownMenuItem(
-                          value: category.key,
-                          child: Text(category.value),
+                    .map((c) => DropdownMenuItem(
+                          value: c.key,
+                          child: Text(c.value, overflow: TextOverflow.ellipsis),
                         ))
                     .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value!;
-                  });
-                },
+                onChanged: (v) => setState(() => _selectedCategory = v!),
               ),
               const SizedBox(height: 16),
 
               // Priority dropdown
-              DropdownButtonFormField<String>(
-                initialValue: _selectedPriority,
-                decoration: InputDecoration(
-                  labelText: l10n.priority,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: colors.primaryAccent),
-                  ),
-                ),
+              _buildStyledDropdown(
+                context: context,
+                colors: colors,
+                label: l10n.priority,
+                value: _selectedPriority,
                 items: _getLocalizedPriorities(l10n)
-                    .map((priority) => DropdownMenuItem(
-                          value: priority.key,
+                    .map((p) => DropdownMenuItem(
+                          value: p.key,
                           child: Row(
                             children: [
                               Container(
                                 width: 12,
                                 height: 12,
                                 decoration: BoxDecoration(
-                                  color: _getPriorityColor(priority.key),
+                                  color: _getPriorityColor(p.key),
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(priority.value),
+                              Expanded(
+                                child: Text(
+                                  p.value,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         ))
                     .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPriority = value!;
-                  });
-                },
+                onChanged: (v) => setState(() => _selectedPriority = v!),
               ),
               const SizedBox(height: 16),
 
@@ -537,8 +516,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   Future<void> _launchEmail(AppLocalizations l10n) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@immolink.com',
-      query: 'subject=ImmoLink Support Request',
+      path: 'info@immosync.ch',
+      query: 'subject=ImmoSync Support Request',
     );
 
     if (await canLaunchUrl(emailUri)) {
@@ -553,7 +532,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   }
 
   Future<void> _launchPhone(AppLocalizations l10n) async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: '+41800123456');
+    // Remove spaces for URI format, keep display formatting elsewhere if needed
+    final Uri phoneUri = Uri(scheme: 'tel', path: '+41763919400');
 
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
@@ -566,54 +546,6 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     }
   }
 
-  void _showLiveChatDialog(BuildContext context, AppLocalizations l10n) {
-    final colors = ref.read(dynamicColorsProvider);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.liveChatTitle,
-            style: TextStyle(color: colors.textPrimary)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.chat, size: 48, color: colors.primaryAccent),
-            const SizedBox(height: 16),
-            Text(
-              l10n.liveChatAvailable,
-              style: TextStyle(color: colors.textPrimary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.liveChatOutsideHours,
-              style: TextStyle(color: colors.textSecondary, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.close, style: TextStyle(color: colors.textSecondary)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.liveChatSoon)),
-              );
-            },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
-            child: Text(l10n.startChat,
-                style: TextStyle(color: colors.textOnAccent)),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _submitSupportRequest(AppLocalizations l10n) async {
     if (!_formKey.currentState!.validate()) {
@@ -625,7 +557,40 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     });
 
     // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final user = ref.read(currentUserProvider);
+      final apiBase = const String.fromEnvironment('API_BASE', defaultValue: 'http://localhost:3000/api');
+      final uri = Uri.parse('$apiBase/support-requests');
+      final body = {
+        'subject': _subjectController.text.trim(),
+        'message': _messageController.text.trim(),
+        'category': _selectedCategory,
+        'priority': _selectedPriority,
+        'userId': user?.id,
+        'meta': {
+          'appVersion': '1.0.0',
+          'platform': Theme.of(context).platform.name,
+        }
+      };
+      final resp = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+      if (resp.statusCode < 200 || resp.statusCode >= 300) {
+        throw Exception('Failed (${resp.statusCode})');
+      }
+    } catch (e) {
+      if (mounted) {
+        final colors = ref.read(dynamicColorsProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: ${e.toString()}'),
+            backgroundColor: colors.error,
+          ),
+        );
+      }
+    }
 
     if (mounted) {
       setState(() {
@@ -650,4 +615,41 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       );
     }
   }
+
+
+  Widget _buildStyledDropdown({
+    required BuildContext context,
+    required DynamicAppColors colors,
+    required String label,
+    required String value,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
+      value: value,
+      isExpanded: true,
+      dropdownColor: colors.surfaceCards,
+      iconEnabledColor: colors.textPrimary,
+      style: TextStyle(color: colors.textPrimary, fontSize: 14),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: colors.textSecondary),
+        filled: true,
+        fillColor: colors.primaryBackground.withValues(alpha: 0.6),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.primaryAccent.withValues(alpha: 0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.primaryAccent),
+        ),
+      ),
+      items: items,
+      onChanged: onChanged,
+    );
+  }
+
 }

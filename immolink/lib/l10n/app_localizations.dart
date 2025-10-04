@@ -2070,6 +2070,42 @@ abstract class AppLocalizations {
   /// **'Support request submitted successfully! We\'ll get back to you soon.'**
   String get supportRequestSubmitted;
 
+  /// No description provided for @supportRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Support Requests'**
+  String get supportRequests;
+
+  /// No description provided for @noSupportRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No support requests'**
+  String get noSupportRequests;
+
+  /// No description provided for @supportRequestStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get supportRequestStatusOpen;
+
+  /// No description provided for @supportRequestStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get supportRequestStatusInProgress;
+
+  /// No description provided for @supportRequestStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get supportRequestStatusClosed;
+
+  /// No description provided for @supportRequestStatusChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Status changed to {status}'**
+  String supportRequestStatusChanged(Object status);
+
   /// No description provided for @myTenants.
   ///
   /// In en, this message translates to:
