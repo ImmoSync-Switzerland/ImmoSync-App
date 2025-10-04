@@ -1326,23 +1326,69 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   Future<void> _exportToPDF() async {
     final colors = ref.read(dynamicColorsProvider);
 
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(AppLocalizations.of(context)!.generatingPdfReport),
-          ],
-        ),
-      ),
-    );
-
     try {
+      // Ask for export mode: Actual (Ist) vs Planned (Soll)
+      final l10n = AppLocalizations.of(context)!;
+      final isPlanned = await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) {
+          bool planned = false;
+          return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+              title: Text(l10n.analyticsAndReports),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioListTile<bool>(
+                    value: false,
+                    groupValue: planned,
+                    onChanged: (v) => setState(() => planned = v ?? false),
+                    title: Text(l10n.actual),
+                  ),
+                  RadioListTile<bool>(
+                    value: true,
+                    groupValue: planned,
+                    onChanged: (v) => setState(() => planned = v ?? false),
+                    title: Text(l10n.planned),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(null),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(planned),
+                  child: Text(l10n.generateReport),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (isPlanned == null) {
+        // User cancelled
+        return;
+      }
+
+      // Show loading dialog now
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(AppLocalizations.of(context)!.generatingPdfReport),
+            ],
+          ),
+        ),
+      );
       // Determine role
       final userRole = ref.read(userRoleProvider);
       final isLandlord = userRole == 'landlord';
@@ -1379,9 +1425,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         if (status == 'completed') {
           completedCount++;
           collectedSum += p.amount;
-          final k = keyFor(DateTime(p.date.year, p.date.month, 1));
-          if (revenueByMonth.containsKey(k)) {
-            revenueByMonth[k] = (revenueByMonth[k] ?? 0) + p.amount;
+          if (!isPlanned) {
+            final k = keyFor(DateTime(p.date.year, p.date.month, 1));
+            if (revenueByMonth.containsKey(k)) {
+              revenueByMonth[k] = (revenueByMonth[k] ?? 0) + p.amount;
+            }
           }
         } else if (status == 'pending') {
           pendingCount++;
@@ -1397,9 +1445,37 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       for (final r in maintenance) {
         final when = r.completedDate ?? r.scheduledDate ?? r.requestedDate;
         final k = keyFor(DateTime(when.year, when.month, 1));
-        final cost = r.cost?.actual ?? r.cost?.estimated ?? 0.0;
+        final double cost;
+        if (isPlanned) {
+          // planned: take estimated only
+          cost = r.cost?.estimated ?? 0.0;
+        } else {
+          // actual: take actual if present else estimated
+          cost = r.cost?.actual ?? r.cost?.estimated ?? 0.0;
+        }
         if (expensesByMonth.containsKey(k)) {
           expensesByMonth[k] = (expensesByMonth[k] ?? 0) + cost;
+        }
+      }
+
+      // If planned: fill revenue per month with monthly rent sums instead of payments
+      if (isPlanned) {
+        double monthlyPlannedRevenue = 0.0;
+        try {
+          if (isLandlord) {
+            final properties = await ref.read(landlordPropertiesProvider.future);
+            monthlyPlannedRevenue = properties
+                .where((p) => p.status.toLowerCase() == 'rented')
+                .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
+          } else {
+            final tenantProps = await ref.read(tenantPropertiesProvider.future);
+            monthlyPlannedRevenue = tenantProps
+                .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
+          }
+        } catch (_) {}
+        for (final m in months) {
+          final k = keyFor(m);
+          revenueByMonth[k] = monthlyPlannedRevenue;
         }
       }
 
@@ -1488,6 +1564,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         revenue: revenue,
         expenses: expenses,
         occupancyRate: occupancyRate,
+        locale: Localizations.localeOf(context).toLanguageTag(),
         reportTitle: AppLocalizations.of(context)!.analyticsAndReports,
         revenueVsExpensesTitle: AppLocalizations.of(context)!.revenueVsExpenses,
         totalRevenueLabel: AppLocalizations.of(context)!.totalRevenue,
@@ -1500,6 +1577,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         collectedValue: currencyFmt.format(collectedSum),
         outstandingLabel: AppLocalizations.of(context)!.outstanding,
         outstandingValue: currencyFmt.format(outstandingSum),
+        reportModeLabel: isPlanned ? l10n.planned : l10n.actual,
+  monthHeader: AppLocalizations.of(context)!.month,
+  revenueHeader: AppLocalizations.of(context)!.revenue,
+  expensesHeader: AppLocalizations.of(context)!.expenses,
+  netHeader: AppLocalizations.of(context)!.net,
         showOccupancy: isLandlord,
         altKpiLabel: isLandlord ? null : AppLocalizations.of(context)!.status,
         altKpiValue: isLandlord ? null : '✔ $completedCount • ⏳ $pendingCount',

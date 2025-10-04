@@ -26,7 +26,9 @@
   "google-auth-library": "^9.14.1",
   "jose": "^5.8.0",
     "stripe": "^18.4.0",
-    "twilio": "^5.8.0"
+    "twilio": "^5.8.0",
+    "@aws-sdk/client-dynamodb": "^3.662.0",
+    "@aws-sdk/lib-dynamodb": "^3.662.0"
   ,"socket.io": "^4.7.5"
   },
   "devDependencies": {

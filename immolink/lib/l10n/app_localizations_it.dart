@@ -132,6 +132,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get monthlyRentDue => 'Affitto mensile dovuto';
 
   @override
+  String get month => 'Mese';
+
+  @override
+  String get revenue => 'Entrate';
+
+  @override
+  String get expenses => 'Spese';
+
+  @override
+  String get net => 'Netto';
+
+  @override
   String get occupancyRate => 'Tasso di occupazione';
 
   @override
@@ -216,6 +228,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get generateReport => 'Genera rapporto';
 
   @override
+  String get actual => 'Reale';
+
+  @override
+  String get planned => 'Pianificato';
+
+  @override
   String get emailNotifications => 'Notifiche email';
 
   @override
@@ -234,7 +252,44 @@ class AppLocalizationsIt extends AppLocalizations {
   String get privacyPolicy => 'Informativa sulla privacy';
 
   @override
+  String get privacyPolicyLastUpdated => 'Ultimo aggiornamento: 3 ottobre 2025';
+
+  @override
+  String get privacyPolicyContent =>
+      'La presente Informativa sulla Privacy spiega come ImmoSync KLG (\"ImmoSync\", \"noi\") tratta i dati personali quando utilizzi il nostro sito web, le applicazioni e i servizi (i \"Servizi\").\n\nImmoSync KLG, Hauptstrasse 38, 4411 Seltisberg, Basilea Campagna, Svizzera · Tel: +41 76 391 94 00 · E‑mail: info@immosync.ch\n\nIndice\n1. Titolare del trattamento\n2. Quali dati trattiamo\n3. Finalità e basi giuridiche\n4. Cookie e tracciamento\n5. Analisi e terze parti\n6. Condivisione dei dati\n7. Trasferimenti internazionali\n8. Conservazione\n9. Sicurezza dei dati\n10. Minori\n11. I tuoi diritti\n12. Esercizio dei tuoi diritti\n13. Modifiche alla presente informativa\n14. Contatti\n1. Titolare del trattamento\nIl titolare del trattamento in relazione ai Servizi è ImmoSync KLG. Per alcune funzioni (es. pagamenti con Stripe o notifiche push) fornitori esterni agiscono come titolari autonomi o responsabili del trattamento.\n\n2. Quali dati trattiamo\nA seconda dell’uso dei Servizi trattiamo, tra gli altri:\n\nDati di account e profilo (nome, e‑mail, telefono, indirizzo, ruoli)\nDati di autenticazione (hash delle password, token)\nDati di utilizzo e log (indirizzo IP, info dispositivo/browser, azioni, timestamp)\nContenuti che fornisci (messaggi, ticket, documenti, media)\nDati relativi ai pagamenti (tramite Stripe; non memorizziamo l’intero numero di carta)\nDati dispositivo/app per funzioni mobili (notifiche, contatti – solo con consenso)\nDati di comunicazione (richieste al supporto, feedback)\n\n3. Finalità e basi giuridiche (GDPR / LPD svizzera)\nFornitura e gestione dei Servizi; esecuzione del contratto (Art. 6(1)(b) GDPR)\nMiglioramento di sicurezza, stabilità, performance; difesa legale (legittimo interesse, Art. 6(1)(f))\nComunicazioni con te (contratto, interesse legittimo o consenso)\nFatturazione e obblighi legali (Art. 6(1)(c))\nFunzionalità opzionali previo consenso (Art. 6(1)(a)); revocabile in qualsiasi momento\n\n4. Cookie e tracciamento\nUtilizziamo cookie necessari per funzioni di base ed eventualmente cookie analitici per comprendere l’uso. Puoi gestire i cookie nelle impostazioni del browser. Disattivare cookie non essenziali può limitare funzioni.\n\n5. Analisi e terze parti\nUtilizziamo fornitori affidabili per infrastruttura, analisi, pagamenti, messaggistica e monitoraggio errori. Trattano i dati solo quanto necessario e nel rispetto della normativa applicabile.\n\nEsempi: Hosting (es. Vercel/AWS), Pagamenti (Stripe), Analisi (strumenti privacy-friendly o – dove consentito – Google Analytics).\n\n6. Condivisione dei dati\nCondividiamo i dati se necessario con responsabili esterni e partner per fornire i Servizi, adempiere obblighi legali o in operazioni societarie. Non vendiamo dati personali.\n\n7. Trasferimenti internazionali\nPer trasferimenti verso paesi senza livello adeguato di protezione applichiamo garanzie idonee (es. Clausole Contrattuali Standard con allegati svizzeri).\n\n8. Conservazione\nConserviamo i dati personali solo per il tempo necessario alle finalità descritte o richiesto dalla legge; poi li eliminiamo o anonimizzamo, oppure li custodiamo in modo sicuro finché la cancellazione è possibile (es. backup).\n\n9. Sicurezza dei dati\nMisure tecniche e organizzative adeguate (cifratura, controlli accesso, monitoraggio). Nessun sistema è sicuro al 100 %; l’uso dei Servizi avviene a tuo rischio.\n\n10. Minori\nI Servizi non sono destinati a minori di 18 anni. Non raccogliamo consapevolmente dati di minori. Se ritieni il contrario contattaci per la cancellazione.\n\n11. I tuoi diritti\nIn base alla tua residenza: accesso, rettifica, cancellazione, limitazione, portabilità, opposizione; reclamo a un’autorità di controllo (es. Incaricato federale in Svizzera; autorità UE; ICO UK).\n\n12. Esercizio dei tuoi diritti\nContattaci a info@immosync.ch o tramite il modulo su immosync.ch/contact. Le richieste vengono gestite secondo legge.\n\n13. Modifiche alla presente informativa\nAggiorniamo questa informativa quando necessario per riflettere cambiamenti nei trattamenti o obblighi legali. La data \"Ultimo aggiornamento\" indica la versione corrente.\n\n14. Contatti\n\nImmoSync KLG\n\nHauptstrasse 38\n\n4411 Seltisberg (Basilea Campagna)\n\nSvizzera\n\nTel: +41 76 391 94 00\n\nE‑mail: info@immosync.ch';
+
+  @override
   String get termsOfService => 'Termini di servizio';
+
+  @override
+  String get termsOfServiceLastUpdated =>
+      'Ultimo aggiornamento: 1 ottobre 2025';
+
+  @override
+  String get termsOfServiceContent =>
+      'Termini di Servizio (TdS)\nUltimo aggiornamento: 1 ottobre 2025\n\nI presenti Termini di Servizio (\"Termini\") disciplinano l\'uso di tutti i prodotti, servizi e applicazioni di ImmoSync KLG (\"ImmoSync\", \"noi\"). Accedendo o utilizzando i Servizi accetti questi Termini. In caso di mancato accordo non puoi usare i Servizi.\n\nImmoSync KLG, Hauptstrasse 38, 4411 Seltisberg, Basilea Campagna, Svizzera.\nTel: +41 76 391 94 00 · E-mail: info@immosync.ch\n\nIndice\nDisposizioni Fondamentali\n1. I Nostri Servizi\n2. Diritti di Proprietà Intellettuale\n3. Dichiarazioni dell\'Utente\n4. Registrazione Utente\n5. Acquisti e Pagamenti\n6. Abbonamenti\n7. Software\n8. Attività Proibite\n9. Contenuti Generati dagli Utenti\n10. Licenza sui Contributi\n11. Linee Guida sulle Recensioni\n12. Applicazione Mobile\n13. Siti e Contenuti di Terzi\n14. Gestione dei Servizi\n15. Protezione dei Dati\n16. Violazioni di Copyright\n17. Durata e Cessazione\n18. Modifiche e Interruzioni\n19. Legge Applicabile\n20. Risoluzione delle Controversie\n21. Correzioni\n22. Dichiarazione di Esclusione di Garanzia\n23. Limitazione di Responsabilità\n24. Manleva\n25. Dati dell\'Utente\n26. Comunicazioni Elettroniche\n27. Notifiche SMS\n28. Disposizioni Finali\n29. Contatti\nDisposizioni Fondamentali\nAccedendo al nostro sito https://immosync.ch, alle nostre app mobili o ad altre offerte (collettivamente i \"Servizi\") dichiari di avere almeno 18 anni, di avere capacità giuridica e di aver letto e accettato i presenti Termini. Se agisci per conto di un\'entità giuridica, dichiari di essere autorizzato a vincolarla.\n\nPossiamo aggiornare i Termini in qualsiasi momento. Le modifiche saranno pubblicate sul sito o inviate via e-mail. L\'uso continuato dopo l\'entrata in vigore delle modifiche costituisce accettazione dei Termini aggiornati.\n\n1. I Nostri Servizi\nImmoSync offre una piattaforma digitale che facilita comunicazione e collaborazione tra proprietari, inquilini, fornitori di servizi e altri soggetti. La piattaforma evolve continuamente e può includere messaggistica, ticketing, gestione documenti, pianificazione, integrazioni, automazioni o prenotazioni.\n\nLe informazioni fornite non sono destinate a giurisdizioni in cui accesso o uso sarebbero contrari alla legge. Gli utenti fuori dalla Svizzera sono responsabili del rispetto delle leggi locali.\n\n2. Diritti di Proprietà Intellettuale\nTutti i contenuti, marchi, design, software e database dei Servizi appartengono a ImmoSync KLG o sono utilizzati sotto licenza e sono protetti da leggi sulla proprietà intellettuale.\n\nConcediamo una licenza non esclusiva, revocabile e non trasferibile per usare i Servizi per fini interni. Qualsiasi riproduzione, modifica, pubblicazione o sfruttamento oltre il perimetro contrattuale richiede consenso scritto.\n\n3. Dichiarazioni dell\'Utente\nGarantisci che le informazioni fornite siano veritiere, aggiornate e complete e che verranno aggiornate in caso di cambiamenti. Ti impegni a usare i Servizi in conformità alla legge e a non violare diritti di terzi.\n\nAccesso tramite strumenti automatici o bot vietato. Possiamo sospendere o eliminare account in caso di violazioni.\n\n4. Registrazione Utente\nAlcune funzioni richiedono registrazione. Le credenziali devono restare riservate. Sei responsabile di tutte le attività del tuo account. Possiamo rifiutare o modificare nomi utente ingannevoli o lesivi.\n\n5. Acquisti e Pagamenti\nI pagamenti devono essere effettuati in franchi svizzeri (CHF) ai prezzi indicati. Metodi accettati mostrati nel checkout. Tasse e imposte calcolate secondo legge.\n\nDevi mantenere aggiornati i dati di pagamento e autorizzi l\'addebito degli importi dovuti. Possiamo esaminare, limitare o rifiutare ordini.\n\n6. Abbonamenti\nSi rinnovano automaticamente salvo disdetta tempestiva. La disdetta via account ha effetto a fine periodo di fatturazione.\n\nPeriodi di prova gratuiti possono essere modificati o terminati. Alla scadenza, conversione automatica in abbonamento a pagamento salvo annullamento.\n\n7. Software\nPossiamo fornire software o app. Eventuali EULA prevalgono. Vietato decompilare, reverse engineer o ridistribuire senza autorizzazione.\n\n8. Attività Proibite\nUso illecito, fraudolento o molesto vietato, incluso:\nRaccolta o scraping non autorizzati\nContenuti illeciti, diffamatori o discriminatori\nTentativi di elusione sicurezza o diffusione malware\nAbuso supporto, segnalazioni false, furto d\'identità.\nPossiamo intervenire (rimozione, sospensione, azioni legali).\n\n9. Contenuti Generati dagli Utenti\nPuoi caricare contenuti (testi, immagini, documenti). Sei responsabile della conformità legale e del rispetto dei diritti.\n\n10. Licenza sui Contributi\nCaricando contenuti concedi licenza mondiale, gratuita, trasferibile e perpetua a usare, memorizzare, adattare e pubblicare per l\'operatività dei Servizi. Mantieni la titolarità.\n\n11. Linee Guida sulle Recensioni\nDevono riflettere esperienze reali, essere accurate e prive di offese. Possiamo rimuovere recensioni non conformi.\n\n12. Applicazione Mobile\nLicenza limitata e revocabile per installare e usare sui tuoi dispositivi. Vietato modificare o ridistribuire. Marketplace terzi non responsabili del supporto.\n\n13. Siti e Contenuti di Terzi\nPossibili link a contenuti terzi. Nessuna responsabilità per accuratezza, disponibilità o privacy. Uso a tuo rischio.\n\n14. Gestione dei Servizi\nPossiamo monitorare, limitare accesso, cancellare dati o adeguare tecnicamente per sicurezza e buon funzionamento. Nessun obbligo di monitoraggio totale.\n\n15. Protezione dei Dati\nVedi Informativa Privacy (parte integrante) per trattamento dati personali.\n\n16. Violazioni di Copyright\nSegnala presunte violazioni con dettagli adeguati. Segnalazioni abusive possono avere conseguenze legali.\n\n17. Durata e Cessazione\nValidi finché usi i Servizi. Possiamo sospendere o terminare per violazioni. Puoi terminare in qualsiasi momento; obblighi dovuti restano.\n\n18. Modifiche e Interruzioni\nPossiamo modificare, ampliare o cessare parti dei Servizi. Manutenzioni possono causare interruzioni. Nessuna responsabilità per downtime inevitabile.\n\n19. Legge Applicabile\nDiritto svizzero (escluse norme conflitto e Convenzione di Vienna). Tutele imperative del consumatore invariate. Foro: Basilea Campagna.\n\n20. Risoluzione delle Controversie\nPrima soluzione amichevole. In difetto: arbitrato (Regole Corte Europea di Arbitrato, sede Strasburgo), arbitro unico, luogo: Basilea Città, lingua: tedesco. Diritti legali dei consumatori preservati.\n\n21. Correzioni\nPossiamo correggere errori e aggiornare contenuti.\n\n22. Dichiarazione di Esclusione di Garanzia\nServizi \"così come sono\" e \"come disponibili\"; nessuna garanzia ulteriore nei limiti di legge. Uso a tuo rischio.\n\n23. Limitazione di Responsabilità\nResponsabilità solo per dolo o colpa grave e per lesioni a vita, corpo o salute. Colpa lieve: solo obblighi essenziali, limitata a danni prevedibili tipici. Responsabilità legali imperative restano.\n\n24. Manleva\nTienici indenni da reclami di terzi derivanti da uso, contenuti o violazioni, incluse spese legali ragionevoli.\n\n25. Dati dell\'Utente\nBackup a tuo carico. Eseguiamo backup regolari senza garanzia assoluta contro perdita salvo nostra colpa grave.\n\n26. Comunicazioni Elettroniche\nEmail, messaggi in-app o moduli valgono notifica scritta. Consenso a comunicazioni elettroniche (rinuncia carta ove consentito).\n\n27. Notifiche SMS\nMessaggi tecnici (es. 2FA). Possibili costi operatore. Disattivazione può limitare sicurezza/funzionalità.\n\n28. Disposizioni Finali\nAccordo completo. Invalidità parziale non incide sul resto. Cessione soggetta a consenso. Mancata azione non vale rinuncia futura.\n\n29. Contatti\nImmoSync KLG\nHauptstrasse 38\n4411 Seltisberg (Basilea Campagna)\nSvizzera\nTel: +41 76 391 94 00\nE-mail: info@immosync.ch';
+
+  @override
+  String get copy => 'Copia';
+
+  @override
+  String get copied => 'Copiato';
+
+  @override
+  String get export => 'Esporta';
+
+  @override
+  String get exportComingSoon => 'Funzione di esportazione in arrivo';
+
+  @override
+  String get tableOfContents => 'Indice';
+
+  @override
+  String get yourPrivacyMatters => 'La tua privacy è importante';
+
+  @override
+  String get trustBadgeText =>
+      'Proteggiamo i tuoi dati e ti diamo il controllo sulla tua privacy.';
 
   @override
   String get version => 'Versione';
@@ -1205,9 +1260,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get share => 'Condividi';
-
-  @override
-  String get copy => 'Copia';
 
   @override
   String get paste => 'Incolla';

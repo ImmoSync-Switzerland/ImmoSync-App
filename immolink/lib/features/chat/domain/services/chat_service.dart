@@ -61,6 +61,8 @@ class ChatService {
     required String senderId,
     required String receiverId,
     required String content,
+  Ref? ref,
+    String? otherUserId,
     // Removed misplaced import statement
   }) async {
   // Resolve Matrix roomId for this conversation (server must provide mapping)
@@ -71,10 +73,48 @@ class ChatService {
     if (roomId == null || roomId.isEmpty) {
       throw Exception('Matrix roomId not found for conversation $conversationId');
     }
-    // Send via FRB
-    await frb.sendMessage(roomId: roomId, body: content);
-    // Optionally update last message on our backend for dashboard lists
-    await _updateConversationLastMessage(conversationId, content);
+  // Send via FRB and capture Matrix event id
+  final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+    // Also persist to backend (AWS-hosted) so history remains visible in the app
+    // If E2EE is available, store encrypted payload at rest
+    try {
+      Map<String, dynamic>? e2ee;
+      if (ref != null && (otherUserId ?? receiverId).isNotEmpty) {
+        try {
+          final svc = ref.read(e2eeServiceProvider);
+          final enc = await svc.encryptMessage(
+            conversationId: conversationId,
+            otherUserId: (otherUserId ?? receiverId),
+            plaintext: content,
+          );
+          if (enc != null) {
+            e2ee = enc;
+          }
+        } catch (_) {
+          // fall through to plaintext store
+        }
+      }
+      final resp = await http.post(
+        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'senderId': senderId,
+          'receiverId': receiverId,
+          'content': e2ee != null ? '' : content,
+          'messageType': 'text',
+          'matrixRoomId': roomId,
+          'matrixEventId': matrixEventId,
+          if (e2ee != null) 'e2ee': e2ee,
+        }),
+      );
+      if (resp.statusCode != 201) {
+        // Not fatal for send (Matrix already delivered), but log for diagnostics
+        print('Warning: backend message persist failed: ${resp.statusCode} ${resp.body}');
+      }
+    } catch (e) {
+      // Avoid failing the UI flow if backend storage is temporarily unavailable
+      print('Warning: backend message persist error: $e');
+    }
   }
 
   Future<String?> _fetchOrCreateMatrixRoomId({
@@ -110,26 +150,7 @@ class ChatService {
     return null;
   }
 
-  Future<void> _updateConversationLastMessage(
-      String conversationId, String lastMessage) async {
-    try {
-      // If backend/content indicates encrypted placeholder, normalize preview
-      final normalized =
-          (lastMessage == '[encrypted]' || lastMessage == '[Encrypted]')
-              ? 'Encrypted message'
-              : lastMessage;
-      await http.put(
-        Uri.parse('$_apiUrl/conversations/$conversationId'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'lastMessage': normalized,
-          'lastMessageTime': DateTime.now().toIso8601String(),
-        }),
-      );
-    } catch (e) {
-      print('Error updating conversation: $e');
-    }
-  }
+  // Note: Conversation preview updates are handled by backend on message POST
 
   Future<String> findOrCreateConversation({
     required String currentUserId,

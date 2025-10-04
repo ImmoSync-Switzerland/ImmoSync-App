@@ -15,8 +15,9 @@ class ChatMessagesNotifier
     extends StateNotifier<AsyncValue<List<ChatMessage>>> {
   final ChatService _chatService;
   final String _conversationId;
+  final Ref _ref;
 
-  ChatMessagesNotifier(this._chatService, this._conversationId)
+  ChatMessagesNotifier(this._chatService, this._conversationId, this._ref)
       : super(const AsyncValue.loading()) {
     _loadMessages();
   }
@@ -114,6 +115,8 @@ class ChatMessagesNotifier
         senderId: senderId,
         receiverId: receiverId,
         content: content,
+        ref: _ref,
+        otherUserId: receiverId,
       );
       // Refresh messages after sending
       await _loadMessages();
@@ -314,7 +317,7 @@ final conversationMessagesProvider = StateNotifierProvider.family<
     AsyncValue<List<ChatMessage>>,
     String>((ref, conversationId) {
   final chatService = ref.watch(chatServiceProvider);
-  return ChatMessagesNotifier(chatService, conversationId);
+  return ChatMessagesNotifier(chatService, conversationId, ref);
 });
 
 // Holder to inject a global ref for history decryption without refactoring constructor signature massively

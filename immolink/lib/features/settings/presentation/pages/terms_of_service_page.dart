@@ -1,189 +1,187 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
-class TermsOfServicePage extends ConsumerWidget {
+class TermsOfServicePage extends ConsumerStatefulWidget {
   const TermsOfServicePage({super.key});
+  @override
+  ConsumerState<TermsOfServicePage> createState() => _TermsOfServicePageState();
+}
+
+class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
+  final _scrollController = ScrollController();
+  final Map<String, GlobalKey> _headingKeys = {};
+  final Set<String> _assignedOnce = {};
+  final Set<int> _skipIndices = {}; // lines belonging to embedded static TOC enumeration
+  // Similar pattern: numbered headings need content after number. Include explicit first-section labels for multiple locales.
+  final _headingRegex = RegExp(r'^(?:[0-9]{1,2}\.[ \t]+\S|Vertragliche Grundlagen|Foundational Provisions|Disposizioni Fondamentali|Dispositions fondamentales)');
+  late List<String> _lines;
+  late List<String> _headings;
+
+  void _prepare(String body) {
+    _lines = body.split('\n');
+    _skipIndices.clear();
+    // Detect embedded static TOC (language variants of a TOC heading) and skip its lines.
+    const tocMarkers = ['Inhaltsverzeichnis','Indice','Index','Table des matières','Table of Contents'];
+    final tocTitleIndex = _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
+    List<String> enumerationHeadings = [];
+    if (tocTitleIndex != -1) {
+      _skipIndices.add(tocTitleIndex);
+      final seenLocal = <String>{};
+      for (var i = tocTitleIndex + 1; i < _lines.length; i++) {
+        final t = _lines[i].trim();
+        if (t.isEmpty) break;
+        final isHeading = _headingRegex.hasMatch(t);
+        if (!isHeading) break;
+        if (seenLocal.contains(t)) break; // start of real content
+        enumerationHeadings.add(t);
+        seenLocal.add(t);
+        _skipIndices.add(i);
+      }
+    }
+    // Collect all headings (dedupe preserving order)
+    final all = _lines
+        .asMap()
+        .entries
+        .where((e) => _headingRegex.hasMatch(e.value.trim()))
+        .map((e) => e.value.trim())
+        .toList();
+    if (enumerationHeadings.isNotEmpty) {
+      _headings = enumerationHeadings;
+    } else {
+      final seen = <String>{};
+      _headings = [for (final h in all) if (seen.add(h)) h];
+    }
+    _headingKeys.clear();
+    _assignedOnce.clear();
+    for (final h in _headings) {
+      if (!_headingKeys.containsKey(h)) {
+        _headingKeys[h] = GlobalKey();
+      }
+    }
+  }
+
+  Future<void> _scrollTo(String heading) async {
+    final key = _headingKeys[heading];
+    if (key == null) return;
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut, alignment: 0.1);
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final body = l.termsOfServiceContent;
+    _prepare(body);
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
-        title: Text(
-          'Terms of Service',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        title: Text(l.termsOfService, style: TextStyle(color: AppColors.textPrimary,fontSize: 18,fontWeight: FontWeight.w600)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary), onPressed: () => context.pop()),
+        actions: [
+          IconButton(
+            tooltip: l.copy,
+            icon: const Icon(Icons.copy),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: body));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.copied)));
+              }
+            },
+          )
+        ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primaryBackground, AppColors.surfaceCards],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 4,
+      body: ListView(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            elevation: 2,
             color: AppColors.surfaceCards,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'ImmoLink Terms of Service',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Last updated: ${DateTime.now().toLocal().toString().split(' ')[0]}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSection(
-                    '1. Introduction',
-                    'Welcome to ImmoLink. These Terms of Service ("Terms") govern your use of the ImmoLink application and services. By accessing or using ImmoLink, you agree to be bound by these Terms.',
-                  ),
-                  _buildSection(
-                    '2. Description of Service',
-                    'ImmoLink is a property management platform that connects landlords and tenants, facilitating property management, rent collection, maintenance requests, and communication between parties.',
-                  ),
-                  _buildSection(
-                    '3. User Accounts',
-                    'To use ImmoLink, you must create an account. You are responsible for:\n\n• Providing accurate and complete information\n• Maintaining the security of your account credentials\n• All activities that occur under your account\n• Notifying us immediately of any unauthorized use',
-                  ),
-                  _buildSection(
-                    '4. Acceptable Use',
-                    'You agree to use ImmoLink only for lawful purposes and in accordance with these Terms. You may not:\n\n• Violate any applicable laws or regulations\n• Infringe on intellectual property rights\n• Transmit harmful or malicious content\n• Attempt to gain unauthorized access to the system\n• Use the service for fraudulent activities',
-                  ),
-                  _buildSection(
-                    '5. Property Listings and Information',
-                    'Landlords are responsible for the accuracy of property information they provide. ImmoLink does not verify property details, and users should conduct their own due diligence.',
-                  ),
-                  _buildSection(
-                    '6. Payment Terms',
-                    'Payment processing is handled through third-party providers. ImmoLink is not responsible for payment disputes between landlords and tenants, but we may assist in resolving conflicts.',
-                  ),
-                  _buildSection(
-                    '7. Privacy and Data Protection',
-                    'Your privacy is important to us. Please review our Privacy Policy, which explains how we collect, use, and protect your information.',
-                  ),
-                  _buildSection(
-                    '8. Intellectual Property',
-                    'ImmoLink and its content are protected by copyright, trademark, and other intellectual property laws. Users retain ownership of content they upload but grant ImmoLink a license to use it for service provision.',
-                  ),
-                  _buildSection(
-                    '9. Termination',
-                    'Either party may terminate an account at any time. Upon termination, your access to the service will cease, and we may delete your data in accordance with our data retention policy.',
-                  ),
-                  _buildSection(
-                    '10. Limitation of Liability',
-                    'ImmoLink provides the service "as is" without warranties. We are not liable for any indirect, incidental, or consequential damages arising from your use of the service.',
-                  ),
-                  _buildSection(
-                    '11. Dispute Resolution',
-                    'Any disputes arising from these Terms will be resolved through binding arbitration in accordance with the laws of Switzerland.',
-                  ),
-                  _buildSection(
-                    '12. Changes to Terms',
-                    'We may modify these Terms at any time. We will notify users of significant changes via email or app notification. Continued use of the service constitutes acceptance of the modified Terms.',
-                  ),
-                  _buildSection(
-                    '13. Contact Information',
-                    'If you have questions about these Terms, please contact us at:\n\nEmail: legal@immolink.com\nAddress: ImmoLink AG, Bahnhofstrasse 1, 8001 Zurich, Switzerland',
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info, color: AppColors.primaryAccent),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Important Note',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryAccent,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'This is a sample Terms of Service document for demonstration purposes. In a production environment, these terms should be reviewed and customized by legal professionals to ensure compliance with applicable laws and regulations.',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  Text(l.termsOfService, style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold,color: AppColors.textPrimary)),
+                  const SizedBox(height: 6),
+                  Text(l.termsOfServiceLastUpdated, style: TextStyle(fontSize: 14,color: AppColors.textSecondary)),
+                  const SizedBox(height: 20),
+                  if (_headings.isNotEmpty) _Toc(headings: _headings, title: l.tableOfContents, onTap: _scrollTo),
+                  const Divider(height: 32),
+                  ..._buildParagraphs(),
                 ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
+  List<Widget> _buildParagraphs() {
+    final widgets = <Widget>[];
+    for (var i = 0; i < _lines.length; i++) {
+      if (_skipIndices.contains(i)) continue; // hide static TOC lines
+      final text = _lines[i].trim();
+      if (text.isEmpty) continue;
+      final isHeading = _headingRegex.hasMatch(text);
+      GlobalKey? key;
+      if (isHeading && !_assignedOnce.contains(text)) {
+        key = _headingKeys[text];
+        _assignedOnce.add(text);
+      }
+      widgets.add(Padding(
+        key: key,
+        padding: EdgeInsets.only(bottom: isHeading ? 12 : 10, top: isHeading ? 16 : 0),
+        child: SelectableText(
+          text,
+          style: isHeading
+              ? const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+              : const TextStyle(fontSize: 14, height: 1.5),
+        ),
+      ));
+    }
+    return widgets;
+  }
+}
 
-  Widget _buildSection(String title, String content) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            content,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
+class _Toc extends StatelessWidget {
+  final List<String> headings;
+  final String title;
+  final void Function(String heading) onTap;
+  const _Toc({required this.headings, required this.title, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            for (final h in headings)
+              ActionChip(
+                label: Text(h, style: const TextStyle(fontSize: 12)),
+                onPressed: () => onTap(h.trim()),
+              )
+          ],
+        )
+      ],
     );
   }
 }
