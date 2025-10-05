@@ -70,11 +70,29 @@ jobs:
         run: flutter pub get
 
       - name: Dump dependency tree (releaseRuntimeClasspath)
-        working-directory: immolink/android
+        working-directory: immolink
         run: |
-          ./gradlew :app:dependencies --configuration releaseRuntimeClasspath > ../../dependency-tree.txt || ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon > ../../dependency-tree.txt
+          echo 'Listing android directory contents:'
+          ls -al android | head -n 100
+          if [ ! -f android/gradlew ]; then
+            echo 'gradlew wrapper not found at android/gradlew' >&2
+            exit 1
+          fi
+          # Normalize potential CRLF line endings (common when committed from Windows)
+          if file android/gradlew | grep -qi 'CRLF'; then
+            echo 'Converting gradlew line endings to LF'
+            sed -i 's/\r$//' android/gradlew
+          fi
+          chmod +x android/gradlew || true
+          set -o pipefail
+          ./android/gradlew :app:dependencies --configuration releaseRuntimeClasspath > dependency-tree.txt 2>&1 || \
+            ./android/gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon > dependency-tree.txt 2>&1 || {
+              echo 'Dependency task failed; showing tail:' >&2
+              tail -n 200 dependency-tree.txt >&2 || true
+              exit 1
+            }
           echo '--- Stripe lines ---'
-          grep -i 'stripe-android' ../../dependency-tree.txt || true
+          grep -i 'stripe-android' dependency-tree.txt || echo '(No stripe-android entries found)'
 
       - name: Upload dependency tree artifact
         uses: actions/upload-artifact@v4
