@@ -35,9 +35,7 @@ jobs:
           channel: stable   # specify channel explicitly; omit flutter-version to avoid ambiguity
           cache: true
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('immolink/pubspec.yaml') }}
-          cache-path: |
-            ~/.pub-cache
-            ${{ runner.tool_cache }}/flutter
+          cache-path: ~/.pub-cache
 
       # If you prefer a pinned reproducible build, replace the step above with:
       # - name: Set up Flutter (Pinned)
