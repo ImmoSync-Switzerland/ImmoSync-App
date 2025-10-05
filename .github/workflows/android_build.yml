@@ -132,6 +132,31 @@ jobs:
             --dart-define=GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
         working-directory: immolink
 
+      - name: Collect R8 mapping & missing rules (diagnostics)
+        if: always()
+        run: |
+          mkdir -p r8-mapping
+          # Copy mapping + missing rules if they exist
+          if ls immolink/build/app/outputs/mapping/release 1>/dev/null 2>&1; then
+            cp -r immolink/build/app/outputs/mapping/release r8-mapping/release || true
+            echo 'Contents of missing_rules.txt (if present):'
+            if [ -f r8-mapping/release/missing_rules.txt ]; then
+              head -n 200 r8-mapping/release/missing_rules.txt || true
+            else
+              echo '(missing_rules.txt not generated)'
+            fi
+          else
+            echo 'No mapping directory produced.'
+          fi
+
+      - name: Upload R8 diagnostics artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r8-mapping
+          path: r8-mapping
+          retention-days: 7
+
       - name: Collect APKs
         if: success()
         run: |
