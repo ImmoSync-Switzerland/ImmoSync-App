@@ -82,6 +82,25 @@ jobs:
           flutter analyze || true
         working-directory: immolink
 
+      - name: Create google-services.json from secret
+        working-directory: immolink/android/app
+        run: |
+          if [ -z "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            echo 'Missing required secret GOOGLE_SERVICES_JSON' >&2
+            exit 1
+          fi
+          # Write the secret contents to google-services.json. We expect the secret to be raw JSON.
+          printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON }}" > google-services.json
+          # Trim possible CRLF
+          sed -i 's/\r$//' google-services.json || true
+          echo "Wrote google-services.json (size: $(wc -c < google-services.json) bytes)"
+          # Basic sanity check: file should contain project_number field
+          if ! grep -q 'project_number' google-services.json; then
+            echo 'google-services.json missing expected key project_number. First 200 chars:' >&2
+            head -c 200 google-services.json >&2 || true
+            exit 1
+          fi
+
       - name: Build release APK (dart-defines)
         env:
           API_URL: ${{ secrets.CLIENT_API_URL }}
