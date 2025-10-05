@@ -37,7 +37,7 @@ jobs:
         id: flutter-setup
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'   # Pin explicit version for reliability
+          flutter-version: '3.35.5'   # Updated to include Dart >=3.6.0 for go_router >=15.1.3
           cache: true                  # Use action's default caching (no custom paths)
 
       - name: Verify Flutter installation
