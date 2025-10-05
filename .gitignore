@@ -5,5 +5,6 @@ backend/config.js
 /immolink/windows
 /immolink/macos
 /immolink/linux
-/immolink/android
+# Android platform directory must be versioned (contains gradlew wrapper & build scripts for CI)
+# /immolink/android  <-- removed ignore to allow committing Android wrapper
 /immolink/native/matrix_bridge/target

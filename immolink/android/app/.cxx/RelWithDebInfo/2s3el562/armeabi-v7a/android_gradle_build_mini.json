@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "C:\\Users\\fabud\\Documents\\Flutter\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\fabud\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\fabud\\Documents\\GitHub\\ImmoLink\\immolink\\android\\app\\.cxx\\RelWithDebInfo\\2s3el562\\armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\fabud\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\fabud\\Documents\\GitHub\\ImmoLink\\immolink\\android\\app\\.cxx\\RelWithDebInfo\\2s3el562\\armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

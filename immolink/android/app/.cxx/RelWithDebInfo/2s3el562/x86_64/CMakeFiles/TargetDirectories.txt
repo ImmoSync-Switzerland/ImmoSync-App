@@ -1,0 +1,2 @@
+C:/Users/fabud/Documents/GitHub/ImmoLink/immolink/android/app/.cxx/RelWithDebInfo/2s3el562/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/fabud/Documents/GitHub/ImmoLink/immolink/android/app/.cxx/RelWithDebInfo/2s3el562/x86_64/CMakeFiles/rebuild_cache.dir

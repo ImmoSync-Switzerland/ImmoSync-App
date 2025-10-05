@@ -75,7 +75,11 @@ jobs:
           echo 'Listing android directory contents:'
           ls -al android | head -n 100
           if [ ! -f android/gradlew ]; then
-            echo 'gradlew wrapper not found at android/gradlew' >&2
+            echo 'ERROR: gradlew wrapper missing. Commit the Android wrapper files:' >&2
+            echo '  immolink/android/gradlew' >&2
+            echo '  immolink/android/gradlew.bat' >&2
+            echo '  immolink/android/gradle/wrapper/gradle-wrapper.jar' >&2
+            echo '  immolink/android/gradle/wrapper/gradle-wrapper.properties' >&2
             exit 1
           fi
           # Normalize potential CRLF line endings (common when committed from Windows)
