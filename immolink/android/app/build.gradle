@@ -58,4 +58,11 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+    // Explicit Stripe Android SDK to ensure Push Provisioning classes are present.
+    // flutter_stripe pulls in a Stripe dependency transitively, but adding this
+    // forces a known version that includes push provisioning APIs. Adjust version
+    // if flutter_stripe plugin release notes specify a different compatible range.
+    implementation 'com.stripe:stripe-android:20.34.0'
+    // (Optional) Uncomment if Push Provisioning / network tokenization requires Tap & Pay on some devices
+    // implementation 'com.google.android.gms:play-services-tapandpay:18.3.0'
 }
