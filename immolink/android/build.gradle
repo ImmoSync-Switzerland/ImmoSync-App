@@ -3,6 +3,13 @@ allprojects {
         google()
         mavenCentral()
     }
+    // Force a specific Stripe SDK version to ensure push provisioning classes are present.
+    // Remove or adjust after confirming dependency tree.
+    configurations.all { config ->
+        resolutionStrategy {
+            force 'com.stripe:stripe-android:20.34.0'
+        }
+    }
 }
 
 rootProject.buildDir = "../build"

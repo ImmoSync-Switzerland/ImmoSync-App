@@ -69,6 +69,20 @@ jobs:
         working-directory: immolink
         run: flutter pub get
 
+      - name: Dump dependency tree (releaseRuntimeClasspath)
+        working-directory: immolink/android
+        run: |
+          ./gradlew :app:dependencies --configuration releaseRuntimeClasspath > ../../dependency-tree.txt || ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon > ../../dependency-tree.txt
+          echo '--- Stripe lines ---'
+          grep -i 'stripe-android' ../../dependency-tree.txt || true
+
+      - name: Upload dependency tree artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-tree
+          path: immolink/dependency-tree.txt
+          retention-days: 7
+
       - name: Extract app version
         id: extract_version
         run: |
