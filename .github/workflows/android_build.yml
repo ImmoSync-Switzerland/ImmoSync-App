@@ -37,16 +37,20 @@ jobs:
         id: flutter-setup
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          cache: true
-          cache-key: flutter-${{ runner.os }}-${{ hashFiles('immolink/pubspec.yaml') }}
-          cache-path: ~/.pub-cache
+          flutter-version: '3.24.0'   # Pin explicit version for reliability
+          cache: true                  # Use action's default caching (no custom paths)
 
       - name: Verify Flutter installation
         run: |
+          echo "::group::Environment"
           echo "PATH=$PATH"
-          echo "Flutter SDK directory (if any):"; ls -d $HOME/hostedtoolcache/flutter* 2>/dev/null || true
-          which flutter || { echo 'flutter NOT found on PATH'; exit 1; }
+          echo "Home listing:"; ls -1 $HOME | head -n 50 || true
+          echo "Toolcache flutter dirs:"; ls -d $HOME/hostedtoolcache/flutter* 2>/dev/null || echo 'No flutter toolcache dirs'
+          echo "::endgroup::"
+          if ! command -v flutter >/dev/null 2>&1; then
+            echo 'Flutter not found after setup step' >&2
+            exit 1
+          fi
           flutter --version
           flutter doctor -v | sed -e 's/\x1b\[[0-9;]*m//g'
 
