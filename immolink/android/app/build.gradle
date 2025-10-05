@@ -43,6 +43,11 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            // Enable minification so R8 runs; supply explicit keep rules to avoid stripping
+            // required classes from third-party SDKs (e.g., Stripe Push Provisioning).
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
