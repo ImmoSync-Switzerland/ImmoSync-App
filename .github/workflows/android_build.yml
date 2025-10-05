@@ -84,20 +84,36 @@ jobs:
 
       - name: Create google-services.json from secret
         working-directory: immolink/android/app
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
         run: |
-          if [ -z "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
-            echo 'Missing required secret GOOGLE_SERVICES_JSON' >&2
+          RAW_SECRET="$GOOGLE_SERVICES_JSON"
+          B64_SECRET="$GOOGLE_SERVICES_JSON_B64"
+          if [ -n "$B64_SECRET" ]; then
+            echo 'Using base64-encoded google-services.json secret'
+            echo "$B64_SECRET" | base64 -d > google-services.json || { echo 'Base64 decode failed'; exit 1; }
+          elif [ -n "$RAW_SECRET" ]; then
+            echo 'Using raw google-services.json secret'
+            printf '%s' "$RAW_SECRET" > google-services.json
+          else
+            echo 'Missing required secret: provide either GOOGLE_SERVICES_JSON (raw JSON) or GOOGLE_SERVICES_JSON_B64 (base64)' >&2
             exit 1
           fi
-          # Write the secret contents to google-services.json. We expect the secret to be raw JSON.
-          printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON }}" > google-services.json
-          # Trim possible CRLF
+          # Normalize line endings
           sed -i 's/\r$//' google-services.json || true
-          echo "Wrote google-services.json (size: $(wc -c < google-services.json) bytes)"
-          # Basic sanity check: file should contain project_number field
-          if ! grep -q 'project_number' google-services.json; then
-            echo 'google-services.json missing expected key project_number. First 200 chars:' >&2
+          SIZE=$(wc -c < google-services.json | tr -d ' ')
+          echo "Wrote google-services.json (size: ${SIZE} bytes)"
+          echo "SHA256: $(sha256sum google-services.json | cut -d ' ' -f1)"
+          # Quick validation heuristics
+          if ! grep -q '"project_number"' google-services.json; then
+            echo 'google-services.json missing expected JSON key "project_number". Did you paste firebase.json instead?' >&2
+            echo 'First 200 chars:' >&2
             head -c 200 google-services.json >&2 || true
+            exit 1
+          fi
+          if grep -q '{flutter:{platforms' google-services.json; then
+            echo 'Detected flutterfire config snippet (firebase.json style) instead of google-services.json. Please download the Android google-services.json from Firebase Console.' >&2
             exit 1
           fi
 
