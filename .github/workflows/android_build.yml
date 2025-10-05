@@ -34,13 +34,22 @@ jobs:
           java-version: '17'
 
       - name: Set up Flutter
+        id: flutter-setup
         uses: subosito/flutter-action@v2
         with:
-          # Pin version for reproducible builds & consistent PATH setup
-          flutter-version: '3.24.0'
+          channel: stable
           cache: true
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('immolink/pubspec.yaml') }}
           cache-path: ~/.pub-cache
+
+      - name: Verify Flutter installation
+        run: |
+          echo "PATH=$PATH"
+          echo "Flutter SDK directory (if any):"; ls -d $HOME/hostedtoolcache/flutter* 2>/dev/null || true
+          which flutter || { echo 'flutter NOT found on PATH'; exit 1; }
+          flutter --version
+          flutter doctor -v | sed -e 's/\x1b\[[0-9;]*m//g'
+
 
       # If you prefer a pinned reproducible build, replace the step above with:
       # - name: Set up Flutter (Pinned)
@@ -49,7 +58,7 @@ jobs:
       #     flutter-version: '3.24.0'
       #     cache: true
 
-      - name: Flutter doctor
+      - name: Flutter doctor (redundant safety)
         run: flutter doctor -v
 
       - name: Restore pub dependencies
