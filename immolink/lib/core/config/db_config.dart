@@ -1,14 +1,15 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// Compile-time configuration via --dart-define; fallback defaults remain.
 
 class DbConfig {
-  static String get connectionUri =>
-      dotenv.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
-  static String get dbName => dotenv.env['MONGODB_DB_NAME'] ?? 'immolink';
-  static String get apiUrl =>
-      dotenv.env['API_URL'] ?? 'https://backend.immosync.ch/api';
+  static const String connectionUri = String.fromEnvironment(
+    'MONGODB_URI', defaultValue: 'mongodb://localhost:27017');
+  static const String dbName =
+    String.fromEnvironment('MONGODB_DB_NAME', defaultValue: 'immolink');
+  static const String apiUrl = String.fromEnvironment(
+    'API_URL', defaultValue: 'https://backend.immosync.ch/api');
   static String get wsUrl {
-    final raw = dotenv.env['WS_URL'];
-    if (raw != null && raw.isNotEmpty) return raw;
+  const raw = String.fromEnvironment('WS_URL');
+  if (raw.isNotEmpty) return raw;
     // Derive from apiUrl
     try {
       final uri = Uri.parse(apiUrl);
@@ -28,8 +29,8 @@ class DbConfig {
   }
 
   // Primary public host (for CDN / user-facing asset links) can differ from API host
-  static String get primaryHost =>
-      dotenv.env['PRIMARY_HOST'] ?? 'https://immosync.ch';
+  static const String primaryHost = String.fromEnvironment(
+    'PRIMARY_HOST', defaultValue: 'https://immosync.ch');
 
   static void printConfig() {
     print('DbConfig loaded:');
@@ -38,8 +39,7 @@ class DbConfig {
     print('  apiUrl: $apiUrl');
     print('  wsUrl: $wsUrl');
     print('  primaryHost: $primaryHost');
-    print('  env loaded: ${dotenv.env.isNotEmpty}');
-    print('  API_URL from env: ${dotenv.env['API_URL']}');
+  print('  (dart-define) API_URL: $apiUrl');
 
     // Verify services will use correct URL
     print('Services will use API URL: $apiUrl');

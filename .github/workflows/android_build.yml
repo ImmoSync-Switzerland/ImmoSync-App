@@ -82,9 +82,19 @@ jobs:
           flutter analyze || true
         working-directory: immolink
 
-      - name: Build release APK
+      - name: Build release APK (dart-defines)
+        env:
+          API_URL: ${{ secrets.CLIENT_API_URL }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
         run: |
-          flutter build apk --release --split-per-abi
+          # Fail early if required defines missing
+          for v in API_URL STRIPE_PUBLISHABLE_KEY GOOGLE_CLIENT_ID; do
+            if [ -z "${!v}" ]; then echo "Missing required secret: $v" >&2; exit 1; fi; done
+          flutter build apk --release --split-per-abi \
+            --dart-define=API_URL=$API_URL \
+            --dart-define=STRIPE_PUBLISHABLE_KEY=$STRIPE_PUBLISHABLE_KEY \
+            --dart-define=GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
         working-directory: immolink
 
       - name: Collect APKs

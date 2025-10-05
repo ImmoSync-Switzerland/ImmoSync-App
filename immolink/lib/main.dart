@@ -16,7 +16,6 @@ import 'package:immosync/core/providers/theme_provider.dart';
 import 'package:immosync/core/providers/locale_provider.dart';
 import 'package:immosync/features/settings/providers/settings_provider.dart';
 import 'package:immosync/l10n_helper.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
@@ -46,16 +45,8 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     debugPrint('[Startup] Widgets binding ensured');
 
-    // Step 1: Load environment
-    bool envLoaded = false;
-    try {
-      await dotenv.dotenv.load(fileName: ".env");
-      envLoaded = true;
-      debugPrint('[Startup] .env loaded');
-    } catch (e, st) {
-      debugPrint('[Startup][WARN] .env load failed: $e');
-      debugPrint(st.toString());
-    }
+    // Step 1: (Removed .env loading) Using compile-time dart-define values instead.
+  // Environment values now provided via --dart-define; no runtime load needed.
 
     // Step 2: Firebase (deferred errors tolerated)
     try {
@@ -76,11 +67,11 @@ void main() async {
       if (!isStripeSupported) {
         debugPrint('[Startup][INFO] Stripe unsupported on this platform (${defaultTargetPlatform.name}) – skipping Stripe init');
       } else {
-        final stripeKey = envLoaded ? dotenv.dotenv.env['STRIPE_PUBLISHABLE_KEY'] : null;
-        if ((stripeKey ?? '').isEmpty) {
+        const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
+        if (stripeKey.isEmpty) {
           debugPrint('[Startup][INFO] Stripe key missing – skipping Stripe init');
         } else {
-          Stripe.publishableKey = stripeKey!;
+          Stripe.publishableKey = stripeKey;
           await Stripe.instance.applySettings();
           debugPrint('[Startup] Stripe initialized');
         }
