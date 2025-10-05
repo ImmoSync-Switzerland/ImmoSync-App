@@ -1,0 +1,89 @@
+name: Android APK CI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    permissions:
+      contents: write   # needed if we attach artifact to a GitHub Release later
+      actions: read
+      checks: read
+      security-events: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+          cache: true
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Restore pub dependencies
+        run: flutter pub get
+        working-directory: immolink
+
+      - name: Run analyzer (warnings only)
+        run: |
+          flutter analyze || true
+        working-directory: immolink
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release --split-per-abi
+        working-directory: immolink
+
+      - name: Collect APKs
+        if: success()
+        run: |
+          mkdir -p artifacts
+          cp immolink/build/app/outputs/flutter-apk/*-release.apk artifacts/ || echo "No split APKs found"
+          cp immolink/build/app/outputs/flutter-apk/app-release.apk artifacts/ || echo "No universal APK found"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: artifacts
+          retention-days: 14
+
+      - name: Generate short summary
+        run: |
+          echo "### Android APK Build" >> $GITHUB_STEP_SUMMARY
+          echo "Built on commit $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
+          ls -lh artifacts >> $GITHUB_STEP_SUMMARY
+
+  # Optional job to create a draft release (commented out)
+  # release:
+  #   needs: build-apk
+  #   runs-on: ubuntu-latest
+  #   if: startsWith(github.ref, 'refs/heads/main')
+  #   steps:
+  #     - name: Download artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: android-apk
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         draft: true
+  #         files: |\n  #           *.apk

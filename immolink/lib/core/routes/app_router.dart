@@ -48,6 +48,7 @@ import 'package:immosync/features/notifications/presentation/pages/notifications
 import 'package:immosync/features/support/presentation/pages/support_requests_page.dart';
 import 'package:immosync/features/support/presentation/pages/support_request_detail_page.dart';
 import 'package:immosync/features/support/presentation/pages/open_tickets_page.dart';
+import 'package:immosync/features/reports/presentation/pages/revenue_detail_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -316,6 +317,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reports',
         builder: (context, state) => const ReportsPage(),
+      ),
+      GoRoute(
+        path: '/reports/revenue-detail',
+        builder: (context, state) => const RevenueDetailPage(),
       ),
       // Tenants route
       GoRoute(

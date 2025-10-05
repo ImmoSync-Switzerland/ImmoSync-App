@@ -13,6 +13,9 @@ import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:immosync/features/reports/services/pdf_exporter.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+import 'package:immosync/features/reports/presentation/utils/report_gradients.dart';
+import 'dart:ui' as ui; // For BackdropFilter
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
@@ -21,12 +24,86 @@ class ReportsPage extends ConsumerStatefulWidget {
   ConsumerState<ReportsPage> createState() => _ReportsPageState();
 }
 
+// Animated numeric value widget (count-up) used for KPI cards (outside state class)
+class _AnimatedValue extends StatefulWidget {
+  final String displayValue; // Original formatted value (e.g., CHF 1,230.00 / 75%)
+  final double? numericValue; // Parsed numeric portion if available
+  const _AnimatedValue({required this.displayValue, this.numericValue});
+
+  @override
+  State<_AnimatedValue> createState() => _AnimatedValueState();
+}
+
+class _AnimatedValueState extends State<_AnimatedValue> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    _anim = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    // Stagger a bit for nicer cascade
+    Future.delayed(const Duration(milliseconds: 60), () => _controller.forward());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final target = widget.numericValue;
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        String text;
+        if (target != null) {
+          final current = target * _anim.value;
+          // Preserve percent sign or currency prefix/suffix heuristically
+          if (widget.displayValue.trim().endsWith('%')) {
+            text = '${current.toStringAsFixed(0)}%';
+          } else {
+            // Try detect currency prefix (e.g., CHF, €, $)
+            final match = RegExp(r'^[A-Z€$£]{1,4}').firstMatch(widget.displayValue.replaceAll(',', ''));
+            if (match != null) {
+              text = '${match.group(0)} ${current.toStringAsFixed(current >= 1000 ? 0 : 2)}';
+            } else {
+              text = current.toStringAsFixed(current >= 1000 ? 0 : 2);
+            }
+          }
+        } else {
+          text = widget.displayValue; // fallback (non-numeric)
+        }
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.9,
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _ReportsPageState extends ConsumerState<ReportsPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  String _selectedPeriod = '';
-  List<String> _periods = const [];
+  // Period selector removed
+  // Track visibility for staggered section animations
+  // Expanded to 7 to allow unique indices across landlord & tenant variants
+  final List<bool> _sectionVisible = List<bool>.filled(6, false);
+  bool _visibilityInitialized = false;
+  final revenueRangeProvider = StateProvider<int>((ref) => 6);
 
   // Helper method for responsive font sizes
   double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
@@ -38,6 +115,127 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     }
     return baseFontSize; // Tablets and larger
   }
+
+  void _safeHaptic() {
+    try {
+      HapticFeedback.lightImpact();
+    } catch (_) {}
+  }
+
+  // Reusable glass header icon (circular, blurred, subtle accent glow)
+  Widget _glassHeaderIcon(IconData icon, Color accent) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.55),
+            blurRadius: 28,
+            spreadRadius: 2,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  accent.withValues(alpha: 1.0),
+                  accent.withValues(alpha: 0.55),
+                  accent.withValues(alpha: 0.22),
+                ],
+              ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.55),
+                width: 1.4,
+              ),
+            ),
+            child: Icon(icon, color: Colors.white, size: 26),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCardDetail(String title) {
+    // Fallback simple dialog
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: const Text('No further data available.'),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+      ),
+    );
+  }
+
+  Future<void> _showFinancialDetailDialog(AppLocalizations l10n, AsyncValue properties, AsyncValue payments, DynamicAppColors colors) async {
+    final props = await properties.whenData((value) => value).valueOrNull ?? [];
+    final pays = await payments.whenData((value) => value).valueOrNull ?? [];
+    final totalRevenue = props.where((p) => p.status == 'rented').fold<double>(0, (s,p)=> s + p.rentAmount);
+    final collected = pays.where((p) => p.status == 'completed').fold<double>(0,(s,p)=> s + p.amount);
+    final outstanding = pays.where((p) => p.status == 'pending').fold<double>(0,(s,p)=> s + p.amount);
+    showDialog(context: context, builder: (_) => AlertDialog(
+      title: Text(l10n.financialOverview),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _detailRow(l10n.monthlyRevenue, _formatCurrency(totalRevenue)),
+          _detailRow(l10n.collected, _formatCurrency(collected)),
+          _detailRow(l10n.outstanding, _formatCurrency(outstanding)),
+          const Divider(),
+          Text(l10n.analyticsAndReports, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+      actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: Text(l10n.close))],
+    ));
+  }
+
+  Future<void> _showTenantPaymentDetailDialog(AppLocalizations l10n, AsyncValue payments, DynamicAppColors colors) async {
+    final list = await payments.whenData((v)=>v).valueOrNull ?? [];
+    final totalPaid = list.where((p)=> p.status=='completed').fold<double>(0,(s,p)=> s+p.amount);
+    final pending = list.where((p)=> p.status=='pending').fold<double>(0,(s,p)=> s+p.amount);
+    showDialog(context: context, builder: (_) => AlertDialog(
+      title: Text(l10n.paymentSummary),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _detailRow(l10n.totalPaid, _formatCurrency(totalPaid)),
+        _detailRow(l10n.pending, _formatCurrency(pending)),
+        _detailRow(l10n.totalPayments, list.length.toString()),
+      ]),
+      actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: Text(l10n.close))],
+    ));
+  }
+
+  Future<void> _showPropertyDetailDialog(AppLocalizations l10n, AsyncValue properties, DynamicAppColors colors) async {
+    final list = await properties.whenData((v)=>v).valueOrNull ?? [];
+    final total = list.length;
+    final rented = list.where((p)=> p.status == 'rented').length;
+    final available = list.where((p)=> p.status == 'available').length;
+    final occupancy = total == 0 ? 0 : (rented / total * 100).round();
+    showDialog(context: context, builder: (_) => AlertDialog(
+      title: Text(l10n.propertyOverview),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _detailRow(l10n.totalProperties, total.toString()),
+        _detailRow(l10n.occupied, rented.toString()),
+        _detailRow(l10n.available, available.toString()),
+        _detailRow(l10n.occupancyRate, '$occupancy%'),
+      ]),
+      actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: Text(l10n.close))],
+    ));
+  }
+
+  Widget _detailRow(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical:4),
+    child: Row(children:[Expanded(child: Text(label)), Text(value, style: const TextStyle(fontWeight: FontWeight.w600))]),
+  );
 
   @override
   void initState() {
@@ -54,18 +252,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       curve: Curves.easeOutCubic,
     ));
     _animationController.forward();
+    // Visibility handled by VisibilityDetector per section
     // Initialize localized period labels after first frame to access context
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final l10n = AppLocalizations.of(context)!;
-      setState(() {
-        _periods = [
-          l10n.thisWeek,
-          l10n.thisMonth,
-          l10n.thisQuarter,
-          l10n.thisYear,
-        ];
-        _selectedPeriod = l10n.thisMonth;
-      });
+      // Period selector removed; hook retained for future re-introduction if needed
     });
   }
 
@@ -117,43 +307,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             fontWeight: FontWeight.w800,
             color: colors.textPrimary,
             letterSpacing: -0.6,
-            inherit: true,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: IconButton(
-              onPressed: _showExportDialog,
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.primaryAccent,
-                      colors.primaryAccent.withValues(alpha: 0.8),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primaryAccent.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.download_outlined,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ],
+        actions: const [],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
@@ -179,9 +335,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             children: [
               // Modern hero header & period selector
               _buildHeroHeader(l10n, isLandlord, colors),
-              const SizedBox(height: 20),
-              _buildPeriodSelector(l10n, colors),
-              const SizedBox(height: 28),
+              const SizedBox(height: 30),
               _buildModernReport(isLandlord, l10n, colors),
             ],
           ),
@@ -209,9 +363,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colors.primaryAccent.withValues(alpha: 0.85),
-                colors.info.withValues(alpha: 0.75),
-                colors.surfaceCards.withValues(alpha: 0.10),
+                colors.primaryAccent.withValues(alpha: 0.95),
+                colors.info.withValues(alpha: 0.85),
+                colors.info.withValues(alpha: 0.45),
               ],
             ),
             borderRadius: BorderRadius.circular(24),
@@ -227,75 +381,51 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(compact ? 14 : 16),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          colors.surfaceCards.withValues(alpha: 0.95),
-                          colors.surfaceCards.withValues(alpha: 0.75),
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      isLandlord ? Icons.analytics_outlined : Icons.insights_outlined,
-                      size: compact ? 26 : 30,
-                      color: colors.primaryAccent,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        FittedBox(
-                          alignment: Alignment.centerLeft,
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            isLandlord ? l10n.analyticsAndReports : l10n.paymentSummary,
-                            maxLines: 1,
-                            softWrap: false,
-                            style: TextStyle(
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.8,
-                              height: 1.05,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          isLandlord ? l10n.financialOverview : l10n.recentActivity,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: subtitleSize,
-                            fontWeight: FontWeight.w500,
-                            color: colors.textPrimary.withValues(alpha: 0.75),
-                            letterSpacing: -0.15,
-                            height: 1.15,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildExportPill(l10n, colors),
-                ],
+              Container(
+                padding: EdgeInsets.all(compact ? 12 : 14),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.18),
+                ),
+                child: Icon(
+                  isLandlord ? Icons.analytics_outlined : Icons.insights_outlined,
+                  size: compact ? 26 : 30,
+                  color: Colors.white,
+                ),
               ),
-              SizedBox(height: compact ? 18 : 22),
+              const SizedBox(height: 18),
+              FittedBox(
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  isLandlord ? l10n.analyticsAndReports : l10n.paymentSummary,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.8,
+                    height: 1.05,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isLandlord ? l10n.financialOverview : l10n.recentActivity,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: subtitleSize,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.85),
+                  letterSpacing: -0.2,
+                  height: 1.15,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildExportPill(l10n, colors),
+              SizedBox(height: compact ? 18 : 26),
               _buildKpiStrip(isLandlord, l10n, colors),
             ],
           ),
@@ -424,35 +554,30 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     required Color color,
     required double minWidth,
   }) {
-    final colors = ref.watch(dynamicColorsProvider);
-    return AnimatedSize(
+    return _HoverScale(
+      onTap: () => _showCardDetail(label),
+      child: FocusableActionDetector(
+        mouseCursor: SystemMouseCursors.click,
+        onShowFocusHighlight: (_) => setState(() {}),
+        child: AnimatedSize(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       child: Container(
-        constraints: BoxConstraints(minWidth: minWidth, maxWidth: 240),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colors.surfaceCards,
-              color.withValues(alpha: 0.10),
+              color.withValues(alpha: 0.55),
+              color.withValues(alpha: 0.25),
             ],
           ),
-          border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
           boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.25),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.10),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
+            BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0,4))
           ],
         ),
         child: asyncValue.when(
@@ -461,50 +586,41 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           error: (_, __) => _kpiError(label, icon, color),
         ),
       ),
+        ),
+      ),
     );
   }
 
   Widget _kpiContent(String label, String value, IconData icon, Color color) {
-    final colors = ref.watch(dynamicColorsProvider);
+    // Detect numeric for animated count-up
+    final numeric = double.tryParse(value.replaceAll(RegExp(r'[^0-9.,-]'), ''));
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [color.withValues(alpha: 0.25), color.withValues(alpha: 0.08)]),
-                border: Border.all(color: color.withValues(alpha: 0.3)),
-              ),
-              child: Icon(icon, size: 18, color: color),
-            ),
-            const Spacer(),
-            Text(
-              label.toUpperCase(),
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
-                color: colors.textSecondary,
-              ),
-            )
-          ],
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withValues(alpha: 0.18),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+          ),
+          child: Icon(icon, size: 22, color: Colors.white),
         ),
-        const SizedBox(height: 10),
-        FittedBox(
-          alignment: Alignment.centerLeft,
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.8,
-              color: colors.textPrimary,
-            ),
+        const SizedBox(height: 14),
+        _AnimatedValue(
+          displayValue: value,
+          numericValue: numeric,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.9,
+            color: Colors.white.withValues(alpha: 0.85),
           ),
         ),
       ],
@@ -556,48 +672,75 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (isLandlord) ...[
-          _modernSectionHeader(Icons.trending_up, l10n.financialOverview, colors, accent: colors.success),
-          const SizedBox(height: 16),
-          _buildLandlordReports(context, ref, l10n),
-        ] else ...[
-          _modernSectionHeader(Icons.payments_outlined, l10n.paymentSummary, colors, accent: colors.success),
-          const SizedBox(height: 16),
-          _buildTenantReports(context, ref, l10n),
-        ],
+        // Range selector for revenue (syncs with detail view)
+        _animatedSection(0, _buildRevenueRangeSelector(colors, l10n)),
+        const SizedBox(height: 12),
+        // Removed duplicate large header (already shown in hero header above) to avoid visual duplication
+        if (isLandlord)
+          _animatedSection(1, _buildLandlordReports(context, ref, l10n))
+        else
+          _animatedSection(1, _buildTenantReports(context, ref, l10n)),
       ],
     );
   }
 
-  Widget _modernSectionHeader(IconData icon, String title, DynamicAppColors colors, {required Color accent}) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(colors: [accent.withValues(alpha: 0.9), accent.withValues(alpha: 0.6)]),
-            boxShadow: [
-              BoxShadow(color: accent.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6)),
-            ],
-          ),
-          child: Icon(icon, color: Colors.white, size: 22),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: _getResponsiveFontSize(context, 24),
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.8,
-              color: colors.textPrimary,
+  Widget _buildRevenueRangeSelector(DynamicAppColors colors, AppLocalizations l10n) {
+    final range = ref.watch(revenueRangeProvider);
+    final options = const [3,6,12];
+    return Wrap(
+      spacing: 12,
+      children: options.map((m) {
+        final selected = m == range;
+        return _HoverScale(
+          onTap: () => ref.read(revenueRangeProvider.notifier).state = m,
+          child: FocusableActionDetector(
+            mouseCursor: SystemMouseCursors.click,
+            onShowFocusHighlight: (_) => setState(() {}),
+            child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              gradient: selected ? ReportGradients.glassAccent(colors.success, isDark: colors.isDark) : null,
+              border: Border.all(color: selected ? Colors.white.withValues(alpha:0.4) : colors.borderLight),
+              boxShadow: selected ? [BoxShadow(color: colors.success.withValues(alpha:0.35), blurRadius:12, offset: const Offset(0,4))] : null,
+            ),
+            child: Text('${m}M', style: TextStyle(color: selected ? Colors.white : colors.textSecondary, fontWeight: FontWeight.w600)),
             ),
           ),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
+
+
+  Widget _animatedSection(int index, Widget child) {
+    final visible = index < _sectionVisible.length ? _sectionVisible[index] : true;
+    return VisibilityDetector(
+      key: Key('report-sec-$index'),
+      onVisibilityChanged: (info) {
+        if (!_visibilityInitialized && info.visibleFraction > 0.1) {
+          _visibilityInitialized = true;
+        }
+        if (info.visibleFraction > 0.35 && !_sectionVisible[index]) {
+          setState(() => _sectionVisible[index] = true);
+        }
+      },
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 650),
+        curve: Curves.easeOutCubic,
+        opacity: visible ? 1 : 0,
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeOutCubic,
+          offset: visible ? Offset.zero : const Offset(0, 0.12),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+// (AnimatedValue moved to end of file)
 
   void _showExportDialog() {
     showDialog(
@@ -622,85 +765,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildPeriodSelector(AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: _periods.map<Widget>((period) {
-          final isSelected = period == _selectedPeriod;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedPeriod = period),
-              child: _buildPeriodChip(period, isSelected, colors),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildPeriodChip(
-      String label, bool isSelected, DynamicAppColors colors) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: BoxDecoration(
-        gradient: isSelected
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.info,
-                  colors.info.withValues(alpha: 0.8),
-                ],
-              )
-            : null,
-        color: isSelected ? null : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isSelected ? Colors.transparent : colors.borderLight,
-          width: 1,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: colors.info.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : colors.textSecondary,
-          fontSize: _getResponsiveFontSize(context, 12),
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.1,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
+  // Period selector widgets removed
 
   Widget _buildLandlordReports(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) {
@@ -712,13 +777,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFinancialOverview(properties, payments, ref, l10n, colors),
+  _animatedSection(2, _buildFinancialOverview(properties, payments, ref, l10n, colors)),
         const SizedBox(height: 24),
-        _buildPropertyMetrics(properties, l10n, colors),
+  _animatedSection(3, _buildPropertyMetrics(properties, l10n, colors)),
         const SizedBox(height: 24),
-        _buildMaintenanceOverview(maintenanceRequests, l10n, colors),
+  _animatedSection(4, _buildMaintenanceOverview(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-        _buildRevenueChart(properties, payments, ref, l10n, colors),
+  _animatedSection(5, _buildRevenueChart(properties, payments, ref, l10n, colors)),
       ],
     );
   }
@@ -732,73 +797,50 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildTenantPaymentSummary(payments, ref, l10n, colors),
+  _animatedSection(2, _buildTenantPaymentSummary(payments, ref, l10n, colors)),
         const SizedBox(height: 24),
-        _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors),
+  _animatedSection(3, _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-        _buildPaymentHistory(payments, ref, l10n, colors),
+  _animatedSection(4, _buildPaymentHistory(payments, ref, l10n, colors)),
       ],
     );
   }
 
   Widget _buildFinancialOverview(AsyncValue properties, AsyncValue payments,
       WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
+    final accent = colors.success;
+    return _HoverScale(
+      onTap: () => _showFinancialDetailDialog(l10n, properties, payments, colors),
+      child: Container(
+      padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.success.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.success.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(28),
+        gradient: ReportGradients.glassAccent(accent, isDark: colors.isDark),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // Title icon (left) with title underneath (stacked)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: colors.success,
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.25),
                 ),
-                child: Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: colors.surfaceCards,
-                  size: 24,
-                ),
+                child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 22),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(height: 12),
               Text(
                 l10n.financialOverview,
                 style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
+                  fontSize: _getResponsiveFontSize(context, 20),
                   fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],
@@ -818,54 +860,40 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   final pendingPayments = paymentsList
                       .where((p) => p.status == 'pending')
                       .fold(0.0, (sum, p) => sum + p.amount);
-
-                  return Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        child: _buildFinancialMetric(
-                          l10n.monthlyRevenue,
-                          _formatCurrency(totalRevenue),
-                          Icons.trending_up,
-                          colors.success,
-                          colors,
+                  return LayoutBuilder(builder: (context, c) {
+                    final maxW = c.maxWidth;
+                    // Each metric limited to 75% width of container (max 420) and centered horizontally
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _metricSizedBox(
+                          child: _buildFinancialMetric(l10n.monthlyRevenue, _formatCurrency(totalRevenue), Icons.trending_up, Colors.white, colors),
+                          parentWidth: maxW,
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        child: _buildFinancialMetric(
-                          l10n.collected,
-                          _formatCurrency(completedPayments),
-                          Icons.check_circle_outline,
-                          colors.info,
-                          colors,
+                        const SizedBox(height: 22),
+                        _metricSizedBox(
+                          child: _buildFinancialMetric(l10n.collected, _formatCurrency(completedPayments), Icons.check_circle_outline, Colors.white, colors),
+                          parentWidth: maxW,
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        child: _buildFinancialMetric(
-                          l10n.outstanding,
-                          _formatCurrency(pendingPayments),
-                          Icons.hourglass_empty,
-                          colors.warning,
-                          colors,
+                        const SizedBox(height: 22),
+                        _metricSizedBox(
+                          child: _buildFinancialMetric(l10n.outstanding, _formatCurrency(pendingPayments), Icons.hourglass_empty, Colors.white, colors),
+                          parentWidth: maxW,
                         ),
-                      ),
-                    ],
-                  );
+                      ],
+                    );
+                  });
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => Text(l10n.errorLoadingPaymentHistory),
+                error: (_, __) => Text(l10n.errorLoadingPaymentHistory, style: const TextStyle(color: Colors.white70)),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingProperties),
+            error: (_, __) => Text(l10n.errorLoadingProperties, style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
-    );
+    ));
   }
 
   String _formatCurrency(double amount) {
@@ -890,111 +918,105 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildFinancialMetric(String title, String value, IconData icon,
       Color color, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.15),
+            Colors.white.withValues(alpha: 0.05),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.20),
             ),
-            child: Icon(icon, size: 24, color: color),
+            child: Icon(icon, size: 22, color: Colors.white),
           ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: _getResponsiveFontSize(context, 20),
-              fontWeight: FontWeight.w800,
-              color: colors.textPrimary,
-              letterSpacing: -0.5,
+          const SizedBox(height: 12),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: _getResponsiveFontSize(context, 18),
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                color: Colors.white,
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             title.toUpperCase(),
-            style: TextStyle(
-              fontSize: _getResponsiveFontSize(context, 11),
-              fontWeight: FontWeight.w600,
-              color: colors.textSecondary,
-              letterSpacing: 0.6,
-            ),
             textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: _getResponsiveFontSize(context, 10),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.7,
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _metricSizedBox({required Widget child, required double parentWidth}) {
+    final width = (parentWidth * 0.75).clamp(180.0, 420.0);
+    return FractionallySizedBox(
+      widthFactor: width / parentWidth,
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+  }
+
   Widget _buildPropertyMetrics(
       AsyncValue properties, AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
+    final accent = colors.info;
+    return _HoverScale(
+      onTap: () => _showPropertyDetailDialog(l10n, properties, colors),
+      child: Container(
+      padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.info.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.info.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(28),
+        gradient: ReportGradients.glassAccent(accent, isDark: colors.isDark),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: colors.info,
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.25),
                 ),
-                child: Icon(
-                  Icons.home_work_outlined,
-                  color: colors.surfaceCards,
-                  size: 24,
-                ),
+                child: const Icon(Icons.home_work_outlined, color: Colors.white, size: 22),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(height: 12),
               Text(
                 l10n.propertyOverview,
                 style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
+                  fontSize: _getResponsiveFontSize(context, 20),
                   fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],
@@ -1007,104 +1029,64 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   propertyList.where((p) => p.status == 'rented').length;
               final availableProperties =
                   propertyList.where((p) => p.status == 'available').length;
-
-              return Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.totalProperties,
-                      totalProperties.toString(),
-                      Icons.home_outlined,
-                      colors.info,
-                      colors,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.occupied,
-                      rentedProperties.toString(),
-                      Icons.check_circle_outline,
-                      colors.success,
-                      colors,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.available,
-                      availableProperties.toString(),
-                      Icons.radio_button_unchecked,
-                      colors.textSecondary,
-                      colors,
-                    ),
-                  ),
-                ],
-              );
+              return LayoutBuilder(builder: (context, c) {
+                final maxW = c.maxWidth;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _metricSizedBox(child: _buildFinancialMetric(l10n.totalProperties, totalProperties.toString(), Icons.home_outlined, Colors.white, colors), parentWidth: maxW),
+                    const SizedBox(height: 22),
+                    _metricSizedBox(child: _buildFinancialMetric(l10n.occupied, rentedProperties.toString(), Icons.check_circle_outline, Colors.white, colors), parentWidth: maxW),
+                    const SizedBox(height: 22),
+                    _metricSizedBox(child: _buildFinancialMetric(l10n.available, availableProperties.toString(), Icons.radio_button_unchecked, Colors.white, colors), parentWidth: maxW),
+                  ],
+                );
+              });
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingProperties),
+            error: (_, __) => Text(l10n.errorLoadingProperties, style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests,
       AppLocalizations l10n, DynamicAppColors colors) {
+    final accent = colors.warning;
     return Container(
-      padding: const EdgeInsets.all(28.0),
+      padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.warning.withValues(alpha: 0.02),
-          ],
+          colors: [accent.withValues(alpha: 0.9), accent.withValues(alpha: 0.6), accent.withValues(alpha: 0.3)],
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.warning.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: colors.warning,
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.25),
                 ),
-                child: Icon(
-                  Icons.build_circle_outlined,
-                  color: colors.surfaceCards,
-                  size: 24,
-                ),
+                child: const Icon(Icons.build_circle_outlined, color: Colors.white, size: 22),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(height: 12),
               Text(
                 l10n.maintenanceOverview,
                 style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
+                  fontSize: _getResponsiveFontSize(context, 20),
                   fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],
@@ -1117,46 +1099,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   requestList.where((r) => r.status == 'pending').length;
               final completedRequests =
                   requestList.where((r) => r.status == 'completed').length;
-
-              return Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.totalRequests,
-                      totalRequests.toString(),
-                      Icons.list_alt_outlined,
-                      colors.textSecondary,
-                      colors,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.pending,
-                      pendingRequests.toString(),
-                      Icons.hourglass_empty,
-                      colors.warning,
-                      colors,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.completed,
-                      completedRequests.toString(),
-                      Icons.check_circle_outline,
-                      colors.success,
-                      colors,
-                    ),
-                  ),
-                ],
-              );
+              return LayoutBuilder(builder: (context, c) {
+                final maxW = c.maxWidth;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _metricSizedBox(child: _buildFinancialMetric(l10n.totalRequests, totalRequests.toString(), Icons.list_alt_outlined, Colors.white, colors), parentWidth: maxW),
+                    const SizedBox(height: 22),
+                    _metricSizedBox(child: _buildFinancialMetric(l10n.pending, pendingRequests.toString(), Icons.hourglass_empty, Colors.white, colors), parentWidth: maxW),
+                    const SizedBox(height: 22),
+                    _metricSizedBox(child: _buildFinancialMetric(l10n.completed, completedRequests.toString(), Icons.check_circle_outline, Colors.white, colors), parentWidth: maxW),
+                  ],
+                );
+              });
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingMaintenanceData),
+            error: (_, __) => Text(l10n.errorLoadingMaintenanceData, style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
@@ -1168,8 +1126,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return payments.when(
       data: (paymentsList) {
         // Aggregate last 6 months revenue from completed payments
-        final now = DateTime.now();
-        final months = List.generate(6, (i) => DateTime(now.year, now.month - (5 - i), 1));
+  final rangeMonths = ref.watch(revenueRangeProvider);
+  final now = DateTime.now();
+  final months = List.generate(rangeMonths, (i) => DateTime(now.year, now.month - (rangeMonths - 1 - i), 1));
         final monthKeys = months.map((d) => '${d.year}-${d.month.toString().padLeft(2,'0')}').toList();
         final totals = {for (final k in monthKeys) k: 0.0};
         for (final p in paymentsList.where((p) => p.status == 'completed')) {
@@ -1187,56 +1146,41 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             return DateFormat('MMM').format(months[index]);
         }
 
-        return Container(
-          padding: const EdgeInsets.all(28.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.surfaceCards,
-                const Color(0xFF8B5CF6).withValues(alpha: 0.02),
-              ],
+        final accent = const Color(0xFF8B5CF6);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return _HoverScale(
+          onTap: () {
+            _safeHaptic();
+            context.push('/reports/revenue-detail');
+          },
+          child: Container(
+            padding: const EdgeInsets.all(28.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: ReportGradients.glassAccent(accent, isDark: isDark),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6),
-                      borderRadius: BorderRadius.circular(12),
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.25),
                     ),
-                    child: const Icon(
-                      Icons.trending_up,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                    child: const Icon(Icons.trending_up, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 20),
                   Text(
                     l10n.revenueAnalytics,
                     style: TextStyle(
-                      fontSize: _getResponsiveFontSize(context, 22),
+                      fontSize: _getResponsiveFontSize(context, 20),
                       fontWeight: FontWeight.w800,
-                      color: colors.textPrimary,
-                      letterSpacing: -0.6,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
                   ),
                 ],
@@ -1252,7 +1196,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       show: true,
                       horizontalInterval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
                       getDrawingHorizontalLine: (value) => FlLine(
-                        color: colors.borderLight.withValues(alpha: 0.5),
+                        color: Colors.white.withValues(alpha: 0.25),
                         strokeWidth: 1,
                       ),
                       drawVerticalLine: false,
@@ -1267,7 +1211,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             padding: const EdgeInsets.only(right: 4),
                             child: Text(
                               _compactCurrency(v),
-                              style: TextStyle(fontSize: 10, color: colors.textSecondary),
+                              style: const TextStyle(fontSize: 10, color: Colors.white70),
                             ),
                           ),
                         ),
@@ -1280,7 +1224,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               monthLabel(v.toInt()),
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.textSecondary),
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70),
                             ),
                           ),
                         ),
@@ -1292,11 +1236,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     lineTouchData: LineTouchData(
                       touchTooltipData: LineTouchTooltipData(
                         tooltipRoundedRadius: 10,
+                        tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        tooltipMargin: 12,
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
                         getTooltipItems: (touched) => touched.map((barSpot) {
                           final idx = barSpot.x.toInt();
                           return LineTooltipItem(
                             '${monthLabel(idx)}\n${_formatCurrency(barSpot.y)}',
-                            TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700, fontSize: 12),
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
                           );
                         }).toList(),
                       ),
@@ -1305,17 +1253,30 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       LineChartBarData(
                         spots: spots,
                         isCurved: true,
-                        color: const Color(0xFF8B5CF6),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white,
+                            Colors.white.withValues(alpha: 0.75),
+                          ],
+                        ),
                         barWidth: 3,
-                        dotData: FlDotData(show: true),
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+                            radius: 4,
+                            color: Colors.white,
+                            strokeColor: Colors.white.withValues(alpha: 0.2),
+                            strokeWidth: 2,
+                          ),
+                        ),
                         belowBarData: BarAreaData(
                           show: true,
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              const Color(0xFF8B5CF6).withValues(alpha: 0.30),
-                              const Color(0xFF8B5CF6).withValues(alpha: 0.05),
+                              Colors.white.withValues(alpha: 0.30),
+                              Colors.white.withValues(alpha: 0.03),
                             ],
                           ),
                         ),
@@ -1325,6 +1286,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 ),
               ),
             ],
+            ),
           ),
         );
       },
@@ -1362,451 +1324,538 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return v.toStringAsFixed(1);
   }
 
-  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref,
-      AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.success.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.success.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colors.success,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: colors.surfaceCards,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Text(
-                l10n.paymentSummary,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          payments.when(
-            data: (paymentsList) {
-              final totalPaid = paymentsList
-                  .where((p) => p.status == 'completed')
-                  .fold(0.0, (sum, p) => sum + p.amount);
-              final pendingAmount = paymentsList
-                  .where((p) => p.status == 'pending')
-                  .fold(0.0, (sum, p) => sum + p.amount);
-              final totalPayments = paymentsList.length;
-
-              return Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.totalPaid,
-                      _formatCurrency(totalPaid),
-                      Icons.check_circle_outline,
-                      colors.success,
-                      colors,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.pending,
-                      _formatCurrency(pendingAmount),
-                      Icons.hourglass_empty,
-                      colors.warning,
-                      colors,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    child: _buildFinancialMetric(
-                      l10n.totalPayments,
-                      totalPayments.toString(),
-                      Icons.receipt_long_outlined,
-                      colors.info,
-                      colors,
-                    ),
-                  ),
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingPaymentSummary),
-          ),
-        ],
-      ),
-    );
-  }
+  
 
   Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests,
       AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.warning.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.warning.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.handyman_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
+    return LayoutBuilder(builder: (context, c) {
+  final parentW = c.maxWidth;
+  final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
+      return FractionallySizedBox(
+        widthFactor: targetW / parentW,
+        alignment: Alignment.center,
+        child: Container(
+          padding: const EdgeInsets.all(28.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  colors.warning.withValues(alpha: 0.55),
+                  colors.warning.withValues(alpha: 0.28),
+                  colors.warning.withValues(alpha: 0.10),
+                ],
               ),
-              const SizedBox(width: 20),
-              Text(
-                l10n.maintenanceRequests,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
-                ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.18),
+                width: 1.1,
+              ),
+            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _glassHeaderIcon(Icons.handyman_outlined, colors.warning),
+                  const SizedBox(height: 18),
+                  Text(
+                    l10n.maintenanceRequests,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 22),
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.75,
+                      height: 1.05,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.30),
+                          offset: const Offset(0, 1.2),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              maintenanceRequests.when(
+                data: (requestList) {
+                  if (requestList.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(40),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.check_circle_outline,
+                              size: 48,
+                              color: Color(0xFF10B981),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              l10n.noMaintenanceRequests,
+                              style: TextStyle(
+                                fontSize: _getResponsiveFontSize(context, 16),
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Constrain inner list width further for readability
+                  return LayoutBuilder(builder: (context, c2) {
+                    final w = c2.maxWidth;
+                    final contentW = _safeTargetWidth(w, minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
+                    return FractionallySizedBox(
+                      widthFactor: contentW / w,
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: requestList.take(5).map<Widget>((request) {
+                          final statusColor = _getMaintenanceStatusColor(request.status, colors);
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutCubic,
+                            margin: const EdgeInsets.only(bottom: 18),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  colors.warning.withValues(alpha: 1.0),
+                                  colors.warning.withValues(alpha: 0.45),
+                                  colors.warning.withValues(alpha: 0.18),
+                                ],
+                              ),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.36),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ClipOval(
+                                  child: BackdropFilter(
+                                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withValues(alpha: 0.28),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(alpha: 0.40),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        _getMaintenanceStatusIcon(request.status),
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 18),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        request.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: _getResponsiveFontSize(context, 15),
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: -0.25,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        DateFormat('MMM d, yyyy').format(request.requestedDate),
+                                        style: TextStyle(
+                                          fontSize: _getResponsiveFontSize(context, 11),
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: 0.5,
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        statusColor.withValues(alpha: 0.55),
+                                        statusColor.withValues(alpha: 0.25),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _formatStatusText(request.status).toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: _getResponsiveFontSize(context, 10),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.9,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  });
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Text(l10n.errorLoadingMaintenanceRequests),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          maintenanceRequests.when(
-            data: (requestList) {
-              if (requestList.isEmpty) {
-                return Container(
-                  padding: const EdgeInsets.all(40),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 48,
-                          color: Color(0xFF10B981),
+        ),
+      );
+    });
+  }
+
+  // Reintroduced payment history (simplified glass list similar to maintenance)
+  Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref,
+      AppLocalizations l10n, DynamicAppColors colors) {
+    return LayoutBuilder(builder: (context, c) {
+  final parentW = c.maxWidth;
+  final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
+      return FractionallySizedBox(
+        widthFactor: targetW / parentW,
+        alignment: Alignment.center,
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colors.success.withValues(alpha: 0.55),
+                colors.success.withValues(alpha: 0.28),
+                colors.success.withValues(alpha: 0.10),
+              ],
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 1.1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _glassHeaderIcon(Icons.receipt_long_outlined, colors.success),
+                  const SizedBox(height: 18),
+                  Text(
+                    l10n.paymentHistory,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 22),
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.75,
+                      height: 1.05,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.30),
+                          offset: const Offset(0, 1.2),
+                          blurRadius: 4,
                         ),
-                        SizedBox(height: 16),
-                        Text(
-                          l10n.noMaintenanceRequests,
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              payments.when(
+                data: (list) {
+                  if (list.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Text(
+                          l10n.noPaymentsFound,
                           style: TextStyle(
                             fontSize: _getResponsiveFontSize(context, 16),
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF64748B),
+                            color: const Color(0xFF64748B),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              return Column(
-                children: requestList.take(5).map<Widget>((request) {
-                  final statusColor =
-                      _getMaintenanceStatusColor(request.status, colors);
-                  final isDark = Theme.of(context).brightness == Brightness.dark;
-                  final isClosed = request.status.toLowerCase() == 'closed';
-                  final chipTextColor = isClosed
-                      ? (isDark ? colors.textPrimary : colors.textSecondary)
-                      : statusColor;
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: isDark ? colors.surfaceCards : colors.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 1,
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: isDark ? 0.25 : 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            _getMaintenanceStatusIcon(request.status),
-                            color: statusColor,
-                            size: 16,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                request.title,
-                                style: TextStyle(
-                                  fontSize: _getResponsiveFontSize(context, 16),
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat('MMM d, yyyy')
-                                    .format(request.requestedDate),
-                                style: TextStyle(
-                                  fontSize: _getResponsiveFontSize(context, 14),
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: isDark ? 0.28 : 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            _formatStatusText(request.status),
-                            style: TextStyle(
-                              fontSize: _getResponsiveFontSize(context, 12),
-                              fontWeight: FontWeight.w600,
-                              color: chipTextColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingMaintenanceRequests),
-          ),
-        ],
-      ),
-    );
-  }
+                    );
+                  }
 
-  Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref,
-      AppLocalizations l10n, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            const Color(0xFF3B82F6).withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.history,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Text(
-                l10n.recentPayments,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 22),
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
-                ),
+                  final limited = list.take(5).toList();
+                  return LayoutBuilder(builder: (context, c2) {
+                    final w = c2.maxWidth;
+                    final contentW = _safeTargetWidth(w, minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
+                    return FractionallySizedBox(
+                      widthFactor: contentW / w,
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: limited.map<Widget>((p) {
+                          final status = p.status?.toString() ?? '';
+                          final amount = (p.amount is num) ? (p.amount as num).toDouble() : 0.0;
+                          Color statusColor;
+                          IconData icon;
+                          switch (status.toLowerCase()) {
+                            case 'completed':
+                              statusColor = colors.success;
+                              icon = Icons.check_circle_outline;
+                              break;
+                            case 'pending':
+                              statusColor = colors.warning;
+                              icon = Icons.hourglass_empty;
+                              break;
+                            case 'failed':
+                            case 'canceled':
+                              statusColor = colors.error;
+                              icon = Icons.error_outline;
+                              break;
+                            default:
+                              statusColor = colors.info;
+                              icon = Icons.payments_outlined;
+                          }
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutCubic,
+                            margin: const EdgeInsets.only(bottom: 18),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  colors.success.withValues(alpha: 1.0),
+                                  colors.success.withValues(alpha: 0.45),
+                                  colors.success.withValues(alpha: 0.18),
+                                ],
+                              ),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.36),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                ClipOval(
+                                  child: BackdropFilter(
+                                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withValues(alpha: 0.28),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(alpha: 0.40),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Icon(icon, color: Colors.white, size: 20),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 18),
+                                Expanded(
+                                  child: Text(
+                                    _formatCurrency(amount),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: _getResponsiveFontSize(context, 15),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.25,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        statusColor.withValues(alpha: 0.55),
+                                        statusColor.withValues(alpha: 0.25),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Text(
+                                    status.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: _getResponsiveFontSize(context, 10),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.9,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  });
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Text(l10n.errorLoadingPaymentHistory),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          payments.when(
-            data: (paymentsList) {
-              if (paymentsList.isEmpty) {
-                return Container(
-                  padding: const EdgeInsets.all(40),
-                  child: Center(
-                    child: Text(
-                      l10n.noPaymentsFound,
-                      style: TextStyle(
-                        fontSize: _getResponsiveFontSize(context, 16),
-                        color: Color(0xFF64748B),
+        ),
+      );
+    });
+  }
+
+  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref,
+      AppLocalizations l10n, DynamicAppColors colors) {
+    final accent = colors.success;
+    return LayoutBuilder(
+      builder: (context, c) {
+  final parentW = c.maxWidth;
+  final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
+        return _HoverScale(
+          onTap: () => _showTenantPaymentDetailDialog(l10n, payments, colors),
+          child: FractionallySizedBox(
+            widthFactor: targetW / parentW,
+            alignment: Alignment.center,
+            child: Container(
+              padding: const EdgeInsets.all(26),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: ReportGradients.glassAccent(accent, isDark: colors.isDark),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1.2,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _glassHeaderIcon(Icons.account_balance_wallet_outlined, accent),
+                      const SizedBox(width: 18),
+                      Expanded(
+                        child: Text(
+                          l10n.paymentSummary,
+                          style: TextStyle(
+                            fontSize: _getResponsiveFontSize(context, 20),
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.55,
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  payments.when(
+                    data: (paymentsList) {
+                      final totalPaid = paymentsList
+                          .where((p) => p.status == 'completed')
+                          .fold(0.0, (sum, p) => sum + p.amount);
+                      final pendingAmount = paymentsList
+                          .where((p) => p.status == 'pending')
+                          .fold(0.0, (sum, p) => sum + p.amount);
+                      final totalPayments = paymentsList.length;
+                      final maxW = targetW; // reuse constrained width
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _metricSizedBox(
+                            child: _buildFinancialMetric(
+                              l10n.totalPaid,
+                              _formatCurrency(totalPaid),
+                              Icons.check_circle_outline,
+                              Colors.white,
+                              colors,
+                            ),
+                            parentWidth: maxW,
+                          ),
+                          const SizedBox(height: 22),
+                          _metricSizedBox(
+                            child: _buildFinancialMetric(
+                              l10n.pending,
+                              _formatCurrency(pendingAmount),
+                              Icons.hourglass_empty,
+                              Colors.white,
+                              colors,
+                            ),
+                            parentWidth: maxW,
+                          ),
+                          const SizedBox(height: 22),
+                          _metricSizedBox(
+                            child: _buildFinancialMetric(
+                              l10n.totalPayments,
+                              totalPayments.toString(),
+                              Icons.receipt_long_outlined,
+                              Colors.white,
+                              colors,
+                            ),
+                            parentWidth: maxW,
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => Text(
+                      l10n.errorLoadingPaymentSummary,
+                      style: const TextStyle(color: Colors.white70),
                     ),
                   ),
-                );
-              }
-
-              return Column(
-                children: paymentsList.take(5).map<Widget>((payment) {
-                  final statusColor = payment.status == 'completed'
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFFF59E0B);
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colors.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            payment.status == 'completed'
-                                ? Icons.check_circle_outline
-                                : Icons.hourglass_empty,
-                            color: statusColor,
-                            size: 16,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _formatCurrency(payment.amount),
-                                style: TextStyle(
-                                  fontSize: _getResponsiveFontSize(context, 18),
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${payment.type.toUpperCase()} - ${DateFormat('MMM d, yyyy').format(payment.date)}',
-                                style: TextStyle(
-                                  fontSize: _getResponsiveFontSize(context, 14),
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            _formatStatusText(payment.status),
-                            style: TextStyle(
-                              fontSize: _getResponsiveFontSize(context, 12),
-                              fontWeight: FontWeight.w600,
-                              color: statusColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingPaymentHistory),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  // Safely compute a target width based on a fraction while ensuring
+  // we don't create non-normalized BoxConstraints (min > max).
+  double _safeTargetWidth(double parentWidth,
+      {required double minW,
+      required double maxW,
+      bool enforceMinOnlyIfFits = false}) {
+    // Desired is 75% of parent.
+    double desired = parentWidth * 0.75;
+    // Cap by max first.
+    double capped = desired.clamp(0, maxW);
+    // If parent is smaller than minW we just use parent width (avoid > parent).
+    if (parentWidth < minW) return parentWidth;
+    // Optionally only enforce the min when result still <= parent.
+    if (enforceMinOnlyIfFits) {
+      if (capped < minW && minW <= parentWidth) return minW;
+      return capped;
+    }
+    // Standard branch: clamp between minW and maxW but not exceeding parent.
+    double withMin = capped < minW ? minW : capped;
+    if (withMin > parentWidth) return parentWidth;
+    return withMin;
   }
 
   Color _getMaintenanceStatusColor(String status, DynamicAppColors colors) {
@@ -2133,5 +2182,33 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         );
       }
     }
+  }
+}
+
+class _HoverScale extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  const _HoverScale({required this.child, this.onTap});
+  @override
+  State<_HoverScale> createState() => _HoverScaleState();
+}
+
+class _HoverScaleState extends State<_HoverScale> with SingleTickerProviderStateMixin {
+  double _scale = 1.0;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _scale = 1.02),
+      onExit: (_) => setState(() => _scale = 1.0),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _scale,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }
