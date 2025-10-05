@@ -3,6 +3,8 @@ name: Android APK CI
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'public/downloads/**'
   workflow_dispatch:
 
 jobs:
@@ -10,6 +12,8 @@ jobs:
     name: Build Release APK
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      app_version: ${{ steps.extract_version.outputs.app_version }}
 
     permissions:
       contents: write   # needed if we attach artifact to a GitHub Release later
@@ -32,7 +36,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable   # specify channel explicitly; omit flutter-version to avoid ambiguity
+          # Pin version for reproducible builds & consistent PATH setup
+          flutter-version: '3.24.0'
           cache: true
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('immolink/pubspec.yaml') }}
           cache-path: ~/.pub-cache
@@ -50,6 +55,14 @@ jobs:
       - name: Restore pub dependencies
         working-directory: immolink
         run: flutter pub get
+
+      - name: Extract app version
+        id: extract_version
+        run: |
+          VERSION_LINE=$(grep '^version:' immolink/pubspec.yaml)
+          VERSION=$(echo "$VERSION_LINE" | cut -d ' ' -f2 | tr -d '\r')
+          echo "Detected version: $VERSION"
+          echo "app_version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Run analyzer (warnings only)
         run: |
@@ -80,6 +93,82 @@ jobs:
           echo "### Android APK Build" >> $GITHUB_STEP_SUMMARY
           echo "Built on commit $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
           ls -lh artifacts >> $GITHUB_STEP_SUMMARY
+
+  publish-to-site-repo:
+    name: Push APKs to site repository (Option A)
+    needs: build-apk
+    runs-on: ubuntu-latest
+    if: needs.build-apk.result == 'success'
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: apk
+
+      - name: Checkout site repo
+        uses: actions/checkout@v4
+        with:
+          # TODO: Replace below with your real target repo, e.g. org/vercel-site-repo
+          repository: FabianBoni/immosync.ch
+          # TODO: Replace with: token: ${{ secrets.SITE_REPO_PAT }}  (create PAT secret first)
+          token: ${{ secrets.SITE_REPO_PAT }}
+          fetch-depth: 0
+
+      - name: Prepare downloads folder
+        env:
+          VERSION: ${{ needs.build-apk.outputs.app_version }}
+        run: |
+          mkdir -p public/downloads
+          if [ -f apk/app-release.apk ]; then
+            SRC=apk/app-release.apk
+          else
+            SRC=$(ls apk/*-release.apk 2>/dev/null | head -n 1)
+          fi
+          if [ -z "$SRC" ]; then
+            echo "No APK to publish" >&2
+            exit 1
+          fi
+          cp "$SRC" public/downloads/immosync-latest.apk
+          cp "$SRC" "public/downloads/immosync-${VERSION}.apk"
+          # Prune old versioned APKs (keep latest 5 excluding alias)
+          ls -1t public/downloads/immosync-*.apk 2>/dev/null | grep -v 'latest' | tail -n +6 | xargs -r rm -f
+          # Rebuild index.html listing available versions
+          echo "Generating index.html"
+          VLIST=$(ls -1 public/downloads/immosync-*.apk 2>/dev/null | grep -v latest | sed 's|public/downloads/||' | sort -r)
+          {
+            echo '<!doctype html><html><head><meta charset="utf-8"><title>ImmoSync Downloads</title>'
+            echo '<style>body{font-family:system-ui,Segoe UI,Roboto,sans-serif;padding:40px;max-width:760px;margin:auto;background:#0f172a;color:#f1f5f9}a{color:#38bdf8;text-decoration:none}a:hover{text-decoration:underline}code{background:#1e293b;padding:2px 4px;border-radius:4px}ul{line-height:1.6}</style></head><body>'
+            echo '<h1>ImmoSync Android Downloads</h1><p><a href="immosync-latest.apk">Download latest APK</a></p><h2>Versioned builds</h2><ul>'
+            for f in $VLIST; do echo "<li><a href=\"$f\">$f</a></li>"; done
+            echo '</ul><p>Last updated: '$(date -u)'</p></body></html>'
+          } > public/downloads/index.html
+          ls -lh public/downloads
+
+      - name: Commit & push
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add public/downloads
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+            VERSION=${{ needs.build-apk.outputs.app_version }}
+          git commit -m "chore: publish APK ${VERSION}" --no-verify
+          git push
+
+      - name: Summary
+        env:
+          VERSION: ${{ needs.build-apk.outputs.app_version }}
+        run: |
+          echo "### Cross-Repo APK Publish" >> $GITHUB_STEP_SUMMARY
+          echo "Pushed immosync-${VERSION}.apk + latest alias to site repo" >> $GITHUB_STEP_SUMMARY
 
   # Optional job to create a draft release (commented out)
   # release:
