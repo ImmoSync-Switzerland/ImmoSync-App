@@ -89,8 +89,11 @@ jobs:
           fi
           chmod +x android/gradlew || true
           set -o pipefail
-          ./android/gradlew :app:dependencies --configuration releaseRuntimeClasspath > dependency-tree.txt 2>&1 || \
-            ./android/gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon > dependency-tree.txt 2>&1 || {
+          # IMPORTANT: Invoke Gradle with -p android so project root is the android/ directory.
+          # Calling ./android/gradlew from the parent without -p caused Gradle to treat the current
+          # directory (immolink/) as the build root, leading to: "does not contain a Gradle build".
+          ./android/gradlew -p android :app:dependencies --configuration releaseRuntimeClasspath > dependency-tree.txt 2>&1 || \
+            ./android/gradlew -p android :app:dependencies --configuration releaseRuntimeClasspath --no-daemon > dependency-tree.txt 2>&1 || {
               echo 'Dependency task failed; showing tail:' >&2
               tail -n 200 dependency-tree.txt >&2 || true
               exit 1
