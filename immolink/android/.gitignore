@@ -1,17 +1,18 @@
-# (Allow wrapper for CI) previously ignored: gradle-wrapper.jar
+###############################################
+# Android / Flutter module .gitignore (trimmed)
+# Wrapper files are intentionally INCLUDED for CI.
+###############################################
 /.gradle
 /captures/
-# /gradlew (unignored for CI)
-# /gradlew.bat (unignored for CI)
 /local.properties
 GeneratedPluginRegistrant.java
 
-# Remember to never publicly share your keystore.
-# See https://flutter.dev/to/reference-keystore
+# Keystore material (never commit real keys)
 key.properties
 **/*.keystore
 **/*.jks
-!gradle-wrapper.jar!/gradlew!/gradlew.bat
+
+# Ensure Gradle wrapper scripts & JAR are tracked
 !gradle-wrapper.jar
 !/gradlew
 !/gradlew.bat
