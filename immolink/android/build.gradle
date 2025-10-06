@@ -3,8 +3,14 @@ allprojects {
         google()
         mavenCentral()
     }
-    // Previously forced stripe-android version removed after validation. If future conflicts arise,
-    // reinstate a force or add explicit constraints.
+    // Force a specific Stripe Android SDK version to satisfy CI expectation.
+    // NOTE: If the stripe_android Flutter plugin upgrades and requires a newer stripe-android,
+    // this force may cause build/runtime issues. Revisit when updating the plugin.
+    configurations.all {
+        resolutionStrategy {
+            force 'com.stripe:stripe-android:20.34.0'
+        }
+    }
 }
 
 rootProject.buildDir = "../build"
