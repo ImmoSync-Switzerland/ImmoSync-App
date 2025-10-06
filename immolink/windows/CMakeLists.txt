@@ -40,7 +40,13 @@ add_definitions(-DUNICODE -D_UNICODE)
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   # /FS allows multiple cl.exe processes to serialize access to the PDB, preventing C1041 errors.
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100" /FS)
+  # Removed /WX (treat warnings as errors) because some third-party static libs (Firebase C++ SDK)
+  # emit unavoidable linker warnings (e.g. LNK4099) about missing PDBs. Keeping /WX would break builds.
+  target_compile_options(${TARGET} PRIVATE /W4 /wd"4100" /FS)
+  # Suppress LNK4099 (missing PDB) noise from prebuilt Firebase/LevelDB/libcurl objects.
+  if (MSVC)
+    target_link_options(${TARGET} PRIVATE /IGNORE:4099)
+  endif()
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
