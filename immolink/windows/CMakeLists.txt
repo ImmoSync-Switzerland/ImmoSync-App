@@ -67,18 +67,7 @@ include(flutter/generated_plugins.cmake)
 # When INSTALL step is disabled (FLUTTER_ENABLE_INSTALL=OFF), replicate the minimal
 # asset + plugin library copying so running the built exe (flutter run) succeeds.
 if(NOT FLUTTER_ENABLE_INSTALL)
-  add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${BINARY_NAME}>/data/flutter_assets"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BUILD_DIR}flutter_assets" "$<TARGET_FILE_DIR:${BINARY_NAME}>/data/flutter_assets"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${FLUTTER_ICU_DATA_FILE}" "$<TARGET_FILE_DIR:${BINARY_NAME}>/data/icudtl.dat"
-    # Copy plugin bundled libraries if they exist (ignore failures quietly)
-    COMMAND ${CMAKE_COMMAND} -E echo "Copying plugin libraries (if any)"
-    COMMAND ${CMAKE_COMMAND} -DPLUGIN_LIBS="$<JOIN:${PLUGIN_BUNDLED_LIBRARIES},;>" -DTARGET_DIR="$<TARGET_FILE_DIR:${BINARY_NAME}>" -P "${CMAKE_CURRENT_SOURCE_DIR}/flutter/copy_plugin_libs.cmake"
-    VERBATIM
-  )
-
-  # Generate helper script to iterate plugin libs because generator expressions are
-  # not expanded inside foreach at configure time for add_custom_command.
+  # Generate helper script once (configure time).
   file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/flutter/copy_plugin_libs.cmake" "\n"
     "if(\"${PLUGIN_LIBS}\" STREQUAL \"\")\n  message(STATUS \"No plugin libraries to copy.\")\n  return()\nendif()\n"
     "string(REPLACE \";\" \";\" PLUGIN_LIST \"${PLUGIN_LIBS}\")\n"
@@ -89,6 +78,19 @@ if(NOT FLUTTER_ENABLE_INSTALL)
     "  endif()\n"
     "endforeach()\n"
   )
+
+  # Custom target that depends on the executable but is defined in this directory
+  # (cannot use add_custom_command(TARGET ...) because the target is created in runner/).
+  add_custom_target(immolink_runtime_assets ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${BINARY_NAME}>/data/flutter_assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_BUILD_DIR}flutter_assets" "$<TARGET_FILE_DIR:${BINARY_NAME}>/data/flutter_assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${FLUTTER_ICU_DATA_FILE}" "$<TARGET_FILE_DIR:${BINARY_NAME}>/data/icudtl.dat"
+    COMMAND ${CMAKE_COMMAND} -E echo "Copying plugin libraries (if any)"
+    COMMAND ${CMAKE_COMMAND} -DPLUGIN_LIBS="$<JOIN:${PLUGIN_BUNDLED_LIBRARIES},;>" -DTARGET_DIR="$<TARGET_FILE_DIR:${BINARY_NAME}>" -P "${CMAKE_CURRENT_SOURCE_DIR}/flutter/copy_plugin_libs.cmake"
+    COMMENT "Copy Flutter assets & plugin libs (INSTALL disabled)"
+    VERBATIM
+  )
+  add_dependencies(immolink_runtime_assets ${BINARY_NAME})
 endif()
 
 
