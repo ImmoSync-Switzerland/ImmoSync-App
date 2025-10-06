@@ -10,6 +10,8 @@ plugins {
 
 android {
     namespace "com.example.immolink"
+    // Raised to 36 to satisfy plugin requirements (several plugins demand 36). If the local SDK
+    // platform 36 is not installed, install it via Android SDK Manager.
     compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
@@ -33,7 +35,8 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 36
+    // Align target with compile.
+    targetSdkVersion 36
         versionCode 1
         versionName "1.0.0"
     }
@@ -58,11 +61,8 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
-    // Explicit Stripe Android SDK to ensure Push Provisioning classes are present.
-    // flutter_stripe pulls in a Stripe dependency transitively, but adding this
-    // forces a known version that includes push provisioning APIs. Adjust version
-    // if flutter_stripe plugin release notes specify a different compatible range.
-    implementation 'com.stripe:stripe-android:20.34.0'
+    // Rely on stripe_android plugin's managed dependency; if a specific version is
+    // required later for push provisioning, re-add with a verified compatible version.
     // (Optional) Uncomment if Push Provisioning / network tokenization requires Tap & Pay on some devices
     // implementation 'com.google.android.gms:play-services-tapandpay:18.3.0'
 }
