@@ -43,9 +43,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
-            // TEMPORARY: Disable minification while diagnosing Stripe Push Provisioning missing classes.
-            // Once keep rules are validated, set minifyEnabled back to true.
-            minifyEnabled false
+            // Re-enable minification now that keep rules and dependency version are validated.
+            minifyEnabled true
             shrinkResources false
             // Keep proguard config reference for when minification is re-enabled.
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

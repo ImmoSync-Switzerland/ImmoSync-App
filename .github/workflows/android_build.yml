@@ -98,6 +98,16 @@ jobs:
           echo '--- Stripe lines ---'
           grep -i 'stripe-android' dependency-tree.txt || echo '(No stripe-android entries found)'
 
+      - name: Assert Stripe SDK version
+        working-directory: immolink
+        run: |
+          if ! grep -i 'com.stripe:stripe-android:20.34.0' dependency-tree.txt >/dev/null 2>&1; then
+            echo 'Expected stripe-android:20.34.0 not found in dependency tree:' >&2
+            grep -i 'stripe-android' dependency-tree.txt || true
+            exit 1
+          fi
+          echo 'Verified stripe-android version 20.34.0 present.'
+
       - name: Upload dependency tree artifact
         uses: actions/upload-artifact@v4
         with:
