@@ -1,8 +1,8 @@
-gradle-wrapper.jar
+# (Allow wrapper for CI) previously ignored: gradle-wrapper.jar
 /.gradle
 /captures/
-/gradlew
-/gradlew.bat
+# /gradlew (unignored for CI)
+# /gradlew.bat (unignored for CI)
 /local.properties
 GeneratedPluginRegistrant.java
 
@@ -11,3 +11,7 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+!gradle-wrapper.jar!/gradlew!/gradlew.bat
+!gradle-wrapper.jar
+!/gradlew
+!/gradlew.bat
