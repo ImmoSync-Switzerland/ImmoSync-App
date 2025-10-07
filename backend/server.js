@@ -39,6 +39,7 @@ const chatAttachmentsRoutes = require('./routes/chat_attachments');
 const matrixProvision = require('./routes/matrix_provision');
 const matrixRooms = require('./routes/matrix_rooms');
 const supportRequestsRoutes = require('./routes/support_requests');
+const { createApolloServer, createGraphQLHandler } = require('./graphql');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -119,10 +120,19 @@ async function startServer() {
     console.log('Server will start without database connection');
   }
   
+  // Initialize Apollo Server for GraphQL
+  const apolloServer = createApolloServer();
+  await apolloServer.start();
+  
+  // Mount GraphQL endpoint
+  app.post('/api/graphql', createGraphQLHandler(apolloServer));
+  console.log('GraphQL endpoint available at /api/graphql');
+  
   // Use a single HTTP server (with Socket.IO). Removed duplicate app.listen to prevent EADDRINUSE.
   server.listen(PORT, () => {
     console.log(`HTTP + WebSocket server on :${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
+    console.log(`GraphQL endpoint: http://localhost:${PORT}/api/graphql`);
   });
 
   // In-memory presence map { userId: { socketId, lastPing } }
