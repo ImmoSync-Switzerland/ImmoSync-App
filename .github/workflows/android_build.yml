@@ -318,7 +318,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # Use sanitized version for artifact name (replace + with _ to avoid edge cases)
-          name: immosync-apk-${{ steps.extract_version.outputs.app_version && steps.extract_version.outputs.app_version || '' }}
+          name: immosync-apk-${{ steps.extract_version.outputs.app_version }}
           path: artifacts
           retention-days: 14
 
@@ -407,7 +407,7 @@ jobs:
       - name: Download APK artifact
         uses: actions/download-artifact@v4
         with:
-          name: immosync-apk-${{ needs.build-apk.outputs.sanitized_version }}
+          name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
           path: apk
 
       - name: Checkout site repo
