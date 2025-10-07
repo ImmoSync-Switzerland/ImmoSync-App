@@ -187,8 +187,12 @@ jobs:
           # Fail early if required defines missing
           for v in API_URL STRIPE_PUBLISHABLE_KEY GOOGLE_CLIENT_ID; do
             if [ -z "${!v}" ]; then echo "Missing required secret: $v" >&2; exit 1; fi; done
-          # Use Gradle flags to speed up build on CI.
-          export GRADLE_OPTS="-Dorg.gradle.configuration-cache=true -Dorg.gradle.caching=true -Dkotlin.incremental=true $GRADLE_OPTS"
+          # Performance flags (build cache + incremental Kotlin). Explicitly DISABLE configuration cache.
+          # Reason: Flutter plugin's *MinSdkCheck task currently captures non-serializable Gradle internals,
+          # causing configuration cache serialization failure (InaccessibleObjectException / disallowed types).
+          # We also disable those tasks in app/build.gradle, but forcing the cache on (-Dorg.gradle.configuration-cache=true)
+          # overrides gradle.properties and still triggers the failure path. Remove once upstream fixes the issue.
+          export GRADLE_OPTS="-Dorg.gradle.configuration-cache=false -Dorg.gradle.caching=true -Dkotlin.incremental=true $GRADLE_OPTS"
           flutter build apk --release --split-per-abi \
             --no-tree-shake-icons \
             --dart-define=API_URL=$API_URL \
