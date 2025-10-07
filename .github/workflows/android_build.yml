@@ -464,7 +464,12 @@ jobs:
           # Prune old versioned APKs (keep latest 5 excluding alias)
           ls -1t public/downloads/immosync-*.apk 2>/dev/null | grep -v 'latest' | tail -n +6 | xargs -r rm -f
           # Build a manifest.json listing available versions
-          VERS_JSON=$(ls -1 public/downloads/immosync-*.apk 2>/dev/null | grep -v latest | sed 's|public/downloads/||' | sort -r | jq -R -s -c 'split("\n")-|map(select(length>0))')
+          # Build versions JSON array (fix jq pipeline syntax)
+          VERS_JSON=$(ls -1 public/downloads/immosync-*.apk 2>/dev/null \
+            | grep -v latest \
+            | sed 's|public/downloads/||' \
+            | sort -r \
+            | jq -R -s -c 'split("\n") | map(select(length>0))')
           echo "{\n  \"last_updated_utc\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\n  \"versions\": ${VERS_JSON}\n}" > public/downloads/manifest.json
           # Rebuild index.html
           echo "Generating index.html"
