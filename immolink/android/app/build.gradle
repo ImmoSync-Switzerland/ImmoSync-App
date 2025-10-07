@@ -66,3 +66,16 @@ dependencies {
     // (Optional) Uncomment if Push Provisioning / network tokenization requires Tap & Pay on some devices
     // implementation 'com.google.android.gms:play-services-tapandpay:18.3.0'
 }
+
+// --- Workaround: Disable Flutter-added *MinSdkCheck tasks causing configuration cache failures ---
+// The Flutter Gradle plugin creates variant tasks like ReleaseMinSdkCheck that (currently) capture
+// non-serializable Gradle internals, triggering configuration cache serialization errors
+// (InaccessibleObjectException on java.lang.ref.ReferenceQueue.head under Java 17).
+// Disabling these tasks is safe because our minSdkVersion is already enforced in defaultConfig.
+// Remove this block once the upstream Flutter plugin fixes cache compatibility.
+tasks.configureEach { task ->
+    if (task.name.endsWith("MinSdkCheck")) {
+        task.enabled = false
+        task.doFirst { logger.lifecycle("Skipping ${task.name} (disabled workaround for config cache bug)") }
+    }
+}
