@@ -333,6 +333,14 @@ jobs:
           path: artifacts
           retention-days: 14
 
+      - name: Upload artifact (raw version alias)
+        if: steps.sanitize_version.outputs.sanitized_version != steps.extract_version.outputs.app_version
+        uses: actions/upload-artifact@v4
+        with:
+          name: immosync-apk-${{ steps.extract_version.outputs.app_version }}
+          path: artifacts
+          retention-days: 14
+
   publish-github-release:
     name: Publish GitHub Release
     needs: build-apk
@@ -341,10 +349,35 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download APK artifact
+      - name: Download APK artifact (sanitized)
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: immosync-apk-${{ needs.build-apk.outputs.sanitized_version }}
+          path: apk
+
+      - name: Fallback download APK artifact (raw version)
+        if: always()
+        run: |
+          # If first download failed or produced no APKs, try raw version alias
+          if [ ! -d apk ] || ! ls apk/*.apk 1>/dev/null 2>&1; then
+            echo "Attempting fallback download for raw version: ${{ needs.build-apk.outputs.app_version }}"
+            rm -rf apk || true
+            mkdir -p apk
+            echo "::group::List available artifacts via API (debug)"; echo 'Not implemented listing (requires PAT)'; echo "::endgroup::" || true
+            # Use GitHub CLI if available; otherwise re-run download action dynamically (not supported inline), so emulate by failing clearly.
+            # Simpler approach: we uploaded both names; attempt second download action via workflow expression is not possible here.
+            # Workaround: create marker so subsequent step knows to use raw name.
+            echo 'RAW_FALLBACK=1' >> $GITHUB_ENV
+          else
+            echo 'Sanitized artifact present; no fallback needed.'
+          fi
+
+      - name: Download APK artifact (raw version actual)
+        if: env.RAW_FALLBACK == '1'
+        uses: actions/download-artifact@v4
+        with:
+          name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
           path: apk
       - name: Validate artifact download
         run: |
@@ -415,10 +448,30 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.build-apk.result == 'success'
     steps:
-      - name: Download APK artifact
+      - name: Download APK artifact (sanitized)
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: immosync-apk-${{ needs.build-apk.outputs.sanitized_version }}
+          path: apk
+
+      - name: Fallback download APK artifact (raw version)
+        if: always()
+        run: |
+          if [ ! -d apk ] || ! ls apk/*.apk 1>/dev/null 2>&1; then
+            echo "Attempting fallback download for raw version: ${{ needs.build-apk.outputs.app_version }}"
+            rm -rf apk || true
+            mkdir -p apk
+            echo 'RAW_FALLBACK=1' >> $GITHUB_ENV
+          else
+            echo 'Sanitized artifact present; no fallback needed.'
+          fi
+
+      - name: Download APK artifact (raw version actual)
+        if: env.RAW_FALLBACK == '1'
+        uses: actions/download-artifact@v4
+        with:
+          name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
           path: apk
 
       - name: Checkout site repo
