@@ -395,7 +395,8 @@ jobs:
         run: |
           echo "### Android APK Build" >> $GITHUB_STEP_SUMMARY
           echo "Built on commit $GITHUB_SHA" >> $GITHUB_STEP_SUMMARY
-          ls -lh artifacts >> $GITHUB_STEP_SUMMARY
+          echo "Artifact file list (from uploaded 'artifacts' directory):" >> $GITHUB_STEP_SUMMARY
+          ls -lh artifacts >> $GITHUB_STEP_SUMMARY || echo '(artifacts dir missing?)'
 
   publish-to-site-repo:
     name: Push APKs to site repository (Option A)
@@ -406,7 +407,7 @@ jobs:
       - name: Download APK artifact
         uses: actions/download-artifact@v4
         with:
-          name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
+          name: immosync-apk-${{ needs.build-apk.outputs.sanitized_version }}
           path: apk
 
       - name: Checkout site repo
