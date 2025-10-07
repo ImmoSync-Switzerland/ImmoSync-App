@@ -261,15 +261,42 @@ jobs:
           echo "Found ${#APK_LIST[@]} APK(s):"
           printf '  %s\n' "${APK_LIST[@]}"
           cp "${APK_LIST[@]}" artifacts/
-          # Rename universal APK for clarity (if present) to include semantic version.
           VERSION="${{ steps.extract_version.outputs.app_version }}"
+          echo "Normalizing APK filenames with version ${VERSION}" 
+          # Create per-ABI versioned copies: immosync-${VERSION}-<abi>.apk
+          for f in artifacts/app-*-release.apk; do
+            [ -f "$f" ] || continue
+            base="${f##*/}"              # e.g. app-arm64-v8a-release.apk
+            abi_part="${base#app-}"       # arm64-v8a-release.apk
+            abi_part="${abi_part%-release.apk}" # arm64-v8a
+            cp "$f" "artifacts/immosync-${VERSION}-${abi_part}.apk"
+          done
+          # Universal rename if present
           if [ -f artifacts/app-release.apk ]; then
-            mv artifacts/app-release.apk "artifacts/immosync-${VERSION}.apk"
+            cp artifacts/app-release.apk "artifacts/immosync-${VERSION}-universal.apk"
+            # Prefer universal as main if available
+            cp artifacts/app-release.apk "artifacts/immosync-${VERSION}.apk"
           fi
-          # Create a stable latest alias (symlink not preserved in artifact, use copy)
-          PRIMARY_APK=$(ls artifacts/immosync-${VERSION}.apk 2>/dev/null || ls artifacts/app-*-release.apk 2>/dev/null | head -n1)
-          if [ -n "$PRIMARY_APK" ]; then
-            cp "$PRIMARY_APK" artifacts/immosync-latest.apk || true
+          # If main alias not set yet, pick a preferred ABI precedence order
+          if [ ! -f artifacts/immosync-${VERSION}.apk ]; then
+            for preferred in arm64-v8a armeabi-v7a x86_64; do
+              if [ -f "artifacts/immosync-${VERSION}-${preferred}.apk" ]; then
+                cp "artifacts/immosync-${VERSION}-${preferred}.apk" "artifacts/immosync-${VERSION}.apk"
+                break
+              fi
+            done
+          fi
+          # Fallback: first any *-release.apk if alias still missing
+          if [ ! -f artifacts/immosync-${VERSION}.apk ]; then
+            first_rel=$(ls artifacts/app-*-release.apk 2>/dev/null | head -n1 || true)
+            if [ -n "$first_rel" ]; then cp "$first_rel" "artifacts/immosync-${VERSION}.apk"; fi
+          fi
+          # Create latest alias
+          if [ -f artifacts/immosync-${VERSION}.apk ]; then
+            cp artifacts/immosync-${VERSION}.apk artifacts/immosync-latest.apk
+          else
+            echo "WARNING: immosync-${VERSION}.apk still not created; available files:" >&2
+            ls -1 artifacts >&2 || true
           fi
           ls -lh artifacts
 
@@ -294,22 +321,40 @@ jobs:
         with:
           name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
           path: apk
+      - name: Validate artifact download
+        run: |
+          set -euo pipefail
+          if [ ! -d apk ]; then echo "Artifact directory 'apk' missing" >&2; exit 1; fi
+          ls -lh apk || true
       - name: Normalize filenames
         run: |
           set -euo pipefail
           echo "Downloaded files:"; ls -lh apk
           VERSION="${{ needs.build-apk.outputs.app_version }}"
-          # Prefer explicitly versioned filename if not already present
-          if ls apk/immosync-${VERSION}.apk 1>/dev/null 2>&1; then
-            echo "Versioned APK already present: immosync-${VERSION}.apk"
-          else
-            if ls apk/immosync-*.apk 1>/dev/null 2>&1; then
-              echo "Existing immosync-* files:"; ls apk/immosync-*.apk
-            elif [ -f apk/app-release.apk ]; then
-              mv apk/app-release.apk apk/immosync-${VERSION}.apk
-            else
+          # If main alias exists we're done
+          if [ ! -f apk/immosync-${VERSION}.apk ]; then
+            # Create per-ABI versioned copies if only raw app-* files were uploaded
+            for f in apk/app-*-release.apk; do
+              [ -f "$f" ] || continue
+              base="${f##*/}"; abi_part="${base#app-}"; abi_part="${abi_part%-release.apk}"; cp "$f" "apk/immosync-${VERSION}-${abi_part}.apk"
+            done
+            if [ -f apk/app-release.apk ]; then
+              cp apk/app-release.apk apk/immosync-${VERSION}-universal.apk
+              cp apk/app-release.apk apk/immosync-${VERSION}.apk
+            fi
+            # Choose preferred ABI if alias still missing
+            if [ ! -f apk/immosync-${VERSION}.apk ]; then
+              for preferred in arm64-v8a armeabi-v7a x86_64; do
+                if [ -f "apk/immosync-${VERSION}-${preferred}.apk" ]; then
+                  cp "apk/immosync-${VERSION}-${preferred}.apk" apk/immosync-${VERSION}.apk
+                  break
+                fi
+              done
+            fi
+            # Final fallback
+            if [ ! -f apk/immosync-${VERSION}.apk ]; then
               CAND=$(ls apk/*-release.apk 2>/dev/null | head -n1 || true)
-              if [ -n "$CAND" ]; then cp "$CAND" apk/immosync-${VERSION}.apk; fi
+              [ -n "$CAND" ] && cp "$CAND" apk/immosync-${VERSION}.apk || true
             fi
           fi
           if [ ! -f apk/immosync-${VERSION}.apk ]; then
