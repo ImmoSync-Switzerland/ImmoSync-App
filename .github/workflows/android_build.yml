@@ -405,12 +405,6 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.build-apk.result == 'success'
     steps:
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: immosync-apk
-          path: apk
-
       - name: Checkout site repo
         uses: actions/checkout@v4
         with:
@@ -419,13 +413,21 @@ jobs:
           # TODO: Replace with: token: ${{ secrets.SITE_REPO_PAT }}  (create PAT secret first)
           token: ${{ secrets.SITE_REPO_PAT }}
           fetch-depth: 0
+          path: site
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: immosync-apk
+          path: site/apk
 
       - name: Prepare downloads folder
         env:
           VERSION: ${{ needs.build-apk.outputs.app_version }}
         run: |
           set -euo pipefail
-          echo "APK directory listing:"; ls -lh apk || true
+          cd site
+          echo "APK directory listing (site/apk):"; ls -lh apk || true
           mkdir -p public/downloads
           VERSION_FILE="immosync-${VERSION}.apk"
           CANDIDATES=()
@@ -475,6 +477,8 @@ jobs:
             echo '</ul><p>Manifest: <a href="manifest.json">manifest.json</a></p><p>Last updated: '$(date -u)'</p></body></html>'
           } > public/downloads/index.html
           echo "Final downloads directory:"; ls -lh public/downloads
+          # Remove apk folder so its contents aren't committed
+          rm -rf apk
 
       - name: Commit & push
         env:
@@ -483,6 +487,7 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
+          cd site
           git config user.name "$GIT_AUTHOR_NAME"
           git config user.email "$GIT_AUTHOR_EMAIL"
           git add public/downloads
