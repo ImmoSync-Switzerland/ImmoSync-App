@@ -229,9 +229,39 @@ jobs:
       - name: Collect APKs
         if: success()
         run: |
+          set -euo pipefail
+          APK_ROOT="immolink/build/app/outputs/flutter-apk"
+          echo "Listing APK output directory before collection ($APK_ROOT):"
+          if [ -d "$APK_ROOT" ]; then
+            find "$APK_ROOT" -maxdepth 3 -type f -name "*-release.apk" -printf '%P\n' || true
+          else
+            echo "APK root directory missing: $APK_ROOT" >&2
+          fi
+
           mkdir -p artifacts
-          cp immolink/build/app/outputs/flutter-apk/*-release.apk artifacts/ || echo "No split APKs found"
-          cp immolink/build/app/outputs/flutter-apk/app-release.apk artifacts/ || echo "No universal APK found"
+          shopt -s nullglob
+          # Gather potential locations (some Flutter/AGP combinations place files inside a 'release' subfolder)
+          CANDIDATES=(
+            "$APK_ROOT"/*-release.apk
+            "$APK_ROOT"/release/*-release.apk
+          )
+          # Filter out any literal globs left untouched (nullglob handles most, but be defensive)
+          APK_LIST=()
+          for f in "${CANDIDATES[@]}"; do
+            if [ -f "$f" ]; then APK_LIST+=("$f"); fi
+          done
+
+            if [ ${#APK_LIST[@]} -eq 0 ]; then
+            echo "ERROR: No release APKs found in $APK_ROOT (expected *-release.apk)." >&2
+            echo "Directory tree (depth 3) for debugging:" >&2
+            find "$APK_ROOT" -maxdepth 3 -type f -printf '%P\n' >&2 || true
+            exit 1
+          fi
+
+          echo "Found ${#APK_LIST[@]} APK(s):"
+          printf '  %s\n' "${APK_LIST[@]}"
+          cp "${APK_LIST[@]}" artifacts/
+          ls -lh artifacts
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
