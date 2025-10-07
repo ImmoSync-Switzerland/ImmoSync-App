@@ -263,6 +263,7 @@ jobs:
           cp "${APK_LIST[@]}" artifacts/
           VERSION="${{ steps.extract_version.outputs.app_version }}"
           echo "Normalizing APK filenames with version ${VERSION}" 
+          echo "Raw artifacts after copy:"; ls -1 artifacts || true
           # Create per-ABI versioned copies: immosync-${VERSION}-<abi>.apk
           for f in artifacts/app-*-release.apk; do
             [ -f "$f" ] || continue
@@ -291,6 +292,13 @@ jobs:
             first_rel=$(ls artifacts/app-*-release.apk 2>/dev/null | head -n1 || true)
             if [ -n "$first_rel" ]; then cp "$first_rel" "artifacts/immosync-${VERSION}.apk"; fi
           fi
+          # Final assert inside build job (fail early rather than later jobs)
+          if [ ! -f artifacts/immosync-${VERSION}.apk ]; then
+            echo "ERROR: Failed to create primary alias immosync-${VERSION}.apk" >&2
+            echo "Listing artifacts directory for debugging:" >&2
+            ls -l artifacts >&2 || true
+            exit 1
+          fi
           # Create latest alias
           if [ -f artifacts/immosync-${VERSION}.apk ]; then
             cp artifacts/immosync-${VERSION}.apk artifacts/immosync-latest.apk
@@ -298,13 +306,19 @@ jobs:
             echo "WARNING: immosync-${VERSION}.apk still not created; available files:" >&2
             ls -1 artifacts >&2 || true
           fi
-          ls -lh artifacts
+          echo "Final artifact file set:"; ls -lh artifacts
+          # Record metadata (primary + per-ABI) for downstream debugging
+          {
+            echo "version=${VERSION}";
+            echo -n "primary="; basename artifacts/immosync-${VERSION}.apk;
+            echo "files="; ls -1 artifacts | sed 's/^/  - /';
+          } > artifacts/BUILD_METADATA.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          # Versioned artifact name for clarity
-          name: immosync-apk-${{ steps.extract_version.outputs.app_version }}
+          # Use sanitized version for artifact name (replace + with _ to avoid edge cases)
+          name: immosync-apk-${{ steps.extract_version.outputs.app_version && steps.extract_version.outputs.app_version || '' }}
           path: artifacts
           retention-days: 14
 
@@ -326,6 +340,7 @@ jobs:
           set -euo pipefail
           if [ ! -d apk ]; then echo "Artifact directory 'apk' missing" >&2; exit 1; fi
           ls -lh apk || true
+          echo "Downloaded metadata (if present):"; [ -f apk/BUILD_METADATA.txt ] && cat apk/BUILD_METADATA.txt || echo '(no metadata)'
       - name: Normalize filenames
         run: |
           set -euo pipefail
