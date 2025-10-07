@@ -261,14 +261,75 @@ jobs:
           echo "Found ${#APK_LIST[@]} APK(s):"
           printf '  %s\n' "${APK_LIST[@]}"
           cp "${APK_LIST[@]}" artifacts/
+          # Rename universal APK for clarity (if present) to include semantic version.
+          VERSION="${{ steps.extract_version.outputs.app_version }}"
+          if [ -f artifacts/app-release.apk ]; then
+            mv artifacts/app-release.apk "artifacts/immosync-${VERSION}.apk"
+          fi
+          # Create a stable latest alias (symlink not preserved in artifact, use copy)
+          PRIMARY_APK=$(ls artifacts/immosync-${VERSION}.apk 2>/dev/null || ls artifacts/app-*-release.apk 2>/dev/null | head -n1)
+          if [ -n "$PRIMARY_APK" ]; then
+            cp "$PRIMARY_APK" artifacts/immosync-latest.apk || true
+          fi
           ls -lh artifacts
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
+          # Versioned artifact name for clarity
+          name: immosync-apk-${{ steps.extract_version.outputs.app_version }}
           path: artifacts
           retention-days: 14
+
+  publish-github-release:
+    name: Publish GitHub Release
+    needs: build-apk
+    runs-on: ubuntu-latest
+    if: needs.build-apk.result == 'success'
+    permissions:
+      contents: write
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
+          path: apk
+      - name: Normalize filenames
+        run: |
+          set -euo pipefail
+          echo "Downloaded files:"; ls -lh apk
+          VERSION="${{ needs.build-apk.outputs.app_version }}"
+          # Prefer explicitly versioned filename if not already present
+          if ls apk/immosync-${VERSION}.apk 1>/dev/null 2>&1; then
+            echo "Versioned APK already present: immosync-${VERSION}.apk"
+          else
+            if ls apk/immosync-*.apk 1>/dev/null 2>&1; then
+              echo "Existing immosync-* files:"; ls apk/immosync-*.apk
+            elif [ -f apk/app-release.apk ]; then
+              mv apk/app-release.apk apk/immosync-${VERSION}.apk
+            else
+              CAND=$(ls apk/*-release.apk 2>/dev/null | head -n1 || true)
+              if [ -n "$CAND" ]; then cp "$CAND" apk/immosync-${VERSION}.apk; fi
+            fi
+          fi
+          if [ ! -f apk/immosync-${VERSION}.apk ]; then
+            echo "ERROR: Could not determine primary APK to publish." >&2
+            ls -lh apk >&2 || true
+            exit 1
+          fi
+          cp apk/immosync-${VERSION}.apk apk/immosync-latest.apk
+          ls -lh apk
+      - name: Create / Update GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+            tag_name: v${{ needs.build-apk.outputs.app_version }}
+            name: ImmoSync v${{ needs.build-apk.outputs.app_version }}
+            generate_release_notes: true
+            files: |
+              apk/immosync-${{ needs.build-apk.outputs.app_version }}.apk
+              apk/immosync-latest.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate short summary
         run: |
@@ -285,7 +346,7 @@ jobs:
       - name: Download APK artifact
         uses: actions/download-artifact@v4
         with:
-          name: android-apk
+          name: immosync-apk-${{ needs.build-apk.outputs.app_version }}
           path: apk
 
       - name: Checkout site repo
@@ -301,31 +362,57 @@ jobs:
         env:
           VERSION: ${{ needs.build-apk.outputs.app_version }}
         run: |
+          set -euo pipefail
+          echo "APK directory listing:"; ls -lh apk || true
           mkdir -p public/downloads
-          if [ -f apk/app-release.apk ]; then
-            SRC=apk/app-release.apk
-          else
-            SRC=$(ls apk/*-release.apk 2>/dev/null | head -n 1)
-          fi
-          if [ -z "$SRC" ]; then
-            echo "No APK to publish" >&2
+          VERSION_FILE="immosync-${VERSION}.apk"
+          CANDIDATES=()
+          # Preferred order of discovery
+          [ -f "apk/${VERSION_FILE}" ] && CANDIDATES+=("apk/${VERSION_FILE}")
+          [ -f "apk/immosync-latest.apk" ] && CANDIDATES+=("apk/immosync-latest.apk")
+          # Any previously versioned APKs
+          for f in apk/immosync-*.apk; do [ -f "$f" ] && CANDIDATES+=("$f"); done || true
+          # Universal default name
+          [ -f apk/app-release.apk ] && CANDIDATES+=("apk/app-release.apk")
+          # ABI splits (pick arm64 first, then others)
+          for f in apk/app-arm64-v8a-release.apk apk/app-armeabi-v7a-release.apk apk/app-x86_64-release.apk; do
+            [ -f "$f" ] && CANDIDATES+=("$f")
+          done
+          # Generic fallback pattern
+          for f in apk/*-release.apk; do [ -f "$f" ] && CANDIDATES+=("$f"); done || true
+          # Deduplicate while preserving order
+          SEEN=""; FINAL=()
+          for f in "${CANDIDATES[@]}"; do
+            case " $SEEN " in *" $f "*) ;; *) SEEN="$SEEN $f"; FINAL+=("$f");; esac
+          done
+          if [ ${#FINAL[@]} -eq 0 ]; then
+            echo "ERROR: No APK candidates found to publish." >&2
+            find apk -maxdepth 3 -type f -printf '%P\n' || true
             exit 1
           fi
+          SRC="${FINAL[0]}"
+          echo "Selected APK: $SRC"
+          TARGET_VERSIONED="public/downloads/${VERSION_FILE}"
+          cp "$SRC" "$TARGET_VERSIONED"
           cp "$SRC" public/downloads/immosync-latest.apk
-          cp "$SRC" "public/downloads/immosync-${VERSION}.apk"
+          # Generate sha256 checksums
+          (cd public/downloads && sha256sum "$(basename "$TARGET_VERSIONED")" > "${VERSION_FILE}.sha256" && sha256sum immosync-latest.apk > immosync-latest.apk.sha256)
           # Prune old versioned APKs (keep latest 5 excluding alias)
           ls -1t public/downloads/immosync-*.apk 2>/dev/null | grep -v 'latest' | tail -n +6 | xargs -r rm -f
-          # Rebuild index.html listing available versions
+          # Build a manifest.json listing available versions
+          VERS_JSON=$(ls -1 public/downloads/immosync-*.apk 2>/dev/null | grep -v latest | sed 's|public/downloads/||' | sort -r | jq -R -s -c 'split("\n")-|map(select(length>0))')
+          echo "{\n  \"last_updated_utc\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\n  \"versions\": ${VERS_JSON}\n}" > public/downloads/manifest.json
+          # Rebuild index.html
           echo "Generating index.html"
           VLIST=$(ls -1 public/downloads/immosync-*.apk 2>/dev/null | grep -v latest | sed 's|public/downloads/||' | sort -r)
           {
             echo '<!doctype html><html><head><meta charset="utf-8"><title>ImmoSync Downloads</title>'
             echo '<style>body{font-family:system-ui,Segoe UI,Roboto,sans-serif;padding:40px;max-width:760px;margin:auto;background:#0f172a;color:#f1f5f9}a{color:#38bdf8;text-decoration:none}a:hover{text-decoration:underline}code{background:#1e293b;padding:2px 4px;border-radius:4px}ul{line-height:1.6}</style></head><body>'
             echo '<h1>ImmoSync Android Downloads</h1><p><a href="immosync-latest.apk">Download latest APK</a></p><h2>Versioned builds</h2><ul>'
-            for f in $VLIST; do echo "<li><a href=\"$f\">$f</a></li>"; done
-            echo '</ul><p>Last updated: '$(date -u)'</p></body></html>'
+            for f in $VLIST; do echo "<li><a href=\"$f\">$f</a> (<a href=\"$f.sha256\">sha256</a>)</li>"; done
+            echo '</ul><p>Manifest: <a href="manifest.json">manifest.json</a></p><p>Last updated: '$(date -u)'</p></body></html>'
           } > public/downloads/index.html
-          ls -lh public/downloads
+          echo "Final downloads directory:"; ls -lh public/downloads
 
       - name: Commit & push
         env:
