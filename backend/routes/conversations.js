@@ -4,64 +4,66 @@ const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
 const { getDB } = require('../database');
 
-// Get all conversations for a user
+// Get all conversations for a user (with latest message content/time)
 router.get('/user/:userId', async (req, res) => {
   const client = new MongoClient(dbUri);
-  
   try {
     await client.connect();
     const db = client.db(dbName);
-    
     const userId = req.params.userId;
-    
-    // Find conversations where user is in the participants array
-    const conversations = await db.collection('conversations')
-      .find({
-        participants: userId
-      })
-      .sort({ lastMessageTime: -1 })
-      .toArray();
-    
-    // Populate participant names
-    const populatedConversations = await Promise.all(
-      conversations.map(async (conversation) => {
-        // Get other participant (not the current user)
-        const otherParticipantId = conversation.participants.find(id => id !== userId);
-        
-        // Get other participant details
-        let otherParticipant = null;
-        if (otherParticipantId) {
-          try {
-            otherParticipant = await db.collection('users')
-              .findOne({ _id: new ObjectId(otherParticipantId) });
-          } catch (err) {
-            console.log(`Could not find user with ID: ${otherParticipantId}`);
-          }
+
+    const convs = await db.collection('conversations').aggregate([
+      { $match: { participants: userId } },
+      // Lookup latest message (sorted desc, limit 1)
+      { $lookup: {
+          from: 'messages',
+          let: { convId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: [ '$conversationId', { $toString: '$$convId' } ] } } },
+            { $sort: { timestamp: -1 } },
+            { $limit: 1 },
+            { $project: { content: 1, timestamp: 1, messageType: 1 } }
+          ],
+          as: 'lastMsg'
         }
-        
-        // Online status (lastSeen within 60s)
-        let online = false;
-        let lastSeen = null;
-        if (otherParticipant && otherParticipant.lastSeen) {
-          lastSeen = otherParticipant.lastSeen;
-          online = Date.now() - new Date(otherParticipant.lastSeen).getTime() < 60000;
+      },
+      { $addFields: {
+          lastMessage: { $ifNull: [ { $first: '$lastMsg.content' }, '$lastMessage' ] },
+          lastMessageTime: { $ifNull: [ { $first: '$lastMsg.timestamp' }, '$lastMessageTime', '$updatedAt' ] }
         }
-        return {
-          ...conversation,
-          otherParticipantId,
-          otherParticipantName: otherParticipant ? otherParticipant.fullName : 'Unknown User',
-          otherParticipantEmail: otherParticipant ? otherParticipant.email : '',
-          otherParticipantRole: otherParticipant ? otherParticipant.role : 'unknown',
-          otherParticipantAvatar: otherParticipant ? (otherParticipant.profileImage || null) : null,
-          otherParticipantOnline: online,
-          otherParticipantLastSeen: lastSeen,
-        };
-      })
-    );
-    
-    console.log(`Found ${populatedConversations.length} conversations for user ${userId}`);
-    res.json(populatedConversations);
-    
+      },
+      { $project: { lastMsg: 0 } },
+      { $sort: { lastMessageTime: -1 } }
+    ]).toArray();
+
+    // Fetch distinct other participant IDs to batch user lookups
+    const otherIds = [...new Set(convs.map(c => (c.participants || []).find(p => p !== userId)).filter(Boolean))];
+    const usersById = {};
+    if (otherIds.length) {
+      const userDocs = await db.collection('users').find({ _id: { $in: otherIds.map(id => { try { return new ObjectId(id); } catch { return null; } }).filter(Boolean) } }).project({ fullName:1, email:1, role:1, profileImage:1, lastSeen:1 }).toArray();
+      userDocs.forEach(u => { usersById[u._id.toString()] = u; });
+    }
+
+    const now = Date.now();
+    const populated = convs.map(c => {
+      const otherParticipantId = (c.participants || []).find(p => p !== userId) || null;
+      const other = otherParticipantId ? usersById[otherParticipantId] : null;
+      const lastSeen = other?.lastSeen || null;
+      const online = lastSeen ? (now - new Date(lastSeen).getTime() < 60000) : false;
+      return {
+        ...c,
+        otherParticipantId,
+        otherParticipantName: other?.fullName || 'Unknown User',
+        otherParticipantEmail: other?.email || '',
+        otherParticipantRole: other?.role || 'unknown',
+        otherParticipantAvatar: other?.profileImage || null,
+        otherParticipantOnline: online,
+        otherParticipantLastSeen: lastSeen,
+      };
+    });
+
+    console.log(`Found ${populated.length} conversations for user ${userId}`);
+    res.json(populated);
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({ message: 'Error fetching conversations' });
@@ -495,5 +497,45 @@ router.get('/:conversationId/matrix-room', async (req, res) => {
   } catch (e) {
     console.error('error fetching matrix room mapping', e);
     return res.status(500).json({ message: e.message });
+  }
+});
+
+// Alias: support legacy query /api/conversations?userId=... (calls new aggregation)
+router.get('/', async (req, res) => {
+  const { userId } = req.query || {};
+  if (!userId) return res.status(400).json({ message: 'userId required' });
+  // Internally proxy to /user/:userId logic without extra network hop
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const convs = await db.collection('conversations').aggregate([
+      { $match: { participants: userId } },
+      { $lookup: {
+          from: 'messages',
+          let: { convId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: [ '$conversationId', { $toString: '$$convId' } ] } } },
+            { $sort: { timestamp: -1 } },
+            { $limit: 1 },
+            { $project: { content: 1, timestamp: 1 } }
+          ],
+          as: 'lastMsg'
+        }
+      },
+      { $addFields: {
+          lastMessage: { $ifNull: [ { $first: '$lastMsg.content' }, '$lastMessage' ] },
+          lastMessageTime: { $ifNull: [ { $first: '$lastMsg.timestamp' }, '$lastMessageTime', '$updatedAt' ] }
+        }
+      },
+      { $project: { lastMsg: 0 } },
+      { $sort: { lastMessageTime: -1 } }
+    ]).toArray();
+    res.json(convs);
+  } catch(e) {
+    console.error('Alias conversations fetch error', e);
+    res.status(500).json({ message: 'Error fetching conversations' });
+  } finally {
+    await client.close();
   }
 });

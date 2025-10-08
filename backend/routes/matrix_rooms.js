@@ -61,6 +61,21 @@ router.post('/create-room', async (req, res) => {
     }
     const roomId = createJson.room_id;
 
+    // Enable Megolm encryption (E2EE) for the room
+    try {
+      const encResp = await fetch(`${MATRIX_BASE}/_matrix/client/r0/rooms/${encodeURIComponent(roomId)}/state/m.room.encryption?access_token=${access_token}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ algorithm: 'm.megolm.v1.aes-sha2' })
+      });
+      if (!encResp.ok) {
+        const det = await encResp.text();
+        console.warn('[Matrix][Warn] failed to enable encryption', det);
+      }
+    } catch (e) {
+      console.warn('[Matrix][Warn] encryption state error', e);
+    }
+
     // Persist mapping
     const mapDoc = {
       conversationId: conversationId.toString(),
