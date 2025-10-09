@@ -6,7 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
+// Removed http_parser import; no longer using multipart upload
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/config/db_config.dart';
 import '../../../../core/widgets/mongo_image.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -825,13 +826,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   }
 
   Widget _buildAvatarContent(user, DynamicAppColors colors) {
-    // Priority: chosen file preview -> uploaded image id/url -> existing user.profileImage -> initials
+    // Priority: chosen file preview -> uploaded image id/url -> existing user.profileImage/profileImageUrl -> initials
     if (_selectedImageFile != null) {
       return Image.file(_selectedImageFile!, fit: BoxFit.cover);
     }
-    final refStr = _uploadedImageIdOrUrl ?? user?.profileImage;
-    if (refStr != null && refStr.toString().isNotEmpty) {
-      return MongoImage(imageId: refStr.toString(), width: 80, height: 80, fit: BoxFit.cover);
+    final String? uploaded = _uploadedImageIdOrUrl;
+    final String? existing = (user?.profileImageUrl ?? user?.profileImage)?.toString();
+    final String? refStr = uploaded ?? existing;
+    bool looksLikeUrl(String v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('data:');
+    if (refStr != null && refStr.isNotEmpty) {
+      return looksLikeUrl(refStr)
+          ? Image.network(refStr, width: 80, height: 80, fit: BoxFit.cover)
+          : MongoImage(imageId: refStr, width: 80, height: 80, fit: BoxFit.cover);
     }
     return Container(
       color: Colors.transparent,
@@ -853,24 +859,67 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     final colors = ref.read(dynamicColorsProvider);
     try {
       setState(() => _isLoading = true);
-      final uri = Uri.parse('${DbConfig.apiUrl}/images/upload');
-      final req = http.MultipartRequest('POST', uri);
-      req.files.add(await http.MultipartFile.fromPath('image', _selectedImageFile!.path,
-          contentType: MediaType('image', 'jpeg')));
-      final res = await req.send();
-      final body = await res.stream.bytesToString();
-      if (res.statusCode == 200) {
-        final data = jsonDecode(body);
-        setState(() {
-          _uploadedImageIdOrUrl = data['fileId'] ?? data['url'];
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Profile image uploaded'),
-          backgroundColor: colors.success,
-        ));
-      } else {
-        _showError('Upload failed (${res.statusCode})');
+      // Build data URL from file
+      String _guessMime(String path) {
+        final lower = path.toLowerCase();
+        if (lower.endsWith('.png')) return 'image/png';
+        if (lower.endsWith('.webp')) return 'image/webp';
+        if (lower.endsWith('.heic') || lower.endsWith('.heif')) return 'image/heic';
+        if (lower.endsWith('.gif')) return 'image/gif';
+        return 'image/jpeg';
       }
+      final mime = _guessMime(_selectedImageFile!.path);
+      final bytes = await _selectedImageFile!.readAsBytes();
+      final b64 = base64Encode(bytes);
+      final dataUrl = 'data:$mime;base64,$b64';
+
+      // Prepare headers with session token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sessionToken');
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
+
+      // Current user id
+      final current = ref.read(currentUserProvider);
+      final userId = current?.id;
+      if (userId == null || userId.isEmpty) {
+        _showError('Missing user id');
+        return;
+      }
+
+      final uri = Uri.parse('${DbConfig.apiUrl}/users/$userId/profile-image');
+      final resp = await http.post(uri, headers: headers, body: jsonEncode({'dataUrl': dataUrl}));
+      if (resp.statusCode < 200 || resp.statusCode >= 300) {
+        String message = 'Upload failed (${resp.statusCode})';
+        try { final j = jsonDecode(resp.body); message = j['error']?.toString() ?? message; } catch (_) {}
+        _showError(message);
+        return;
+      }
+      final j = jsonDecode(resp.body) as Map<String, dynamic>;
+      final String? canonicalUrl =
+          (j['profileImageUrl']?.toString()) ?? (j['url']?.toString()) ?? (j['user'] is Map ? j['user']['profileImageUrl']?.toString() : null);
+      if (canonicalUrl == null || canonicalUrl.isEmpty) {
+        _showError('Upload succeeded but no URL returned');
+        return;
+      }
+
+      // Update local state and cache
+      setState(() { _uploadedImageIdOrUrl = canonicalUrl; });
+      try { await prefs.setString('immosync-profileImage-$userId', canonicalUrl); } catch (_) {}
+      // Update current user model in provider
+      if (current != null) {
+        ref.read(currentUserProvider.notifier).setUserModel(
+          current.copyWith(
+            profileImage: canonicalUrl,
+            // If your model has profileImageUrl in copyWith, set it too (kept for clarity)
+          ),
+        );
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Profile image uploaded'),
+        backgroundColor: colors.success,
+      ));
     } catch (e) {
       _showError('Failed to upload image');
     } finally {

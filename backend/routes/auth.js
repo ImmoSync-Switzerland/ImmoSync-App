@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { buildProfileImageUrl, buildInlineUserImageUrl } = require('../utils');
 // Social auth helpers
 const { OAuth2Client } = require('google-auth-library');
 const jose = require('jose');
@@ -67,6 +68,59 @@ function computeMissingFields(userDoc) {
   }
   return missing;
 }
+
+// Helper: normalize user document shape returned to clients
+function shapeUser(userDoc, sessionToken, req) {
+  if (!userDoc) return null;
+  const inlineUrl = userDoc.profileImageInline ? buildInlineUserImageUrl(userDoc._id, req) : null;
+  return {
+    id: (userDoc._id && userDoc._id.toString()) || userDoc.id || userDoc.userId,
+    email: userDoc.email || '',
+    fullName: userDoc.fullName || '',
+    role: userDoc.role || '',
+    isAdmin: !!userDoc.isAdmin,
+    isValidated: userDoc.isValidated !== false,
+    phone: userDoc.phone || null,
+    address: userDoc.address || null,
+    birthDate: userDoc.birthDate ? new Date(userDoc.birthDate).toISOString() : null,
+  profileImage: userDoc.profileImage || userDoc.providerPicture || null,
+  profileImageUrl: inlineUrl || buildProfileImageUrl(userDoc.profileImage || userDoc.providerPicture, req),
+    sessionToken: sessionToken || userDoc.sessionToken || null,
+    createdAt: userDoc.createdAt || null,
+    updatedAt: userDoc.updatedAt || null
+  };
+}
+
+// GET /auth/me – mirror of users /me for frontend expectations (token in Authorization or cookie or query)
+router.get('/me', async (req, res) => {
+  const { MongoClient } = require('mongodb');
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    // Try headers, cookie, query param
+    const rawAuth = req.headers['authorization'] || req.headers['Authorization'];
+    let token = null;
+    if (rawAuth && typeof rawAuth === 'string') {
+      token = rawAuth.replace(/^Bearer\s+/i, '').trim();
+    } else if (req.query.sessionToken) {
+      token = String(req.query.sessionToken).trim();
+    } else if (req.cookies && req.cookies.sessionToken) { // only if cookie-parser mounted upstream
+      token = req.cookies.sessionToken;
+    }
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Missing session token' });
+    }
+    const user = await db.collection('users').findOne({ sessionToken: token });
+    if (!user) return res.status(401).json({ success: false, message: 'Invalid session token' });
+  return res.json({ success: true, user: shapeUser(user, token, req) });
+  } catch (e) {
+    console.error('[auth/me] error', e);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  } finally {
+    await client.close();
+  }
+});
 
 router.post('/register', async (req, res) => {
   const client = new MongoClient(dbUri);
@@ -205,21 +259,15 @@ router.post('/login', async (req, res) => {
     const sessionToken = crypto.randomBytes(32).toString('hex');
     await users.updateOne({ _id: user._id }, { $set: { sessionToken, sessionTokenCreatedAt: new Date(), updatedAt: new Date() } });
 
-    const sessionData = {
-      userId: user._id.toString(),
-      email: user.email,
-      role: user.role,
-      fullName: user.fullName,
-      sessionToken
-    };
-
+  const shaped = shapeUser(user, sessionToken, req);
     res.status(200).json({
+      success: true,
       message: 'Login successful',
-      user: sessionData
+      user: shaped
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Login failed', error: error.message });
+    res.status(500).json({ success: false, message: 'Login failed', error: error.message });
   } finally {
     await client.close();
   }
@@ -541,13 +589,7 @@ router.post('/social-login', async (req, res) => {
       return res.json({
         success: true,
         needCompletion: false,
-        user: {
-      userId: user._id.toString(),
-          email: user.email,
-          role: user.role,
-          fullName: user.fullName,
-          sessionToken
-        }
+  user: shapeUser(user, sessionToken, req)
       });
     }
 
@@ -621,13 +663,7 @@ router.post('/social-complete', async (req, res) => {
 
   res.json({
       success: true,
-      user: {
-    userId: updatedUser._id.toString(),
-        email: updatedUser.email,
-        role: updatedUser.role,
-        fullName: updatedUser.fullName,
-        sessionToken
-      }
+  user: shapeUser(updatedUser, sessionToken, req)
     });
   } catch (error) {
     console.error('Social completion error:', error);

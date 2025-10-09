@@ -479,7 +479,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         Navigator.of(context).pop();
 
         // Navigate to the existing or newly created conversation
-    final avatar = contact.profileImage ?? '';
+  final avatar = contact.profileImage ?? '';
     context.push(
       '/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
       }

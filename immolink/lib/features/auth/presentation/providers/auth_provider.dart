@@ -126,12 +126,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (data['role'] != null) prefs.setString('userRole', data['role']),
         if (data['fullName'] != null)
           prefs.setString('fullName', data['fullName']),
+        if (data['profileImage'] != null)
+          prefs.setString('immosync-profileImage-${data['userId']}', data['profileImage']),
       ]);
       if (data['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(data['role']);
       }
       if (data['userId'] != null) {
         await ref.read(currentUserProvider.notifier).setUser(data['userId']);
+        // Hydrate cached profile image if API hasn't provided it yet
+        try {
+          final cached = prefs.getString('immosync-profileImage-${data['userId']}');
+          if (cached != null && (ref.read(currentUserProvider)?.profileImage?.isEmpty ?? true)) {
+            final current = ref.read(currentUserProvider);
+            if (current != null) {
+              ref.read(currentUserProvider.notifier).setUserModel(
+                    current.copyWith(profileImage: cached),
+                  );
+            }
+          }
+        } catch (_) {}
       }
       state = state.copyWith(
         isAuthenticated: true,
@@ -146,6 +160,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final userModel = await us.fetchCurrentUser();
         if (userModel != null) {
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
+          // Cache profile image for offline/early hydration
+          if (userModel.profileImage != null && userModel.profileImage!.isNotEmpty) {
+            try {
+              prefs.setString('immosync-profileImage-${userModel.id}', userModel.profileImage!);
+            } catch (_) {}
+          }
         }
       } catch (_) {}
       // Fire-and-forget identity key publish
@@ -184,6 +204,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (userId != null) {
       await ref.read(currentUserProvider.notifier).setUser(userId);
+      // Early hydrate cached profile image if present
+      try {
+        final cached = prefs.getString('immosync-profileImage-$userId');
+        if (cached != null) {
+          final current = ref.read(currentUserProvider);
+          if (current != null && (current.profileImage == null || current.profileImage!.isEmpty)) {
+            ref.read(currentUserProvider.notifier).setUserModel(current.copyWith(profileImage: cached));
+          }
+        }
+      } catch (_) {}
       state = state.copyWith(
           isAuthenticated: true, userId: userId, sessionToken: sessionToken);
       // Fetch full user to populate fields like profileImage
@@ -192,6 +222,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final userModel = await us.fetchCurrentUser();
         if (userModel != null) {
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
+          if (userModel.profileImage != null && userModel.profileImage!.isNotEmpty) {
+            try { prefs.setString('immosync-profileImage-${userModel.id}', userModel.profileImage!); } catch (_) {}
+          }
         }
       } catch (_) {}
     }
@@ -215,11 +248,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
           prefs.setString('sessionToken', userData['sessionToken']),
         prefs.setString('email', userData['email']),
         prefs.setString('userRole', userData['role']),
-        prefs.setString('fullName', userData['fullName'])
+        prefs.setString('fullName', userData['fullName']),
+        if (userData['profileImage'] != null)
+          prefs.setString('immosync-profileImage-${userData['userId']}', userData['profileImage']),
       ]);
 
       ref.read(userRoleProvider.notifier).setUserRole(userData['role']);
       await ref.read(currentUserProvider.notifier).setUser(userData['userId']);
+      // Hydrate cached profile image early
+      try {
+        final cached = prefs.getString('immosync-profileImage-${userData['userId']}');
+        if (cached != null) {
+          final current = ref.read(currentUserProvider);
+          if (current != null && (current.profileImage == null || current.profileImage!.isEmpty)) {
+            ref.read(currentUserProvider.notifier).setUserModel(current.copyWith(profileImage: cached));
+          }
+        }
+      } catch (_) {}
 
       state = state.copyWith(
           isLoading: false,
@@ -232,6 +277,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final userModel = await us.fetchCurrentUser();
         if (userModel != null) {
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
+          if (userModel.profileImage != null && userModel.profileImage!.isNotEmpty) {
+            try { prefs.setString('immosync-profileImage-${userModel.id}', userModel.profileImage!); } catch (_) {}
+          }
         }
       } catch (_) {}
       // E2EE: publish identity key (fire and forget)

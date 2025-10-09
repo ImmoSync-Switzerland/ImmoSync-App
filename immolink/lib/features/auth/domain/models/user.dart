@@ -10,6 +10,9 @@ class User {
   final bool isValidated;
   final Address address;
   final String? propertyId; // optional
+  // Canonical absolute URL from server; optional and may be null
+  final String? profileImageUrl;
+  // Back-compat field used across UI; we will prefer profileImageUrl if present
   final String? profileImage; // optional GridFS id or URL
   final List<String> blockedUsers; // ids the current user has blocked
 
@@ -23,6 +26,7 @@ class User {
     required this.isValidated,
     required this.address,
     this.propertyId,
+    this.profileImageUrl,
     this.profileImage,
     this.blockedUsers = const [],
   });
@@ -64,6 +68,12 @@ class User {
       return <String>[];
     }();
 
+    // Prefer canonical absolute URL if provided by the server
+    final String? canonicalUrl =
+        map['profileImageUrl'] != null ? map['profileImageUrl'].toString() : null;
+    final String? legacyRef =
+        map['profileImage'] != null ? map['profileImage'].toString() : null;
+
     return User(
       id: userId,
       email: _asString(map['email']),
@@ -80,8 +90,9 @@ class User {
               ? map['propertyId']['\$oid']
               : map['propertyId'].toString())
           : null,
-      profileImage:
-          map['profileImage'] != null ? map['profileImage'].toString() : null,
+      profileImageUrl: canonicalUrl,
+      // Back-compat: set profileImage to canonical URL if present, else legacy ref
+      profileImage: canonicalUrl ?? legacyRef,
       blockedUsers: blocked,
     );
   }
@@ -97,6 +108,7 @@ class User {
       'isValidated': isValidated,
       'address': address.toMap(),
       if (propertyId != null) 'propertyId': propertyId,
+      if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       if (profileImage != null) 'profileImage': profileImage,
       'blockedUsers': blockedUsers,
     };
@@ -112,6 +124,7 @@ class User {
     bool? isValidated,
     Address? address,
     String? propertyId,
+    String? profileImageUrl,
     String? profileImage,
     List<String>? blockedUsers,
   }) {
@@ -125,6 +138,7 @@ class User {
       isValidated: isValidated ?? this.isValidated,
       address: address ?? this.address,
       propertyId: propertyId ?? this.propertyId,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       profileImage: profileImage ?? this.profileImage,
       blockedUsers: blockedUsers ?? this.blockedUsers,
     );

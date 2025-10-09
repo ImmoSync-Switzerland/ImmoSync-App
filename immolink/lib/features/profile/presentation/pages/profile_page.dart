@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/user_avatar.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -50,17 +51,10 @@ class ProfilePage extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: AppColors.primaryAccent,
-            child: Text(
-              currentUser?.email?.substring(0, 1).toUpperCase() ?? 'U',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+          UserAvatar(
+            imageRef: currentUser?.profileImage, // prefers profileImageUrl internally
+            name: currentUser?.fullName,
+            size: 100,
           ),
           const SizedBox(height: 16),
           Text(

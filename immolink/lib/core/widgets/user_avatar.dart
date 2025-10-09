@@ -4,7 +4,7 @@ import 'mongo_image.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
 class UserAvatar extends ConsumerWidget {
-  final String? imageRef; // GridFS id or URL
+  final String? imageRef; // Can be absolute URL (preferred) or legacy GridFS id
   final String? name;
   final double size;
   final Color? bgColor;
@@ -29,12 +29,18 @@ class UserAvatar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(currentUserProvider);
     final effectiveName = name ?? current?.fullName ?? '';
-  final effectiveRef = imageRef ?? (fallbackToCurrentUser ? current?.profileImage : null);
+    // Prefer canonical absolute URL if present on current user
+    final currentUrl = current?.profileImageUrl;
+    final currentRef = current?.profileImage;
+    final effectiveRef = imageRef ?? (fallbackToCurrentUser ? (currentUrl ?? currentRef) : null);
     final bg = bgColor ?? Colors.grey.shade200;
     final tc = textColor ?? Colors.grey.shade700;
 
     Widget child;
+    bool looksLikeUrl(String v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('data:');
+
     if (effectiveRef != null && effectiveRef.isNotEmpty) {
+      final isUrl = looksLikeUrl(effectiveRef);
       child = Container(
         width: size,
         height: size,
@@ -45,12 +51,22 @@ class UserAvatar extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(size / 2),
-          child: MongoImage(
-            imageId: effectiveRef,
-            width: size,
-            height: size,
-            fit: fit,
-          ),
+          child: isUrl
+              ? Image.network(
+                  effectiveRef,
+                  key: ValueKey(effectiveRef),
+                  width: size,
+                  height: size,
+                  fit: fit,
+                  errorBuilder: (_, __, ___) => _initialsCircle(effectiveName, bg, tc),
+                )
+              : MongoImage(
+                  imageId: effectiveRef,
+                  width: size,
+                  height: size,
+                  fit: fit,
+                  errorWidget: _initialsCircle(effectiveName, bg, tc),
+                ),
         ),
       );
     } else {
@@ -64,5 +80,14 @@ class UserAvatar extends ConsumerWidget {
       );
     }
     return SizedBox(width: size, height: size, child: child);
+  }
+
+  Widget _initialsCircle(String name, Color bg, Color tc) {
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+    return Container(
+      color: bg,
+      alignment: Alignment.center,
+      child: Text(initial, style: TextStyle(fontSize: size * 0.42, fontWeight: FontWeight.w700, color: tc)),
+    );
   }
 }

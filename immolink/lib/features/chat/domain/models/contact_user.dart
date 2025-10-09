@@ -6,7 +6,8 @@ class ContactUser {
   final String phone;
   final List<String> properties;
   final String? status; // For tenant status: 'active' or 'available'
-  final String? profileImage; // Optional GridFS id or full URL
+  final String? profileImage; // Optional GridFS id or full URL (back-compat)
+  final String? profileImageUrl; // Canonical absolute URL if provided by API
 
   ContactUser({
     required this.id,
@@ -17,9 +18,12 @@ class ContactUser {
     required this.properties,
     this.status,
     this.profileImage,
+    this.profileImageUrl,
   });
 
   factory ContactUser.fromMap(Map<String, dynamic> map) {
+    final String? canonicalUrl = map['profileImageUrl']?.toString();
+    final String? legacyRef = map['profileImage']?.toString();
     return ContactUser(
       id: map['_id']?.toString() ?? map['id']?.toString() ?? '',
       fullName: map['fullName'] ?? map['name'] ?? '',
@@ -29,7 +33,8 @@ class ContactUser {
       properties:
           map['properties'] != null ? List<String>.from(map['properties']) : [],
       status: map['status'],
-      profileImage: map['profileImage']?.toString(),
+      profileImageUrl: canonicalUrl,
+      profileImage: canonicalUrl ?? legacyRef,
     );
   }
 
@@ -42,6 +47,7 @@ class ContactUser {
       'phone': phone,
       'properties': properties,
       'status': status,
+      if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       if (profileImage != null) 'profileImage': profileImage,
     };
   }

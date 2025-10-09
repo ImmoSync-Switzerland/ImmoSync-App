@@ -331,7 +331,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        leading: UserAvatar(
+  leading: UserAvatar(
           imageRef: conversation.otherParticipantAvatar,
           name: otherUserName,
           size: 50,
