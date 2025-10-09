@@ -170,7 +170,8 @@ router.get('/:userId/profile-image', async (req, res) => {
     const inline = doc?.profileImageInline;
     if (!inline || !inline.data) return res.status(404).json({ message: 'No inline profile image' });
     res.setHeader('Content-Type', inline.contentType || 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    // Disable caching so updated avatars are reflected immediately
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
     return res.send(Buffer.from(inline.data.buffer || inline.data));
   } catch (e) {
     console.error('GET /users/:userId/profile-image error', e);
@@ -636,6 +637,57 @@ router.post('/:userId/unblock', async (req, res) => {
   } catch (e) {
     console.error('Unblock user error:', e);
     res.status(500).json({ message: 'Failed to unblock user' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Upload inline profile image for the current user resolved from Authorization header
+router.post('/me/profile-image', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    let auth = req.headers['authorization'] || req.headers['Authorization'];
+    if (!auth || typeof auth !== 'string') return res.status(401).json({ message: 'Authorization required' });
+    auth = auth.trim();
+    // Support both "Bearer <token>" and raw token
+    const token = auth.toLowerCase().startsWith('bearer ') ? auth.slice(7).trim() : auth;
+    const user = await db.collection('users').findOne({ sessionToken: token }, { projection: { _id: 1 } });
+    if (!user) return res.status(401).json({ message: 'Invalid token' });
+
+    let contentType = null;
+    let buffer = null;
+    if (req.is('application/json')) {
+      const dataUrl = req.body?.dataUrl || req.body?.dataURL || null;
+      const base64 = req.body?.base64 || null;
+      if (dataUrl && typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
+        const match = /^data:([^;]+);base64,(.*)$/i.exec(dataUrl);
+        if (!match) return res.status(400).json({ message: 'Invalid dataUrl' });
+        contentType = match[1];
+        buffer = Buffer.from(match[2], 'base64');
+      } else if (base64 && typeof base64 === 'string') {
+        contentType = 'image/png';
+        buffer = Buffer.from(base64, 'base64');
+      }
+    }
+    if (!buffer && typeof req.body === 'string') {
+      contentType = 'image/png';
+      buffer = Buffer.from(req.body, 'base64');
+    }
+    if (!buffer) return res.status(400).json({ message: 'No image data provided' });
+
+    const update = {
+      $set: {
+        profileImageInline: { contentType: contentType || 'image/png', data: buffer, uploadedAt: new Date() },
+        updatedAt: new Date(),
+      }
+    };
+    await db.collection('users').updateOne({ _id: new ObjectId(user._id) }, update);
+    return res.json({ ok: true, profileImageUrl: buildInlineUserImageUrl(user._id, req) });
+  } catch (e) {
+    console.error('POST /users/me/profile-image error', e);
+    return res.status(500).json({ message: 'Failed to upload profile image' });
   } finally {
     await client.close();
   }

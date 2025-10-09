@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/painting.dart' show PaintingBinding; // image cache eviction
+import 'package:flutter/widgets.dart' show ImageConfiguration; // eviction configuration
 // Removed http_parser import; no longer using multipart upload
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/config/db_config.dart';
@@ -836,8 +838,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     bool looksLikeUrl(String v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('data:');
     if (refStr != null && refStr.isNotEmpty) {
       return looksLikeUrl(refStr)
-          ? Image.network(refStr, width: 80, height: 80, fit: BoxFit.cover)
-          : MongoImage(imageId: refStr, width: 80, height: 80, fit: BoxFit.cover);
+          ? Image.network(
+              refStr,
+              key: ValueKey(refStr), // force refresh when URL changes
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+            )
+          : MongoImage(
+              imageId: refStr,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            );
     }
     return Container(
       color: Colors.transparent,
@@ -879,15 +893,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       final headers = <String, String>{'Content-Type': 'application/json'};
       if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
 
-      // Current user id
+      // Current user id (optional)
       final current = ref.read(currentUserProvider);
       final userId = current?.id;
-      if (userId == null || userId.isEmpty) {
-        _showError('Missing user id');
-        return;
-      }
-
-      final uri = Uri.parse('${DbConfig.apiUrl}/users/$userId/profile-image');
+      final uri = userId != null && userId.isNotEmpty
+          ? Uri.parse('${DbConfig.apiUrl}/users/$userId/profile-image')
+          : Uri.parse('${DbConfig.apiUrl}/users/me/profile-image');
       final resp = await http.post(uri, headers: headers, body: jsonEncode({'dataUrl': dataUrl}));
       if (resp.statusCode < 200 || resp.statusCode >= 300) {
         String message = 'Upload failed (${resp.statusCode})';
@@ -903,15 +914,34 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         return;
       }
 
-      // Update local state and cache
-      setState(() { _uploadedImageIdOrUrl = canonicalUrl; });
-      try { await prefs.setString('immosync-profileImage-$userId', canonicalUrl); } catch (_) {}
-      // Update current user model in provider
+      // Build a cache-busted URL so Flutter treats it as a new resource
+      final bustedUrl = '$canonicalUrl${canonicalUrl.contains('?') ? '&' : '?'}v=${DateTime.now().millisecondsSinceEpoch}';
+
+      // Evict old image from Flutter cache to ensure immediate refresh
+      final oldUrl = (current?.profileImageUrl.toString().isNotEmpty == true
+        ? current!.profileImageUrl
+        : current?.profileImage)
+          ?.toString();
+      bool _isHttp(String? v) => v != null && (v.startsWith('http://') || v.startsWith('https://'));
+      try {
+        if (_isHttp(oldUrl)) {
+          final provider = NetworkImage(oldUrl!);
+          await provider.evict(
+            cache: PaintingBinding.instance.imageCache,
+            configuration: ImageConfiguration.empty,
+          );
+        }
+      } catch (_) {}
+
+      // Update local state and persist busted URL
+      setState(() { _uploadedImageIdOrUrl = bustedUrl; });
+      try { if (userId != null && userId.isNotEmpty) await prefs.setString('immosync-profileImage-$userId', bustedUrl); } catch (_) {}
+      // Update current user model in provider with the busted URL
       if (current != null) {
         ref.read(currentUserProvider.notifier).setUserModel(
           current.copyWith(
-            profileImage: canonicalUrl,
-            // If your model has profileImageUrl in copyWith, set it too (kept for clarity)
+            profileImage: bustedUrl,
+            profileImageUrl: bustedUrl,
           ),
         );
       }

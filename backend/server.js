@@ -51,8 +51,9 @@ app.use(cors({
 app.use('/api/payments/stripe-webhook', express.raw({type: 'application/json'}));
 app.use('/api/connect/webhook', express.raw({type: 'application/json'}));
 
-// Regular JSON parsing for all other routes
-app.use(express.json());
+// Regular JSON parsing for all other routes (increase limit for base64 image payloads)
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
