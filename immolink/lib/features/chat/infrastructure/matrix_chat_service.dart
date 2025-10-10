@@ -21,4 +21,12 @@ class MatrixChatService {
   Future<String> sendMessage({required String roomId, required String body}) async {
     return frb.sendMessage(roomId: roomId, body: body);
   }
+
+  Future<void> startSync() async {
+    await frb.startSync();
+  }
+
+  Future<void> stopSync() async {
+    await frb.stopSync();
+  }
 }

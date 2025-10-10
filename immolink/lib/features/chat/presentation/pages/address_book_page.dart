@@ -308,7 +308,12 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(20),
-  leading: UserAvatar(imageRef: contact.profileImage, name: contact.fullName, size: 50),
+  leading: UserAvatar(
+            imageRef: contact.profileImage,
+            name: contact.fullName,
+            size: 50,
+            fallbackToCurrentUser: false,
+          ),
         title: Text(
           contact.fullName,
           style: TextStyle(

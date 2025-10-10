@@ -29,6 +29,8 @@ class PresenceWsService {
   final _conversationController =
       StreamController<Map<String, dynamic>>.broadcast();
   List<Map<String, dynamic>> _pendingMessages = [];
+  // Track inflight emits to allow lightweight retries if no ack is observed
+  final Map<String, Map<String, dynamic>> _inflightByClientId = {};
   // Pending read receipts keyed by conversationId (values are messageId sets)
   final Map<String, Set<String>> _pendingReads = {};
   Timer? _pingTimer;
@@ -170,11 +172,19 @@ class PresenceWsService {
       })
       ..on('chat:message', (data) async {
         if (data is Map) {
+          // ignore: avoid_print
+          print('[WS][recv][message] keys=${data.keys.toList()}');
           await _maybeDecryptAndForward(data, isAck: false);
         }
       })
       ..on('chat:ack', (data) async {
         if (data is Map) {
+          // ignore: avoid_print
+          print('[WS][recv][ack] keys=${data.keys.toList()}');
+          final cId = data['clientMessageId']?.toString();
+          if (cId != null) {
+            _inflightByClientId.remove(cId);
+          }
           await _maybeDecryptAndForward(data, isAck: true);
         }
       })
@@ -320,9 +330,12 @@ class PresenceWsService {
       if (_userId != null)
         'senderId': _userId, // explicit sender id for server attribution
       'clientTime': DateTime.now().toIso8601String(),
+      'messageType': 'text',
+      // lightweight client-generated id for local correlation (optional for server)
+      'clientMessageId': '${DateTime.now().millisecondsSinceEpoch}-${(_userId ?? 'u')}',
     };
     if (receiverId != null) payload['receiverId'] = receiverId;
-    bool encryptionUsed = false;
+  bool encryptionUsed = false;
     print(
         '[WS][sendChatMessage] conv=$conversationId recv=$receiverId connected=${_chatSocket?.connected}');
     if (receiverId != null && _userId != null && receiverId == _userId) {
@@ -362,6 +375,23 @@ class PresenceWsService {
     _chatSocket!.emit('chat:message', payload);
     print(
         '[WS][sendChatMessage] emitted payload keys=${payload.keys.toList()}');
+    final cId = payload['clientMessageId']?.toString();
+    if (cId != null) {
+      _inflightByClientId[cId] = payload;
+      // Simple retry after 3 seconds if still inflight and connected
+      Future.delayed(const Duration(seconds: 3), () {
+        final still = _inflightByClientId[cId];
+        if (still != null && _chatSocket?.connected == true) {
+          try {
+            // ignore: avoid_print
+            print('[WS][sendChatMessage][retry] clientMessageId=$cId');
+            _chatSocket!.emit('chat:message', still);
+          } catch (_) {}
+        }
+      });
+    }
+
+    // Do not mirror plaintext to REST; rely on Matrix E2EE for content.
     return encryptionUsed;
   }
 

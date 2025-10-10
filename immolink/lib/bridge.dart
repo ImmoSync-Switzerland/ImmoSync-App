@@ -25,6 +25,14 @@ Future<void> startSync() => RustLib.instance.api.crateBridgeStartSync();
 
 Future<void> stopSync() => RustLib.instance.api.crateBridgeStopSync();
 
+// Stream subscription for Matrix events
+Stream<Map<String, dynamic>> subscribeEvents() async* {
+    // The generated API for streams isn't present yet; after regenerating FRB
+    // this will be replaced by a proper `crateBridgeSubscribeEvents()` stream.
+    // Placeholder to keep API surface stable in Dart code.
+    yield* const Stream.empty();
+}
+
 class LoginResult {
   final String userId;
   final String accessToken;

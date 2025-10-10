@@ -56,7 +56,7 @@ class ChatService {
     throw Exception('Failed to fetch messages');
   }
 
-  Future<void> sendMessage({
+  Future<String> sendMessage({
     required String conversationId,
     required String senderId,
     required String receiverId,
@@ -75,46 +75,8 @@ class ChatService {
     }
   // Send via FRB and capture Matrix event id
   final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
-    // Also persist to backend (AWS-hosted) so history remains visible in the app
-    // If E2EE is available, store encrypted payload at rest
-    try {
-      Map<String, dynamic>? e2ee;
-      if (ref != null && (otherUserId ?? receiverId).isNotEmpty) {
-        try {
-          final svc = ref.read(e2eeServiceProvider);
-          final enc = await svc.encryptMessage(
-            conversationId: conversationId,
-            otherUserId: (otherUserId ?? receiverId),
-            plaintext: content,
-          );
-          if (enc != null) {
-            e2ee = enc;
-          }
-        } catch (_) {
-          // fall through to plaintext store
-        }
-      }
-      final resp = await http.post(
-        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'senderId': senderId,
-          'receiverId': receiverId,
-          'content': e2ee != null ? '' : content,
-          'messageType': 'text',
-          'matrixRoomId': roomId,
-          'matrixEventId': matrixEventId,
-          if (e2ee != null) 'e2ee': e2ee,
-        }),
-      );
-      if (resp.statusCode != 201) {
-        // Not fatal for send (Matrix already delivered), but log for diagnostics
-        print('Warning: backend message persist failed: ${resp.statusCode} ${resp.body}');
-      }
-    } catch (e) {
-      // Avoid failing the UI flow if backend storage is temporarily unavailable
-      print('Warning: backend message persist error: $e');
-    }
+  // Matrix-only: do not persist chat content to backend anymore.
+  return matrixEventId;
   }
 
   Future<String?> _fetchOrCreateMatrixRoomId({
@@ -134,7 +96,7 @@ class ChatService {
     if (res.statusCode == 404) {
       // Ask backend to create the room mapping now
       final create = await http.post(
-        Uri.parse('$_apiUrl/matrix/create-room'),
+        Uri.parse('$_apiUrl/matrix/rooms/create-room'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'conversationId': conversationId,

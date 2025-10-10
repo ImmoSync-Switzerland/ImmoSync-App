@@ -479,7 +479,12 @@ class _MessagesSearchTab extends ConsumerWidget {
               color: colors.surfaceCards,
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
-                leading: UserAvatar(imageRef: conversation.otherParticipantAvatar, name: conversation.otherParticipantName, size: 40),
+                leading: UserAvatar(
+                  imageRef: conversation.getOtherParticipantAvatarUrl() ?? conversation.otherParticipantAvatar,
+                  name: conversation.otherParticipantName,
+                  size: 40,
+                  fallbackToCurrentUser: false,
+                ),
                 title: Text(
                   conversation.otherParticipantName ?? 'Unbekannt',
                   style: TextStyle(
@@ -821,7 +826,12 @@ class _AllSearchTab extends ConsumerWidget {
                   color: colors.surfaceCards,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    leading: UserAvatar(imageRef: conversation.otherParticipantAvatar, name: conversation.otherParticipantName, size: 40),
+                    leading: UserAvatar(
+                      imageRef: conversation.getOtherParticipantAvatarUrl() ?? conversation.otherParticipantAvatar,
+                      name: conversation.otherParticipantName,
+                      size: 40,
+                      fallbackToCurrentUser: false,
+                    ),
                     title: Text(
                       conversation.otherParticipantName ?? 'Unbekannt',
                       style: TextStyle(

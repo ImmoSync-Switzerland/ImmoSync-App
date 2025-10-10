@@ -1,15 +1,32 @@
-// Compile-time configuration via --dart-define; fallback defaults remain.
+// Config with preference order: .env (runtime) > --dart-define (compile-time) > defaults.
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 
 class DbConfig {
-  static const String connectionUri = String.fromEnvironment(
-    'MONGODB_URI', defaultValue: 'mongodb://localhost:27017');
-  static const String dbName =
-    String.fromEnvironment('MONGODB_DB_NAME', defaultValue: 'immolink');
-  static const String apiUrl = String.fromEnvironment(
-    'API_URL', defaultValue: 'https://backend.immosync.ch/api');
+  static String get connectionUri {
+    final env = (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['MONGODB_URI'] : null);
+    if (env != null && env.isNotEmpty) return env;
+    const dd = String.fromEnvironment('MONGODB_URI', defaultValue: 'mongodb://localhost:27017');
+    return dd;
+  }
+
+  static String get dbName {
+    final env = (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['MONGODB_DB_NAME'] : null);
+    if (env != null && env.isNotEmpty) return env;
+    const dd = String.fromEnvironment('MONGODB_DB_NAME', defaultValue: 'immolink');
+    return dd;
+  }
+
+  static String get apiUrl {
+    final env = (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['API_URL'] : null);
+    if (env != null && env.isNotEmpty) return env;
+    const dd = String.fromEnvironment('API_URL', defaultValue: 'https://backend.immosync.ch/api');
+    return dd;
+  }
   static String get wsUrl {
-  const raw = String.fromEnvironment('WS_URL');
-  if (raw.isNotEmpty) return raw;
+    final env = (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['WS_URL'] : null);
+    if (env != null && env.isNotEmpty) return env;
+    const raw = String.fromEnvironment('WS_URL');
+    if (raw.isNotEmpty) return raw;
     // Derive from apiUrl
     try {
       final uri = Uri.parse(apiUrl);
@@ -29,8 +46,12 @@ class DbConfig {
   }
 
   // Primary public host (for CDN / user-facing asset links) can differ from API host
-  static const String primaryHost = String.fromEnvironment(
-    'PRIMARY_HOST', defaultValue: 'https://immosync.ch');
+  static String get primaryHost {
+    final env = (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['PRIMARY_HOST'] : null);
+    if (env != null && env.isNotEmpty) return env;
+    const dd = String.fromEnvironment('PRIMARY_HOST', defaultValue: 'https://immosync.ch');
+    return dd;
+  }
 
   static void printConfig() {
     print('DbConfig loaded:');
@@ -39,7 +60,7 @@ class DbConfig {
     print('  apiUrl: $apiUrl');
     print('  wsUrl: $wsUrl');
     print('  primaryHost: $primaryHost');
-  print('  (dart-define) API_URL: $apiUrl');
+  print('  (dart-define) API_URL: ${String.fromEnvironment('API_URL')}');
 
     // Verify services will use correct URL
     print('Services will use API URL: $apiUrl');

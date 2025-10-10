@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'core/notifications/fcm_service.dart';
 import '../l10n/app_localizations.dart';
 import 'package:immosync/core/routes/app_router.dart';
@@ -19,8 +20,11 @@ import 'package:immosync/l10n_helper.dart';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_events_adapter.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_frb_events_adapter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:immosync/frb_generated.dart';
 
 void main() async {
   bool _appStarted = false; // track if primary runApp already executed
@@ -45,8 +49,13 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     debugPrint('[Startup] Widgets binding ensured');
 
-    // Step 1: (Removed .env loading) Using compile-time dart-define values instead.
-  // Environment values now provided via --dart-define; no runtime load needed.
+    // Step 1: Load .env (optional) to allow runtime configuration on desktop/dev
+    try {
+      await dotenv.dotenv.load(fileName: '.env');
+      debugPrint('[Startup] .env loaded');
+    } catch (e) {
+      debugPrint('[Startup][INFO] .env not loaded (optional): $e');
+    }
 
     // Step 2: Firebase (deferred errors tolerated)
     try {
@@ -143,6 +152,10 @@ class ImmoSync extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Start FCM service side effects and keep instance
     final fcm = ref.watch(fcmServiceProvider);
+    // Bridge incoming events into the Matrix timeline until FRB events are wired
+    ref.watch(matrixEventsAdapterProvider);
+  // Also keep FRB events adapter alive (no-op until FRB stream is available)
+  ref.watch(matrixFrbEventsAdapterProvider);
     // Listen for auth userId changes (avoid triggering on every rebuild)
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {
@@ -197,6 +210,8 @@ class ImmoSync extends ConsumerWidget {
 // Fire-and-forget Matrix init+login using backend-provisioned credentials
 Future<void> _initMatrixForUser(String userId) async {
   try {
+    // Ensure rust bridge is initialized before any FRB calls
+    await RustLib.init();
     final api = DbConfig.apiUrl;
     Future<Map<String, dynamic>?> fetchAccount() async {
       final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
@@ -220,6 +235,8 @@ Future<void> _initMatrixForUser(String userId) async {
     await MatrixChatService.instance.ensureInitialized(homeserver: homeserver);
     await MatrixChatService.instance
         .login(username: username, password: password);
+    // Start Matrix sync to enable receiving/sending E2EE messages
+    await MatrixChatService.instance.startSync();
   } catch (e, st) {
     debugPrint('Matrix init/login failed: $e');
     debugPrint(st.toString());

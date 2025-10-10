@@ -11,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/user_avatar.dart';
+import '../../../../core/config/db_config.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -332,9 +333,11 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
   leading: UserAvatar(
-          imageRef: conversation.otherParticipantAvatar,
+          imageRef: conversation.getOtherParticipantAvatarRef() 
+              ?? (otherUserId.isNotEmpty ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image' : null),
           name: otherUserName,
           size: 50,
+          fallbackToCurrentUser: false,
         ),
         title: Row(
           children: [
@@ -390,8 +393,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 final previews = ref.read(chatPreviewProvider);
                 final override = previews[conversation.id];
                 if (override != null && override.isNotEmpty) return override;
-                if (conversation.lastMessage == '[encrypted]') return 'Encrypted message';
-                return conversation.lastMessage;
+                // Treat empty content from aggregation as encrypted/no-preview
+                final lm = (conversation.lastMessage).toString().trim();
+                if (lm.isEmpty || lm == '[encrypted]') return 'Encrypted message';
+                return lm;
               })(),
               style: TextStyle(
                 color: AppColors.textSecondary,
@@ -419,7 +424,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ),
         onTap: () {
           HapticFeedback.lightImpact();
-          final avatar = conversation.otherParticipantAvatar ?? '';
+      final avatar = conversation.getOtherParticipantAvatarRef() 
+        ?? (otherUserId.isNotEmpty ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image' : '');
           context.push('/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         },
       ),

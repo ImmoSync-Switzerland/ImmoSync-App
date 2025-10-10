@@ -93,6 +93,11 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateBridgeStartSync();
 
   Future<void> crateBridgeStopSync();
+
+  // Placeholder: after regenerating FRB with a stream function in Rust, this
+  // will become a Stream API. Keeping here to allow Dart references to compile.
+  // ignore: unused_element
+  // Stream<MatrixEvent> crateBridgeSubscribeEvents();
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {

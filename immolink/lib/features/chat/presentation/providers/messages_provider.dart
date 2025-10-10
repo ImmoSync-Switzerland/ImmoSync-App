@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import '../../domain/models/chat_message.dart';
 import '../../domain/services/chat_service.dart';
+import '../../infrastructure/matrix_timeline_service.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import 'package:flutter/foundation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -16,27 +18,26 @@ class ChatMessagesNotifier
   final ChatService _chatService;
   final String _conversationId;
   final Ref _ref;
+  StreamSubscription<List<ChatMessage>>? _sub;
 
   ChatMessagesNotifier(this._chatService, this._conversationId, this._ref)
       : super(const AsyncValue.loading()) {
-    _loadMessages();
+    _initMatrixTimeline();
   }
-  Future<void> _loadMessages() async {
+
+  Future<void> _initMatrixTimeline() async {
     try {
-      final messages = await _chatService.getMessages(_conversationId);
-      // Messages are already sorted chronologically from backend
-      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      for (final m in messages) {
-        debugPrint(
-            '[MessagesProvider][load] id=${m.id} sender=${m.senderId} receiver=${m.receiverId} ts=${m.timestamp.toIso8601String()} enc=${m.isEncrypted} contentLen=${m.content.length}');
-        if (m.receiverId.isNotEmpty && m.receiverId == m.senderId) {
-          debugPrint(
-              '[MessagesProvider][anomaly] message ${m.id} has receiver==sender (${m.senderId})');
-        }
-      }
-      state = AsyncValue.data(messages);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      // Subscribe to matrix timeline stream keyed by conversationId for now
+      final timeline = _ref.read(matrixTimelineServiceProvider);
+      _sub?.cancel();
+      _sub = timeline.watchRoom(_conversationId).listen((messages) {
+        // ensure sorted by timestamp
+        final sorted = List<ChatMessage>.from(messages)
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        state = AsyncValue.data(sorted);
+      });
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
     }
   }
 
@@ -110,7 +111,7 @@ class ChatMessagesNotifier
     required String content,
   }) async {
     try {
-      await _chatService.sendMessage(
+      final mxEventId = await _chatService.sendMessage(
         conversationId: _conversationId,
         senderId: senderId,
         receiverId: receiverId,
@@ -118,14 +119,36 @@ class ChatMessagesNotifier
         ref: _ref,
         otherUserId: receiverId,
       );
-      // Refresh messages after sending
-      await _loadMessages();
+      // Optimistically append a local message using the Matrix event id
+      final optimistic = ChatMessage(
+        id: mxEventId,
+        senderId: senderId,
+        receiverId: receiverId,
+        content: content,
+        timestamp: DateTime.now(),
+        isRead: false,
+        deliveredAt: null,
+        readAt: null,
+        messageType: 'text',
+        metadata: const {},
+        conversationId: _conversationId,
+        isEncrypted: false, // Matrix handles encryption display separately in the UI layer
+      );
+      final timeline = _ref.read(matrixTimelineServiceProvider);
+      // Use conversationId as the local timeline key
+      timeline.pushLocal(_conversationId, optimistic);
     } catch (error, _) {
       // Handle error but don't change the state to error
       // as we still want to show existing messages
       print('Error sending message: $error');
       rethrow;
     }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
   }
 
   // Optimistic insertion for WS send (sender doesn't get broadcast echo)
@@ -275,9 +298,7 @@ class ChatMessagesNotifier
     state = AsyncValue.data(current);
   }
 
-  void refresh() {
-    _loadMessages();
-  }
+  void refresh() {}
 
   // Optimistically mark a set of message IDs as read locally
   void bulkMarkRead(Iterable<String> ids) {
