@@ -19,6 +19,7 @@ class ChatMessagesNotifier
   final String _conversationId;
   final Ref _ref;
   StreamSubscription<List<ChatMessage>>? _sub;
+  String? _roomId;
 
   ChatMessagesNotifier(this._chatService, this._conversationId, this._ref)
       : super(const AsyncValue.loading()) {
@@ -27,10 +28,18 @@ class ChatMessagesNotifier
 
   Future<void> _initMatrixTimeline() async {
     try {
-      // Subscribe to matrix timeline stream keyed by conversationId for now
+      // Resolve Matrix roomId for this conversation
+      final roomId = await _ref
+          .read(chatServiceProvider)
+          .getMatrixRoomIdForConversation(
+              conversationId: _conversationId,
+              currentUserId: _ref.read(currentUserProvider)?.id ?? '',
+              otherUserId: '');
+      _roomId = roomId ?? _conversationId;
+      // Subscribe to matrix timeline stream keyed by roomId
       final timeline = _ref.read(matrixTimelineServiceProvider);
       _sub?.cancel();
-      _sub = timeline.watchRoom(_conversationId).listen((messages) {
+      _sub = timeline.watchRoom(_roomId!).listen((messages) {
         // ensure sorted by timestamp
         final sorted = List<ChatMessage>.from(messages)
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
@@ -132,11 +141,13 @@ class ChatMessagesNotifier
         messageType: 'text',
         metadata: const {},
         conversationId: _conversationId,
-        isEncrypted: false, // Matrix handles encryption display separately in the UI layer
+        isEncrypted:
+            false, // Matrix handles encryption display separately in the UI layer
       );
       final timeline = _ref.read(matrixTimelineServiceProvider);
-      // Use conversationId as the local timeline key
-      timeline.pushLocal(_conversationId, optimistic);
+      // Use resolved roomId as the local timeline key (fallback to conversationId)
+      final key = _roomId ?? _conversationId;
+      timeline.pushLocal(key, optimistic);
     } catch (error, _) {
       // Handle error but don't change the state to error
       // as we still want to show existing messages

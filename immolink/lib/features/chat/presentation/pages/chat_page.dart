@@ -11,7 +11,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
-import 'package:immosync/features/chat/presentation/providers/chat_service_provider.dart' as chat_providers;
+import 'package:immosync/features/chat/presentation/providers/chat_service_provider.dart'
+    as chat_providers;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -25,6 +26,7 @@ import '../../../../core/config/db_config.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -44,7 +46,8 @@ class ChatPage extends ConsumerStatefulWidget {
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMixin {
+class _ChatPageState extends ConsumerState<ChatPage>
+    with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late AnimationController _animationController;
@@ -90,53 +93,73 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
-    
-  // Start fallback refresh and init layers
-  _currentConversationId = widget.conversationId;
-  // No polling refresh (pure WS)
-  _initPresenceLayer();
-  _initChatWsListener();
+
+    // Start fallback refresh and init layers
+    _currentConversationId = widget.conversationId;
+    // No polling refresh (pure WS)
+    _initPresenceLayer();
+    _initChatWsListener();
   // Attempt initial read marking shortly after build
-  WidgetsBinding.instance.addPostFrameCallback((_) => _emitReadReceipts());
-  // Attach scroll listener for fine-grained visibility based read detection
-  _scrollController.addListener(_onScrollVisibilityCheck);
-  // Pre-derive conversation key (best-effort) for faster first encrypted message
-  if (widget.otherUserId != null) {
-    Future.microtask(() async {
-      try {
-        final e2ee = ref.read(e2eeServiceProvider);
-        await e2ee.ensureInitialized();
-        e2ee.ensureConversationKey(conversationId: widget.conversationId, otherUserId: widget.otherUserId!)
-          .then((ok) {
+  WidgetsBinding.instance
+    .addPostFrameCallback((_) { unawaited(_emitReadReceipts()); });
+    // Attach scroll listener for fine-grained visibility based read detection
+    _scrollController.addListener(_onScrollVisibilityCheck);
+    // Pre-derive conversation key (best-effort) for faster first encrypted message
+    if (widget.otherUserId != null) {
+      Future.microtask(() async {
+        try {
+          final e2ee = ref.read(e2eeServiceProvider);
+          await e2ee.ensureInitialized();
+          e2ee
+              .ensureConversationKey(
+                  conversationId: widget.conversationId,
+                  otherUserId: widget.otherUserId!)
+              .then((ok) {
             if (mounted) {
-              setState(() { _encryptionReady = ok; });
+              setState(() {
+                _encryptionReady = ok;
+              });
               if (!ok) _scheduleEncryptionRetry();
               if (ok) {
                 try {
-                  ref.read(conversationMessagesProvider(widget.conversationId).notifier)
-                    .decryptHistory(ref: ref, otherUserId: widget.otherUserId!);
+                  ref
+                      .read(conversationMessagesProvider(widget.conversationId)
+                          .notifier)
+                      .decryptHistory(
+                          ref: ref, otherUserId: widget.otherUserId!);
                 } catch (_) {}
               }
             }
           });
-        _messagesDecryptSub = ref.listenManual<AsyncValue<List<ChatMessage>>>(
-          conversationMessagesProvider(widget.conversationId),
-          (prev, next) {
-            if (!_encryptionReady) return;
-            next.whenData((msgs) {
-              final needs = msgs.any((m) => m.isEncrypted && (m.content.isEmpty || m.content == '[encrypted]'));
-              if (needs) {
-                try {
-                  ref.read(conversationMessagesProvider(widget.conversationId).notifier)
-                    .decryptHistory(ref: ref, otherUserId: widget.otherUserId ?? '');
-                } catch (_) {}
-              }
+          _messagesDecryptSub = ref.listenManual<AsyncValue<List<ChatMessage>>>(
+            conversationMessagesProvider(widget.conversationId),
+            (prev, next) {
+              if (!_encryptionReady) return;
+              next.whenData((msgs) {
+                final needs = msgs.any((m) =>
+                    m.isEncrypted &&
+                    (m.content.isEmpty || m.content == '[encrypted]'));
+                if (needs) {
+                  try {
+                    ref
+                        .read(
+                            conversationMessagesProvider(widget.conversationId)
+                                .notifier)
+                        .decryptHistory(
+                            ref: ref, otherUserId: widget.otherUserId ?? '');
+                  } catch (_) {}
+                }
+              });
+            },
+          );
+        } catch (_) {
+          if (mounted)
+            setState(() {
+              _encryptionReady = false;
             });
-          },
-        );
-      } catch (_) { if (mounted) setState(() { _encryptionReady = false; }); }
-    });
-  }
+        }
+      });
+    }
   }
 
   @override
@@ -144,16 +167,16 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     _messageController.dispose();
     _scrollController.dispose();
     _animationController.dispose();
-  // no polling timer to cancel
-  _presenceTimer?.cancel();
+    // no polling timer to cancel
+    _presenceTimer?.cancel();
     _visibilityDebounce?.cancel();
-  _presenceCacheRemove?.close();
-  _authConnSub?.close();
-  _wsConnectRetry?.cancel();
-  _encryptionRetryTimer?.cancel();
-  _chatStreamSub?.cancel();
-  _conversationStreamSub?.cancel();
-  _messagesDecryptSub?.close();
+    _presenceCacheRemove?.close();
+    _authConnSub?.close();
+    _wsConnectRetry?.cancel();
+    _encryptionRetryTimer?.cancel();
+    _chatStreamSub?.cancel();
+    _conversationStreamSub?.cancel();
+    _messagesDecryptSub?.close();
     super.dispose();
   }
 
@@ -166,24 +189,29 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (userId != null && userId.isNotEmpty) {
       void tryConnect() {
         final token = ref.read(authProvider).sessionToken;
-        print('[ChatPage][tryConnect] attempt=$_wsConnectAttempts token=${token != null}');
+        print(
+            '[ChatPage][tryConnect] attempt=$_wsConnectAttempts token=${token != null}');
         if (token != null) {
-          ref.read(presenceWsServiceProvider).connect(userId: userId, token: token);
+          ref
+              .read(presenceWsServiceProvider)
+              .connect(userId: userId, token: token);
           _authConnSub?.close();
           _authConnSub = null;
           _wsConnectRetry?.cancel();
           // After short delay, dump debug status
-          Future.delayed(const Duration(seconds:1), () {
+          Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
               ref.read(presenceWsServiceProvider).debugStatus();
             }
           });
         }
       }
+
       // Attempt now (post frame) and if token not yet ready, listen for it
       WidgetsBinding.instance.addPostFrameCallback((_) {
         tryConnect();
-        if (_authConnSub == null && ref.read(authProvider).sessionToken == null) {
+        if (_authConnSub == null &&
+            ref.read(authProvider).sessionToken == null) {
           _authConnSub = ref.listenManual(authProvider, (prev, next) {
             if (mounted) tryConnect();
           });
@@ -192,16 +220,21 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       // Also start a periodic retry (in case listenManual misses initial change)
       _wsConnectRetry = Timer.periodic(const Duration(seconds: 2), (t) {
         _wsConnectAttempts++;
-        if (_wsConnectAttempts > 10) { t.cancel(); return; }
+        if (_wsConnectAttempts > 10) {
+          t.cancel();
+          return;
+        }
         // Just attempt; PresenceWsService internally ignores duplicate connects
         tryConnect();
       });
       // Fallback REST heartbeat every 45s (server also gets WS pings)
-      _presenceTimer = Timer.periodic(const Duration(seconds: 45), (_) => _sendHeartbeat());
+      _presenceTimer =
+          Timer.periodic(const Duration(seconds: 45), (_) => _sendHeartbeat());
       _sendHeartbeat();
     }
     // Listen to presence cache for other user updates (manual listen allowed outside build)
-    _presenceCacheRemove = ref.listenManual<Map<String, PresenceInfo>>(presenceCacheProvider, (prev, next) {
+    _presenceCacheRemove = ref.listenManual<Map<String, PresenceInfo>>(
+        presenceCacheProvider, (prev, next) {
       final oid = widget.otherUserId;
       if (oid != null && next.containsKey(oid)) {
         final info = next[oid]!;
@@ -227,20 +260,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       try {
         final type = data['type'];
         final convId = _currentConversationId ?? widget.conversationId;
-        final notifier = ref.read(conversationMessagesProvider(convId).notifier);
-        if (type == 'message') {
-          notifier.applyWsMessage(data, isAck: false);
-          // If an encrypted message arrives, we know key is established
-          if (!_encryptionReady && (data['e2ee'] != null || data['isEncrypted'] == true)) {
-            setState(() { _encryptionReady = true; });
-          }
-        } else if (type == 'ack') {
-          notifier.applyWsMessage(data, isAck: true);
-        } else if (type == 'delivered' || type == 'read') {
-          notifier.applyDeliveryOrRead(data);
-        } else if (type == 'typing') {
-          if (data['conversationId'] == convId && data['userId'] != ref.read(currentUserProvider)?.id) {
-            setState(() { _otherTyping = data['isTyping'] == true; });
+        if (type == 'typing') {
+          if (data['conversationId'] == convId &&
+              data['userId'] != ref.read(currentUserProvider)?.id) {
+            setState(() {
+              _otherTyping = data['isTyping'] == true;
+            });
           }
         }
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
@@ -251,8 +276,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       if (data['type'] == 'createAck') {
         final conv = data['conversation'];
         final newId = conv?['_id']?.toString();
-        if (newId != null && newId.isNotEmpty && newId != _currentConversationId) {
-          setState(() { _currentConversationId = newId; });
+        if (newId != null &&
+            newId.isNotEmpty &&
+            newId != _currentConversationId) {
+          setState(() {
+            _currentConversationId = newId;
+          });
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             Navigator.of(context).pushReplacement(
@@ -277,16 +306,17 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (userId == null || userId.isEmpty) return;
     try {
       // Assuming same base API used elsewhere
-  final baseUrl = DbConfig.apiUrl;
-  await http.post(Uri.parse('$baseUrl/users/$userId/heartbeat'));
+      final baseUrl = DbConfig.apiUrl;
+      await http.post(Uri.parse('$baseUrl/users/$userId/heartbeat'));
     } catch (_) {}
   }
 
   Future<void> _fetchOtherStatus() async {
     if (widget.otherUserId == null || widget.otherUserId!.isEmpty) return;
     try {
-  final baseUrl = DbConfig.apiUrl;
-  final resp = await http.get(Uri.parse('$baseUrl/users/online-status?ids=${widget.otherUserId}'));
+      final baseUrl = DbConfig.apiUrl;
+      final resp = await http.get(
+          Uri.parse('$baseUrl/users/online-status?ids=${widget.otherUserId}'));
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body);
         final map = data['statuses'] as Map<String, dynamic>;
@@ -304,7 +334,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync = ref.watch(conversationMessagesProvider(widget.conversationId));
+    final messagesAsync =
+        ref.watch(conversationMessagesProvider(widget.conversationId));
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
 
@@ -333,10 +364,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         children: [
           Expanded(
             child: messagesAsync.when(
-              data: (messages) => _buildMessagesList(messages, currentUser?.id ?? ''),
+              data: (messages) =>
+                  _buildMessagesList(messages, currentUser?.id ?? ''),
               loading: () => Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                 ),
               ),
               error: (error, stack) => Center(
@@ -346,7 +379,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
-                      AppLocalizations.of(context)!.failedToLoadImage, // TODO: replace with dedicated failedToLoadMessages key
+                      AppLocalizations.of(context)!
+                          .failedToLoadImage, // TODO: replace with dedicated failedToLoadMessages key
                       style: AppTypography.subhead.copyWith(
                         color: colors.error,
                         inherit: true,
@@ -354,7 +388,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => ref.invalidate(conversationMessagesProvider(widget.conversationId)),
+                      onPressed: () => ref.invalidate(
+                          conversationMessagesProvider(widget.conversationId)),
                       child: Text(AppLocalizations.of(context)!.retry),
                     ),
                   ],
@@ -370,7 +405,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   PreferredSizeWidget _buildAppBar() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
@@ -419,7 +454,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         height: 8,
                         margin: const EdgeInsets.only(right: 4),
                         decoration: BoxDecoration(
-                          color: _otherOnline ? Colors.green : colors.textTertiary,
+                          color:
+                              _otherOnline ? Colors.green : colors.textTertiary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -482,7 +518,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
             itemBuilder: (context, index) {
               final message = messages[index];
               final isMe = message.senderId == currentUserId;
-              final showDate = index == 0 || 
+              final showDate = index == 0 ||
                   !_isSameDay(message.timestamp, messages[index - 1].timestamp);
               // Ensure a GlobalKey for visibility tracking
               _messageKeys.putIfAbsent(message.id, () => GlobalKey());
@@ -572,11 +608,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   Widget _buildMessageBubble(ChatMessage message, bool isMe) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isMe) ...[
             UserAvatar(
@@ -603,10 +640,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     : null,
                 color: isMe ? null : colors.surfaceCards,
                 borderRadius: BorderRadius.circular(18),
-                border: isMe ? null : Border.all(
-                  color: colors.borderLight,
-                  width: 1,
-                ),
+                border: isMe
+                    ? null
+                    : Border.all(
+                        color: colors.borderLight,
+                        width: 1,
+                      ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -615,20 +654,27 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (message.isEncrypted) ...[
-                        Icon(Icons.lock, size: 14, color: isMe ? Colors.white70 : colors.textSecondary),
+                        Icon(Icons.lock,
+                            size: 14,
+                            color:
+                                isMe ? Colors.white70 : colors.textSecondary),
                         const SizedBox(width: 4),
-                      ] else if (_encryptionReady && message.messageType == 'text') ...[
-                        Icon(Icons.warning_amber_outlined, size: 14, color: isMe ? Colors.white70 : Colors.orangeAccent),
+                      ] else if (_encryptionReady &&
+                          message.messageType == 'text') ...[
+                        Icon(Icons.warning_amber_outlined,
+                            size: 14,
+                            color: isMe ? Colors.white70 : Colors.orangeAccent),
                         const SizedBox(width: 4),
                       ],
-                      Expanded(child: _buildMessageContent(message, isMe, colors)),
+                      Expanded(
+                          child: _buildMessageContent(message, isMe, colors)),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime(message.timestamp),
                     style: AppTypography.caption.copyWith(
-                      color: isMe 
+                      color: isMe
                           ? Colors.white.withValues(alpha: 0.7)
                           : colors.textTertiary,
                       inherit: true,
@@ -637,11 +683,17 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   if (isMe) ...[
                     const SizedBox(width: 4),
                     Icon(
-                      message.readAt != null ? Icons.done_all : (message.deliveredAt != null ? Icons.check : Icons.access_time),
+                      message.readAt != null
+                          ? Icons.done_all
+                          : (message.deliveredAt != null
+                              ? Icons.check
+                              : Icons.access_time),
                       size: 14,
                       color: message.readAt != null
                           ? Colors.lightBlueAccent
-                          : (message.deliveredAt != null ? Colors.white70 : Colors.white38),
+                          : (message.deliveredAt != null
+                              ? Colors.white70
+                              : Colors.white38),
                     )
                   ]
                 ],
@@ -656,6 +708,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       ),
     );
   }
+
   Widget _buildMessageContent(ChatMessage message, bool isMe, dynamic colors) {
     // Basic handling for image/file types (no preview yet)
     if (message.messageType == 'image') {
@@ -664,26 +717,35 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         onTap: () async {
           if (message.metadata?['fileId'] != null) {
             final other = isMe ? (message.receiverId) : message.senderId;
-            final bytes = await ref.read(chat_providers.chatServiceProvider).downloadAndDecryptAttachment(
-              message: message,
-              currentUserId: ref.read(currentUserProvider)?.id ?? '',
-              otherUserId: other,
-              ref: ref,
-            );
+            final bytes = await ref
+                .read(chat_providers.chatServiceProvider)
+                .downloadAndDecryptAttachment(
+                  message: message,
+                  currentUserId: ref.read(currentUserProvider)?.id ?? '',
+                  otherUserId: other,
+                  ref: ref,
+                );
             if (bytes != null && mounted) {
-              showDialog(context: context, builder: (_) => Dialog(
-                child: Image.memory(Uint8List.fromList(bytes), fit: BoxFit.contain),
-              ));
+              showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                        child: Image.memory(Uint8List.fromList(bytes),
+                            fit: BoxFit.contain),
+                      ));
             }
           }
         },
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.image, size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
+            Icon(Icons.image,
+                size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(name, style: AppTypography.body.copyWith(color: isMe ? Colors.white : colors.textPrimary, inherit: true)),
+              child: Text(name,
+                  style: AppTypography.body.copyWith(
+                      color: isMe ? Colors.white : colors.textPrimary,
+                      inherit: true)),
             ),
           ],
         ),
@@ -695,12 +757,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         onTap: () async {
           if (message.metadata?['fileId'] != null) {
             final other = isMe ? (message.receiverId) : message.senderId;
-            final bytes = await ref.read(chat_providers.chatServiceProvider).downloadAndDecryptAttachment(
-              message: message,
-              currentUserId: ref.read(currentUserProvider)?.id ?? '',
-              otherUserId: other,
-              ref: ref,
-            );
+            final bytes = await ref
+                .read(chat_providers.chatServiceProvider)
+                .downloadAndDecryptAttachment(
+                  message: message,
+                  currentUserId: ref.read(currentUserProvider)?.id ?? '',
+                  otherUserId: other,
+                  ref: ref,
+                );
             if (bytes != null && mounted) {
               try {
                 final dir = await getTemporaryDirectory();
@@ -710,15 +774,21 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 await OpenFilex.open(f.path);
               } catch (e) {
                 final l10n = AppLocalizations.of(context)!;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.openFileFailed}: $e')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${l10n.openFileFailed}: $e')));
               }
             }
           }
         },
         child: Row(children: [
-          Icon(Icons.insert_drive_file, size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
+          Icon(Icons.insert_drive_file,
+              size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
           const SizedBox(width: 6),
-          Expanded(child: Text(name, style: AppTypography.body.copyWith(color: isMe ? Colors.white : colors.textPrimary, inherit: true))),
+          Expanded(
+              child: Text(name,
+                  style: AppTypography.body.copyWith(
+                      color: isMe ? Colors.white : colors.textPrimary,
+                      inherit: true))),
         ]),
       );
     }
@@ -730,9 +800,10 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       ),
     );
   }
+
   Widget _buildMessageInput(String currentUserId) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       decoration: BoxDecoration(
@@ -773,7 +844,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 ),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     decoration: BoxDecoration(
                       color: colors.surfaceCards,
                       borderRadius: BorderRadius.circular(24),
@@ -795,7 +867,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                           inherit: true,
                         ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.md),
                       ),
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
@@ -804,11 +877,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                           _isTyping = text.isNotEmpty;
                           final convId = _currentConversationId;
                           if (convId != null && convId != 'new') {
-                            ref.read(presenceWsServiceProvider).sendTyping(conversationId: convId, isTyping: true);
+                            ref.read(presenceWsServiceProvider).sendTyping(
+                                conversationId: convId, isTyping: true);
                             // Schedule stop typing after debounce
                             Future.delayed(const Duration(seconds: 2), () {
                               if (mounted && _isTyping == false) {
-                                ref.read(presenceWsServiceProvider).sendTyping(conversationId: convId, isTyping: false);
+                                ref.read(presenceWsServiceProvider).sendTyping(
+                                    conversationId: convId, isTyping: false);
                               }
                             });
                           }
@@ -821,8 +896,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                 GestureDetector(
                   onTap: () {
                     if (_sendingAttachment) return; // busy
-                    if (!_encryptionReady && widget.otherUserId != null && (_currentConversationId ?? widget.conversationId) != 'new') {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.encryptionKeyNotReady)));
+                    if (!_encryptionReady &&
+                        widget.otherUserId != null &&
+                        (_currentConversationId ?? widget.conversationId) !=
+                            'new') {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(AppLocalizations.of(context)!
+                              .encryptionKeyNotReady)));
                       return;
                     }
                     if (_pendingImage != null || _pendingFile != null) {
@@ -838,8 +918,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          _sendingAttachment ? colors.textTertiary : colors.primaryAccent,
-                          (_sendingAttachment ? colors.textTertiary : colors.primaryAccent).withValues(alpha: 0.8),
+                          _sendingAttachment
+                              ? colors.textTertiary
+                              : colors.primaryAccent,
+                          (_sendingAttachment
+                                  ? colors.textTertiary
+                                  : colors.primaryAccent)
+                              .withValues(alpha: 0.8),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(24),
@@ -855,15 +940,25 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                         ? const SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white)),
                           )
-                        : (!_encryptionReady && widget.otherUserId != null && (_currentConversationId ?? widget.conversationId) != 'new')
-                            ? const Icon(Icons.lock_clock, color: Colors.white, size: 20)
-                        : Icon(
-                            _pendingImage != null || _pendingFile != null ? Icons.cloud_upload : Icons.send,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                        : (!_encryptionReady &&
+                                widget.otherUserId != null &&
+                                (_currentConversationId ??
+                                        widget.conversationId) !=
+                                    'new')
+                            ? const Icon(Icons.lock_clock,
+                                color: Colors.white, size: 20)
+                            : Icon(
+                                _pendingImage != null || _pendingFile != null
+                                    ? Icons.cloud_upload
+                                    : Icons.send,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                   ),
                 ),
               ],
@@ -877,6 +972,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       ),
     );
   }
+
   void _sendMessage(String senderId) async {
     if (_messageController.text.trim().isEmpty) return;
 
@@ -897,43 +993,35 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       // Get the real current user ID from auth provider
       final currentUser = ref.read(currentUserProvider);
       final realSenderId = currentUser?.id ?? 'unknown-user';
-      
-      print('Sending message with senderId: $realSenderId, otherUserId: ${widget.otherUserId}');
+
+      print(
+          'Sending message with senderId: $realSenderId, otherUserId: ${widget.otherUserId}');
 
       final convId = _currentConversationId ?? widget.conversationId;
       if (convId == 'new') {
+        // Keep using WS conversation creation for now
         ref.read(presenceWsServiceProvider).createConversation(
-          otherUserId: widget.otherUserId ?? '',
-          initialMessage: content,
-        );
+              otherUserId: widget.otherUserId ?? '',
+              initialMessage: content,
+            );
       } else {
-        final ws = ref.read(presenceWsServiceProvider);
-        final optimistic = ChatMessage(
-          id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
-          senderId: realSenderId,
-          receiverId: widget.otherUserId ?? '',
-          content: content,
-          timestamp: DateTime.now(),
-        );
-        if (optimistic.receiverId.isNotEmpty && optimistic.receiverId == optimistic.senderId) {
-          debugPrint('[ChatPage][warn] Creating optimistic message where receiver==sender (${optimistic.senderId})');
-        }
-        ref.read(conversationMessagesProvider(convId).notifier).addOptimisticMessage(optimistic);
-        ws.sendChatMessage(conversationId: convId, content: content, receiverId: widget.otherUserId, ref: ref)
-          .then((encUsed) {
-            if (encUsed && mounted && !_encryptionReady) {
-              setState(() { _encryptionReady = true; });
-            }
-          });
+        // Use Matrix-only send via provider
+        await ref.read(messageSenderProvider.notifier).sendMessage(
+              conversationId: convId,
+              senderId: realSenderId,
+              receiverId: widget.otherUserId ?? '',
+              content: content,
+            );
       }
-      
-  _scrollToBottom();
+
+      _scrollToBottom();
     } catch (error) {
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.failedToSendMessage}: $error'),
+            content: Text(
+                '${AppLocalizations.of(context)!.failedToSendMessage}: $error'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -961,9 +1049,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       if (!mounted) return;
       try {
         final e2ee = ref.read(e2eeServiceProvider);
-        final ok = await e2ee.ensureConversationKey(conversationId: _currentConversationId ?? widget.conversationId, otherUserId: widget.otherUserId!);
+        final ok = await e2ee.ensureConversationKey(
+            conversationId: _currentConversationId ?? widget.conversationId,
+            otherUserId: widget.otherUserId!);
         if (mounted) {
-          setState(() { _encryptionReady = ok; });
+          setState(() {
+            _encryptionReady = ok;
+          });
           if (!ok) _scheduleEncryptionRetry();
         }
       } catch (_) {
@@ -972,7 +1064,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     });
   }
 
-  void _emitReadReceipts() {
+  Future<void> _emitReadReceipts() async {
     final convId = _currentConversationId ?? widget.conversationId;
     if (convId == 'new') return;
     final currentUserId = ref.read(currentUserProvider)?.id;
@@ -982,34 +1074,56 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     if (messages.isEmpty) return;
     // Determine visible: if scrolled near bottom treat all as viewed.
     if (_scrollController.hasClients) {
-      final offsetFromBottom = _scrollController.position.maxScrollExtent - _scrollController.offset;
+      final offsetFromBottom =
+          _scrollController.position.maxScrollExtent - _scrollController.offset;
       // Mark as read only if within 150px of bottom
       if (offsetFromBottom > 150) {
         return; // still far from bottom
       }
     }
-  final unreadIds = messages
-    .where((m) => m.senderId != currentUserId && !m.isRead)
-    .map((m) => m.id as String)
-    .toList(growable: false);
-  if (unreadIds.isNotEmpty) {
-    ref.read(presenceWsServiceProvider).markAllRead(conversationId: convId, messageIds: List<String>.from(unreadIds));
-    // Optimistically update local state so ticks appear immediately
-  ref.read(conversationMessagesProvider(convId).notifier).bulkMarkRead(unreadIds);
+    final unreadIds = messages
+        .where((m) => m.senderId != currentUserId && !m.isRead)
+        .map((m) => m.id as String)
+        .toList(growable: false);
+    if (unreadIds.isNotEmpty) {
+      // Send Matrix read receipts via FRB
+      final me = ref.read(currentUserProvider);
+      final other = widget.otherUserId ?? '';
+      final roomId = await ref
+              .read(chat_providers.chatServiceProvider)
+              .getMatrixRoomIdForConversation(
+                  conversationId: convId,
+                  currentUserId: me?.id ?? '',
+                  otherUserId: other) ??
+          convId;
+      for (final id in unreadIds) {
+        try {
+          await MatrixChatService.instance
+              .markRead(roomId: roomId, eventId: id);
+        } catch (_) {}
+      }
+      // Optimistically update local state so ticks appear immediately
+      ref
+          .read(conversationMessagesProvider(convId).notifier)
+          .bulkMarkRead(unreadIds);
     }
   }
 
   void _onScrollVisibilityCheck() {
     if (_visibilityDebounce?.isActive ?? false) return;
-    _visibilityDebounce = Timer(const Duration(milliseconds: 120), _computeVisibleMessagesAndMarkRead);
+    _visibilityDebounce = Timer(const Duration(milliseconds: 120), () {
+      unawaited(_computeVisibleMessagesAndMarkRead());
+    });
   }
 
-  void _computeVisibleMessagesAndMarkRead() {
+  Future<void> _computeVisibleMessagesAndMarkRead() async {
     final convId = _currentConversationId ?? widget.conversationId;
     if (convId == 'new') return;
     final currentUserId = ref.read(currentUserProvider)?.id;
     if (currentUserId == null) return;
-    final messages = ref.read(conversationMessagesProvider(convId)).maybeWhen(data: (m)=>m, orElse: ()=>[]);
+    final messages = ref
+        .read(conversationMessagesProvider(convId))
+        .maybeWhen(data: (m) => m, orElse: () => []);
     if (messages.isEmpty) return;
     final unreadToMark = <String>[];
     for (final msg in messages) {
@@ -1037,7 +1151,21 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       }
     }
     if (unreadToMark.isNotEmpty) {
-      ref.read(presenceWsServiceProvider).markAllRead(conversationId: convId, messageIds: unreadToMark);
+      final me = ref.read(currentUserProvider);
+      final other = widget.otherUserId ?? '';
+      final roomId = await ref
+              .read(chat_providers.chatServiceProvider)
+              .getMatrixRoomIdForConversation(
+                  conversationId: convId,
+                  currentUserId: me?.id ?? '',
+                  otherUserId: other) ??
+          convId;
+      for (final id in unreadToMark) {
+        try {
+          await MatrixChatService.instance
+              .markRead(roomId: roomId, eventId: id);
+        } catch (_) {}
+      }
       _readSent.addAll(unreadToMark);
     }
   }
@@ -1067,7 +1195,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-        children: [                  Text(
+                children: [
+                  Text(
                     AppLocalizations.of(context)!.chatOptions,
                     style: AppTypography.heading2.copyWith(
                       color: AppColors.textPrimary,
@@ -1077,11 +1206,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   Builder(builder: (context) {
                     final me = ref.read(currentUserProvider);
                     final oid = widget.otherUserId;
-                    final isBlocked = me != null && oid != null && me.blockedUsers.contains(oid);
-          if (isBlocked) {
+                    final isBlocked = me != null &&
+                        oid != null &&
+                        me.blockedUsers.contains(oid);
+                    if (isBlocked) {
                       return ListTile(
-                        leading: Icon(Icons.lock_open, color: AppColors.primaryAccent),
-            title: Text(AppLocalizations.of(context)!.unblockUser),
+                        leading: Icon(Icons.lock_open,
+                            color: AppColors.primaryAccent),
+                        title: Text(AppLocalizations.of(context)!.unblockUser),
                         onTap: () {
                           Navigator.pop(context);
                           _unblockUser();
@@ -1099,7 +1231,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   }),
                   ListTile(
                     leading: Icon(Icons.report, color: AppColors.warning),
-                    title: Text(AppLocalizations.of(context)!.reportConversation),
+                    title:
+                        Text(AppLocalizations.of(context)!.reportConversation),
                     onTap: () {
                       Navigator.pop(context);
                       _reportConversation();
@@ -1107,7 +1240,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   ),
                   ListTile(
                     leading: Icon(Icons.delete, color: AppColors.error),
-                    title: Text(AppLocalizations.of(context)!.deleteConversation),
+                    title:
+                        Text(AppLocalizations.of(context)!.deleteConversation),
                     onTap: () {
                       Navigator.pop(context);
                       _deleteConversation();
@@ -1317,7 +1451,7 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       // For demonstration, we'll use tel: URL to initiate a call
       // In a real app, you'd get the contact's phone number
       const phoneNumber = 'tel:+1234567890'; // This would be dynamic
-      
+
       if (await canLaunchUrl(Uri.parse(phoneNumber))) {
         await launchUrl(Uri.parse(phoneNumber));
       } else {
@@ -1342,8 +1476,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-  title: Text(AppLocalizations.of(context)!.blockUser),
-  content: Text(AppLocalizations.of(context)!.blockConfirmBody),
+        title: Text(AppLocalizations.of(context)!.blockUser),
+        content: Text(AppLocalizations.of(context)!.blockConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1356,9 +1490,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               Navigator.of(context).pop();
               if (me?.id == null || other == null) return;
               try {
-                await ref.read(chat_providers.chatServiceProvider).blockUser(userId: me!.id, targetUserId: other);
+                await ref
+                    .read(chat_providers.chatServiceProvider)
+                    .blockUser(userId: me!.id, targetUserId: other);
                 // Optimistically update currentUser provider
-                final updated = me.copyWith(blockedUsers: {...me.blockedUsers, other}.toList());
+                final updated = me.copyWith(
+                    blockedUsers: {...me.blockedUsers, other}.toList());
                 ref.read(currentUserProvider.notifier).setUserModel(updated);
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1370,7 +1507,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to block user: $e'), backgroundColor: AppColors.error),
+                  SnackBar(
+                      content: Text('Failed to block user: $e'),
+                      backgroundColor: AppColors.error),
                 );
               }
             },
@@ -1385,8 +1524,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-  title: Text(AppLocalizations.of(context)!.unblockUser),
-  content: Text(AppLocalizations.of(context)!.unblockConfirmBody),
+        title: Text(AppLocalizations.of(context)!.unblockUser),
+        content: Text(AppLocalizations.of(context)!.unblockConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1399,9 +1538,12 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               Navigator.of(context).pop();
               if (me?.id == null || other == null) return;
               try {
-                await ref.read(chat_providers.chatServiceProvider).unblockUser(userId: me!.id, targetUserId: other);
+                await ref
+                    .read(chat_providers.chatServiceProvider)
+                    .unblockUser(userId: me!.id, targetUserId: other);
                 // Optimistically update currentUser provider
-                final updatedList = List<String>.from(me.blockedUsers)..remove(other);
+                final updatedList = List<String>.from(me.blockedUsers)
+                  ..remove(other);
                 final updated = me.copyWith(blockedUsers: updatedList);
                 ref.read(currentUserProvider.notifier).setUserModel(updated);
                 if (!mounted) return;
@@ -1414,7 +1556,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to unblock user: $e'), backgroundColor: AppColors.error),
+                  SnackBar(
+                      content: Text('Failed to unblock user: $e'),
+                      backgroundColor: AppColors.error),
                 );
               }
             },
@@ -1429,8 +1573,8 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-  title: Text(AppLocalizations.of(context)!.reportConversation),
-  content: Text(AppLocalizations.of(context)!.reportConfirmBody),
+        title: Text(AppLocalizations.of(context)!.reportConversation),
+        content: Text(AppLocalizations.of(context)!.reportConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1441,11 +1585,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               final me = ref.read(currentUserProvider);
               Navigator.of(context).pop();
               try {
-                await ref.read(chat_providers.chatServiceProvider).reportConversation(
-                  conversationId: _currentConversationId ?? widget.conversationId,
-                  reporterId: me?.id ?? '',
-                  reason: 'user_report',
-                );
+                await ref
+                    .read(chat_providers.chatServiceProvider)
+                    .reportConversation(
+                      conversationId:
+                          _currentConversationId ?? widget.conversationId,
+                      reporterId: me?.id ?? '',
+                      reason: 'user_report',
+                    );
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -1456,7 +1603,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to report: $e'), backgroundColor: AppColors.error),
+                  SnackBar(
+                      content: Text('Failed to report: $e'),
+                      backgroundColor: AppColors.error),
                 );
               }
             },
@@ -1471,8 +1620,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-  title: Text(AppLocalizations.of(context)!.deleteConversation),
-  content: Text(AppLocalizations.of(context)!.deleteConversationConfirmBody),
+        title: Text(AppLocalizations.of(context)!.deleteConversation),
+        content:
+            Text(AppLocalizations.of(context)!.deleteConversationConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1483,7 +1633,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               Navigator.of(context).pop();
               final convId = _currentConversationId ?? widget.conversationId;
               try {
-                await ref.read(chat_providers.chatServiceProvider).deleteConversation(convId);
+                await ref
+                    .read(chat_providers.chatServiceProvider)
+                    .deleteConversation(convId);
                 if (!mounted) return;
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1495,7 +1647,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to delete: $e'), backgroundColor: AppColors.error),
+                  SnackBar(
+                      content: Text('Failed to delete: $e'),
+                      backgroundColor: AppColors.error),
                 );
               }
             },
@@ -1508,8 +1662,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   void _pickImageFromGallery() async {
     try {
-      final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      
+      final XFile? image =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+
       if (image != null) {
         setState(() {
           _pendingImage = image;
@@ -1528,8 +1683,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
 
   void _pickImageFromCamera() async {
     try {
-      final XFile? image = await ImagePicker().pickImage(source: ImageSource.camera);
-      
+      final XFile? image =
+          await ImagePicker().pickImage(source: ImageSource.camera);
+
       if (image != null) {
         setState(() {
           _pendingImage = image;
@@ -1575,7 +1731,9 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     final colors = ref.watch(dynamicColorsProvider);
     final isImage = _pendingImage != null;
     final fileName = isImage
-        ? (_pendingImage!.name.isNotEmpty ? _pendingImage!.name : _pendingImage!.path.split(Platform.pathSeparator).last)
+        ? (_pendingImage!.name.isNotEmpty
+            ? _pendingImage!.name
+            : _pendingImage!.path.split(Platform.pathSeparator).last)
         : (_pendingFile?.name ?? '');
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1623,12 +1781,18 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
                   fileName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.body.copyWith(color: colors.textPrimary, fontWeight: FontWeight.w600, inherit: true),
+                  style: AppTypography.body.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      inherit: true),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  isImage ? AppLocalizations.of(context)!.imageReadyToSend : AppLocalizations.of(context)!.fileReadyToSend,
-                  style: AppTypography.caption.copyWith(color: colors.textSecondary, inherit: true),
+                  isImage
+                      ? AppLocalizations.of(context)!.imageReadyToSend
+                      : AppLocalizations.of(context)!.fileReadyToSend,
+                  style: AppTypography.caption
+                      .copyWith(color: colors.textSecondary, inherit: true),
                 ),
               ],
             ),
@@ -1639,10 +1803,13 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
           ),
           IconButton(
             icon: Icon(Icons.cloud_upload, color: colors.primaryAccent),
-            onPressed: _sendingAttachment ? null : () {
-              final currentUser = ref.read(currentUserProvider);
-              if (currentUser != null) _sendPendingAttachment(currentUser.id);
-            },
+            onPressed: _sendingAttachment
+                ? null
+                : () {
+                    final currentUser = ref.read(currentUserProvider);
+                    if (currentUser != null)
+                      _sendPendingAttachment(currentUser.id);
+                  },
           ),
         ],
       ),
@@ -1661,11 +1828,14 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
     final convId = _currentConversationId ?? widget.conversationId;
     if (convId == 'new') {
       ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(content: Text(AppLocalizations.of(context)!.pleaseSendTextFirst)),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)!.pleaseSendTextFirst)),
       );
       return;
     }
-    setState(() { _sendingAttachment = true; });
+    setState(() {
+      _sendingAttachment = true;
+    });
     try {
       final chatService = ref.read(chat_providers.chatServiceProvider);
       ChatMessage? stored;
@@ -1674,11 +1844,18 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
         stored = await chatService.sendImage(
           conversationId: convId,
           senderId: currentUserId,
-          fileName: _pendingImage!.name.isNotEmpty ? _pendingImage!.name : _pendingImage!.path.split(Platform.pathSeparator).last,
+          fileName: _pendingImage!.name.isNotEmpty
+              ? _pendingImage!.name
+              : _pendingImage!.path.split(Platform.pathSeparator).last,
           imagePath: _pendingImage!.path,
           otherUserId: widget.otherUserId,
           ref: ref,
-          onProgress: (p) { if (mounted) setState(() { _uploadProgress = p; }); },
+          onProgress: (p) {
+            if (mounted)
+              setState(() {
+                _uploadProgress = p;
+              });
+          },
         );
       } else if (_pendingFile != null) {
         final f = _pendingFile!;
@@ -1691,11 +1868,18 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
           fileSize: f.size.toString(),
           otherUserId: widget.otherUserId,
           ref: ref,
-          onProgress: (p) { if (mounted) setState(() { _uploadProgress = p; }); },
+          onProgress: (p) {
+            if (mounted)
+              setState(() {
+                _uploadProgress = p;
+              });
+          },
         );
       }
       if (stored != null) {
-        ref.read(conversationMessagesProvider(convId).notifier).addOrReplace(stored);
+        ref
+            .read(conversationMessagesProvider(convId).notifier)
+            .addOrReplace(stored);
       } else {
         ref.invalidate(conversationMessagesProvider(convId));
       }
@@ -1707,25 +1891,29 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
       _scrollToBottom();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Attachment failed: $e'), backgroundColor: AppColors.error),
+        SnackBar(
+            content: Text('Attachment failed: $e'),
+            backgroundColor: AppColors.error),
       );
     } finally {
       if (mounted) {
-  setState(() { _sendingAttachment = false; });
+        setState(() {
+          _sendingAttachment = false;
+        });
       }
     }
   }
 
   bool _isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
-           date1.month == date2.month &&
-           date1.day == date2.day;
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
-    
+
     if (_isSameDay(date, now)) {
       return 'Today';
     } else if (_isSameDay(date, yesterday)) {
@@ -1738,24 +1926,137 @@ class _ChatPageState extends ConsumerState<ChatPage> with TickerProviderStateMix
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
+
   // Common emojis for quick access
   static const List<String> _commonEmojis = [
-    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-    '🙂', '🙃', '😉', '😊', '😇', '😍', '🤩', '😘',
-    '😗', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨',
-    '🧐', '🤓', '😎', '🤩', '😏', '😒', '😞', '😔',
-    '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺',
-    '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳',
-    '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
-    '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬',
-    '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴',
-    '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧',
-    '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹',
-    '💀', '☠️', '👻', '👽', '👾', '🤖', '🎃', '😺',
-    '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾',
-    '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤',
-    '🤍', '💔', '❣️', '💕', '💞', '💓', '💗', '💖',
-    '💘', '💝', '💟', '👍', '👎', '👌', '🤏', '✌️',
+    '😀',
+    '😃',
+    '😄',
+    '😁',
+    '😆',
+    '😅',
+    '🤣',
+    '😂',
+    '🙂',
+    '🙃',
+    '😉',
+    '😊',
+    '😇',
+    '😍',
+    '🤩',
+    '😘',
+    '😗',
+    '😚',
+    '😋',
+    '😛',
+    '😝',
+    '😜',
+    '🤪',
+    '🤨',
+    '🧐',
+    '🤓',
+    '😎',
+    '🤩',
+    '😏',
+    '😒',
+    '😞',
+    '😔',
+    '😟',
+    '😕',
+    '🙁',
+    '😣',
+    '😖',
+    '😫',
+    '😩',
+    '🥺',
+    '😢',
+    '😭',
+    '😤',
+    '😠',
+    '😡',
+    '🤬',
+    '🤯',
+    '😳',
+    '🥵',
+    '🥶',
+    '😱',
+    '😨',
+    '😰',
+    '😥',
+    '😓',
+    '🤗',
+    '🤔',
+    '🤭',
+    '🤫',
+    '🤥',
+    '😶',
+    '😐',
+    '😑',
+    '😬',
+    '🙄',
+    '😯',
+    '😦',
+    '😧',
+    '😮',
+    '😲',
+    '🥱',
+    '😴',
+    '🤤',
+    '😪',
+    '😵',
+    '🤐',
+    '🥴',
+    '🤢',
+    '🤮',
+    '🤧',
+    '😷',
+    '🤒',
+    '🤕',
+    '🤑',
+    '🤠',
+    '😈',
+    '👿',
+    '👹',
+    '💀',
+    '☠️',
+    '👻',
+    '👽',
+    '👾',
+    '🤖',
+    '🎃',
+    '😺',
+    '😸',
+    '😹',
+    '😻',
+    '😼',
+    '😽',
+    '🙀',
+    '😿',
+    '😾',
+    '❤️',
+    '🧡',
+    '💛',
+    '💚',
+    '💙',
+    '💜',
+    '🤎',
+    '🖤',
+    '🤍',
+    '💔',
+    '❣️',
+    '💕',
+    '💞',
+    '💓',
+    '💗',
+    '💖',
+    '💘',
+    '💝',
+    '💟',
+    '👍',
+    '👎',
+    '👌',
+    '🤏',
+    '✌️',
   ];
 }
 
@@ -1768,4 +2069,3 @@ class _MessageVisibilityWrapper extends StatelessWidget {
     return child;
   }
 }
-

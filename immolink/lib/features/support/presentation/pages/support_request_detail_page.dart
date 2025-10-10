@@ -5,7 +5,8 @@ import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../domain/models/support_request.dart';
 import '../../domain/services/support_request_service.dart';
 
-final _supportRequestDetailProvider = FutureProvider.family<SupportRequest, String>((ref, id) async {
+final _supportRequestDetailProvider =
+    FutureProvider.family<SupportRequest, String>((ref, id) async {
   final service = ref.read(supportRequestServiceProvider);
   return service.fetch(id);
 });
@@ -14,10 +15,12 @@ class SupportRequestDetailPage extends ConsumerStatefulWidget {
   final String requestId;
   const SupportRequestDetailPage({super.key, required this.requestId});
   @override
-  ConsumerState<SupportRequestDetailPage> createState() => _SupportRequestDetailPageState();
+  ConsumerState<SupportRequestDetailPage> createState() =>
+      _SupportRequestDetailPageState();
 }
 
-class _SupportRequestDetailPageState extends ConsumerState<SupportRequestDetailPage> {
+class _SupportRequestDetailPageState
+    extends ConsumerState<SupportRequestDetailPage> {
   final _noteCtrl = TextEditingController();
   bool _adding = false;
 
@@ -34,18 +37,24 @@ class _SupportRequestDetailPageState extends ConsumerState<SupportRequestDetailP
     final asyncReq = ref.watch(_supportRequestDetailProvider(widget.requestId));
     return Scaffold(
       appBar: AppBar(
-        title: Text(loc.supportRequests, style: TextStyle(color: colors.textPrimary)),
+        title: Text(loc.supportRequests,
+            style: TextStyle(color: colors.textPrimary)),
         backgroundColor: colors.primaryBackground,
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),
       backgroundColor: colors.primaryBackground,
       body: asyncReq.when(
         data: (r) => RefreshIndicator(
-          onRefresh: () async => ref.refresh(_supportRequestDetailProvider(widget.requestId).future),
+          onRefresh: () async => ref
+              .refresh(_supportRequestDetailProvider(widget.requestId).future),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(r.subject, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary)),
+              Text(r.subject,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textPrimary)),
               const SizedBox(height: 8),
               _metaRow(loc, colors, 'ID', r.id),
               _metaRow(loc, colors, loc.category, r.category),
@@ -54,18 +63,25 @@ class _SupportRequestDetailPageState extends ConsumerState<SupportRequestDetailP
               const SizedBox(height: 12),
               Text(r.message, style: TextStyle(color: colors.textSecondary)),
               const SizedBox(height: 24),
-              Text(loc.notes, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+              Text(loc.notes,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary)),
               const SizedBox(height: 8),
               if (r.notes.isEmpty)
                 Text(loc.noData, style: TextStyle(color: colors.textSecondary))
               else
                 ...r.notes.map((n) => Card(
-                  color: colors.surfaceCards,
-                  child: ListTile(
-                    title: Text(n.body, style: TextStyle(color: colors.textPrimary)),
-                    subtitle: Text(_formatDate(n.createdAt), style: TextStyle(fontSize: 11, color: colors.textSecondary)),
-                  ),
-                )),
+                      color: colors.surfaceCards,
+                      child: ListTile(
+                        title: Text(n.body,
+                            style: TextStyle(color: colors.textPrimary)),
+                        subtitle: Text(_formatDate(n.createdAt),
+                            style: TextStyle(
+                                fontSize: 11, color: colors.textSecondary)),
+                      ),
+                    )),
               const SizedBox(height: 16),
               TextField(
                 controller: _noteCtrl,
@@ -75,7 +91,9 @@ class _SupportRequestDetailPageState extends ConsumerState<SupportRequestDetailP
                   hintText: loc.addNote,
                   filled: true,
                   fillColor: colors.surfaceCards,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.borderLight)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: colors.borderLight)),
                 ),
               ),
               const SizedBox(height: 8),
@@ -83,25 +101,39 @@ class _SupportRequestDetailPageState extends ConsumerState<SupportRequestDetailP
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: _adding ? null : () => _submitNote(context, loc),
-                  child: _adding ? const SizedBox(height:16,width:16,child:CircularProgressIndicator(strokeWidth:2)) : Text(loc.save),
+                  child: _adding
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text(loc.save),
                 ),
               ),
             ],
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('${loc.error}: $e', style: TextStyle(color: colors.error))),
+        error: (e, st) => Center(
+            child: Text('${loc.error}: $e',
+                style: TextStyle(color: colors.error))),
       ),
     );
   }
 
-  Widget _metaRow(AppLocalizations loc, DynamicAppColors colors, String label, String value) {
+  Widget _metaRow(AppLocalizations loc, DynamicAppColors colors, String label,
+      String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          SizedBox(width: 120, child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: colors.textPrimary))),
-          Expanded(child: Text(value, style: TextStyle(color: colors.textSecondary))),
+          SizedBox(
+              width: 120,
+              child: Text(label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600, color: colors.textPrimary))),
+          Expanded(
+              child:
+                  Text(value, style: TextStyle(color: colors.textSecondary))),
         ],
       ),
     );
@@ -112,16 +144,21 @@ class _SupportRequestDetailPageState extends ConsumerState<SupportRequestDetailP
     if (txt.isEmpty) return;
     setState(() => _adding = true);
     try {
-      await ref.read(supportRequestServiceProvider).addNote(widget.requestId, txt);
+      await ref
+          .read(supportRequestServiceProvider)
+          .addNote(widget.requestId, txt);
       _noteCtrl.clear();
       ref.invalidate(_supportRequestDetailProvider(widget.requestId));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.noteAddedSuccessfully)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(loc.noteAddedSuccessfully)));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.failedToAddNote}: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${loc.failedToAddNote}: $e')));
     } finally {
       if (mounted) setState(() => _adding = false);
     }
   }
 
-  String _formatDate(DateTime dt) => '${dt.year}-${dt.month.toString().padLeft(2,'0')}-${dt.day.toString().padLeft(2,'0')}';
+  String _formatDate(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 }

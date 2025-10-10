@@ -29,7 +29,8 @@ class SupportRequest {
         priority: json['priority'] ?? '',
         status: json['status'] ?? 'open',
         notes: (json['notes'] as List?)
-                ?.map((n) => SupportRequestNote.fromJson(n as Map<String, dynamic>))
+                ?.map((n) =>
+                    SupportRequestNote.fromJson(n as Map<String, dynamic>))
                 .toList() ??
             const [],
         createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
@@ -41,8 +42,10 @@ class SupportRequestNote {
   final String body;
   final String? author; // user id
   final DateTime createdAt;
-  SupportRequestNote({required this.body, required this.author, required this.createdAt});
-  factory SupportRequestNote.fromJson(Map<String, dynamic> json) => SupportRequestNote(
+  SupportRequestNote(
+      {required this.body, required this.author, required this.createdAt});
+  factory SupportRequestNote.fromJson(Map<String, dynamic> json) =>
+      SupportRequestNote(
         body: json['body'] ?? '',
         author: json['author']?.toString(),
         createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),

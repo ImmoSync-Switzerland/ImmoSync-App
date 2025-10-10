@@ -23,7 +23,7 @@ class PdfExporter {
     String netIncomeLabel = 'Net Income',
     String occupancyLabel = 'Occupancy',
     String? reportModeLabel,
-  String? logoAssetPath,
+    String? logoAssetPath,
     String? monthlyRevenueLabel,
     String? monthlyRevenueValue,
     String? collectedLabel,
@@ -51,8 +51,8 @@ class PdfExporter {
       totalExpensesLabel: totalExpensesLabel,
       netIncomeLabel: netIncomeLabel,
       occupancyLabel: occupancyLabel,
-  reportModeLabel: reportModeLabel,
-  logoAssetPath: logoAssetPath,
+      reportModeLabel: reportModeLabel,
+      logoAssetPath: logoAssetPath,
       monthlyRevenueLabel: monthlyRevenueLabel,
       monthlyRevenueValue: monthlyRevenueValue,
       collectedLabel: collectedLabel,
@@ -84,7 +84,7 @@ class PdfExporter {
     String netIncomeLabel = 'Net Income',
     String occupancyLabel = 'Occupancy',
     String? reportModeLabel,
-  String? logoAssetPath,
+    String? logoAssetPath,
     String? monthlyRevenueLabel,
     String? monthlyRevenueValue,
     String? collectedLabel,
@@ -103,7 +103,8 @@ class PdfExporter {
     // Try to use embedded fonts from assets if available, else fallback.
     pw.Document doc;
     try {
-      final regularData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+      final regularData =
+          await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
       final boldData = await rootBundle.load('assets/fonts/NotoSans-Bold.ttf');
       final base = pw.Font.ttf(regularData);
       final bold = pw.Font.ttf(boldData);
@@ -117,9 +118,11 @@ class PdfExporter {
     final totalExpenses = expenses.fold<int>(0, (s, v) => s + v);
     final net = totalRevenue - totalExpenses;
 
-    final headerStyle = pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold);
+    final headerStyle =
+        pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold);
     final labelStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey700);
-    final valueStyle = pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
+    final valueStyle =
+        pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
 
     // Preload logo if provided
     pw.MemoryImage? logoImage;
@@ -153,13 +156,17 @@ class PdfExporter {
                 if (reportModeLabel != null) ...[
                   pw.SizedBox(width: 8),
                   pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                    padding: const pw.EdgeInsets.symmetric(
+                        vertical: 2, horizontal: 8),
                     decoration: pw.BoxDecoration(
                       color: PdfColors.grey200,
                       borderRadius: pw.BorderRadius.circular(999),
-                      border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+                      border:
+                          pw.Border.all(color: PdfColors.grey400, width: 0.5),
                     ),
-                    child: pw.Text(reportModeLabel, style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                    child: pw.Text(reportModeLabel,
+                        style: pw.TextStyle(
+                            fontSize: 10, color: PdfColors.grey700)),
                   ),
                 ],
               ]),
@@ -176,27 +183,50 @@ class PdfExporter {
             runSpacing: 12,
             children: [
               if (monthlyRevenueLabel != null && monthlyRevenueValue != null)
-                _kpi(monthlyRevenueLabel, _sanitizeText(monthlyRevenueValue), labelStyle, valueStyle),
+                _kpi(monthlyRevenueLabel, _sanitizeText(monthlyRevenueValue),
+                    labelStyle, valueStyle),
               if (collectedLabel != null && collectedValue != null)
-                _kpi(collectedLabel, _sanitizeText(collectedValue), labelStyle, valueStyle),
+                _kpi(collectedLabel, _sanitizeText(collectedValue), labelStyle,
+                    valueStyle),
               if (outstandingLabel != null && outstandingValue != null)
-                _kpi(outstandingLabel, _sanitizeText(outstandingValue), labelStyle, valueStyle),
-              _kpi(totalRevenueLabel, _fmtCurrency(currency, totalRevenue.toDouble()), labelStyle, valueStyle),
-              _kpi(totalExpensesLabel, _fmtCurrency(currency, totalExpenses.toDouble()), labelStyle, valueStyle),
-              _kpi(netIncomeLabel, _fmtCurrency(currency, net.toDouble()), labelStyle, valueStyle),
+                _kpi(outstandingLabel, _sanitizeText(outstandingValue),
+                    labelStyle, valueStyle),
+              _kpi(
+                  totalRevenueLabel,
+                  _fmtCurrency(currency, totalRevenue.toDouble()),
+                  labelStyle,
+                  valueStyle),
+              _kpi(
+                  totalExpensesLabel,
+                  _fmtCurrency(currency, totalExpenses.toDouble()),
+                  labelStyle,
+                  valueStyle),
+              _kpi(netIncomeLabel, _fmtCurrency(currency, net.toDouble()),
+                  labelStyle, valueStyle),
               if (showOccupancy)
-                _kpi(occupancyLabel, NumberFormat.percentPattern().format(occupancyRate), labelStyle, valueStyle)
+                _kpi(
+                    occupancyLabel,
+                    NumberFormat.percentPattern().format(occupancyRate),
+                    labelStyle,
+                    valueStyle)
               else if (altKpiLabel != null && altKpiValue != null)
                 _kpi(altKpiLabel, altKpiValue, labelStyle, valueStyle),
             ],
           ),
           pw.SizedBox(height: 18),
 
-          pw.Text(revenueVsExpensesTitle, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+          pw.Text(revenueVsExpensesTitle,
+              style:
+                  pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 8),
-          _barChart(months: months, revenue: revenue, expenses: expenses, locale: locale),
+          _barChart(
+              months: months,
+              revenue: revenue,
+              expenses: expenses,
+              locale: locale),
           pw.SizedBox(height: 8),
-          _revenueTable(months, revenue, expenses, df, currency, labelStyle, monthHeader, revenueHeader, expensesHeader, netHeader),
+          _revenueTable(months, revenue, expenses, df, currency, labelStyle,
+              monthHeader, revenueHeader, expensesHeader, netHeader),
         ],
       ),
     );
@@ -204,7 +234,8 @@ class PdfExporter {
     return doc.save();
   }
 
-  static pw.Widget _kpi(String label, String value, pw.TextStyle labelStyle, pw.TextStyle valueStyle) {
+  static pw.Widget _kpi(String label, String value, pw.TextStyle labelStyle,
+      pw.TextStyle valueStyle) {
     return pw.Container(
       width: 180,
       padding: const pw.EdgeInsets.all(10),
@@ -250,7 +281,8 @@ class PdfExporter {
       headers: headers,
       data: data,
       headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-      headerDecoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFEFEFEF)),
+      headerDecoration:
+          const pw.BoxDecoration(color: PdfColor.fromInt(0xFFEFEFEF)),
       cellStyle: const pw.TextStyle(fontSize: 10),
       border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
       cellAlignment: pw.Alignment.centerLeft,
@@ -270,9 +302,7 @@ class PdfExporter {
     required List<int> expenses,
     String? locale,
   }) {
-    final labels = months
-        .map((m) => DateFormat.MMM(locale).format(m))
-        .toList();
+    final labels = months.map((m) => DateFormat.MMM(locale).format(m)).toList();
     final maxVal = [
       ...revenue.map((e) => e.abs()),
       ...expenses.map((e) => e.abs()),
@@ -296,13 +326,19 @@ class PdfExporter {
                 pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Container(width: barWidth, height: revH, color: PdfColors.green600),
+                    pw.Container(
+                        width: barWidth,
+                        height: revH,
+                        color: PdfColors.green600),
                     pw.SizedBox(width: 2),
-                    pw.Container(width: barWidth, height: expH, color: PdfColors.red600),
+                    pw.Container(
+                        width: barWidth, height: expH, color: PdfColors.red600),
                   ],
                 ),
                 pw.SizedBox(height: 4),
-                pw.Text(labels[i], style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                pw.Text(labels[i],
+                    style: const pw.TextStyle(
+                        fontSize: 8, color: PdfColors.grey700)),
               ],
             ),
           );

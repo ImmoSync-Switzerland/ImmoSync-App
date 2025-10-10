@@ -15,9 +15,11 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
   final _scrollController = ScrollController();
   final Map<String, GlobalKey> _headingKeys = {};
   final Set<String> _assignedOnce = {};
-  final Set<int> _skipIndices = {}; // lines belonging to embedded static TOC enumeration
+  final Set<int> _skipIndices =
+      {}; // lines belonging to embedded static TOC enumeration
   // Similar pattern: numbered headings need content after number. Include explicit first-section labels for multiple locales.
-  final _headingRegex = RegExp(r'^(?:[0-9]{1,2}\.[ \t]+\S|Vertragliche Grundlagen|Foundational Provisions|Disposizioni Fondamentali|Dispositions fondamentales)');
+  final _headingRegex = RegExp(
+      r'^(?:[0-9]{1,2}\.[ \t]+\S|Vertragliche Grundlagen|Foundational Provisions|Disposizioni Fondamentali|Dispositions fondamentales)');
   late List<String> _lines;
   late List<String> _headings;
 
@@ -25,8 +27,15 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
     _lines = body.split('\n');
     _skipIndices.clear();
     // Detect embedded static TOC (language variants of a TOC heading) and skip its lines.
-    const tocMarkers = ['Inhaltsverzeichnis','Indice','Index','Table des matières','Table of Contents'];
-    final tocTitleIndex = _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
+    const tocMarkers = [
+      'Inhaltsverzeichnis',
+      'Indice',
+      'Index',
+      'Table des matières',
+      'Table of Contents'
+    ];
+    final tocTitleIndex =
+        _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
     List<String> enumerationHeadings = [];
     if (tocTitleIndex != -1) {
       _skipIndices.add(tocTitleIndex);
@@ -53,7 +62,10 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
       _headings = enumerationHeadings;
     } else {
       final seen = <String>{};
-      _headings = [for (final h in all) if (seen.add(h)) h];
+      _headings = [
+        for (final h in all)
+          if (seen.add(h)) h
+      ];
     }
     _headingKeys.clear();
     _assignedOnce.clear();
@@ -69,7 +81,10 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
     if (key == null) return;
     final ctx = key.currentContext;
     if (ctx == null) return;
-    await Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut, alignment: 0.1);
+    await Scrollable.ensureVisible(ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1);
   }
 
   @override
@@ -88,8 +103,14 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
-        title: Text(l.termsOfService, style: TextStyle(color: AppColors.textPrimary,fontSize: 18,fontWeight: FontWeight.w600)),
-        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary), onPressed: () => context.pop()),
+        title: Text(l.termsOfService,
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w600)),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+            onPressed: () => context.pop()),
         actions: [
           IconButton(
             tooltip: l.copy,
@@ -97,7 +118,8 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: body));
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.copied)));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(l.copied)));
               }
             },
           )
@@ -110,17 +132,28 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
           Card(
             elevation: 2,
             color: AppColors.surfaceCards,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l.termsOfService, style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold,color: AppColors.textPrimary)),
+                  Text(l.termsOfService,
+                      style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
                   const SizedBox(height: 6),
-                  Text(l.termsOfServiceLastUpdated, style: TextStyle(fontSize: 14,color: AppColors.textSecondary)),
+                  Text(l.termsOfServiceLastUpdated,
+                      style: TextStyle(
+                          fontSize: 14, color: AppColors.textSecondary)),
                   const SizedBox(height: 20),
-                  if (_headings.isNotEmpty) _Toc(headings: _headings, title: l.tableOfContents, onTap: _scrollTo),
+                  if (_headings.isNotEmpty)
+                    _Toc(
+                        headings: _headings,
+                        title: l.tableOfContents,
+                        onTap: _scrollTo),
                   const Divider(height: 32),
                   ..._buildParagraphs(),
                 ],
@@ -131,6 +164,7 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
       ),
     );
   }
+
   List<Widget> _buildParagraphs() {
     final widgets = <Widget>[];
     for (var i = 0; i < _lines.length; i++) {
@@ -145,7 +179,8 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
       }
       widgets.add(Padding(
         key: key,
-        padding: EdgeInsets.only(bottom: isHeading ? 12 : 10, top: isHeading ? 16 : 0),
+        padding: EdgeInsets.only(
+            bottom: isHeading ? 12 : 10, top: isHeading ? 16 : 0),
         child: SelectableText(
           text,
           style: isHeading
@@ -162,13 +197,15 @@ class _Toc extends StatelessWidget {
   final List<String> headings;
   final String title;
   final void Function(String heading) onTap;
-  const _Toc({required this.headings, required this.title, required this.onTap});
+  const _Toc(
+      {required this.headings, required this.title, required this.onTap});
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 12,

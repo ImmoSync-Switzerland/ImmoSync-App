@@ -60,7 +60,8 @@ class PresenceWsService {
                   'messageIds': ids.toList(),
                 });
                 // ignore: avoid_print
-                print('[WS][chat] flushed pending reads (immediate) conv=$convId count=${ids.length}');
+                print(
+                    '[WS][chat] flushed pending reads (immediate) conv=$convId count=${ids.length}');
               } catch (_) {}
             }
           });
@@ -149,12 +150,13 @@ class PresenceWsService {
                 'conversationId': convId,
                 'messageIds': ids.toList(),
               });
-        // ignore: avoid_print
-        print('[WS][chat] flushed pending read receipts for conv=$convId count=${ids.length}');
+              // ignore: avoid_print
+              print(
+                  '[WS][chat] flushed pending read receipts for conv=$convId count=${ids.length}');
             }
           });
-      // ignore: avoid_print
-      print('[WS][chat] flushed for ${entries.length} conversation(s)');
+          // ignore: avoid_print
+          print('[WS][chat] flushed for ${entries.length} conversation(s)');
         }
         print('[WS][chat] replay complete');
       })
@@ -274,8 +276,8 @@ class PresenceWsService {
     _presenceSocket = null;
     _chatSocket = null;
     _pendingMessages.clear();
-  // Clear any read receipts queued under the old identity to avoid cross-account leakage
-  _pendingReads.clear();
+    // Clear any read receipts queued under the old identity to avoid cross-account leakage
+    _pendingReads.clear();
   }
 
   // Decrypt if e2ee bundle exists. Since this service lacks direct Ref here, we expose
@@ -332,10 +334,11 @@ class PresenceWsService {
       'clientTime': DateTime.now().toIso8601String(),
       'messageType': 'text',
       // lightweight client-generated id for local correlation (optional for server)
-      'clientMessageId': '${DateTime.now().millisecondsSinceEpoch}-${(_userId ?? 'u')}',
+      'clientMessageId':
+          '${DateTime.now().millisecondsSinceEpoch}-${(_userId ?? 'u')}',
     };
     if (receiverId != null) payload['receiverId'] = receiverId;
-  bool encryptionUsed = false;
+    bool encryptionUsed = false;
     print(
         '[WS][sendChatMessage] conv=$conversationId recv=$receiverId connected=${_chatSocket?.connected}');
     if (receiverId != null && _userId != null && receiverId == _userId) {
@@ -471,7 +474,8 @@ class PresenceWsService {
       final set = _pendingReads.putIfAbsent(conversationId, () => <String>{});
       set.addAll(messageIds);
       // ignore: avoid_print
-      print('[WS][chat] queue read conv=$conversationId count=${messageIds.length} (socket disconnected)');
+      print(
+          '[WS][chat] queue read conv=$conversationId count=${messageIds.length} (socket disconnected)');
       return;
     }
     _chatSocket!.emit('chat:read', {
@@ -479,7 +483,8 @@ class PresenceWsService {
       'messageIds': messageIds,
     });
     // ignore: avoid_print
-    print('[WS][chat] emit read conv=$conversationId count=${messageIds.length}');
+    print(
+        '[WS][chat] emit read conv=$conversationId count=${messageIds.length}');
   }
 
   void markAllRead(

@@ -88,10 +88,10 @@ class ContactService {
             email: (json['email'] ?? '').toString(),
             role: 'tenant',
             phone: (json['phone'] ?? '').toString(),
-            properties:
-                json['propertyId'] != null && json['propertyId'].toString().isNotEmpty
-                    ? [json['propertyId'].toString()]
-                    : [],
+            properties: json['propertyId'] != null &&
+                    json['propertyId'].toString().isNotEmpty
+                ? [json['propertyId'].toString()]
+                : [],
             profileImageUrl: canonicalUrl,
             profileImage: canonicalUrl ?? legacyRef,
           );

@@ -13,13 +13,16 @@ class NotificationsPopup extends ConsumerStatefulWidget {
   ConsumerState<NotificationsPopup> createState() => _NotificationsPopupState();
 }
 
-class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with SingleTickerProviderStateMixin {
+class _NotificationsPopupState extends ConsumerState<NotificationsPopup>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 160))..forward();
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 160))
+      ..forward();
   }
 
   @override
@@ -36,38 +39,53 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
       opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
       child: ScaleTransition(
         scale: CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-  child: Material(
+        child: Material(
           elevation: 10,
           clipBehavior: Clip.antiAlias,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: theme.colorScheme.surface,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final screenWidth = MediaQuery.of(context).size.width;
               // Responsive width: on narrow screens use almost full width
               final maxWidth = screenWidth < 500 ? screenWidth - 24 : 420.0;
-              final maxHeight = screenWidth < 500 ? MediaQuery.of(context).size.height * 0.7 : 480.0;
+              final maxHeight = screenWidth < 500
+                  ? MediaQuery.of(context).size.height * 0.7
+                  : 480.0;
               return ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
+                constraints:
+                    BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: theme.brightness == Brightness.dark
-                          ? [theme.colorScheme.surface, Colors.black.withValues(alpha: 0.4)]
-                          : [theme.colorScheme.surface, theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15)],
+                          ? [
+                              theme.colorScheme.surface,
+                              Colors.black.withValues(alpha: 0.4)
+                            ]
+                          : [
+                              theme.colorScheme.surface,
+                              theme.colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.15)
+                            ],
                     ),
                     border: Border.all(
-            color: theme.brightness == Brightness.dark
-              ? Colors.white.withValues(alpha: 0.06)
-              : Colors.black.withValues(alpha: 0.05),
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.black.withValues(alpha: 0.05),
                     ),
                   ),
                   child: asyncList.when(
                     loading: () => _buildSectionWrapper(
                       context,
-                      child: const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                      child: const SizedBox(
+                          height: 160,
+                          child: Center(
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2))),
                     ),
                     error: (e, _) => _buildSectionWrapper(
                       context,
@@ -77,9 +95,11 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.error_outline, size: 32, color: Colors.redAccent),
+                              const Icon(Icons.error_outline,
+                                  size: 32, color: Colors.redAccent),
                               const SizedBox(height: 8),
-                              Text('Failed to load', style: theme.textTheme.titleSmall),
+                              Text('Failed to load',
+                                  style: theme.textTheme.titleSmall),
                               Text('$e', style: theme.textTheme.bodySmall),
                             ],
                           ),
@@ -96,10 +116,13 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.notifications_off_outlined, size: 40, color: theme.disabledColor),
+                                  Icon(Icons.notifications_off_outlined,
+                                      size: 40, color: theme.disabledColor),
                                   const SizedBox(height: 10),
-                                  Text('You\'re all caught up', style: theme.textTheme.titleSmall),
-                                  Text('No notifications yet', style: theme.textTheme.bodySmall),
+                                  Text('You\'re all caught up',
+                                      style: theme.textTheme.titleSmall),
+                                  Text('No notifications yet',
+                                      style: theme.textTheme.bodySmall),
                                 ],
                               ),
                             ),
@@ -111,14 +134,21 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
 
                       return Column(
                         children: [
-                          _HeaderBar(onClose: () => ref.read(notificationsPopupVisibleProvider.notifier).state = false, ref: ref),
+                          _HeaderBar(
+                              onClose: () => ref
+                                  .read(notificationsPopupVisibleProvider
+                                      .notifier)
+                                  .state = false,
+                              ref: ref),
                           const Divider(height: 1),
                           Expanded(
                             child: ScrollConfiguration(
                               behavior: const _NoGlowScrollBehavior(),
                               child: ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                physics: const AlwaysScrollableScrollPhysics(
+                                    parent: BouncingScrollPhysics()),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 itemCount: grouped.length,
                                 itemBuilder: (context, index) {
                                   final entry = grouped[index];
@@ -126,8 +156,14 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
                                     label: entry.label,
                                     notifications: entry.items,
                                     onTap: (n) {
-                                      ref.read(notificationsProvider.notifier).markSingleRead(n.id);
-                                      ref.read(notificationsPopupVisibleProvider.notifier).state = false;
+                                      ref
+                                          .read(notificationsProvider.notifier)
+                                          .markSingleRead(n.id);
+                                      ref
+                                          .read(
+                                              notificationsPopupVisibleProvider
+                                                  .notifier)
+                                          .state = false;
                                     },
                                   );
                                 },
@@ -135,7 +171,10 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
                             ),
                           ),
                           _ViewAllButton(onTap: () {
-                            ref.read(notificationsPopupVisibleProvider.notifier).state = false;
+                            ref
+                                .read(
+                                    notificationsPopupVisibleProvider.notifier)
+                                .state = false;
                             if (context.mounted) context.push('/notifications');
                           }),
                         ],
@@ -157,24 +196,32 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
     for (final n in list) {
       final dt = n.timestamp;
       String label;
-      final isToday = dt.year == now.year && dt.month == now.month && dt.day == now.day;
+      final isToday =
+          dt.year == now.year && dt.month == now.month && dt.day == now.day;
       final yesterday = now.subtract(const Duration(days: 1));
-      final isYesterday = dt.year == yesterday.year && dt.month == yesterday.month && dt.day == yesterday.day;
+      final isYesterday = dt.year == yesterday.year &&
+          dt.month == yesterday.month &&
+          dt.day == yesterday.day;
       if (isToday) {
         label = 'Today';
       } else if (isYesterday) {
         label = 'Yesterday';
       } else {
-        label = '${dt.year}/${dt.month.toString().padLeft(2,'0')}/${dt.day.toString().padLeft(2,'0')}';
+        label =
+            '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
       }
       buckets.putIfAbsent(label, () => []).add(n);
     }
     final ordered = <_GroupedDay>[];
     for (final key in buckets.keys) {
-      ordered.add(_GroupedDay(label: key, items: buckets[key]!..sort((a,b)=>b.timestamp.compareTo(a.timestamp))));
+      ordered.add(_GroupedDay(
+          label: key,
+          items: buckets[key]!
+            ..sort((a, b) => b.timestamp.compareTo(a.timestamp))));
     }
     // Keep relative ordering by newest first across groups
-    ordered.sort((a,b)=> b.items.first.timestamp.compareTo(a.items.first.timestamp));
+    ordered.sort(
+        (a, b) => b.items.first.timestamp.compareTo(a.items.first.timestamp));
     return ordered;
   }
 
@@ -182,7 +229,11 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup> with Si
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _HeaderBar(onClose: () => ref.read(notificationsPopupVisibleProvider.notifier).state = false, ref: ref),
+        _HeaderBar(
+            onClose: () => ref
+                .read(notificationsPopupVisibleProvider.notifier)
+                .state = false,
+            ref: ref),
         const Divider(height: 1),
         Expanded(child: child),
       ],
@@ -201,15 +252,17 @@ class _HeaderBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-    color: theme.brightness == Brightness.dark
-      ? theme.colorScheme.surface.withValues(alpha: 0.92)
-      : theme.colorScheme.surface.withValues(alpha: 0.9),
+        color: theme.brightness == Brightness.dark
+            ? theme.colorScheme.surface.withValues(alpha: 0.92)
+            : theme.colorScheme.surface.withValues(alpha: 0.9),
       ),
       child: Row(
         children: [
           Icon(Icons.notifications, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
-          Text('Notifications', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+          Text('Notifications',
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
           const Spacer(),
           if (isLoading)
             const SizedBox(
@@ -226,11 +279,13 @@ class _HeaderBar extends StatelessWidget {
               child: IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: () async {
-                  final ok = await ref.read(notificationsProvider.notifier).refresh();
+                  final ok =
+                      await ref.read(notificationsProvider.notifier).refresh();
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(ok ? 'Notifications refreshed' : 'Refresh failed'),
+                        content: Text(
+                            ok ? 'Notifications refreshed' : 'Refresh failed'),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -244,11 +299,15 @@ class _HeaderBar extends StatelessWidget {
             child: IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () async {
-                final updated = await ref.read(notificationsProvider.notifier).markAllRead();
+                final updated = await ref
+                    .read(notificationsProvider.notifier)
+                    .markAllRead();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(updated > 0 ? 'Marked $updated as read' : 'No unread notifications'),
+                      content: Text(updated > 0
+                          ? 'Marked $updated as read'
+                          : 'No unread notifications'),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -275,7 +334,8 @@ class _DaySection extends StatelessWidget {
   final String label;
   final List<AppNotification> notifications;
   final void Function(AppNotification) onTap;
-  const _DaySection({required this.label, required this.notifications, required this.onTap});
+  const _DaySection(
+      {required this.label, required this.notifications, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -287,9 +347,12 @@ class _DaySection extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-            child: Text(label, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary, letterSpacing: 0.5)),
+            child: Text(label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary, letterSpacing: 0.5)),
           ),
-          ...notifications.map((n) => _NotificationTile(notification: n, onTap: onTap)),
+          ...notifications
+              .map((n) => _NotificationTile(notification: n, onTap: onTap)),
         ],
       ),
     );
@@ -313,9 +376,13 @@ class _NotificationTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: n.read ? theme.colorScheme.surface : theme.colorScheme.primary.withValues(alpha: 0.06),
+          color: n.read
+              ? theme.colorScheme.surface
+              : theme.colorScheme.primary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: n.read ? theme.dividerColor : accent.withValues(alpha: 0.4)),
+          border: Border.all(
+              color:
+                  n.read ? theme.dividerColor : accent.withValues(alpha: 0.4)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,11 +408,15 @@ class _NotificationTile extends StatelessWidget {
                           n.title.isEmpty ? '(No title)' : n.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: n.read ? FontWeight.w500 : FontWeight.w600),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight:
+                                  n.read ? FontWeight.w500 : FontWeight.w600),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Text(_formatTime(n.timestamp), style: theme.textTheme.labelSmall?.copyWith(color: theme.hintColor)),
+                      Text(_formatTime(n.timestamp),
+                          style: theme.textTheme.labelSmall
+                              ?.copyWith(color: theme.hintColor)),
                     ],
                   ),
                   if (n.body.isNotEmpty)
@@ -366,10 +437,13 @@ class _NotificationTile extends StatelessWidget {
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                                color: accent, shape: BoxShape.circle),
                           ),
                           const SizedBox(width: 6),
-                          Text('Unread', style: theme.textTheme.labelSmall?.copyWith(color: accent)),
+                          Text('Unread',
+                              style: theme.textTheme.labelSmall
+                                  ?.copyWith(color: accent)),
                         ],
                       ),
                     ),
@@ -429,10 +503,15 @@ class _ViewAllButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: theme.brightness == Brightness.dark ? 0.4 : 1))),
+          border: Border(
+              top: BorderSide(
+                  color: theme.dividerColor.withValues(
+                      alpha: theme.brightness == Brightness.dark ? 0.4 : 1))),
         ),
         child: Center(
-          child: Text('View all notifications', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
+          child: Text('View all notifications',
+              style: theme.textTheme.labelLarge
+                  ?.copyWith(color: theme.colorScheme.primary)),
         ),
       ),
     );
@@ -448,7 +527,9 @@ class _GroupedDay {
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) => child;
+  Widget buildOverscrollIndicator(
+          BuildContext context, Widget child, ScrollableDetails details) =>
+      child;
 }
 
 String _formatTime(DateTime dt) {

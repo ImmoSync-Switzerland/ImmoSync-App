@@ -127,7 +127,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (data['fullName'] != null)
           prefs.setString('fullName', data['fullName']),
         if (data['profileImage'] != null)
-          prefs.setString('immosync-profileImage-${data['userId']}', data['profileImage']),
+          prefs.setString(
+              'immosync-profileImage-${data['userId']}', data['profileImage']),
       ]);
       if (data['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(data['role']);
@@ -136,8 +137,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await ref.read(currentUserProvider.notifier).setUser(data['userId']);
         // Hydrate cached profile image if API hasn't provided it yet
         try {
-          final cached = prefs.getString('immosync-profileImage-${data['userId']}');
-          if (cached != null && (ref.read(currentUserProvider)?.profileImage?.isEmpty ?? true)) {
+          final cached =
+              prefs.getString('immosync-profileImage-${data['userId']}');
+          if (cached != null &&
+              (ref.read(currentUserProvider)?.profileImage?.isEmpty ?? true)) {
             final current = ref.read(currentUserProvider);
             if (current != null) {
               ref.read(currentUserProvider.notifier).setUserModel(
@@ -161,9 +164,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (userModel != null) {
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
           // Cache profile image for offline/early hydration
-          if (userModel.profileImage != null && userModel.profileImage!.isNotEmpty) {
+          if (userModel.profileImage != null &&
+              userModel.profileImage!.isNotEmpty) {
             try {
-              prefs.setString('immosync-profileImage-${userModel.id}', userModel.profileImage!);
+              prefs.setString('immosync-profileImage-${userModel.id}',
+                  userModel.profileImage!);
             } catch (_) {}
           }
         }
@@ -209,8 +214,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final cached = prefs.getString('immosync-profileImage-$userId');
         if (cached != null) {
           final current = ref.read(currentUserProvider);
-          if (current != null && (current.profileImage == null || current.profileImage!.isEmpty)) {
-            ref.read(currentUserProvider.notifier).setUserModel(current.copyWith(profileImage: cached));
+          if (current != null &&
+              (current.profileImage == null || current.profileImage!.isEmpty)) {
+            ref
+                .read(currentUserProvider.notifier)
+                .setUserModel(current.copyWith(profileImage: cached));
           }
         }
       } catch (_) {}
@@ -222,8 +230,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final userModel = await us.fetchCurrentUser();
         if (userModel != null) {
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
-          if (userModel.profileImage != null && userModel.profileImage!.isNotEmpty) {
-            try { prefs.setString('immosync-profileImage-${userModel.id}', userModel.profileImage!); } catch (_) {}
+          if (userModel.profileImage != null &&
+              userModel.profileImage!.isNotEmpty) {
+            try {
+              prefs.setString('immosync-profileImage-${userModel.id}',
+                  userModel.profileImage!);
+            } catch (_) {}
           }
         }
       } catch (_) {}
@@ -250,18 +262,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
         prefs.setString('userRole', userData['role']),
         prefs.setString('fullName', userData['fullName']),
         if (userData['profileImage'] != null)
-          prefs.setString('immosync-profileImage-${userData['userId']}', userData['profileImage']),
+          prefs.setString('immosync-profileImage-${userData['userId']}',
+              userData['profileImage']),
       ]);
 
       ref.read(userRoleProvider.notifier).setUserRole(userData['role']);
       await ref.read(currentUserProvider.notifier).setUser(userData['userId']);
       // Hydrate cached profile image early
       try {
-        final cached = prefs.getString('immosync-profileImage-${userData['userId']}');
+        final cached =
+            prefs.getString('immosync-profileImage-${userData['userId']}');
         if (cached != null) {
           final current = ref.read(currentUserProvider);
-          if (current != null && (current.profileImage == null || current.profileImage!.isEmpty)) {
-            ref.read(currentUserProvider.notifier).setUserModel(current.copyWith(profileImage: cached));
+          if (current != null &&
+              (current.profileImage == null || current.profileImage!.isEmpty)) {
+            ref
+                .read(currentUserProvider.notifier)
+                .setUserModel(current.copyWith(profileImage: cached));
           }
         }
       } catch (_) {}
@@ -277,8 +294,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final userModel = await us.fetchCurrentUser();
         if (userModel != null) {
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
-          if (userModel.profileImage != null && userModel.profileImage!.isNotEmpty) {
-            try { prefs.setString('immosync-profileImage-${userModel.id}', userModel.profileImage!); } catch (_) {}
+          if (userModel.profileImage != null &&
+              userModel.profileImage!.isNotEmpty) {
+            try {
+              prefs.setString('immosync-profileImage-${userModel.id}',
+                  userModel.profileImage!);
+            } catch (_) {}
           }
         }
       } catch (_) {}

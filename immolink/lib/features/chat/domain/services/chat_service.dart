@@ -61,22 +61,23 @@ class ChatService {
     required String senderId,
     required String receiverId,
     required String content,
-  Ref? ref,
+    Ref? ref,
     String? otherUserId,
     // Removed misplaced import statement
   }) async {
-  // Resolve Matrix roomId for this conversation (server must provide mapping)
-  final roomId = await _fetchOrCreateMatrixRoomId(
-    conversationId: conversationId,
-    creatorUserId: senderId,
-    otherUserId: receiverId);
+    // Resolve Matrix roomId for this conversation (server must provide mapping)
+    final roomId = await _fetchOrCreateMatrixRoomId(
+        conversationId: conversationId,
+        creatorUserId: senderId,
+        otherUserId: receiverId);
     if (roomId == null || roomId.isEmpty) {
-      throw Exception('Matrix roomId not found for conversation $conversationId');
+      throw Exception(
+          'Matrix roomId not found for conversation $conversationId');
     }
-  // Send via FRB and capture Matrix event id
-  final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
-  // Matrix-only: do not persist chat content to backend anymore.
-  return matrixEventId;
+    // Send via FRB and capture Matrix event id
+    final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+    // Matrix-only: do not persist chat content to backend anymore.
+    return matrixEventId;
   }
 
   Future<String?> _fetchOrCreateMatrixRoomId({
@@ -110,6 +111,18 @@ class ChatService {
       }
     }
     return null;
+  }
+
+  // Public helper for UI layers to resolve room mapping without duplicating logic
+  Future<String?> getMatrixRoomIdForConversation({
+    required String conversationId,
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    return _fetchOrCreateMatrixRoomId(
+        conversationId: conversationId,
+        creatorUserId: currentUserId,
+        otherUserId: otherUserId);
   }
 
   // Note: Conversation preview updates are handled by backend on message POST
@@ -256,7 +269,8 @@ class ChatService {
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    final resp = await http.delete(Uri.parse('$_apiUrl/conversations/$conversationId'));
+    final resp =
+        await http.delete(Uri.parse('$_apiUrl/conversations/$conversationId'));
     if (resp.statusCode != 200) {
       throw Exception('Failed to delete conversation: ${resp.body}');
     }
@@ -270,29 +284,32 @@ class ChatService {
     final resp = await http.post(
       Uri.parse('$_apiUrl/conversations/$conversationId/report'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({ 'reporterId': reporterId, 'reason': reason ?? 'unspecified' }),
+      body: json.encode(
+          {'reporterId': reporterId, 'reason': reason ?? 'unspecified'}),
     );
     if (resp.statusCode != 201) {
       throw Exception('Failed to report conversation: ${resp.body}');
     }
   }
 
-  Future<void> blockUser({ required String userId, required String targetUserId }) async {
+  Future<void> blockUser(
+      {required String userId, required String targetUserId}) async {
     final resp = await http.post(
       Uri.parse('$_apiUrl/users/$userId/block'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({ 'targetUserId': targetUserId }),
+      body: json.encode({'targetUserId': targetUserId}),
     );
     if (resp.statusCode != 200) {
       throw Exception('Failed to block user: ${resp.body}');
     }
   }
 
-  Future<void> unblockUser({ required String userId, required String targetUserId }) async {
+  Future<void> unblockUser(
+      {required String userId, required String targetUserId}) async {
     final resp = await http.post(
       Uri.parse('$_apiUrl/users/$userId/unblock'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({ 'targetUserId': targetUserId }),
+      body: json.encode({'targetUserId': targetUserId}),
     );
     if (resp.statusCode != 200) {
       throw Exception('Failed to unblock user: ${resp.body}');

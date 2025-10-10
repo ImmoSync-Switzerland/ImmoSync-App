@@ -15,7 +15,8 @@ import 'package:immosync/core/config/api_config.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   } catch (_) {
     // ignore if already initialized or platform not supported
   }
@@ -48,7 +49,9 @@ class FcmService {
       debugPrint('[FCM] Background handler registration failed: $e');
     }
 
-    final isMobile = !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
       await _initLocalNotifications();
       await _requestPermissionIfNeeded();
@@ -60,7 +63,8 @@ class FcmService {
       });
 
       FirebaseMessaging.onMessage.listen((message) {
-        debugPrint('[FCM][FG] message ${message.messageId} title=${message.notification?.title}');
+        debugPrint(
+            '[FCM][FG] message ${message.messageId} title=${message.notification?.title}');
         _showForegroundNotification(message);
       });
     } else {
@@ -72,7 +76,9 @@ class FcmService {
     if (userId == _currentUserId) return;
     _currentUserId = userId;
     // Only attempt token retrieval on supported mobile platforms
-    final isMobile = !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
     if (userId != null && isMobile) {
       try {
         final token = await _messaging.getToken();
@@ -83,7 +89,8 @@ class FcmService {
         debugPrint('[FCM] updateUserId getToken failed: $e');
       }
     } else if (userId != null) {
-      debugPrint('[FCM] updateUserId: skip real getToken on non-mobile platform');
+      debugPrint(
+          '[FCM] updateUserId: skip real getToken on non-mobile platform');
       // Dev fallback: register a mock desktop token so backend flows (notification storage) can be tested.
       if (kDebugMode) {
         final mockToken = 'desktop-$userId';
@@ -109,7 +116,10 @@ class FcmService {
       importance: Importance.defaultImportance,
     );
     try {
-      await _local.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
+      await _local
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
     } catch (e) {
       debugPrint('[FCM] Channel creation failed: $e');
     }
@@ -122,7 +132,9 @@ class FcmService {
   }
 
   Future<void> _obtainAndSendToken() async {
-    final isMobile = !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
     if (!isMobile) return; // guard
     try {
       final token = await _messaging.getToken();
@@ -137,7 +149,8 @@ class FcmService {
 
   void _showForegroundNotification(RemoteMessage message) {
     final notification = message.notification;
-    if (notification == null) return; // Only show if normal notification payload
+    if (notification == null)
+      return; // Only show if normal notification payload
     _local.show(
       notification.hashCode,
       notification.title,
@@ -155,15 +168,19 @@ class FcmService {
     );
   }
 
-  Future<void> _sendTokenToBackend(String token, {bool force = false, bool allowNonMobileMock = false}) async {
+  Future<void> _sendTokenToBackend(String token,
+      {bool force = false, bool allowNonMobileMock = false}) async {
     if (_currentUserId == null) {
       debugPrint('[FCM] Skipping token send (no user id yet)');
       return;
     }
     if (!force && token == _lastTokenSent) return;
-    final isMobile = !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
     if (!isMobile && !allowNonMobileMock) {
-      debugPrint('[FCM] Skip token backend send on non-mobile platform (not a mock)');
+      debugPrint(
+          '[FCM] Skip token backend send on non-mobile platform (not a mock)');
       return;
     }
     try {
@@ -178,7 +195,8 @@ class FcmService {
         _lastTokenSent = token;
         debugPrint('[FCM] Token registered');
       } else {
-        debugPrint('[FCM][WARN] Token send failed: ${resp.statusCode} ${resp.body}');
+        debugPrint(
+            '[FCM][WARN] Token send failed: ${resp.statusCode} ${resp.body}');
       }
     } catch (e) {
       debugPrint('[FCM][ERR] Token send exception: $e');

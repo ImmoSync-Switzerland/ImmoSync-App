@@ -330,8 +330,9 @@ class _ConversationsTabbedPageState
   Widget _buildConversationTile(BuildContext context, Conversation conversation,
       String otherUserId, String currentUserId) {
     final colors = ref.watch(dynamicColorsProvider);
-  final me = ref.watch(currentUserProvider);
-  final isBlocked = (me?.blockedUsers ?? const <String>[]).contains(otherUserId);
+    final me = ref.watch(currentUserProvider);
+    final isBlocked =
+        (me?.blockedUsers ?? const <String>[]).contains(otherUserId);
 
     return GestureDetector(
       onTap: () {
@@ -360,7 +361,8 @@ class _ConversationsTabbedPageState
               spreadRadius: 0,
             ),
           ],
-          border: Border.all(color: isBlocked ? colors.warning : colors.borderLight, width: 1),
+          border: Border.all(
+              color: isBlocked ? colors.warning : colors.borderLight, width: 1),
         ),
         child: Row(
           children: [
@@ -392,11 +394,13 @@ class _ConversationsTabbedPageState
                       if (isBlocked) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: colors.warning.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: colors.warning, width: 0.5),
+                            border:
+                                Border.all(color: colors.warning, width: 0.5),
                           ),
                           child: Text(
                             AppLocalizations.of(context)!.blockedLabel,
@@ -421,23 +425,34 @@ class _ConversationsTabbedPageState
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    (() {
-                      final previews = ref.read(chatPreviewProvider);
-                      final override = previews[conversation.id];
-                      if (override != null && override.isNotEmpty) return override;
-                      if (conversation.lastMessage == '[encrypted]') return 'Encrypted message';
-                      return conversation.lastMessage;
-                    })(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.textSecondary,
-                      letterSpacing: -0.1,
-                      inherit: true,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Builder(builder: (context) {
+                    final me = ref.read(currentUserProvider);
+                    if (me != null && otherUserId.isNotEmpty) {
+                      ref.read(chatPreviewProvider.notifier).ensureWatching(
+                          conversationId: conversation.id,
+                          currentUserId: me.id,
+                          otherUserId: otherUserId);
+                    }
+                    return Text(
+                      (() {
+                        final previews = ref.read(chatPreviewProvider);
+                        final override = previews[conversation.id];
+                        if (override != null && override.isNotEmpty)
+                          return override;
+                        if (conversation.lastMessage == '[encrypted]')
+                          return 'Encrypted message';
+                        return conversation.lastMessage;
+                      })(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        letterSpacing: -0.1,
+                        inherit: true,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  }),
                 ],
               ),
             ),

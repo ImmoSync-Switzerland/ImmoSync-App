@@ -308,12 +308,12 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(20),
-  leading: UserAvatar(
-            imageRef: contact.profileImage,
-            name: contact.fullName,
-            size: 50,
-            fallbackToCurrentUser: false,
-          ),
+        leading: UserAvatar(
+          imageRef: contact.profileImage,
+          name: contact.fullName,
+          size: 50,
+          fallbackToCurrentUser: false,
+        ),
         title: Text(
           contact.fullName,
           style: TextStyle(
@@ -474,7 +474,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
 
       // Find or create conversation to preserve chat history
       final chatService = ref.read(chatServiceProvider);
-  final conversationId = await chatService.findOrCreateConversation(
+      final conversationId = await chatService.findOrCreateConversation(
         currentUserId: currentUser!.id,
         otherUserId: contact.id,
       );
@@ -484,9 +484,9 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
         Navigator.of(context).pop();
 
         // Navigate to the existing or newly created conversation
-  final avatar = contact.profileImage ?? '';
-    context.push(
-      '/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+        final avatar = contact.profileImage ?? '';
+        context.push(
+            '/chat/$conversationId?otherUserId=${contact.id}&otherUser=${Uri.encodeComponent(contact.fullName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
       }
     } catch (e) {
       // Close loading dialog if open
@@ -569,10 +569,10 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
             ],
           ),
           actions: [
-      TextButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-        AppLocalizations.of(context)!.cancel,
+                AppLocalizations.of(context)!.cancel,
                 style: TextStyle(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w500,
@@ -593,7 +593,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${AppLocalizations.of(context)!.errorInitiatingCall}: ${e.toString()}'),
+                      content: Text(
+                          '${AppLocalizations.of(context)!.errorInitiatingCall}: ${e.toString()}'),
                       backgroundColor: colors.error,
                     ),
                   );

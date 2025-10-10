@@ -52,7 +52,8 @@ class ProfilePage extends ConsumerWidget {
       child: Column(
         children: [
           UserAvatar(
-            imageRef: currentUser?.profileImage, // prefers profileImageUrl internally
+            imageRef:
+                currentUser?.profileImage, // prefers profileImageUrl internally
             name: currentUser?.fullName,
             size: 100,
           ),

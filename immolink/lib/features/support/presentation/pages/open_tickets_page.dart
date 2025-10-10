@@ -15,11 +15,13 @@ class OpenTicketsPage extends ConsumerWidget {
     final colors = ref.watch(dynamicColorsProvider);
     final loc = AppLocalizations.of(context)!;
     final supportAsync = ref.watch(openSupportRequestsProvider);
-    final maintAsync = ref.watch(landlordMaintenanceRequestsProvider); // adjust for tenant if needed
+    final maintAsync = ref.watch(
+        landlordMaintenanceRequestsProvider); // adjust for tenant if needed
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        title: Text(loc.supportRequests, style: TextStyle(color: colors.textPrimary)),
+        title: Text(loc.supportRequests,
+            style: TextStyle(color: colors.textPrimary)),
         backgroundColor: colors.primaryBackground,
         iconTheme: IconThemeData(color: colors.textPrimary),
         actions: [
@@ -46,27 +48,37 @@ class OpenTicketsPage extends ConsumerWidget {
             supportAsync.when(
               data: (list) => list.isEmpty
                   ? _empty(loc.noSupportRequests, colors)
-                  : Column(children: list.map((r)=>_supportCard(context, r, colors, loc)).toList()),
+                  : Column(
+                      children: list
+                          .map((r) => _supportCard(context, r, colors, loc))
+                          .toList()),
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e,st) => _error('${loc.error}: $e', colors),
+              error: (e, st) => _error('${loc.error}: $e', colors),
             ),
             const SizedBox(height: 24),
             _sectionHeader(loc.maintenanceRequests, colors),
             maintAsync.when(
               data: (requests) {
-                final filtered = requests.where((m)=> m.status=='pending' || m.status=='in_progress').toList()
-                  ..sort((a,b)=>b.createdAt.compareTo(a.createdAt));
-                if (filtered.isEmpty) return _empty(loc.noPendingMaintenanceRequests, colors);
-                return Column(children: filtered.map((m)=>_maintenanceCard(context, m, colors, loc)).toList());
+                final filtered = requests
+                    .where((m) =>
+                        m.status == 'pending' || m.status == 'in_progress')
+                    .toList()
+                  ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                if (filtered.isEmpty)
+                  return _empty(loc.noPendingMaintenanceRequests, colors);
+                return Column(
+                    children: filtered
+                        .map((m) => _maintenanceCard(context, m, colors, loc))
+                        .toList());
               },
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e,st) => _error('${loc.error}: $e', colors),
+              error: (e, st) => _error('${loc.error}: $e', colors),
             ),
           ],
         ),
@@ -75,40 +87,54 @@ class OpenTicketsPage extends ConsumerWidget {
   }
 
   Widget _sectionHeader(String title, DynamicAppColors colors) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-  );
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(title,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary)),
+      );
 
   Widget _empty(String msg, DynamicAppColors colors) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Text(msg, style: TextStyle(color: colors.textSecondary, fontStyle: FontStyle.italic)),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(msg,
+            style: TextStyle(
+                color: colors.textSecondary, fontStyle: FontStyle.italic)),
+      );
 
   Widget _error(String msg, DynamicAppColors colors) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Text(msg, style: TextStyle(color: colors.error)),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(msg, style: TextStyle(color: colors.error)),
+      );
 
-  Widget _supportCard(BuildContext context, SupportRequest r, DynamicAppColors colors, AppLocalizations loc) {
+  Widget _supportCard(BuildContext context, SupportRequest r,
+      DynamicAppColors colors, AppLocalizations loc) {
     return Card(
       color: colors.surfaceCards,
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        title: Text(r.subject, style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600)),
-        subtitle: Text(r.category, style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+        title: Text(r.subject,
+            style: TextStyle(
+                color: colors.textPrimary, fontWeight: FontWeight.w600)),
+        subtitle: Text(r.category,
+            style: TextStyle(color: colors.textSecondary, fontSize: 12)),
         trailing: _statusDot(r.status, colors),
         onTap: () => context.push('/support-requests/${r.id}'),
       ),
     );
   }
 
-  Widget _maintenanceCard(BuildContext context, MaintenanceRequest m, DynamicAppColors colors, AppLocalizations loc) {
+  Widget _maintenanceCard(BuildContext context, MaintenanceRequest m,
+      DynamicAppColors colors, AppLocalizations loc) {
     return Card(
       color: colors.surfaceCards,
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        title: Text(m.title, style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600)),
-        subtitle: Text(m.category, style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+        title: Text(m.title,
+            style: TextStyle(
+                color: colors.textPrimary, fontWeight: FontWeight.w600)),
+        subtitle: Text(m.category,
+            style: TextStyle(color: colors.textSecondary, fontSize: 12)),
         trailing: _statusDot(m.status, colors),
         onTap: () => context.push('/maintenance/${m.id}'),
       ),
@@ -117,14 +143,26 @@ class OpenTicketsPage extends ConsumerWidget {
 
   Widget _statusDot(String status, DynamicAppColors colors) {
     Color c;
-    switch(status){
-      case 'open': c= Colors.orange; break;
-      case 'in_progress': c= Colors.blue; break;
-      case 'pending': c= Colors.orange; break;
+    switch (status) {
+      case 'open':
+        c = Colors.orange;
+        break;
+      case 'in_progress':
+        c = Colors.blue;
+        break;
+      case 'pending':
+        c = Colors.orange;
+        break;
       case 'completed':
-      case 'closed': c= Colors.green; break;
-      default: c = colors.primaryAccent;
+      case 'closed':
+        c = Colors.green;
+        break;
+      default:
+        c = colors.primaryAccent;
     }
-    return Container(width:12,height:12, decoration: BoxDecoration(color: c, shape: BoxShape.circle));
+    return Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(color: c, shape: BoxShape.circle));
   }
 }

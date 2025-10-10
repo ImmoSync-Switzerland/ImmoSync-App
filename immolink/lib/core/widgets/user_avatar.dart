@@ -22,7 +22,7 @@ class UserAvatar extends ConsumerWidget {
     this.bgColor,
     this.textColor,
     this.fit = BoxFit.cover,
-  this.fallbackToCurrentUser = true,
+    this.fallbackToCurrentUser = true,
   });
 
   @override
@@ -32,12 +32,16 @@ class UserAvatar extends ConsumerWidget {
     // Prefer canonical absolute URL if present on current user
     final currentUrl = current?.profileImageUrl;
     final currentRef = current?.profileImage;
-    final effectiveRef = imageRef ?? (fallbackToCurrentUser ? (currentUrl ?? currentRef) : null);
+    final effectiveRef =
+        imageRef ?? (fallbackToCurrentUser ? (currentUrl ?? currentRef) : null);
     final bg = bgColor ?? Colors.grey.shade200;
     final tc = textColor ?? Colors.grey.shade700;
 
     Widget child;
-    bool looksLikeUrl(String v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('data:');
+    bool looksLikeUrl(String v) =>
+        v.startsWith('http://') ||
+        v.startsWith('https://') ||
+        v.startsWith('data:');
 
     if (effectiveRef != null && effectiveRef.isNotEmpty) {
       final isUrl = looksLikeUrl(effectiveRef);
@@ -58,7 +62,8 @@ class UserAvatar extends ConsumerWidget {
                   width: size,
                   height: size,
                   fit: fit,
-                  errorBuilder: (_, __, ___) => _initialsCircle(effectiveName, bg, tc),
+                  errorBuilder: (_, __, ___) =>
+                      _initialsCircle(effectiveName, bg, tc),
                 )
               : MongoImage(
                   imageId: effectiveRef,
@@ -70,13 +75,16 @@ class UserAvatar extends ConsumerWidget {
         ),
       );
     } else {
-      final initial = effectiveName.isNotEmpty ? effectiveName[0].toUpperCase() : 'U';
+      final initial =
+          effectiveName.isNotEmpty ? effectiveName[0].toUpperCase() : 'U';
       child = Container(
         width: size,
         height: size,
         decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
         alignment: Alignment.center,
-        child: Text(initial, style: TextStyle(fontSize: size * 0.42, fontWeight: FontWeight.w700, color: tc)),
+        child: Text(initial,
+            style: TextStyle(
+                fontSize: size * 0.42, fontWeight: FontWeight.w700, color: tc)),
       );
     }
     return SizedBox(width: size, height: size, child: child);
@@ -87,7 +95,9 @@ class UserAvatar extends ConsumerWidget {
     return Container(
       color: bg,
       alignment: Alignment.center,
-      child: Text(initial, style: TextStyle(fontSize: size * 0.42, fontWeight: FontWeight.w700, color: tc)),
+      child: Text(initial,
+          style: TextStyle(
+              fontSize: size * 0.42, fontWeight: FontWeight.w700, color: tc)),
     );
   }
 }

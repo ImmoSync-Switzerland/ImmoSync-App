@@ -1,6 +1,7 @@
 use flutter_rust_bridge::{frb, StreamSink};
 use matrix_sdk::{Client, config::SyncSettings, room::Room};
 use matrix_sdk::ruma::{RoomId};
+use matrix_sdk::ruma::events::receipt::ReceiptType;
 use matrix_sdk::ruma::events::room::message::{RoomMessageEventContent, OriginalSyncRoomMessageEvent, MessageType};
 use serde::{Deserialize, Serialize};
 use once_cell::sync::OnceCell;
@@ -103,6 +104,22 @@ pub fn send_message(room_id: String, body: String) -> Result<String, String> {
             .map_err(|e| e.to_string())?;
         // Return event id if available
         Ok(send_resp.event_id.to_string())
+    })
+}
+
+/// Send a read receipt for a specific event in a room.
+#[frb]
+pub fn mark_read(room_id: String, event_id: String) -> Result<(), String> {
+    let rt = get_rt();
+    rt.block_on(async move {
+        let client = CLIENT.get().ok_or_else(|| "Client not initialized".to_string())?.clone();
+        let rid = RoomId::parse(&room_id).map_err(|e| e.to_string())?;
+        let room = client.get_room(&rid).ok_or_else(|| "Room not found".to_string())?;
+        room
+            .read_receipt(ReceiptType::Read, &event_id.into())
+            .await
+            .map_err(|e| e.to_string())?;
+        Ok(())
     })
 }
 

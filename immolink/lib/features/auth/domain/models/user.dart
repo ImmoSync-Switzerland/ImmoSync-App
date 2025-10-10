@@ -69,8 +69,9 @@ class User {
     }();
 
     // Prefer canonical absolute URL if provided by the server
-    final String? canonicalUrl =
-        map['profileImageUrl'] != null ? map['profileImageUrl'].toString() : null;
+    final String? canonicalUrl = map['profileImageUrl'] != null
+        ? map['profileImageUrl'].toString()
+        : null;
     final String? legacyRef =
         map['profileImage'] != null ? map['profileImage'].toString() : null;
 

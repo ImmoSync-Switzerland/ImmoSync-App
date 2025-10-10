@@ -20,7 +20,6 @@ import 'package:immosync/l10n_helper.dart';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
-import 'package:immosync/features/chat/infrastructure/matrix_events_adapter.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_frb_events_adapter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -34,7 +33,8 @@ void main() async {
     if (details.stack != null) {
       debugPrint(details.stack.toString());
     }
-    Zone.current.handleUncaughtError(details.exception, details.stack ?? StackTrace.empty);
+    Zone.current.handleUncaughtError(
+        details.exception, details.stack ?? StackTrace.empty);
   };
   // Platform dispatcher errors (async / isolates)
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -70,15 +70,18 @@ void main() async {
 
     // Step 3: Stripe (only on supported platforms: web, Android, iOS)
     try {
-      final isStripeSupported = kIsWeb || (
-        !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)
-      );
+      final isStripeSupported = kIsWeb ||
+          (!kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.android ||
+                  defaultTargetPlatform == TargetPlatform.iOS));
       if (!isStripeSupported) {
-        debugPrint('[Startup][INFO] Stripe unsupported on this platform (${defaultTargetPlatform.name}) – skipping Stripe init');
+        debugPrint(
+            '[Startup][INFO] Stripe unsupported on this platform (${defaultTargetPlatform.name}) – skipping Stripe init');
       } else {
         const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
         if (stripeKey.isEmpty) {
-          debugPrint('[Startup][INFO] Stripe key missing – skipping Stripe init');
+          debugPrint(
+              '[Startup][INFO] Stripe key missing – skipping Stripe init');
         } else {
           Stripe.publishableKey = stripeKey;
           await Stripe.instance.applySettings();
@@ -111,7 +114,8 @@ void main() async {
     try {
       runApp(const ProviderScope(child: ImmoSync()));
       _appStarted = true;
-      debugPrint('[Startup] runApp completed in ${stopwatch.elapsedMilliseconds} ms');
+      debugPrint(
+          '[Startup] runApp completed in ${stopwatch.elapsedMilliseconds} ms');
     } catch (e, st) {
       debugPrint('[Startup][FATAL] runApp threw: $e');
       debugPrint(st.toString());
@@ -152,10 +156,8 @@ class ImmoSync extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Start FCM service side effects and keep instance
     final fcm = ref.watch(fcmServiceProvider);
-    // Bridge incoming events into the Matrix timeline until FRB events are wired
-    ref.watch(matrixEventsAdapterProvider);
-  // Also keep FRB events adapter alive (no-op until FRB stream is available)
-  ref.watch(matrixFrbEventsAdapterProvider);
+    // Receive chat messages from native Matrix FRB stream only (no WS message ingestion)
+    ref.watch(matrixFrbEventsAdapterProvider);
     // Listen for auth userId changes (avoid triggering on every rebuild)
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {
@@ -169,10 +171,10 @@ class ImmoSync extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final currentLocale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
-    
+
     // Ensure settings are loaded
     ref.watch(settingsProvider);
-    
+
     // Determine which theme mode to use
     ThemeMode appThemeMode;
     switch (themeMode) {
@@ -188,8 +190,8 @@ class ImmoSync extends ConsumerWidget {
       default:
         appThemeMode = ThemeMode.light;
     }
-    
-  return MaterialApp.router(
+
+    return MaterialApp.router(
       routerConfig: router,
       title: 'ImmoSync',
       theme: AppTheme.lightTheme,
@@ -242,4 +244,3 @@ Future<void> _initMatrixForUser(String userId) async {
     debugPrint(st.toString());
   }
 }
-

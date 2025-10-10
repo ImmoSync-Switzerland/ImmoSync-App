@@ -14,7 +14,8 @@ class PrivacyPolicyPage extends ConsumerStatefulWidget {
 class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
   final _scrollController = ScrollController();
   final Map<String, GlobalKey> _headingKeys = {};
-  final Set<String> _assignedOnce = {}; // track which heading texts already received a GlobalKey in the widget tree
+  final Set<String> _assignedOnce =
+      {}; // track which heading texts already received a GlobalKey in the widget tree
 
   late List<String> _lines;
   late List<String> _headings;
@@ -33,8 +34,15 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
     //   2. Heading B
     //   ...
     //   <first heading repeated again>  (start of real content) OR a non-heading paragraph
-    const tocMarkers = ['Inhaltsverzeichnis','Indice','Index','Table des matières','Table of Contents'];
-    final tocTitleIndex = _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
+    const tocMarkers = [
+      'Inhaltsverzeichnis',
+      'Indice',
+      'Index',
+      'Table des matières',
+      'Table of Contents'
+    ];
+    final tocTitleIndex =
+        _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
     List<String> enumerationHeadings = [];
     if (tocTitleIndex != -1) {
       _skipIndices.add(tocTitleIndex); // hide the TOC title line inside content
@@ -44,7 +52,8 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
         final trimmed = raw.trim();
         if (trimmed.isEmpty) break; // blank line ends enumeration
         final isHeadingCandidate = _headingRegex.hasMatch(trimmed);
-        if (!isHeadingCandidate) break; // enumeration block ends when a non-heading encountered
+        if (!isHeadingCandidate)
+          break; // enumeration block ends when a non-heading encountered
         if (seen.contains(trimmed)) {
           // We encountered a heading we've already listed -> this is the start of real content
           break;
@@ -88,7 +97,10 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
     if (key == null) return;
     final context = key.currentContext;
     if (context == null) return;
-    await Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut, alignment: 0.1);
+    await Scrollable.ensureVisible(context,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1);
   }
 
   @override
@@ -107,8 +119,14 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
-        title: Text(l.privacyPolicy, style: TextStyle(color: AppColors.textPrimary,fontSize: 18,fontWeight: FontWeight.w600)),
-        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary), onPressed: () => context.pop()),
+        title: Text(l.privacyPolicy,
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w600)),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+            onPressed: () => context.pop()),
         actions: [
           IconButton(
             tooltip: l.copy,
@@ -116,7 +134,8 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: body));
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.copied)));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(l.copied)));
               }
             },
           )
@@ -129,17 +148,28 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
           Card(
             elevation: 2,
             color: AppColors.surfaceCards,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l.privacyPolicy, style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold,color: AppColors.textPrimary)),
+                  Text(l.privacyPolicy,
+                      style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
                   const SizedBox(height: 6),
-                  Text(l.privacyPolicyLastUpdated, style: TextStyle(fontSize: 14,color: AppColors.textSecondary)),
+                  Text(l.privacyPolicyLastUpdated,
+                      style: TextStyle(
+                          fontSize: 14, color: AppColors.textSecondary)),
                   const SizedBox(height: 20),
-                  if (_headings.isNotEmpty) _Toc(headings: _headings, title: l.tableOfContents, onTap: _scrollTo),
+                  if (_headings.isNotEmpty)
+                    _Toc(
+                        headings: _headings,
+                        title: l.tableOfContents,
+                        onTap: _scrollTo),
                   const Divider(height: 32),
                   ..._buildParagraphs(),
                 ],
@@ -166,7 +196,8 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
       }
       widgets.add(Padding(
         key: key,
-        padding: EdgeInsets.only(bottom: isHeading ? 12 : 10, top: isHeading ? 16 : 0),
+        padding: EdgeInsets.only(
+            bottom: isHeading ? 12 : 10, top: isHeading ? 16 : 0),
         child: SelectableText(
           text,
           style: isHeading
@@ -183,24 +214,26 @@ class _Toc extends StatelessWidget {
   final List<String> headings;
   final String title;
   final void Function(String heading) onTap;
-  const _Toc({required this.headings, required this.title, required this.onTap});
+  const _Toc(
+      {required this.headings, required this.title, required this.onTap});
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 12,
-            runSpacing: 8,
-            children: [
-              for (final h in headings)
-                ActionChip(
-                  label: Text(h, style: const TextStyle(fontSize: 12)),
-                  onPressed: () => onTap(h.trim()),
-                )
-            ],
+          runSpacing: 8,
+          children: [
+            for (final h in headings)
+              ActionChip(
+                label: Text(h, style: const TextStyle(fontSize: 12)),
+                onPressed: () => onTap(h.trim()),
+              )
+          ],
         )
       ],
     );

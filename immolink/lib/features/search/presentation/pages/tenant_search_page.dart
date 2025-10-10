@@ -399,7 +399,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
           final name = conversation.otherParticipantName ?? 'User';
           final otherId = conversation.otherParticipantId ?? '';
           final avatar = conversation.otherParticipantAvatar ?? '';
-          context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+          context.push(
+              '/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         };
         break;
       case 'tenant':
@@ -411,7 +412,8 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
           final name = conversation.otherParticipantName ?? 'User';
           final otherId = conversation.otherParticipantId ?? '';
           final avatar = conversation.otherParticipantAvatar ?? '';
-          context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+          context.push(
+              '/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         };
         break;
       default:

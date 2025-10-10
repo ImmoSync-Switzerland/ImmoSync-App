@@ -100,7 +100,10 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                UserAvatar(imageRef: user?.profileImage, name: user?.fullName, size: 80),
+                UserAvatar(
+                    imageRef: user?.profileImage,
+                    name: user?.fullName,
+                    size: 80),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

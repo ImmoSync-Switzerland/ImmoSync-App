@@ -215,7 +215,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       return conversations;
     }
 
-  final currentUser = ref.watch(currentUserProvider);
+    final currentUser = ref.watch(currentUserProvider);
     final currentUserId = currentUser?.id ?? '';
     final isLandlord = currentUser?.role == 'landlord';
 
@@ -297,7 +297,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     String otherUserId,
     String currentUserId,
   ) {
-  final currentUser = ref.watch(currentUserProvider);
+    final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
 
     final otherUserName = conversation.getOtherParticipantDisplayName(
@@ -305,8 +305,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       isLandlord: isLandlord,
     );
 
-  final isBlocked = (currentUser?.blockedUsers ?? const <String>[]).contains(otherUserId);
-  return Container(
+    final isBlocked =
+        (currentUser?.blockedUsers ?? const <String>[]).contains(otherUserId);
+    return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -332,9 +333,11 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-  leading: UserAvatar(
-          imageRef: conversation.getOtherParticipantAvatarRef() 
-              ?? (otherUserId.isNotEmpty ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image' : null),
+        leading: UserAvatar(
+          imageRef: conversation.getOtherParticipantAvatarRef() ??
+              (otherUserId.isNotEmpty
+                  ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image'
+                  : null),
           name: otherUserName,
           size: 50,
           fallbackToCurrentUser: false,
@@ -390,12 +393,22 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             const SizedBox(height: 4),
             Text(
               (() {
+                // Ensure preview watcher for this conversation is active (Matrix timelines)
+                final me = ref.read(currentUserProvider);
+                if (me != null && otherUserId.isNotEmpty) {
+                  // fire-and-forget
+                  ref.read(chatPreviewProvider.notifier).ensureWatching(
+                      conversationId: conversation.id,
+                      currentUserId: me.id,
+                      otherUserId: otherUserId);
+                }
                 final previews = ref.read(chatPreviewProvider);
                 final override = previews[conversation.id];
                 if (override != null && override.isNotEmpty) return override;
                 // Treat empty content from aggregation as encrypted/no-preview
                 final lm = (conversation.lastMessage).toString().trim();
-                if (lm.isEmpty || lm == '[encrypted]') return 'Encrypted message';
+                if (lm.isEmpty || lm == '[encrypted]')
+                  return 'Encrypted message';
                 return lm;
               })(),
               style: TextStyle(
@@ -424,9 +437,12 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ),
         onTap: () {
           HapticFeedback.lightImpact();
-      final avatar = conversation.getOtherParticipantAvatarRef() 
-        ?? (otherUserId.isNotEmpty ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image' : '');
-          context.push('/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+          final avatar = conversation.getOtherParticipantAvatarRef() ??
+              (otherUserId.isNotEmpty
+                  ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image'
+                  : '');
+          context.push(
+              '/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
         },
       ),
     );

@@ -7,6 +7,11 @@ import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `get_rt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
+
+/// Subscribe a Dart StreamSink to receive Matrix events.
+Stream<MatrixEvent> subscribeEvents() =>
+    RustLib.instance.api.crateBridgeSubscribeEvents();
 
 Future<void> init({required String homeserver, required String dataDir}) =>
     RustLib.instance.api
@@ -21,17 +26,13 @@ Future<String> createRoom({required String otherMxid}) =>
 Future<String> sendMessage({required String roomId, required String body}) =>
     RustLib.instance.api.crateBridgeSendMessage(roomId: roomId, body: body);
 
+/// Send a read receipt for a specific event in a room.
+Future<void> markRead({required String roomId, required String eventId}) =>
+    RustLib.instance.api.crateBridgeMarkRead(roomId: roomId, eventId: eventId);
+
 Future<void> startSync() => RustLib.instance.api.crateBridgeStartSync();
 
 Future<void> stopSync() => RustLib.instance.api.crateBridgeStopSync();
-
-// Stream subscription for Matrix events
-Stream<Map<String, dynamic>> subscribeEvents() async* {
-    // The generated API for streams isn't present yet; after regenerating FRB
-    // this will be replaced by a proper `crateBridgeSubscribeEvents()` stream.
-    // Placeholder to keep API surface stable in Dart code.
-    yield* const Stream.empty();
-}
 
 class LoginResult {
   final String userId;
@@ -52,4 +53,43 @@ class LoginResult {
           runtimeType == other.runtimeType &&
           userId == other.userId &&
           accessToken == other.accessToken;
+}
+
+class MatrixEvent {
+  final String roomId;
+  final String eventId;
+  final String sender;
+  final PlatformInt64 ts;
+  final String? content;
+  final bool isEncrypted;
+
+  const MatrixEvent({
+    required this.roomId,
+    required this.eventId,
+    required this.sender,
+    required this.ts,
+    this.content,
+    required this.isEncrypted,
+  });
+
+  @override
+  int get hashCode =>
+      roomId.hashCode ^
+      eventId.hashCode ^
+      sender.hashCode ^
+      ts.hashCode ^
+      content.hashCode ^
+      isEncrypted.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MatrixEvent &&
+          runtimeType == other.runtimeType &&
+          roomId == other.roomId &&
+          eventId == other.eventId &&
+          sender == other.sender &&
+          ts == other.ts &&
+          content == other.content &&
+          isEncrypted == other.isEncrypted;
 }

@@ -37,7 +37,7 @@ class UserService {
     required String email,
     required String phone,
     String? address,
-  String? profileImage,
+    String? profileImage,
   }) async {
     try {
       // Include session token if available for backend-side identification
@@ -65,7 +65,8 @@ class UserService {
         token = prefs.getString('sessionToken');
       } catch (_) {}
       if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = token; // plain token (backend accepts plain or query)
+        headers['Authorization'] =
+            token; // plain token (backend accepts plain or query)
       }
 
       final response = await http.patch(
@@ -76,7 +77,7 @@ class UserService {
           'email': email,
           'phone': phone,
           if (address != null) 'address': address,
-      if (profileImage != null) 'profileImage': profileImage,
+          if (profileImage != null) 'profileImage': profileImage,
         }),
       );
 
@@ -103,7 +104,8 @@ class UserService {
       } catch (_) {}
       if (token == null || token.isEmpty) return null;
       headers['Authorization'] = token;
-      final resp = await http.get(Uri.parse('$_apiUrl/users/me'), headers: headers);
+      final resp =
+          await http.get(Uri.parse('$_apiUrl/users/me'), headers: headers);
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body) as Map<String, dynamic>;
         return User.fromMap(data);
@@ -117,7 +119,8 @@ class UserService {
   Future<User?> fetchUserById(String userId) async {
     try {
       final headers = <String, String>{'Content-Type': 'application/json'};
-      final resp = await http.get(Uri.parse('$_apiUrl/users/by-id/$userId'), headers: headers);
+      final resp = await http.get(Uri.parse('$_apiUrl/users/by-id/$userId'),
+          headers: headers);
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body) as Map<String, dynamic>;
         return User.fromMap(data);

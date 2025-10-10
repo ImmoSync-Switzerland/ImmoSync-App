@@ -34,9 +34,9 @@ class Conversation {
     this.otherParticipantName,
     this.otherParticipantEmail,
     this.otherParticipantRole,
-  this.otherParticipantAvatar,
+    this.otherParticipantAvatar,
     this.participants,
-  this.matrixRoomId,
+    this.matrixRoomId,
   });
   factory Conversation.fromMap(Map<String, dynamic> map) {
     String? _asId(dynamic v) {
@@ -52,6 +52,7 @@ class Conversation {
       final s = v.toString();
       return s == 'Instance of \"_Map\"' || s == '[object Object]' ? null : s;
     }
+
     return Conversation(
       id: map['_id']?.toString() ?? map['id']?.toString() ?? '',
       propertyId: map['propertyId'] ?? '',
@@ -69,13 +70,14 @@ class Conversation {
       otherParticipantName: map['otherParticipantName'],
       otherParticipantEmail: map['otherParticipantEmail'],
       otherParticipantRole: map['otherParticipantRole'],
-      otherParticipantAvatar: _asId(
-        map['otherParticipantAvatar'] ?? map['otherParticipantImage'] ?? map['profileImage']
-      ),
+      otherParticipantAvatar: _asId(map['otherParticipantAvatar'] ??
+          map['otherParticipantImage'] ??
+          map['profileImage']),
       participants: map['participants'] != null
           ? List<String>.from(map['participants'])
           : null,
-  matrixRoomId: map['matrixRoomId'] ?? map['matrix_room_id'] ?? map['roomId'],
+      matrixRoomId:
+          map['matrixRoomId'] ?? map['matrix_room_id'] ?? map['roomId'],
     );
   }
 
@@ -83,7 +85,10 @@ class Conversation {
   String? getOtherParticipantAvatarUrl() {
     final ref = otherParticipantAvatar;
     // If backend already provided an absolute URL (canonical or provider picture), use it
-    if (ref != null && (ref.startsWith('http://') || ref.startsWith('https://') || ref.startsWith('data:'))) {
+    if (ref != null &&
+        (ref.startsWith('http://') ||
+            ref.startsWith('https://') ||
+            ref.startsWith('data:'))) {
       return ref;
     }
     // Otherwise, try to compose the canonical inline URL for this user
@@ -99,7 +104,9 @@ class Conversation {
     final ref = otherParticipantAvatar;
     if (ref != null && ref.isNotEmpty) {
       // If it's already a URL or data URI, use as-is
-      if (ref.startsWith('http://') || ref.startsWith('https://') || ref.startsWith('data:')) {
+      if (ref.startsWith('http://') ||
+          ref.startsWith('https://') ||
+          ref.startsWith('data:')) {
         return ref;
       }
       // Otherwise it's likely a legacy GridFS id; let MongoImage handle it
@@ -108,6 +115,7 @@ class Conversation {
     // Fallback to composed canonical URL
     return getOtherParticipantAvatarUrl();
   }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -124,9 +132,9 @@ class Conversation {
       'otherParticipantName': otherParticipantName,
       'otherParticipantEmail': otherParticipantEmail,
       'otherParticipantRole': otherParticipantRole,
-  'otherParticipantAvatar': otherParticipantAvatar,
+      'otherParticipantAvatar': otherParticipantAvatar,
       'participants': participants,
-  'matrixRoomId': matrixRoomId,
+      'matrixRoomId': matrixRoomId,
     };
   }
 
@@ -202,9 +210,11 @@ class Conversation {
       relatedInvitationId: relatedInvitationId ?? this.relatedInvitationId,
       otherParticipantId: otherParticipantId ?? this.otherParticipantId,
       otherParticipantName: otherParticipantName ?? this.otherParticipantName,
-      otherParticipantEmail: otherParticipantEmail ?? this.otherParticipantEmail,
+      otherParticipantEmail:
+          otherParticipantEmail ?? this.otherParticipantEmail,
       otherParticipantRole: otherParticipantRole ?? this.otherParticipantRole,
-      otherParticipantAvatar: otherParticipantAvatar ?? this.otherParticipantAvatar,
+      otherParticipantAvatar:
+          otherParticipantAvatar ?? this.otherParticipantAvatar,
       participants: participants ?? this.participants,
       matrixRoomId: matrixRoomId ?? this.matrixRoomId,
     );

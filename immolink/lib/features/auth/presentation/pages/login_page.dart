@@ -581,13 +581,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   Future<void> _handleGoogle() async {
     // Request an ID token by providing the OAuth2 Web Client ID from env
-  const clientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
+    const clientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
     final googleSignIn = GoogleSignIn(
       scopes: const ['email', 'profile'],
       serverClientId: clientId.isNotEmpty ? clientId : null,
     );
     try {
-  final account = await googleSignIn.signIn();
+      final account = await googleSignIn.signIn();
       if (account == null) return; // canceled
       final auth = await account.authentication;
       final idToken = auth.idToken;

@@ -14,11 +14,13 @@ class MatrixChatService {
     _inited = true;
   }
 
-  Future<void> login({required String username, required String password}) async {
+  Future<void> login(
+      {required String username, required String password}) async {
     await frb.login(user: username, password: password);
   }
 
-  Future<String> sendMessage({required String roomId, required String body}) async {
+  Future<String> sendMessage(
+      {required String roomId, required String body}) async {
     return frb.sendMessage(roomId: roomId, body: body);
   }
 
@@ -28,5 +30,9 @@ class MatrixChatService {
 
   Future<void> stopSync() async {
     await frb.stopSync();
+  }
+
+  Future<void> markRead({required String roomId, required String eventId}) {
+    return frb.markRead(roomId: roomId, eventId: eventId);
   }
 }

@@ -628,7 +628,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           context.push('/search');
         },
         decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.searchPropertiesTenantsMessages,
+          hintText:
+              AppLocalizations.of(context)!.searchPropertiesTenantsMessages,
           hintStyle: TextStyle(
             color: colors.textSecondary,
             fontSize: 15,
@@ -1709,9 +1710,14 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           title: Text(AppLocalizations.of(context)!.filterOptions),
           content: SegmentedButton<String>(
             segments: [
-              ButtonSegment(value: 'all', label: Text(AppLocalizations.of(context)!.all)),
-              ButtonSegment(value: 'recent', label: Text(AppLocalizations.of(context)!.recentLabel)),
-              ButtonSegment(value: 'important', label: Text(AppLocalizations.of(context)!.importantLabel)),
+              ButtonSegment(
+                  value: 'all', label: Text(AppLocalizations.of(context)!.all)),
+              ButtonSegment(
+                  value: 'recent',
+                  label: Text(AppLocalizations.of(context)!.recentLabel)),
+              ButtonSegment(
+                  value: 'important',
+                  label: Text(AppLocalizations.of(context)!.importantLabel)),
             ],
             selected: {selectedFilter},
             onSelectionChanged: (newSelection) {

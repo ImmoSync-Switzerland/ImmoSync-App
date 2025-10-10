@@ -69,7 +69,9 @@ class NotificationsNotifier
       int updated = 0;
       try {
         final body = jsonDecode(resp.body);
-        updated = (body is Map && body['updated'] is num) ? (body['updated'] as num).toInt() : 0;
+        updated = (body is Map && body['updated'] is num)
+            ? (body['updated'] as num).toInt()
+            : 0;
       } catch (_) {}
       final current = state.value ?? [];
       state = AsyncData(current
