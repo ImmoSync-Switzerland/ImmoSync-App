@@ -17,12 +17,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../../../../core/presence/presence_ws_service.dart';
 import '../../../../core/presence/presence_cache.dart';
-import '../../../../core/config/db_config.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -61,7 +57,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
   ProviderSubscription<Map<String, PresenceInfo>>? _presenceCacheRemove;
   ProviderSubscription<dynamic>? _authConnSub;
   Timer? _wsConnectRetry;
-  int _wsConnectAttempts = 0;
   // Stream subscriptions for chat & conversation sockets (to cancel on dispose)
   StreamSubscription<Map<String, dynamic>>? _chatStreamSub;
   StreamSubscription<Map<String, dynamic>>? _conversationStreamSub;
@@ -97,11 +92,13 @@ class _ChatPageState extends ConsumerState<ChatPage>
     // Start fallback refresh and init layers
     _currentConversationId = widget.conversationId;
     // No polling refresh (pure WS)
-    _initPresenceLayer();
-    _initChatWsListener();
-  // Attempt initial read marking shortly after build
-  WidgetsBinding.instance
-    .addPostFrameCallback((_) { unawaited(_emitReadReceipts()); });
+  // Matrix-only mode: disable legacy WS presence/chat layers
+  // _initPresenceLayer();
+  // _initChatWsListener();
+    // Attempt initial read marking shortly after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_emitReadReceipts());
+    });
     // Attach scroll listener for fine-grained visibility based read detection
     _scrollController.addListener(_onScrollVisibilityCheck);
     // Pre-derive conversation key (best-effort) for faster first encrypted message
@@ -168,7 +165,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
     _scrollController.dispose();
     _animationController.dispose();
     // no polling timer to cancel
-    _presenceTimer?.cancel();
+  _presenceTimer?.cancel();
     _visibilityDebounce?.cancel();
     _presenceCacheRemove?.close();
     _authConnSub?.close();
@@ -180,157 +177,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
     super.dispose();
   }
 
-  // polling removed
+  // polling removed and legacy WS removed
 
-  void _initPresenceLayer() {
-    final currentUser = ref.read(currentUserProvider);
-    final userId = currentUser?.id;
-    print('[ChatPage][_initPresenceLayer] userId=$userId');
-    if (userId != null && userId.isNotEmpty) {
-      void tryConnect() {
-        final token = ref.read(authProvider).sessionToken;
-        print(
-            '[ChatPage][tryConnect] attempt=$_wsConnectAttempts token=${token != null}');
-        if (token != null) {
-          ref
-              .read(presenceWsServiceProvider)
-              .connect(userId: userId, token: token);
-          _authConnSub?.close();
-          _authConnSub = null;
-          _wsConnectRetry?.cancel();
-          // After short delay, dump debug status
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) {
-              ref.read(presenceWsServiceProvider).debugStatus();
-            }
-          });
-        }
-      }
-
-      // Attempt now (post frame) and if token not yet ready, listen for it
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        tryConnect();
-        if (_authConnSub == null &&
-            ref.read(authProvider).sessionToken == null) {
-          _authConnSub = ref.listenManual(authProvider, (prev, next) {
-            if (mounted) tryConnect();
-          });
-        }
-      });
-      // Also start a periodic retry (in case listenManual misses initial change)
-      _wsConnectRetry = Timer.periodic(const Duration(seconds: 2), (t) {
-        _wsConnectAttempts++;
-        if (_wsConnectAttempts > 10) {
-          t.cancel();
-          return;
-        }
-        // Just attempt; PresenceWsService internally ignores duplicate connects
-        tryConnect();
-      });
-      // Fallback REST heartbeat every 45s (server also gets WS pings)
-      _presenceTimer =
-          Timer.periodic(const Duration(seconds: 45), (_) => _sendHeartbeat());
-      _sendHeartbeat();
-    }
-    // Listen to presence cache for other user updates (manual listen allowed outside build)
-    _presenceCacheRemove = ref.listenManual<Map<String, PresenceInfo>>(
-        presenceCacheProvider, (prev, next) {
-      final oid = widget.otherUserId;
-      if (oid != null && next.containsKey(oid)) {
-        final info = next[oid]!;
-        if (mounted) {
-          setState(() {
-            _otherOnline = info.online;
-            _otherLastSeen = info.lastSeen;
-          });
-        }
-      }
-    });
-    // Initial fetch for other user (HTTP fallback)
-    _fetchOtherStatus();
-  }
-
-  void _initChatWsListener() {
-    final ws = ref.read(presenceWsServiceProvider);
-    // Cancel existing subs if reinitializing
-    _chatStreamSub?.cancel();
-    _conversationStreamSub?.cancel();
-    _chatStreamSub = ws.chatStream.listen((data) {
-      if (!mounted) return; // prevent ref usage after dispose
-      try {
-        final type = data['type'];
-        final convId = _currentConversationId ?? widget.conversationId;
-        if (type == 'typing') {
-          if (data['conversationId'] == convId &&
-              data['userId'] != ref.read(currentUserProvider)?.id) {
-            setState(() {
-              _otherTyping = data['isTyping'] == true;
-            });
-          }
-        }
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-      } catch (_) {}
-    });
-    _conversationStreamSub = ws.conversationStream.listen((data) {
-      if (!mounted) return;
-      if (data['type'] == 'createAck') {
-        final conv = data['conversation'];
-        final newId = conv?['_id']?.toString();
-        if (newId != null &&
-            newId.isNotEmpty &&
-            newId != _currentConversationId) {
-          setState(() {
-            _currentConversationId = newId;
-          });
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => ChatPage(
-                  conversationId: newId,
-                  otherUserName: widget.otherUserName,
-                  otherUserAvatar: widget.otherUserAvatar,
-                  otherUserId: widget.otherUserId,
-                ),
-              ),
-            );
-          });
-        }
-      }
-    });
-  }
-
-  Future<void> _sendHeartbeat() async {
-    final currentUser = ref.read(currentUserProvider);
-    final userId = currentUser?.id;
-    if (userId == null || userId.isEmpty) return;
-    try {
-      // Assuming same base API used elsewhere
-      final baseUrl = DbConfig.apiUrl;
-      await http.post(Uri.parse('$baseUrl/users/$userId/heartbeat'));
-    } catch (_) {}
-  }
-
-  Future<void> _fetchOtherStatus() async {
-    if (widget.otherUserId == null || widget.otherUserId!.isEmpty) return;
-    try {
-      final baseUrl = DbConfig.apiUrl;
-      final resp = await http.get(
-          Uri.parse('$baseUrl/users/online-status?ids=${widget.otherUserId}'));
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
-        final map = data['statuses'] as Map<String, dynamic>;
-        final entry = map[widget.otherUserId];
-        if (entry != null) {
-          setState(() {
-            _otherOnline = entry['online'] == true;
-            final ls = entry['lastSeen'];
-            _otherLastSeen = ls != null ? DateTime.tryParse(ls) : null;
-          });
-        }
-      }
-    } catch (_) {}
-  }
+  // Heartbeat and HTTP presence fetch removed in Matrix-only mode
 
   @override
   Widget build(BuildContext context) {

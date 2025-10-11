@@ -110,6 +110,18 @@ void main() async {
       debugPrint(st.toString());
     }
 
+    // Step 6: Initialize flutter_rust_bridge before any FRB usage
+    // This must run before widgets/providers that call into the bridge (e.g., subscribeEvents)
+    try {
+      await RustLib.init();
+      debugPrint('[Startup] flutter_rust_bridge initialized');
+    } catch (e, st) {
+      debugPrint('[Startup][FATAL] flutter_rust_bridge init failed: $e');
+      debugPrint(st.toString());
+      // Re-throw to surface a clear startup error UI if FRB cannot load
+      rethrow;
+    }
+
     // Run app – heavy providers will lazy load AFTER first frame
     try {
       runApp(const ProviderScope(child: ImmoSync()));
@@ -212,8 +224,6 @@ class ImmoSync extends ConsumerWidget {
 // Fire-and-forget Matrix init+login using backend-provisioned credentials
 Future<void> _initMatrixForUser(String userId) async {
   try {
-    // Ensure rust bridge is initialized before any FRB calls
-    await RustLib.init();
     final api = DbConfig.apiUrl;
     Future<Map<String, dynamic>?> fetchAccount() async {
       final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
@@ -234,11 +244,8 @@ Future<void> _initMatrixForUser(String userId) async {
     final username = data['username'] as String?;
     final password = data['password'] as String?;
     if (homeserver.isEmpty || username == null || password == null) return;
-    await MatrixChatService.instance.ensureInitialized(homeserver: homeserver);
-    await MatrixChatService.instance
-        .login(username: username, password: password);
-    // Start Matrix sync to enable receiving/sending E2EE messages
-    await MatrixChatService.instance.startSync();
+    // Centralized readiness (idempotent) avoids duplicate login/sync
+    await MatrixChatService.instance.ensureReadyForUser(userId);
   } catch (e, st) {
     debugPrint('Matrix init/login failed: $e');
     debugPrint(st.toString());

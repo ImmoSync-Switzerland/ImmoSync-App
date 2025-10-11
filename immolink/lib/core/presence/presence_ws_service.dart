@@ -22,6 +22,8 @@ class PresenceUpdate {
 }
 
 class PresenceWsService {
+  // Toggle to fully disable legacy WebSocket layer (Matrix-only mode)
+  static const bool _disabled = true;
   IO.Socket? _presenceSocket;
   IO.Socket? _chatSocket;
   final _controller = StreamController<PresenceUpdate>.broadcast();
@@ -43,6 +45,10 @@ class PresenceWsService {
       _conversationController.stream;
 
   Future<void> connect({required String userId, required String token}) async {
+    if (_disabled) {
+      // Matrix-only mode: no WS connections
+      return;
+    }
     // If sockets already exist, only keep them if identity (userId/token) matches.
     if (_presenceSocket != null) {
       final sameIdentity = (_userId == userId) && (_token == token);

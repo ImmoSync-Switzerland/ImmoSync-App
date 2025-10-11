@@ -10,6 +10,8 @@ import 'package:immosync/core/crypto/e2ee_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:immosync/bridge.dart' as frb; // FRB generated helpers
+import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;
@@ -23,7 +25,31 @@ class ChatService {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Conversation.fromMap(json)).toList();
+      final all = data.map((json) => Conversation.fromMap(json)).toList();
+      // Matrix-only: keep only conversations that already have a Matrix room mapping
+      // Filter by existing mapping using new optimized by-users route when possible
+      final futures = all.map((c) async {
+        final other = c.otherParticipantId ?? '';
+        if (other.isEmpty) return null;
+        try {
+          final byUsers = await http.get(
+            Uri.parse('$_apiUrl/matrix/rooms/by-users/$userId/$other'),
+            headers: {'Content-Type': 'application/json'},
+          );
+          if (byUsers.statusCode == 200) return c;
+        } catch (_) {}
+        // Fallback to per-conversation mapping check
+        try {
+          final mr = await http.get(
+            Uri.parse('$_apiUrl/conversations/${c.id}/matrix-room'),
+            headers: {'Content-Type': 'application/json'},
+          );
+          if (mr.statusCode == 200) return c;
+        } catch (_) {}
+        return null;
+      }).toList();
+      final results = await Future.wait(futures);
+      return results.whereType<Conversation>().toList();
     }
     throw Exception('Failed to load conversations');
   }
@@ -65,52 +91,296 @@ class ChatService {
     String? otherUserId,
     // Removed misplaced import statement
   }) async {
+    // Ensure Matrix native client is ready for this sender (init/login/sync)
+    await MatrixChatService.instance.ensureReadyForUser(senderId);
     // Resolve Matrix roomId for this conversation (server must provide mapping)
-    final roomId = await _fetchOrCreateMatrixRoomId(
+    String? roomId = await _fetchOrCreateMatrixRoomId(
         conversationId: conversationId,
         creatorUserId: senderId,
-        otherUserId: receiverId);
+        otherUserId: receiverId,
+        ref: ref);
     if (roomId == null || roomId.isEmpty) {
-      throw Exception(
-          'Matrix roomId not found for conversation $conversationId');
+      // Try to ensure/create the room immediately before aborting
+      roomId = await _ensureRoom(
+        conversationId: conversationId,
+        creatorUserId: senderId,
+        otherUserId: receiverId,
+        ref: ref,
+      );
+      if (roomId == null || roomId.isEmpty) {
+        throw Exception(
+            'Matrix roomId not found for conversation $conversationId');
+      }
     }
-    // Send via FRB and capture Matrix event id
-    final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
-    // Matrix-only: do not persist chat content to backend anymore.
-    return matrixEventId;
+    // Send via FRB and capture Matrix event id; on room-not-found, ensure room and retry once
+    try {
+      // Debug log for tracing
+      // ignore: avoid_print
+      print('[MatrixSend] attempt -> conv=$conversationId roomId=$roomId');
+      final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+      return matrixEventId;
+    } catch (e) {
+      final msg = e.toString().toLowerCase();
+      // ignore: avoid_print
+      print('[MatrixSend] caught error: $msg');
+      final looksNoRoom = msg.contains('room not found') || msg.contains('no such room') || msg.contains('unknown room');
+      final notInvited = msg.contains('not invited') || msg.contains('m_forbidden');
+      
+      // ignore: avoid_print
+      print('[MatrixSend] looksNoRoom=$looksNoRoom notInvited=$notInvited');
+      
+      if (!looksNoRoom && !notInvited) {
+        // ignore: avoid_print
+        print('[MatrixSend] rethrowing error');
+        rethrow;
+      }
+      
+      // If "not invited", delete the old mapping and force recreation via SDK
+      if (notInvited) {
+        // ignore: avoid_print
+        print('[MatrixSend] not invited to room, deleting old mapping and recreating...');
+        await _deleteRoomMapping(conversationId, ref);
+        // Clear the old roomId to force fetching the new one
+        roomId = null;
+      }
+      
+      // Attempt to (re)create/ensure the room and retry once
+      // ignore: avoid_print
+      print('[MatrixSend] room missing, ensuring + retrying once...');
+      final newRoomId = await _ensureRoom(
+        conversationId: conversationId,
+        creatorUserId: senderId,
+        otherUserId: receiverId,
+        ref: ref,
+      );
+      if (newRoomId != null && newRoomId.isNotEmpty) {
+        roomId = newRoomId;
+      }
+      // Wait longer for background sync to pick up the newly created room
+      // ignore: avoid_print
+      print('[MatrixSend] waiting for sync to fetch new room...');
+      await Future.delayed(const Duration(seconds: 3));
+      // Re-fetch mapping in case a different roomId was created
+      roomId ??= await _fetchOrCreateMatrixRoomId(
+        conversationId: conversationId,
+        creatorUserId: senderId,
+        otherUserId: receiverId,
+        ref: ref,
+      );
+      if (roomId == null || roomId.isEmpty) {
+        throw Exception('Send failed: unable to ensure Matrix room');
+      }
+      // ignore: avoid_print
+      print('[MatrixSend] retry -> conv=$conversationId roomId=$roomId');
+      try {
+        // ignore: avoid_print
+        print('[MatrixSend] calling frb.sendMessage with new roomId...');
+        final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+        // ignore: avoid_print
+        print('[MatrixSend] SUCCESS! Message sent with event ID: $matrixEventId');
+        return matrixEventId;
+      } catch (e2) {
+        final msg2 = e2.toString().toLowerCase();
+        final stillNoRoom = msg2.contains('room not found') || msg2.contains('no such room') || msg2.contains('unknown room');
+        if (!stillNoRoom) rethrow;
+        // Last attempt: wait a bit longer for sync to catch up and try once more
+        // ignore: avoid_print
+        print('[MatrixSend] still missing after ensure; waiting 2s and trying final time...');
+        await Future.delayed(const Duration(seconds: 2));
+        final finalEventId = await frb.sendMessage(roomId: roomId, body: content);
+        return finalEventId;
+      }
+    }
   }
 
   Future<String?> _fetchOrCreateMatrixRoomId({
     required String conversationId,
     required String creatorUserId,
     required String otherUserId,
+    Ref? ref,
   }) async {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    // Attach Authorization if available
+    try {
+      if (ref != null) {
+        // lazy import to avoid circular
+        // ignore: avoid_dynamic_calls
+        final auth = ref.read(authProvider);
+        final token = auth.sessionToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      }
+    } catch (_) {}
     // Expect backend to expose mapping endpoint
     final res = await http.get(
       Uri.parse('$_apiUrl/conversations/$conversationId/matrix-room'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
     if (res.statusCode == 200) {
       final data = json.decode(res.body);
       return data['matrixRoomId'] ?? data['roomId'] ?? data['matrix_room_id'];
     }
     if (res.statusCode == 404) {
-      // Ask backend to create the room mapping now
-      final create = await http.post(
-        Uri.parse('$_apiUrl/matrix/rooms/create-room'),
-        headers: {'Content-Type': 'application/json'},
+      if (otherUserId.isEmpty) {
+        // Without other user, we cannot ensure the room; return null
+        return null;
+      }
+      // Create room via SDK instead of backend HTTP API
+      return await _ensureRoom(
+        conversationId: conversationId,
+        creatorUserId: creatorUserId,
+        otherUserId: otherUserId,
+        ref: ref,
+      );
+    }
+    return null;
+  }
+
+  /// Ensure/create the Matrix room mapping via SDK and return the roomId if successful.
+  Future<String?> _ensureRoom({
+    required String conversationId,
+    required String creatorUserId,
+    required String otherUserId,
+    Ref? ref,
+  }) async {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    try {
+      if (ref != null) {
+        final auth = ref.read(authProvider);
+        final token = auth.sessionToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      }
+    } catch (_) {}
+    
+    // First check if other user has Matrix account and get their MXID
+    String? otherMxid = await _getMatrixMxid(otherUserId);
+    if (otherMxid == null || otherMxid.isEmpty) {
+      // ignore: avoid_print
+      print('[MatrixRoom] Other user has no Matrix account, need to provision first');
+      // Call backend to provision the other user
+      final primaryHost = DbConfig.primaryHost;
+      final provisionUri = Uri.parse('$primaryHost/api/matrix/provision');
+      // ignore: avoid_print
+      print('[MatrixRoom] Provisioning user $otherUserId at $provisionUri');
+      final provResp = await http.post(
+        provisionUri,
+        headers: headers,
+        body: json.encode({'userId': otherUserId}),
+      );
+      // ignore: avoid_print
+      print('[MatrixRoom] Provision response: status=${provResp.statusCode} body=${provResp.body}');
+      if (provResp.statusCode < 200 || provResp.statusCode >= 300) {
+        // ignore: avoid_print
+        print('[MatrixRoom] Failed to provision other user: ${provResp.body}');
+        return null;
+      }
+      // Retry getting MXID and update the variable
+      otherMxid = await _getMatrixMxid(otherUserId);
+      if (otherMxid == null || otherMxid.isEmpty) {
+        // ignore: avoid_print
+        print('[MatrixRoom] Still no MXID after provisioning');
+        return null;
+      }
+    }
+    
+    // Use backend API to create room (ensures both users are properly invited)
+    // This is better than SDK creation because it handles multi-device scenarios correctly
+    try {
+      final primaryHost = DbConfig.primaryHost;
+      final ensureRoomUrl = '$primaryHost/api/matrix/rooms/ensure-room';
+      // ignore: avoid_print
+      print('[MatrixRoom] Creating room via backend API: $ensureRoomUrl');
+      
+      final resp = await http.post(
+        Uri.parse(ensureRoomUrl),
+        headers: headers,
         body: json.encode({
           'conversationId': conversationId,
           'creatorUserId': creatorUserId,
           'otherUserId': otherUserId,
         }),
       );
-      if (create.statusCode == 200) {
-        final data = json.decode(create.body);
-        return data['roomId'] ?? data['matrixRoomId'];
+      
+      // ignore: avoid_print
+      print('[MatrixRoom] Backend response: status=${resp.statusCode}');
+      
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        final data = json.decode(resp.body);
+        final roomId = data['roomId'] as String?;
+        if (roomId != null && roomId.isNotEmpty) {
+          // ignore: avoid_print
+          print('[MatrixRoom] Created room via backend: $roomId');
+          
+          // Wait for invitation to sync to SDK client
+          // ignore: avoid_print
+          print('[MatrixRoom] Waiting for invitation to sync...');
+          await Future.delayed(const Duration(seconds: 3));
+          
+          return roomId;
+        }
       }
+      
+      // ignore: avoid_print
+      print('[MatrixRoom] Failed to create room via backend: ${resp.body}');
+      return null;
+    } catch (e) {
+      // ignore: avoid_print
+      print('[MatrixRoom] Failed to create room via backend: $e');
+      return null;
+    }
+  }
+  
+  /// Get the Matrix MXID for a user from backend
+  Future<String?> _getMatrixMxid(String userId) async {
+    try {
+      // Use primaryHost (localhost proxy) to match where provisioning happens
+      final primaryHost = DbConfig.primaryHost;
+      final url = '$primaryHost/api/matrix/accounts/$userId/mxid';
+      // ignore: avoid_print
+      print('[MatrixRoom] Getting MXID from $url');
+      final resp = await http.get(Uri.parse(url));
+      // ignore: avoid_print
+      print('[MatrixRoom] MXID response: status=${resp.statusCode} body=${resp.body}');
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
+        final mxid = data['mxid'] as String?;
+        // ignore: avoid_print
+        print('[MatrixRoom] Parsed MXID: $mxid');
+        return mxid;
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[MatrixRoom] Failed to get MXID for user $userId: $e');
     }
     return null;
+  }
+  
+  /// Delete an old Matrix room mapping to force recreation
+  Future<void> _deleteRoomMapping(String conversationId, Ref? ref) async {
+    try {
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (ref != null) {
+        final auth = ref.read(authProvider);
+        final token = auth.sessionToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      }
+      final resp = await http.delete(
+        Uri.parse('$_apiUrl/matrix/rooms/mapping/$conversationId'),
+        headers: headers,
+      );
+      if (resp.statusCode == 200) {
+        // ignore: avoid_print
+        print('[MatrixRoom] Deleted old mapping for conversation $conversationId');
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[MatrixRoom] Failed to delete mapping: $e');
+    }
   }
 
   // Public helper for UI layers to resolve room mapping without duplicating logic
@@ -145,6 +415,31 @@ class ChatService {
       return data['_id'];
     }
     throw Exception('Failed to find or create conversation: ${response.body}');
+  }
+
+  /// Delete a conversation and its messages on the backend.
+  /// Also removes any Matrix mapping in backend storage. Note: This does not
+  /// leave/delete the actual Matrix room on the homeserver.
+  Future<void> deleteConversation(String conversationId, {Ref? ref}) async {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    try {
+      if (ref != null) {
+        final auth = ref.read(authProvider);
+        final token = auth.sessionToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      }
+    } catch (_) {}
+
+    final resp = await http.delete(
+      Uri.parse('$_apiUrl/conversations/$conversationId'),
+      headers: headers,
+    );
+    if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      return;
+    }
+    throw Exception('Failed to delete conversation (${resp.statusCode}): ${resp.body}');
   }
 
   Future<String> createConversation({
@@ -265,14 +560,6 @@ class ChatService {
     } catch (e) {
       print('Error fetching recent conversations: $e');
       return [];
-    }
-  }
-
-  Future<void> deleteConversation(String conversationId) async {
-    final resp =
-        await http.delete(Uri.parse('$_apiUrl/conversations/$conversationId'));
-    if (resp.statusCode != 200) {
-      throw Exception('Failed to delete conversation: ${resp.body}');
     }
   }
 

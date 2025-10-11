@@ -155,4 +155,23 @@ router.get('/account/:userId', async (req, res) => {
   }
 });
 
+// GET /api/matrix/accounts/:userId/mxid
+// Get the Matrix ID (MXID) for a user
+router.get('/accounts/:userId/mxid', async (req, res) => {
+  try {
+    const userId = (req.params.userId || '').toString();
+    if (!userId) return res.status(400).json({ message: 'userId required' });
+    const db = getDB();
+    const accounts = db.collection('matrix_accounts');
+    const account = await accounts.findOne({ userId });
+    if (!account || !account.mxid) {
+      return res.status(404).json({ message: 'No Matrix account found for user' });
+    }
+    return res.json({ mxid: account.mxid });
+  } catch (e) {
+    console.error('matrix get-mxid error', e);
+    return res.status(500).json({ message: e.message });
+  }
+});
+
 module.exports = router;
