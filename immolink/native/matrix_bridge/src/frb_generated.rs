@@ -67,11 +67,12 @@ fn wire__crate__bridge__create_room_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api__other_mxid = <String>::sse_decode(&mut deserializer);
+            let api_other_mxid = <String>::sse_decode(&mut deserializer);
+            let api_creator_mxid = <Option<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::bridge::create_room(api__other_mxid)?;
+                    let output_ok = crate::bridge::create_room(api_other_mxid, api_creator_mxid)?;
                     Ok(output_ok)
                 })())
             }

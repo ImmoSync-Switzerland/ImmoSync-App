@@ -39,14 +39,16 @@ class ChatMessagesNotifier
                 otherUserId: '');
       } catch (_) {
         // Fallback: try to fetch via conversationId mapping
-        debugPrint('[MessagesProvider] Failed to resolve roomId, will retry on send');
+        debugPrint(
+            '[MessagesProvider] Failed to resolve roomId, will retry on send');
       }
-      
+
       // Use roomId if found, otherwise use conversationId as key (will be updated on first send)
       _roomId = roomId ?? _conversationId;
-      
-      debugPrint('[MessagesProvider] Subscribing to Matrix timeline roomId=$_roomId conversationId=$_conversationId');
-      
+
+      debugPrint(
+          '[MessagesProvider] Subscribing to Matrix timeline roomId=$_roomId conversationId=$_conversationId');
+
       // Subscribe to matrix timeline stream keyed by roomId
       final timeline = _ref.read(matrixTimelineServiceProvider);
       _sub?.cancel();
@@ -54,10 +56,11 @@ class ChatMessagesNotifier
         // ensure sorted by timestamp
         final sorted = List<ChatMessage>.from(messages)
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        debugPrint('[MessagesProvider] Timeline update: ${sorted.length} messages for $_roomId');
+        debugPrint(
+            '[MessagesProvider] Timeline update: ${sorted.length} messages for $_roomId');
         state = AsyncValue.data(sorted);
       });
-      
+
       // Emit empty state initially so UI shows loading -> empty rather than stuck loading
       if (state is AsyncLoading) {
         state = const AsyncValue.data([]);
@@ -146,7 +149,7 @@ class ChatMessagesNotifier
         ref: _ref,
         otherUserId: receiverId,
       );
-      
+
       // After successful send, re-resolve the Matrix room ID if we didn't have it
       if (_roomId == _conversationId) {
         try {
@@ -157,7 +160,8 @@ class ChatMessagesNotifier
                   currentUserId: senderId,
                   otherUserId: receiverId);
           if (actualRoomId != null && actualRoomId != _roomId) {
-            debugPrint('[MessagesProvider] Resolved actual roomId=$actualRoomId, re-subscribing');
+            debugPrint(
+                '[MessagesProvider] Resolved actual roomId=$actualRoomId, re-subscribing');
             _roomId = actualRoomId;
             // Re-subscribe to the correct room timeline
             final timeline = _ref.read(matrixTimelineServiceProvider);
@@ -172,7 +176,7 @@ class ChatMessagesNotifier
           // Continue with existing subscription
         }
       }
-      
+
       // Optimistically append a local message using the Matrix event id
       final optimistic = ChatMessage(
         id: mxEventId,

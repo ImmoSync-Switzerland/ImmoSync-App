@@ -29,13 +29,13 @@ class MatrixFrbEventsAdapter {
         if (roomId.isEmpty) return;
         final tsMs = evt.ts.toInt();
         final ts = DateTime.fromMillisecondsSinceEpoch(tsMs, isUtc: true);
-        
+
         // Content should already be decrypted by the SDK if keys are available
         // If content is null/empty but marked encrypted, show placeholder
-        final displayContent = (evt.content != null && evt.content!.isNotEmpty) 
-            ? evt.content! 
+        final displayContent = (evt.content != null && evt.content!.isNotEmpty)
+            ? evt.content!
             : (evt.isEncrypted ? '[encrypted]' : '');
-        
+
         final msg = ChatMessage(
           id: evt.eventId,
           senderId: evt.sender,
@@ -48,12 +48,15 @@ class MatrixFrbEventsAdapter {
           messageType: 'text',
           metadata: null,
           conversationId: roomId, // we will key timeline by roomId here
-          isEncrypted: evt.isEncrypted && displayContent == '[encrypted]', // only mark encrypted if we couldn't decrypt
+          isEncrypted: evt.isEncrypted &&
+              displayContent ==
+                  '[encrypted]', // only mark encrypted if we couldn't decrypt
           e2ee: null,
         );
-        
-        print('[MatrixAdapter] Ingesting event roomId=$roomId eventId=${evt.eventId} encrypted=${evt.isEncrypted} hasContent=${evt.content != null} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
-        
+
+        print(
+            '[MatrixAdapter] Ingesting event roomId=$roomId eventId=${evt.eventId} encrypted=${evt.isEncrypted} hasContent=${evt.content != null} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
+
         _timeline.ingestMatrixEvent(roomId, msg);
       } catch (e) {
         print('[MatrixAdapter] Error processing event: $e');

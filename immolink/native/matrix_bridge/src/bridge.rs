@@ -89,8 +89,9 @@ pub fn login(user: String, password: String) -> Result<LoginResult, String> {
 
 /// Create a direct message room and invite another user
 /// The creator is automatically added to the room when it's created
+/// If creator_mxid is provided, it will also be invited (for multi-device support)
 #[frb]
-pub fn create_room(other_mxid: String) -> Result<String, String> {
+pub fn create_room(other_mxid: String, creator_mxid: Option<String>) -> Result<String, String> {
     use matrix_sdk::ruma::UserId;
     use matrix_sdk::ruma::api::client::room::create_room::v3::Request as CreateRoomRequest;
     use matrix_sdk::ruma::api::client::room::Visibility;
@@ -102,14 +103,33 @@ pub fn create_room(other_mxid: String) -> Result<String, String> {
         
         eprintln!("[Bridge][create_room] Creating DM room with {}", other_mxid);
         eprintln!("[Bridge][create_room] Creator (me): {:?}", client.user_id());
+        eprintln!("[Bridge][create_room] Creator MXID to invite: {:?}", creator_mxid);
         
         let other_user_id = UserId::parse(&other_mxid).map_err(|e| e.to_string())?;
+        
+        // Build invitation list
+        let mut invitees = vec![other_user_id];
+        
+        // If creator_mxid is provided, invite that too (for dashboard/other sessions)
+        if let Some(creator_mxid_str) = creator_mxid {
+            if !creator_mxid_str.is_empty() {
+                match UserId::parse(&creator_mxid_str) {
+                    Ok(creator_user_id) => {
+                        eprintln!("[Bridge][create_room] Also inviting creator's other sessions: {}", creator_mxid_str);
+                        invitees.push(creator_user_id);
+                    }
+                    Err(e) => {
+                        eprintln!("[Bridge][create_room] Invalid creator_mxid: {}", e);
+                    }
+                }
+            }
+        }
         
         // Create a direct private room with trusted_private_chat preset
         let mut request = CreateRoomRequest::new();
         request.visibility = Visibility::Private;
         request.is_direct = true;
-        request.invite = vec![other_user_id];
+        request.invite = invitees;
         // preset is optional in the builder, defaults to private_chat
         // Note: The creator is automatically joined to the room
         

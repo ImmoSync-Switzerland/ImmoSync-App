@@ -92,9 +92,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
     // Start fallback refresh and init layers
     _currentConversationId = widget.conversationId;
     // No polling refresh (pure WS)
-  // Matrix-only mode: disable legacy WS presence/chat layers
-  // _initPresenceLayer();
-  // _initChatWsListener();
+    // Matrix-only mode: disable legacy WS presence/chat layers
+    // _initPresenceLayer();
+    // _initChatWsListener();
     // Attempt initial read marking shortly after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_emitReadReceipts());
@@ -165,7 +165,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
     _scrollController.dispose();
     _animationController.dispose();
     // no polling timer to cancel
-  _presenceTimer?.cancel();
+    _presenceTimer?.cancel();
     _visibilityDebounce?.cancel();
     _presenceCacheRemove?.close();
     _authConnSub?.close();
