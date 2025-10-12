@@ -80,17 +80,20 @@ class ContactService {
         final List<dynamic> tenantsData = responseData['tenants'] ?? [];
 
         return tenantsData.map((json) {
+          final String? canonicalUrl = json['profileImageUrl']?.toString();
+          final String? legacyRef = json['profileImage']?.toString();
           return ContactUser(
             id: json['_id']?.toString() ?? '',
             fullName: (json['fullName'] ?? json['name'] ?? '').toString(),
             email: (json['email'] ?? '').toString(),
             role: 'tenant',
             phone: (json['phone'] ?? '').toString(),
-            properties:
-                json['propertyId'] != null && json['propertyId'].toString().isNotEmpty
-                    ? [json['propertyId'].toString()]
-                    : [],
-            profileImage: json['profileImage']?.toString(),
+            properties: json['propertyId'] != null &&
+                    json['propertyId'].toString().isNotEmpty
+                ? [json['propertyId'].toString()]
+                : [],
+            profileImageUrl: canonicalUrl,
+            profileImage: canonicalUrl ?? legacyRef,
           );
         }).toList();
       } else {

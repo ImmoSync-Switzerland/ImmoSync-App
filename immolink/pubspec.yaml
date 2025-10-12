@@ -50,12 +50,14 @@ dependencies:
 
   flutter_rust_bridge: 2.11.1
   mime: any
+  flutter_dotenv: ^5.1.0
 flutter:
   uses-material-design: true
   generate: true
   assets:
     - assets/icon/
     - assets/fonts/
+    - .env
 
 dependency_overrides:
   web:

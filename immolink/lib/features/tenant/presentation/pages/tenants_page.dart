@@ -18,13 +18,18 @@ class TenantsPage extends ConsumerStatefulWidget {
   ConsumerState<TenantsPage> createState() => _TenantsPageState();
 }
 
-class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderStateMixin {
+class _TenantsPageState extends ConsumerState<TenantsPage>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _tenantFilter = 'all';
-  late final AnimationController _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 550))..forward();
-  late final Animation<double> _slide = Tween<double>(begin: 28, end: 0).animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
-  late final Animation<double> _fade = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _anim, curve: Curves.easeIn));
+  late final AnimationController _anim = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 550))
+    ..forward();
+  late final Animation<double> _slide = Tween<double>(begin: 28, end: 0)
+      .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
+  late final Animation<double> _fade = Tween<double>(begin: 0, end: 1)
+      .animate(CurvedAnimation(parent: _anim, curve: Curves.easeIn));
 
   @override
   void dispose() {
@@ -47,7 +52,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         animation: _anim,
         builder: (_, child) => Opacity(
           opacity: _fade.value,
-            child: Transform.translate(offset: Offset(0, _slide.value), child: child),
+          child: Transform.translate(
+              offset: Offset(0, _slide.value), child: child),
         ),
         child: RefreshIndicator(
           onRefresh: () async {
@@ -63,7 +69,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                 hasScrollBody: true,
                 child: contactsAsync.when(
                   data: (contacts) => propertiesAsync.when(
-                    data: (properties) => _buildTenantsContent(_filterTenants(contacts), properties, l10n, colors),
+                    data: (properties) => _buildTenantsContent(
+                        _filterTenants(contacts), properties, l10n, colors),
                     loading: () => _buildLoadingState(colors, l10n),
                     error: (_, __) => _buildErrorState(colors, l10n),
                   ),
@@ -78,189 +85,483 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  PreferredSizeWidget _buildAppBar(DynamicAppColors colors, AppLocalizations l10n) => AppBar(
-    title: Text(l10n.tenantManagement),
-    backgroundColor: colors.surfaceCards,
-    elevation: 0,
-    leading: IconButton(icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary), onPressed: () => context.canPop() ? context.pop() : context.go('/home')),
-    actions: [IconButton(icon: const Icon(Icons.filter_list_rounded), onPressed: _showFilterOptions, tooltip: l10n.filter)],
-  );
+  PreferredSizeWidget _buildAppBar(
+          DynamicAppColors colors, AppLocalizations l10n) =>
+      AppBar(
+        title: Text(l10n.tenantManagement),
+        backgroundColor: colors.surfaceCards,
+        elevation: 0,
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home')),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.filter_list_rounded),
+              onPressed: _showFilterOptions,
+              tooltip: l10n.filter)
+        ],
+      );
 
-  Widget _buildHeader(DynamicAppColors colors, AppLocalizations l10n) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(l10n.tenantManagement, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: colors.textPrimary, letterSpacing: -0.5)),
-      const SizedBox(height: 6),
-      Text(l10n.manageTenantDescription, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
-    ]),
-  );
+  Widget _buildHeader(DynamicAppColors colors, AppLocalizations l10n) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l10n.tenantManagement,
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                  letterSpacing: -0.5)),
+          const SizedBox(height: 6),
+          Text(l10n.manageTenantDescription,
+              style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+        ]),
+      );
 
-  Widget _buildSearchBar(DynamicAppColors colors, AppLocalizations l10n) => Container(
-    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [colors.surfaceCards, colors.luxuryGradientStart]),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: colors.borderLight, width: 1),
-      boxShadow: [BoxShadow(color: colors.shadowColor, blurRadius: 12, offset: const Offset(0, 4))],
-    ),
-    child: TextField(
-      controller: _searchController,
-      onChanged: (v) => setState(() => _searchQuery = v),
-      style: TextStyle(color: colors.textPrimary, fontSize: 15, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        hintText: l10n.searchTenants,
-        hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15, fontWeight: FontWeight.w400),
-        prefixIcon: Container(padding: const EdgeInsets.all(12), child: Icon(Icons.search_outlined, color: colors.primaryAccent, size: 20)),
-        suffixIcon: _searchQuery.isNotEmpty ? IconButton(icon: Icon(Icons.clear, color: colors.textTertiary, size: 20), onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); }) : null,
-        border: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-    ),
-  );
+  Widget _buildSearchBar(DynamicAppColors colors, AppLocalizations l10n) =>
+      Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [colors.surfaceCards, colors.luxuryGradientStart]),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.borderLight, width: 1),
+          boxShadow: [
+            BoxShadow(
+                color: colors.shadowColor,
+                blurRadius: 12,
+                offset: const Offset(0, 4))
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: (v) => setState(() => _searchQuery = v),
+          style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w500),
+          decoration: InputDecoration(
+            hintText: l10n.searchTenants,
+            hintStyle: TextStyle(
+                color: colors.textTertiary,
+                fontSize: 15,
+                fontWeight: FontWeight.w400),
+            prefixIcon: Container(
+                padding: const EdgeInsets.all(12),
+                child: Icon(Icons.search_outlined,
+                    color: colors.primaryAccent, size: 20)),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    icon:
+                        Icon(Icons.clear, color: colors.textTertiary, size: 20),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    })
+                : null,
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+        ),
+      );
 
-  Widget _buildTenantsContent(List<ContactUser> tenants, List<Property> properties, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildTenantsContent(
+      List<ContactUser> tenants,
+      List<Property> properties,
+      AppLocalizations l10n,
+      DynamicAppColors colors) {
     if (tenants.isEmpty) return _buildEmptyState(colors, l10n);
     return Column(children: [
       _buildStatsCards(tenants, properties, colors, l10n),
       const SizedBox(height: 16),
-      Expanded(child: ListView.builder(
+      Expanded(
+          child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: tenants.length,
         itemBuilder: (_, i) {
           final t = tenants[i];
           final props = _getTenantProperties(t, properties);
-          return Padding(padding: const EdgeInsets.only(bottom: 16), child: _buildTenantCard(t, props, l10n, colors));
+          return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildTenantCard(t, props, l10n, colors));
         },
       )),
     ]);
   }
 
-  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties,
+      DynamicAppColors colors, AppLocalizations l10n) {
     final occupied = properties.where((p) => p.status == 'rented').length;
-    return Container(padding: const EdgeInsets.symmetric(horizontal: 20), child: Row(children: [
-      Expanded(child: _buildStatCard(l10n.totalTenants, tenants.length.toString(), Icons.people_outline, colors.primaryAccent, colors)),
-      const SizedBox(width: 12),
-      Expanded(child: _buildStatCard(l10n.occupiedUnits, occupied.toString(), Icons.home_outlined, colors.success, colors)),
-    ]));
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(children: [
+          Expanded(
+              child: _buildStatCard(
+                  l10n.totalTenants,
+                  tenants.length.toString(),
+                  Icons.people_outline,
+                  colors.primaryAccent,
+                  colors)),
+          const SizedBox(width: 12),
+          Expanded(
+              child: _buildStatCard(l10n.occupiedUnits, occupied.toString(),
+                  Icons.home_outlined, colors.success, colors)),
+        ]));
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, DynamicAppColors colors) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [colors.surfaceCards, color.withValues(alpha: 0.03)]),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: color.withValues(alpha: 0.15), width: 1),
-      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
-    ),
-    child: Column(children: [
-      Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)), child: Icon(icon, color: color, size: 20)),
-      const SizedBox(height: 8),
-      Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-      const SizedBox(height: 4),
-      Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.textTertiary, letterSpacing: 0.5), textAlign: TextAlign.center),
-    ]),
-  );
+  Widget _buildStatCard(String title, String value, IconData icon, Color color,
+          DynamicAppColors colors) =>
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [colors.surfaceCards, color.withValues(alpha: 0.03)]),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.15), width: 1),
+          boxShadow: [
+            BoxShadow(
+                color: color.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
+          ],
+        ),
+        child: Column(children: [
+          Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8)),
+              child: Icon(icon, color: color, size: 20)),
+          const SizedBox(height: 8),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary)),
+          const SizedBox(height: 4),
+          Text(title,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textTertiary,
+                  letterSpacing: 0.5),
+              textAlign: TextAlign.center),
+        ]),
+      );
 
-  Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties,
+      AppLocalizations l10n, DynamicAppColors colors) {
     final hasProps = tenantProperties.isNotEmpty;
     final status = tenant.status ?? (hasProps ? 'active' : 'available');
     final statusColor = status == 'active' ? colors.success : colors.warning;
     return GestureDetector(
-      onTap: () { HapticFeedback.lightImpact(); _showTenantDetails(tenant, tenantProperties); },
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showTenantDetails(tenant, tenantProperties);
+      },
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [colors.surfaceCards, statusColor.withValues(alpha: 0.02)]),
+          gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.surfaceCards,
+                statusColor.withValues(alpha: 0.02)
+              ]),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: statusColor.withValues(alpha: 0.15), width: 1),
-          boxShadow: [BoxShadow(color: colors.shadowColor, blurRadius: 16, offset: const Offset(0, 8))],
+          border:
+              Border.all(color: statusColor.withValues(alpha: 0.15), width: 1),
+          boxShadow: [
+            BoxShadow(
+                color: colors.shadowColor,
+                blurRadius: 16,
+                offset: const Offset(0, 8))
+          ],
         ),
         child: Column(children: [
           Row(children: [
-            Container(width: 60, height: 60, decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [statusColor, statusColor.withValues(alpha: 0.7)]), shape: BoxShape.circle, border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 2)), child: Center(child: Text((tenant.fullName.isNotEmpty ? tenant.fullName[0] : 'T').toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700)))),
+            Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          statusColor,
+                          statusColor.withValues(alpha: 0.7)
+                        ]),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3), width: 2)),
+                child: Center(
+                    child: Text(
+                        (tenant.fullName.isNotEmpty ? tenant.fullName[0] : 'T')
+                            .toUpperCase(),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700)))),
             const SizedBox(width: 16),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(tenant.fullName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary, letterSpacing: -0.3)),
-              const SizedBox(height: 4),
-              Text(tenant.email, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
-              if (tenant.phone.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Row(children: [Icon(Icons.phone_outlined, size: 14, color: colors.textTertiary), const SizedBox(width: 4), Text(tenant.phone, style: TextStyle(fontSize: 14, color: colors.textSecondary))]),
-              ],
-            ])),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1)), child: Text(status == 'active' ? l10n.active.toUpperCase() : l10n.available.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor, letterSpacing: 0.5))),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(tenant.fullName,
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                          letterSpacing: -0.3)),
+                  const SizedBox(height: 4),
+                  Text(tenant.email,
+                      style:
+                          TextStyle(fontSize: 14, color: colors.textSecondary)),
+                  if (tenant.phone.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      Icon(Icons.phone_outlined,
+                          size: 14, color: colors.textTertiary),
+                      const SizedBox(width: 4),
+                      Text(tenant.phone,
+                          style: TextStyle(
+                              fontSize: 14, color: colors.textSecondary))
+                    ]),
+                  ],
+                ])),
+            Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                        color: statusColor.withValues(alpha: 0.2), width: 1)),
+                child: Text(
+                    status == 'active'
+                        ? l10n.active.toUpperCase()
+                        : l10n.available.toUpperCase(),
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        letterSpacing: 0.5))),
           ]),
           if (hasProps) ...[
             const SizedBox(height: 16),
-            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: colors.success.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: colors.success.withValues(alpha: 0.1), width: 1)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [Icon(Icons.home_outlined, size: 16, color: colors.success), const SizedBox(width: 8), Text(l10n.assignedProperties, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.success))]),
-              const SizedBox(height: 8),
-              ...tenantProperties.map((p) => Padding(padding: const EdgeInsets.only(bottom: 4), child: Row(children: [const SizedBox(width: 24), Expanded(child: Text(p.address.street, style: TextStyle(fontSize: 13, color: colors.textSecondary))), Text(ref.read(currencyProvider.notifier).formatAmount(p.rentAmount), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.success))]))),
-            ])),
+            Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                    color: colors.success.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: colors.success.withValues(alpha: 0.1),
+                        width: 1)),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Icon(Icons.home_outlined,
+                            size: 16, color: colors.success),
+                        const SizedBox(width: 8),
+                        Text(l10n.assignedProperties,
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: colors.success))
+                      ]),
+                      const SizedBox(height: 8),
+                      ...tenantProperties.map((p) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(children: [
+                            const SizedBox(width: 24),
+                            Expanded(
+                                child: Text(p.address.street,
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        color: colors.textSecondary))),
+                            Text(
+                                ref
+                                    .read(currencyProvider.notifier)
+                                    .formatAmount(p.rentAmount),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.success))
+                          ]))),
+                    ])),
           ],
           const SizedBox(height: 16),
           Row(children: [
-            Expanded(child: _buildActionButton(l10n.message, Icons.chat_bubble_outline, colors.primaryAccent, () => _messageTenant(tenant))),
+            Expanded(
+                child: _buildActionButton(
+                    l10n.message,
+                    Icons.chat_bubble_outline,
+                    colors.primaryAccent,
+                    () => _messageTenant(tenant))),
             const SizedBox(width: 12),
-            Expanded(child: _buildActionButton(l10n.call, Icons.phone_outlined, colors.success, () => _callTenant(tenant))),
+            Expanded(
+                child: _buildActionButton(l10n.call, Icons.phone_outlined,
+                    colors.success, () => _callTenant(tenant))),
             const SizedBox(width: 12),
-            Expanded(child: _buildActionButton(l10n.details, Icons.info_outline, colors.textSecondary, () => _showTenantDetails(tenant, tenantProperties))),
+            Expanded(
+                child: _buildActionButton(
+                    l10n.details,
+                    Icons.info_outline,
+                    colors.textSecondary,
+                    () => _showTenantDetails(tenant, tenantProperties))),
           ])
         ]),
       ),
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onPressed) => GestureDetector(
-    onTap: onPressed,
-    child: Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.2), width: 1)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 16, color: color), const SizedBox(width: 6), Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color))])),
-  );
+  Widget _buildActionButton(
+          String label, IconData icon, Color color, VoidCallback onPressed) =>
+      GestureDetector(
+        onTap: onPressed,
+        child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border:
+                    Border.all(color: color.withValues(alpha: 0.2), width: 1)),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600, color: color))
+            ])),
+      );
 
-  Widget _buildEmptyState(DynamicAppColors colors, AppLocalizations l10n) => Center(
-    child: Padding(padding: const EdgeInsets.all(40), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [colors.primaryAccent.withValues(alpha: 0.1), colors.primaryAccent.withValues(alpha: 0.05)]), shape: BoxShape.circle), child: Icon(Icons.people_outline, size: 48, color: colors.primaryAccent)),
-      const SizedBox(height: 24),
-      Text(l10n.noTenantsYet, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-      const SizedBox(height: 8),
-      Text(l10n.addPropertiesInviteTenants, style: TextStyle(fontSize: 14, color: colors.textSecondary), textAlign: TextAlign.center),
-      const SizedBox(height: 24),
-      ElevatedButton.icon(onPressed: () { HapticFeedback.mediumImpact(); context.push('/add-property'); }, style: ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), icon: const Icon(Icons.add_home), label: Text(l10n.addProperty)),
-    ])),
-  );
+  Widget _buildEmptyState(DynamicAppColors colors, AppLocalizations l10n) =>
+      Center(
+        child: Padding(
+            padding: const EdgeInsets.all(40),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colors.primaryAccent.withValues(alpha: 0.1),
+                            colors.primaryAccent.withValues(alpha: 0.05)
+                          ]),
+                      shape: BoxShape.circle),
+                  child: Icon(Icons.people_outline,
+                      size: 48, color: colors.primaryAccent)),
+              const SizedBox(height: 24),
+              Text(l10n.noTenantsYet,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary)),
+              const SizedBox(height: 8),
+              Text(l10n.addPropertiesInviteTenants,
+                  style: TextStyle(fontSize: 14, color: colors.textSecondary),
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/add-property');
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.primaryAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12))),
+                  icon: const Icon(Icons.add_home),
+                  label: Text(l10n.addProperty)),
+            ])),
+      );
 
-  Widget _buildLoadingState(DynamicAppColors colors, AppLocalizations l10n) => Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent)),
-      const SizedBox(height: 16),
-      Text(l10n.loadingTenants),
-    ]),
-  );
+  Widget _buildLoadingState(DynamicAppColors colors, AppLocalizations l10n) =>
+      Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent)),
+          const SizedBox(height: 16),
+          Text(l10n.loadingTenants),
+        ]),
+      );
 
-  Widget _buildErrorState(DynamicAppColors colors, AppLocalizations l10n) => Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Icon(Icons.error_outline, size: 48, color: colors.error),
-      const SizedBox(height: 16),
-      Text(l10n.errorLoadingTenants, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-      const SizedBox(height: 8),
-      Text(l10n.pleaseTryAgainLater, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
-      const SizedBox(height: 16),
-      ElevatedButton(onPressed: () { ref.invalidate(userContactsProvider); ref.invalidate(landlordPropertiesProvider); }, style: ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent, foregroundColor: Colors.white), child: Text(l10n.retryLoading)),
-    ]),
-  );
+  Widget _buildErrorState(DynamicAppColors colors, AppLocalizations l10n) =>
+      Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.error_outline, size: 48, color: colors.error),
+          const SizedBox(height: 16),
+          Text(l10n.errorLoadingTenants,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary)),
+          const SizedBox(height: 8),
+          Text(l10n.pleaseTryAgainLater,
+              style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+              onPressed: () {
+                ref.invalidate(userContactsProvider);
+                ref.invalidate(landlordPropertiesProvider);
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: colors.primaryAccent,
+                  foregroundColor: Colors.white),
+              child: Text(l10n.retryLoading)),
+        ]),
+      );
 
   Widget _buildFAB(DynamicAppColors colors, AppLocalizations l10n) => Container(
-    decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [colors.primaryAccent, colors.primaryAccent.withValues(alpha: 0.8)]), borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: colors.primaryAccent.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 8))]),
-    child: FloatingActionButton(onPressed: () { HapticFeedback.mediumImpact(); context.push('/add-property'); }, backgroundColor: Colors.transparent, elevation: 0, child: Icon(Icons.add_home, color: colors.textOnAccent, size: 28)),
-  );
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.primaryAccent,
+                  colors.primaryAccent.withValues(alpha: 0.8)
+                ]),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                  color: colors.primaryAccent.withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8))
+            ]),
+        child: FloatingActionButton(
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              context.push('/add-property');
+            },
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Icon(Icons.add_home, color: colors.textOnAccent, size: 28)),
+      );
 
   List<ContactUser> _filterTenants(List<ContactUser> tenants) {
     Iterable<ContactUser> filtered = tenants;
     switch (_tenantFilter) {
       case 'active':
-        filtered = filtered.where((t) => (t.status == 'active') || t.properties.isNotEmpty);
+        filtered = filtered
+            .where((t) => (t.status == 'active') || t.properties.isNotEmpty);
         break;
       case 'inactive':
-        filtered = filtered.where((t) => (t.status != 'active') && t.properties.isEmpty);
+        filtered = filtered
+            .where((t) => (t.status != 'active') && t.properties.isEmpty);
         break;
       case 'property_type':
         break; // placeholder
@@ -315,12 +616,15 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       builder: (c) => AlertDialog(
         backgroundColor: colors.surfaceCards,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Call ${tenant.fullName}', style: TextStyle(color: colors.textPrimary)),
-        content: Text('Do you want to call ${tenant.phone}?', style: TextStyle(color: colors.textSecondary)),
+        title: Text('Call ${tenant.fullName}',
+            style: TextStyle(color: colors.textPrimary)),
+        content: Text('Do you want to call ${tenant.phone}?',
+            style: TextStyle(color: colors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(c).pop(),
-            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child:
+                Text('Cancel', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -364,7 +668,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             height: MediaQuery.of(context).size.height * 0.7,
             decoration: BoxDecoration(
               color: colors.surfaceCards,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               children: [
@@ -435,7 +740,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                             ),
                             IconButton(
                               onPressed: () => Navigator.pop(context),
-                              icon: Icon(Icons.close, color: colors.textTertiary),
+                              icon:
+                                  Icon(Icons.close, color: colors.textTertiary),
                             ),
                           ],
                         ),
@@ -443,9 +749,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                         _buildDetailSection(
                           'Contact Information',
                           [
-                            _buildDetailItem('Email', tenant.email, Icons.email_outlined, colors),
+                            _buildDetailItem('Email', tenant.email,
+                                Icons.email_outlined, colors),
                             if (tenant.phone.isNotEmpty)
-                              _buildDetailItem('Phone', tenant.phone, Icons.phone_outlined, colors),
+                              _buildDetailItem('Phone', tenant.phone,
+                                  Icons.phone_outlined, colors),
                           ],
                           colors,
                         ),
@@ -471,7 +779,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.warning_outlined, color: colors.warning),
+                                Icon(Icons.warning_outlined,
+                                    color: colors.warning),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -498,7 +807,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
     );
   }
 
-  Widget _buildDetailSection(String title, List<Widget> children, DynamicAppColors colors) =>
+  Widget _buildDetailSection(
+          String title, List<Widget> children, DynamicAppColors colors) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -515,7 +825,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         ],
       );
 
-  Widget _buildDetailItem(String label, String value, IconData icon, DynamicAppColors colors) =>
+  Widget _buildDetailItem(
+          String label, String value, IconData icon, DynamicAppColors colors) =>
       Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(16),
@@ -553,7 +864,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
         ),
       );
 
-  Widget _buildPropertyDetailItem(Property property, DynamicAppColors colors) => Container(
+  Widget _buildPropertyDetailItem(Property property, DynamicAppColors colors) =>
+      Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -588,7 +900,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
               ),
             ),
             Text(
-              ref.read(currencyProvider.notifier).formatAmount(property.rentAmount),
+              ref
+                  .read(currencyProvider.notifier)
+                  .formatAmount(property.rentAmount),
               style: TextStyle(
                 fontSize: 14,
                 color: colors.success,
@@ -598,7 +912,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
             const SizedBox(width: 8),
             IconButton(
               onPressed: () => _showRemoveTenantDialog(property),
-              icon: Icon(Icons.remove_circle_outline, color: colors.error, size: 20),
+              icon: Icon(Icons.remove_circle_outline,
+                  color: colors.error, size: 20),
               style: IconButton.styleFrom(
                 backgroundColor: colors.error.withValues(alpha: 0.1),
                 minimumSize: const Size(32, 32),
@@ -642,12 +957,15 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
       context: context,
       builder: (c) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text(l10n.removeTenant, style: TextStyle(color: colors.textPrimary)),
-        content: Text(l10n.removeTenantConfirmation, style: TextStyle(color: colors.textSecondary)),
+        title: Text(l10n.removeTenant,
+            style: TextStyle(color: colors.textPrimary)),
+        content: Text(l10n.removeTenantConfirmation,
+            style: TextStyle(color: colors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: Text(l10n.cancel, style: TextStyle(color: colors.textTertiary)),
+            child:
+                Text(l10n.cancel, style: TextStyle(color: colors.textTertiary)),
           ),
           ElevatedButton(
             onPressed: () => _removeTenantFromProperty(property),
@@ -675,7 +993,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> with TickerProviderSt
           (t) => property.tenantIds.contains(t.id),
           orElse: () => throw Exception('Tenant not found'),
         );
-        await ref.read(tenantRemovalProvider.notifier).removeTenant(property.id, tenant.id);
+        await ref
+            .read(tenantRemovalProvider.notifier)
+            .removeTenant(property.id, tenant.id);
         ref.invalidate(userContactsProvider);
         ref.invalidate(landlordPropertiesProvider);
         if (mounted) {
@@ -725,13 +1045,27 @@ class _FilterOptionList extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.08) : theme.colorScheme.surfaceVariant.withValues(alpha: 0.4),
-              border: Border.all(color: isSelected ? theme.colorScheme.primary : theme.dividerColor.withValues(alpha: 0.4)),
+              color: isSelected
+                  ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                  : theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.4),
+              border: Border.all(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.dividerColor.withValues(alpha: 0.4)),
             ),
             child: Row(children: [
-              Icon(o.$3, size: 20, color: isSelected ? theme.colorScheme.primary : theme.iconTheme.color),
+              Icon(o.$3,
+                  size: 20,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.iconTheme.color),
               const SizedBox(width: 12),
-              Expanded(child: Text(o.$2, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500))),
+              Expanded(
+                  child: Text(o.$2,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500))),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 240),
                 curve: Curves.easeOutCubic,
@@ -739,14 +1073,20 @@ class _FilterOptionList extends StatelessWidget {
                 height: 22,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: isSelected ? theme.colorScheme.primary : theme.dividerColor.withValues(alpha: 0.6), width: 2),
+                  border: Border.all(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.dividerColor.withValues(alpha: 0.6),
+                      width: 2),
                 ),
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 240),
                   opacity: isSelected ? 1 : 0,
                   child: Container(
                     margin: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: theme.colorScheme.primary),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.colorScheme.primary),
                   ),
                 ),
               ),

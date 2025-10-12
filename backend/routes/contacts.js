@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { buildProfileImageUrl } = require('../utils');
 
 // Get tenants for a specific landlord
 router.get('/landlord/:landlordId/tenants', async (req, res) => {
@@ -51,7 +52,8 @@ router.get('/landlord/:landlordId/tenants', async (req, res) => {
       return {
         ...tenant,
         properties: tenantProperties,
-        phone: tenant.phone || ''
+        phone: tenant.phone || '',
+        profileImageUrl: buildProfileImageUrl(tenant.profileImage || tenant.providerPicture, req),
       };
     });
     
@@ -107,7 +109,8 @@ router.get('/tenant/:tenantId/landlords', async (req, res) => {
       return {
         ...landlord,
         properties: landlordProperties,
-        phone: landlord.phone || ''
+        phone: landlord.phone || '',
+        profileImageUrl: buildProfileImageUrl(landlord.profileImage || landlord.providerPicture, req),
       };
     });
     

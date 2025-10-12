@@ -546,7 +546,6 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     }
   }
 
-
   Future<void> _submitSupportRequest(AppLocalizations l10n) async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -559,7 +558,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     // Simulate API call
     try {
       final user = ref.read(currentUserProvider);
-      final apiBase = const String.fromEnvironment('API_BASE', defaultValue: 'http://localhost:3000/api');
+      final apiBase = const String.fromEnvironment('API_BASE',
+          defaultValue: 'http://localhost:3000/api');
       final uri = Uri.parse('$apiBase/support-requests');
       final body = {
         'subject': _subjectController.text.trim(),
@@ -616,7 +616,6 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     }
   }
 
-
   Widget _buildStyledDropdown({
     required BuildContext context,
     required DynamicAppColors colors,
@@ -640,7 +639,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colors.primaryAccent.withValues(alpha: 0.3)),
+          borderSide:
+              BorderSide(color: colors.primaryAccent.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -651,5 +651,4 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       onChanged: onChanged,
     );
   }
-
 }

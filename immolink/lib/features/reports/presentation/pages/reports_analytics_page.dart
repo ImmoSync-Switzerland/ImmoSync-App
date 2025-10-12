@@ -13,13 +13,14 @@ class ReportsAnalyticsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = _Palette.fromTheme(Theme.of(context));
-  // l10n available if needed later
+    // l10n available if needed later
     final locale = Localizations.localeOf(context).toString();
     final currency = NumberFormat.simpleCurrency(locale: locale);
 
     // Demo data – in real app, replace with repository/provider values
     final now = DateTime.now();
-    final months = List.generate(6, (i) => DateTime(now.year, now.month - (5 - i)));
+    final months =
+        List.generate(6, (i) => DateTime(now.year, now.month - (5 - i)));
     final revenue = List.generate(6, (i) => 3000 + (i * 450));
     final expenses = List.generate(6, (i) => 1200 + (i * 220));
     final occupancyRate = 0.92;
@@ -128,12 +129,19 @@ class ReportsAnalyticsPage extends StatelessWidget {
               child: Column(
                 children: List.generate(5, (i) {
                   return ListTile(
-                    leading: CircleAvatar(backgroundColor: colors.surfaceSecondary),
-                    title: Text('Payment received - Unit ${101 + i}', style: TextStyle(color: colors.textPrimary)),
-                    subtitle: Text(DateFormat.yMMMd().format(now.subtract(Duration(days: i * 3))), style: TextStyle(color: colors.textSecondary)),
+                    leading:
+                        CircleAvatar(backgroundColor: colors.surfaceSecondary),
+                    title: Text('Payment received - Unit ${101 + i}',
+                        style: TextStyle(color: colors.textPrimary)),
+                    subtitle: Text(
+                        DateFormat.yMMMd()
+                            .format(now.subtract(Duration(days: i * 3))),
+                        style: TextStyle(color: colors.textSecondary)),
                     trailing: Text(
                       currency.format(1000 + i * 50),
-                      style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600),
                     ),
                   );
                 }),
@@ -168,7 +176,8 @@ class _KpiRow extends StatelessWidget {
             childAspectRatio: isWide ? 3.2 : 2.8,
           ),
           itemCount: items.length,
-          itemBuilder: (context, index) => _KpiCard(item: items[index], colors: colors),
+          itemBuilder: (context, index) =>
+              _KpiCard(item: items[index], colors: colors),
         );
       },
     );
@@ -180,7 +189,11 @@ class _Kpi {
   final String value;
   final IconData icon;
   final Color color;
-  const _Kpi({required this.label, required this.value, required this.icon, required this.color});
+  const _Kpi(
+      {required this.label,
+      required this.value,
+      required this.icon,
+      required this.color});
 }
 
 class _KpiCard extends StatelessWidget {
@@ -195,7 +208,10 @@ class _KpiCard extends StatelessWidget {
         color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: colors.shadowColor.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 6)),
+          BoxShadow(
+              color: colors.shadowColor.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 6)),
         ],
       ),
       padding: const EdgeInsets.all(16),
@@ -213,7 +229,11 @@ class _KpiCard extends StatelessWidget {
               children: [
                 Text(item.label, style: TextStyle(color: colors.textSecondary)),
                 const SizedBox(height: 4),
-                Text(item.value, style: TextStyle(color: colors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(item.value,
+                    style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -224,7 +244,8 @@ class _KpiCard extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.colors, required this.child});
+  const _SectionCard(
+      {required this.title, required this.colors, required this.child});
   final String title;
   final Widget child;
   final _Palette colors;
@@ -235,14 +256,21 @@ class _SectionCard extends StatelessWidget {
         color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: colors.shadowColor.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 6)),
+          BoxShadow(
+              color: colors.shadowColor.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 6)),
         ],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(color: colors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(title,
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           child,
         ],
@@ -252,7 +280,11 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _BarChart extends StatelessWidget {
-  const _BarChart({required this.months, required this.revenue, required this.expenses, required this.colors});
+  const _BarChart(
+      {required this.months,
+      required this.revenue,
+      required this.expenses,
+      required this.colors});
   final List<DateTime> months;
   final List<int> revenue;
   final List<int> expenses;
@@ -260,10 +292,12 @@ class _BarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxValue = math.max(
-      revenue.fold<int>(0, (s, v) => math.max(s, v)),
-      expenses.fold<int>(0, (s, v) => math.max(s, v)),
-    ).toDouble();
+    final maxValue = math
+        .max(
+          revenue.fold<int>(0, (s, v) => math.max(s, v)),
+          expenses.fold<int>(0, (s, v) => math.max(s, v)),
+        )
+        .toDouble();
     return LayoutBuilder(
       builder: (context, constraints) {
         final barWidth = 14.0;
@@ -325,10 +359,16 @@ class _BarChartPainter extends CustomPainter {
       final revH = (revenue[i] / maxValue) * chartHeight;
       final expH = (expenses[i] / maxValue) * chartHeight;
 
-      final revRect = Rect.fromLTWH(x.toDouble(), chartHeight - revH, barWidth, revH);
-      final expRect = Rect.fromLTWH(x + barWidth + 6, chartHeight - expH, barWidth, expH);
-      canvas.drawRRect(RRect.fromRectAndRadius(revRect, const Radius.circular(4)), paintRevenue);
-      canvas.drawRRect(RRect.fromRectAndRadius(expRect, const Radius.circular(4)), paintExpenses);
+      final revRect =
+          Rect.fromLTWH(x.toDouble(), chartHeight - revH, barWidth, revH);
+      final expRect =
+          Rect.fromLTWH(x + barWidth + 6, chartHeight - expH, barWidth, expH);
+      canvas.drawRRect(
+          RRect.fromRectAndRadius(revRect, const Radius.circular(4)),
+          paintRevenue);
+      canvas.drawRRect(
+          RRect.fromRectAndRadius(expRect, const Radius.circular(4)),
+          paintExpenses);
 
       final tp = TextPainter(
         text: TextSpan(text: monthFormat.format(months[i]), style: labelStyle),
@@ -355,8 +395,8 @@ class _Palette {
 
   _Palette({
     required this.surfaceBackground,
-  required this.surfaceCards,
-  required this.surfaceSecondary,
+    required this.surfaceCards,
+    required this.surfaceSecondary,
     required this.textPrimary,
     required this.textSecondary,
     required this.shadowColor,
@@ -368,11 +408,13 @@ class _Palette {
   factory _Palette.fromTheme(ThemeData theme) {
     final scheme = theme.colorScheme;
     final onSurface = scheme.onSurface;
-  final secondaryText = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? onSurface.withValues(alpha: 0.7);
+    final secondaryText =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ??
+            onSurface.withValues(alpha: 0.7);
     return _Palette(
       surfaceBackground: theme.scaffoldBackgroundColor,
-  surfaceCards: scheme.surface,
-  surfaceSecondary: theme.cardColor.withValues(alpha: 0.5),
+      surfaceCards: scheme.surface,
+      surfaceSecondary: theme.cardColor.withValues(alpha: 0.5),
       textPrimary: onSurface,
       textSecondary: secondaryText,
       shadowColor: Colors.black,

@@ -48,8 +48,8 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
   }
 
   void _togglePopup() {
-  final visible = ref.read(notificationsPopupVisibleProvider);
-  ref.read(notificationsPopupVisibleProvider.notifier).state = !visible;
+    final visible = ref.read(notificationsPopupVisibleProvider);
+    ref.read(notificationsPopupVisibleProvider.notifier).state = !visible;
   }
 
   void _showNotificationsOverlay() {
@@ -65,7 +65,8 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   // Close via provider; listener will hide overlay
-                  ref.read(notificationsPopupVisibleProvider.notifier).state = false;
+                  ref.read(notificationsPopupVisibleProvider.notifier).state =
+                      false;
                 },
                 child: const SizedBox.expand(),
               ),
@@ -239,7 +240,7 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
             ),
           ),
         ), // end Container
-  // Popup is rendered via OverlayEntry now; nothing to render here
+        // Popup is rendered via OverlayEntry now; nothing to render here
       ],
     );
   }

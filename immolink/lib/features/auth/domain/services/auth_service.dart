@@ -74,7 +74,8 @@ class AuthService {
       final data = json.decode(response.body);
       final user = data['user'];
       // Normalize userId returned from backend (string or {"$oid": "..."})
-      dynamic rawId = user['userId'];
+      // Backend returns 'id' not 'userId'
+      dynamic rawId = user['id'] ?? user['userId'];
       String userIdStr;
       if (rawId is String) {
         userIdStr = rawId;
@@ -89,8 +90,10 @@ class AuthService {
         print('AuthService: user keys=${(user as Map).keys}');
         // ignore: avoid_print
         print('AuthService: sessionToken raw=${user['sessionToken']}');
+        // ignore: avoid_print
+        print('AuthService: userId extracted=${userIdStr}');
       } catch (_) {}
-      // Backend /auth/login returns { message, user: { userId, email, role, fullName, sessionToken } }
+      // Backend /auth/login returns { message, user: { id, email, role, fullName, sessionToken } }
       return {
         'userId': userIdStr,
         'sessionToken': user['sessionToken'],

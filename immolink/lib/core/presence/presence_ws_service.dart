@@ -22,6 +22,8 @@ class PresenceUpdate {
 }
 
 class PresenceWsService {
+  // Toggle to fully disable legacy WebSocket layer (Matrix-only mode)
+  static const bool _disabled = true;
   IO.Socket? _presenceSocket;
   IO.Socket? _chatSocket;
   final _controller = StreamController<PresenceUpdate>.broadcast();
@@ -29,6 +31,8 @@ class PresenceWsService {
   final _conversationController =
       StreamController<Map<String, dynamic>>.broadcast();
   List<Map<String, dynamic>> _pendingMessages = [];
+  // Track inflight emits to allow lightweight retries if no ack is observed
+  final Map<String, Map<String, dynamic>> _inflightByClientId = {};
   // Pending read receipts keyed by conversationId (values are messageId sets)
   final Map<String, Set<String>> _pendingReads = {};
   Timer? _pingTimer;
@@ -41,6 +45,10 @@ class PresenceWsService {
       _conversationController.stream;
 
   Future<void> connect({required String userId, required String token}) async {
+    if (_disabled) {
+      // Matrix-only mode: no WS connections
+      return;
+    }
     // If sockets already exist, only keep them if identity (userId/token) matches.
     if (_presenceSocket != null) {
       final sameIdentity = (_userId == userId) && (_token == token);
@@ -58,7 +66,8 @@ class PresenceWsService {
                   'messageIds': ids.toList(),
                 });
                 // ignore: avoid_print
-                print('[WS][chat] flushed pending reads (immediate) conv=$convId count=${ids.length}');
+                print(
+                    '[WS][chat] flushed pending reads (immediate) conv=$convId count=${ids.length}');
               } catch (_) {}
             }
           });
@@ -147,12 +156,13 @@ class PresenceWsService {
                 'conversationId': convId,
                 'messageIds': ids.toList(),
               });
-        // ignore: avoid_print
-        print('[WS][chat] flushed pending read receipts for conv=$convId count=${ids.length}');
+              // ignore: avoid_print
+              print(
+                  '[WS][chat] flushed pending read receipts for conv=$convId count=${ids.length}');
             }
           });
-      // ignore: avoid_print
-      print('[WS][chat] flushed for ${entries.length} conversation(s)');
+          // ignore: avoid_print
+          print('[WS][chat] flushed for ${entries.length} conversation(s)');
         }
         print('[WS][chat] replay complete');
       })
@@ -170,11 +180,19 @@ class PresenceWsService {
       })
       ..on('chat:message', (data) async {
         if (data is Map) {
+          // ignore: avoid_print
+          print('[WS][recv][message] keys=${data.keys.toList()}');
           await _maybeDecryptAndForward(data, isAck: false);
         }
       })
       ..on('chat:ack', (data) async {
         if (data is Map) {
+          // ignore: avoid_print
+          print('[WS][recv][ack] keys=${data.keys.toList()}');
+          final cId = data['clientMessageId']?.toString();
+          if (cId != null) {
+            _inflightByClientId.remove(cId);
+          }
           await _maybeDecryptAndForward(data, isAck: true);
         }
       })
@@ -264,8 +282,8 @@ class PresenceWsService {
     _presenceSocket = null;
     _chatSocket = null;
     _pendingMessages.clear();
-  // Clear any read receipts queued under the old identity to avoid cross-account leakage
-  _pendingReads.clear();
+    // Clear any read receipts queued under the old identity to avoid cross-account leakage
+    _pendingReads.clear();
   }
 
   // Decrypt if e2ee bundle exists. Since this service lacks direct Ref here, we expose
@@ -320,6 +338,10 @@ class PresenceWsService {
       if (_userId != null)
         'senderId': _userId, // explicit sender id for server attribution
       'clientTime': DateTime.now().toIso8601String(),
+      'messageType': 'text',
+      // lightweight client-generated id for local correlation (optional for server)
+      'clientMessageId':
+          '${DateTime.now().millisecondsSinceEpoch}-${(_userId ?? 'u')}',
     };
     if (receiverId != null) payload['receiverId'] = receiverId;
     bool encryptionUsed = false;
@@ -362,6 +384,23 @@ class PresenceWsService {
     _chatSocket!.emit('chat:message', payload);
     print(
         '[WS][sendChatMessage] emitted payload keys=${payload.keys.toList()}');
+    final cId = payload['clientMessageId']?.toString();
+    if (cId != null) {
+      _inflightByClientId[cId] = payload;
+      // Simple retry after 3 seconds if still inflight and connected
+      Future.delayed(const Duration(seconds: 3), () {
+        final still = _inflightByClientId[cId];
+        if (still != null && _chatSocket?.connected == true) {
+          try {
+            // ignore: avoid_print
+            print('[WS][sendChatMessage][retry] clientMessageId=$cId');
+            _chatSocket!.emit('chat:message', still);
+          } catch (_) {}
+        }
+      });
+    }
+
+    // Do not mirror plaintext to REST; rely on Matrix E2EE for content.
     return encryptionUsed;
   }
 
@@ -441,7 +480,8 @@ class PresenceWsService {
       final set = _pendingReads.putIfAbsent(conversationId, () => <String>{});
       set.addAll(messageIds);
       // ignore: avoid_print
-      print('[WS][chat] queue read conv=$conversationId count=${messageIds.length} (socket disconnected)');
+      print(
+          '[WS][chat] queue read conv=$conversationId count=${messageIds.length} (socket disconnected)');
       return;
     }
     _chatSocket!.emit('chat:read', {
@@ -449,7 +489,8 @@ class PresenceWsService {
       'messageIds': messageIds,
     });
     // ignore: avoid_print
-    print('[WS][chat] emit read conv=$conversationId count=${messageIds.length}');
+    print(
+        '[WS][chat] emit read conv=$conversationId count=${messageIds.length}');
   }
 
   void markAllRead(

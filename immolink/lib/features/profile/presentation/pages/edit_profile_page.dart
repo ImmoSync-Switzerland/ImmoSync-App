@@ -6,7 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
+// image cache eviction
+// eviction configuration
+// Removed http_parser import; no longer using multipart upload
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/config/db_config.dart';
 import '../../../../core/widgets/mongo_image.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -673,7 +676,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         throw Exception('User not logged in');
       }
 
-  final updated = await _userService.updateProfile(
+      final updated = await _userService.updateProfile(
         userId: currentUser!.id,
         fullName: _nameController.text,
         email: _emailController.text,
@@ -681,8 +684,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         profileImage: _uploadedImageIdOrUrl,
       );
 
-  // Update the user provider with new model
-  ref.read(currentUserProvider.notifier).setUserModel(updated);
+      // Update the user provider with new model
+      ref.read(currentUserProvider.notifier).setUserModel(updated);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -799,7 +802,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   Future<void> _pickImageFromGallery() async {
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+      final picked = await picker.pickImage(
+          source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
       if (picked == null) return;
       setState(() {
         _selectedImageFile = File(picked.path);
@@ -813,7 +817,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   Future<void> _pickImageFromCamera() async {
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.camera, maxWidth: 1024, imageQuality: 85);
+      final picked = await picker.pickImage(
+          source: ImageSource.camera, maxWidth: 1024, imageQuality: 85);
       if (picked == null) return;
       setState(() {
         _selectedImageFile = File(picked.path);
@@ -825,19 +830,42 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   }
 
   Widget _buildAvatarContent(user, DynamicAppColors colors) {
-    // Priority: chosen file preview -> uploaded image id/url -> existing user.profileImage -> initials
+    // Priority: chosen file preview -> uploaded image id/url -> existing user.profileImage/profileImageUrl -> initials
     if (_selectedImageFile != null) {
       return Image.file(_selectedImageFile!, fit: BoxFit.cover);
     }
-    final refStr = _uploadedImageIdOrUrl ?? user?.profileImage;
-    if (refStr != null && refStr.toString().isNotEmpty) {
-      return MongoImage(imageId: refStr.toString(), width: 80, height: 80, fit: BoxFit.cover);
+    final String? uploaded = _uploadedImageIdOrUrl;
+    final String? existing =
+        (user?.profileImageUrl ?? user?.profileImage)?.toString();
+    final String? refStr = uploaded ?? existing;
+    bool looksLikeUrl(String v) =>
+        v.startsWith('http://') ||
+        v.startsWith('https://') ||
+        v.startsWith('data:');
+    if (refStr != null && refStr.isNotEmpty) {
+      return looksLikeUrl(refStr)
+          ? Image.network(
+              refStr,
+              key: ValueKey(refStr), // force refresh when URL changes
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+            )
+          : MongoImage(
+              imageId: refStr,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            );
     }
     return Container(
       color: Colors.transparent,
       child: Center(
         child: Text(
-          user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'U',
+          user?.fullName.isNotEmpty == true
+              ? user!.fullName[0].toUpperCase()
+              : 'U',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w700,
@@ -853,24 +881,98 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     final colors = ref.read(dynamicColorsProvider);
     try {
       setState(() => _isLoading = true);
-      final uri = Uri.parse('${DbConfig.apiUrl}/images/upload');
-      final req = http.MultipartRequest('POST', uri);
-      req.files.add(await http.MultipartFile.fromPath('image', _selectedImageFile!.path,
-          contentType: MediaType('image', 'jpeg')));
-      final res = await req.send();
-      final body = await res.stream.bytesToString();
-      if (res.statusCode == 200) {
-        final data = jsonDecode(body);
-        setState(() {
-          _uploadedImageIdOrUrl = data['fileId'] ?? data['url'];
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Profile image uploaded'),
-          backgroundColor: colors.success,
-        ));
-      } else {
-        _showError('Upload failed (${res.statusCode})');
+      // Build data URL from file
+      String _guessMime(String path) {
+        final lower = path.toLowerCase();
+        if (lower.endsWith('.png')) return 'image/png';
+        if (lower.endsWith('.webp')) return 'image/webp';
+        if (lower.endsWith('.heic') || lower.endsWith('.heif'))
+          return 'image/heic';
+        if (lower.endsWith('.gif')) return 'image/gif';
+        return 'image/jpeg';
       }
+
+      final mime = _guessMime(_selectedImageFile!.path);
+      final bytes = await _selectedImageFile!.readAsBytes();
+      final b64 = base64Encode(bytes);
+      final dataUrl = 'data:$mime;base64,$b64';
+
+      // Prepare headers with session token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sessionToken');
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (token != null && token.isNotEmpty)
+        headers['Authorization'] = 'Bearer $token';
+
+      // Current user id (optional)
+      final current = ref.read(currentUserProvider);
+      final userId = current?.id;
+      final uri = userId != null && userId.isNotEmpty
+          ? Uri.parse('${DbConfig.apiUrl}/users/$userId/profile-image')
+          : Uri.parse('${DbConfig.apiUrl}/users/me/profile-image');
+      final resp = await http.post(uri,
+          headers: headers, body: jsonEncode({'dataUrl': dataUrl}));
+      if (resp.statusCode < 200 || resp.statusCode >= 300) {
+        String message = 'Upload failed (${resp.statusCode})';
+        try {
+          final j = jsonDecode(resp.body);
+          message = j['error']?.toString() ?? message;
+        } catch (_) {}
+        _showError(message);
+        return;
+      }
+      final j = jsonDecode(resp.body) as Map<String, dynamic>;
+      final String? canonicalUrl = (j['profileImageUrl']?.toString()) ??
+          (j['url']?.toString()) ??
+          (j['user'] is Map ? j['user']['profileImageUrl']?.toString() : null);
+      if (canonicalUrl == null || canonicalUrl.isEmpty) {
+        _showError('Upload succeeded but no URL returned');
+        return;
+      }
+
+      // Build a cache-busted URL so Flutter treats it as a new resource
+      final bustedUrl =
+          '$canonicalUrl${canonicalUrl.contains('?') ? '&' : '?'}v=${DateTime.now().millisecondsSinceEpoch}';
+
+      // Evict old image from Flutter cache to ensure immediate refresh
+      final oldUrl = (current?.profileImageUrl.toString().isNotEmpty == true
+              ? current!.profileImageUrl
+              : current?.profileImage)
+          ?.toString();
+      bool _isHttp(String? v) =>
+          v != null && (v.startsWith('http://') || v.startsWith('https://'));
+      try {
+        if (_isHttp(oldUrl)) {
+          final provider = NetworkImage(oldUrl!);
+          await provider.evict(
+            cache: PaintingBinding.instance.imageCache,
+            configuration: ImageConfiguration.empty,
+          );
+        }
+      } catch (_) {}
+
+      // Update local state and persist busted URL
+      setState(() {
+        _uploadedImageIdOrUrl = bustedUrl;
+      });
+      try {
+        if (userId != null && userId.isNotEmpty)
+          await prefs.setString('immosync-profileImage-$userId', bustedUrl);
+      } catch (_) {}
+      // Update current user model in provider with the busted URL
+      if (current != null) {
+        ref.read(currentUserProvider.notifier).setUserModel(
+              current.copyWith(
+                profileImage: bustedUrl,
+                profileImageUrl: bustedUrl,
+              ),
+            );
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Profile image uploaded'),
+        backgroundColor: colors.success,
+      ));
     } catch (e) {
       _showError('Failed to upload image');
     } finally {

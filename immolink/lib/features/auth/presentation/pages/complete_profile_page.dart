@@ -8,7 +8,8 @@ class CompleteProfilePage extends ConsumerStatefulWidget {
   const CompleteProfilePage({super.key});
 
   @override
-  ConsumerState<CompleteProfilePage> createState() => _CompleteProfilePageState();
+  ConsumerState<CompleteProfilePage> createState() =>
+      _CompleteProfilePageState();
 }
 
 class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
@@ -64,7 +65,8 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
                     ),
                     const SizedBox(height: 24),
                     if (authState.missingFields.contains('fullName'))
-                      _buildTextField(_fullNameController, 'Vollständiger Name'),
+                      _buildTextField(
+                          _fullNameController, 'Vollständiger Name'),
                     if (authState.missingFields.contains('phone'))
                       _buildTextField(_phoneController, 'Telefon'),
                     if (authState.missingFields.contains('role'))
@@ -78,10 +80,14 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
                         return Column(
                           children: [
                             if (authState.missingFields.contains('companyName'))
-                              _buildTextField(_companyNameController, 'Firmenname'),
-                            if (authState.missingFields.contains('companyAddress'))
-                              _buildTextField(_companyAddressController, 'Firmenadresse'),
-                            _buildOptionalTextField(_taxIdController, 'Steuer-ID (optional)'),
+                              _buildTextField(
+                                  _companyNameController, 'Firmenname'),
+                            if (authState.missingFields
+                                .contains('companyAddress'))
+                              _buildTextField(
+                                  _companyAddressController, 'Firmenadresse'),
+                            _buildOptionalTextField(
+                                _taxIdController, 'Steuer-ID (optional)'),
                           ],
                         );
                       },
@@ -172,7 +178,8 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
       child: TextFormField(
         controller: c,
         validator: (v) => (v == null || v.isEmpty) ? 'Erforderlich' : null,
-        decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        decoration: InputDecoration(
+            labelText: label, border: const OutlineInputBorder()),
       ),
     );
   }
@@ -182,7 +189,9 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
         controller: c,
-        decoration: InputDecoration(labelText: label + ' (optional)', border: const OutlineInputBorder()),
+        decoration: InputDecoration(
+            labelText: label + ' (optional)',
+            border: const OutlineInputBorder()),
       ),
     );
   }
@@ -235,7 +244,9 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
             initialDate: DateTime(now.year - 30),
           );
           if (picked != null) {
-            setState(() { _birthDate = picked; });
+            setState(() {
+              _birthDate = picked;
+            });
           }
         },
         child: InputDecorator(
@@ -244,7 +255,9 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
             border: OutlineInputBorder(),
           ),
           child: Text(
-            _birthDate == null ? 'Wählen...' : _birthDate!.toIso8601String().split('T').first,
+            _birthDate == null
+                ? 'Wählen...'
+                : _birthDate!.toIso8601String().split('T').first,
           ),
         ),
       ),
@@ -255,21 +268,32 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
     if (!_formKey.currentState!.validate()) return;
     final auth = ref.read(authProvider);
     final fields = <String, dynamic>{};
-    if (auth.missingFields.contains('fullName')) fields['fullName'] = _fullNameController.text.trim();
-    if (auth.missingFields.contains('phone')) fields['phone'] = _phoneController.text.trim();
-    if (auth.missingFields.contains('role')) fields['role'] = _roleController.value;
-    if (auth.missingFields.contains('isCompany')) fields['isCompany'] = _isCompanyController.value;
+    if (auth.missingFields.contains('fullName'))
+      fields['fullName'] = _fullNameController.text.trim();
+    if (auth.missingFields.contains('phone'))
+      fields['phone'] = _phoneController.text.trim();
+    if (auth.missingFields.contains('role'))
+      fields['role'] = _roleController.value;
+    if (auth.missingFields.contains('isCompany'))
+      fields['isCompany'] = _isCompanyController.value;
     if (_isCompanyController.value) {
-      if (auth.missingFields.contains('companyName')) fields['companyName'] = _companyNameController.text.trim();
-      if (auth.missingFields.contains('companyAddress')) fields['companyAddress'] = _companyAddressController.text.trim();
-      if (_taxIdController.text.isNotEmpty) fields['taxId'] = _taxIdController.text.trim();
+      if (auth.missingFields.contains('companyName'))
+        fields['companyName'] = _companyNameController.text.trim();
+      if (auth.missingFields.contains('companyAddress'))
+        fields['companyAddress'] = _companyAddressController.text.trim();
+      if (_taxIdController.text.isNotEmpty)
+        fields['taxId'] = _taxIdController.text.trim();
     } else {
-      if (auth.missingFields.contains('address')) fields['address'] = _addressController.text.trim();
-      if (auth.missingFields.contains('birthDate') && _birthDate != null) fields['birthDate'] = _birthDate;
+      if (auth.missingFields.contains('address'))
+        fields['address'] = _addressController.text.trim();
+      if (auth.missingFields.contains('birthDate') && _birthDate != null)
+        fields['birthDate'] = _birthDate;
     }
     await ref.read(authProvider.notifier).completeSocialProfile(fields: fields);
     final newState = ref.read(authProvider);
-    if (mounted && newState.isAuthenticated && !newState.needsProfileCompletion) {
+    if (mounted &&
+        newState.isAuthenticated &&
+        !newState.needsProfileCompletion) {
       context.go('/home');
     }
   }

@@ -393,7 +393,8 @@ class InvitationCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.failedToRespondInvitation}: $error'),
+            content: Text(
+                '${AppLocalizations.of(context)!.failedToRespondInvitation}: $error'),
             backgroundColor: const Color(0xFFEF4444),
           ),
         );

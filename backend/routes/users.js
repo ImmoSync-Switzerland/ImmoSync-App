@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient, ObjectId } = require('mongodb');
 const { dbUri, dbName } = require('../config');
+const { buildProfileImageUrl, buildInlineUserImageUrl } = require('../utils');
 
 // Helper to compute if a timestamp is considered online (e.g. last 60s)
 function isOnline(lastSeen) {
@@ -63,7 +64,8 @@ router.get('/available-tenants', async (req, res) => {
       // Convert ObjectIds to strings for frontend compatibility
       const serializedTenants = availableTenants.map(tenant => ({
         ...tenant,
-        _id: tenant._id.toString()
+        _id: tenant._id.toString(),
+        profileImageUrl: buildProfileImageUrl(tenant.profileImage || tenant.providerPicture, req),
       }));
       
       res.json(serializedTenants);
@@ -81,7 +83,8 @@ router.get('/available-tenants', async (req, res) => {
       // Convert ObjectIds to strings for frontend compatibility
       const serializedTenants = tenants.map(tenant => ({
         ...tenant,
-        _id: tenant._id.toString()
+        _id: tenant._id.toString(),
+        profileImageUrl: buildProfileImageUrl(tenant.profileImage || tenant.providerPicture, req),
       }));
       
       res.json(serializedTenants);
@@ -89,6 +92,90 @@ router.get('/available-tenants', async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ message: 'Error fetching tenants' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Upload inline profile image to user document (base64 or raw bytes)
+// POST /users/:userId/profile-image with JSON { dataUrl: 'data:image/png;base64,...' } or multipart/form-data 'image'
+router.post('/:userId/profile-image', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    let { userId } = req.params;
+    userId = (userId || '').toString().trim();
+    if (!ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+
+    // Support either JSON body with dataUrl, or raw base64 in { base64 }, fallback to req.body.image
+    let contentType = null;
+    let buffer = null;
+
+    if (req.is('application/json')) {
+      const dataUrl = req.body?.dataUrl || req.body?.dataURL || null;
+      const base64 = req.body?.base64 || null;
+      if (dataUrl && typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
+        const match = /^data:([^;]+);base64,(.*)$/i.exec(dataUrl);
+        if (!match) return res.status(400).json({ message: 'Invalid dataUrl' });
+        contentType = match[1];
+        buffer = Buffer.from(match[2], 'base64');
+      } else if (base64 && typeof base64 === 'string') {
+        contentType = 'image/png';
+        buffer = Buffer.from(base64, 'base64');
+      }
+    }
+
+    if (!buffer) {
+      // As a minimal fallback, allow plain text body with base64 (not ideal, but pragmatic)
+      if (typeof req.body === 'string') {
+        contentType = 'image/png';
+        buffer = Buffer.from(req.body, 'base64');
+      }
+    }
+
+    if (!buffer) {
+      return res.status(400).json({ message: 'No image data provided' });
+    }
+
+    const update = {
+      $set: {
+        profileImageInline: {
+          contentType: contentType || 'image/png',
+          data: buffer,
+          uploadedAt: new Date(),
+        },
+        updatedAt: new Date(),
+      }
+    };
+    await db.collection('users').updateOne({ _id: new ObjectId(userId) }, update);
+    return res.json({ ok: true, profileImageUrl: buildInlineUserImageUrl(userId, req) });
+  } catch (e) {
+    console.error('POST /users/:userId/profile-image error', e);
+    return res.status(500).json({ message: 'Failed to upload profile image' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Serve inline profile image if present; else 404
+router.get('/:userId/profile-image', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const { userId } = req.params;
+    if (!ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid userId' });
+    const doc = await db.collection('users').findOne({ _id: new ObjectId(userId) }, { projection: { profileImageInline: 1 } });
+    const inline = doc?.profileImageInline;
+    if (!inline || !inline.data) return res.status(404).json({ message: 'No inline profile image' });
+    res.setHeader('Content-Type', inline.contentType || 'image/png');
+    // Disable caching so updated avatars are reflected immediately
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
+    return res.send(Buffer.from(inline.data.buffer || inline.data));
+  } catch (e) {
+    console.error('GET /users/:userId/profile-image error', e);
+    return res.status(500).json({ message: 'Failed to fetch profile image' });
   } finally {
     await client.close();
   }
@@ -153,7 +240,8 @@ router.get('/tenants', async (req, res) => {
           phone: tenant.phone || '',
           leaseStart: leaseInfo ? leaseInfo.startDate : null,
           leaseEnd: leaseInfo ? leaseInfo.endDate : null,
-          rentAmount: leaseInfo ? leaseInfo.rentAmount : (propertyInfo ? propertyInfo.rentAmount : 0)
+          rentAmount: leaseInfo ? leaseInfo.rentAmount : (propertyInfo ? propertyInfo.rentAmount : 0),
+          profileImageUrl: buildProfileImageUrl(tenant.profileImage || tenant.providerPicture, req),
         };
       })
     );
@@ -164,7 +252,7 @@ router.get('/tenants', async (req, res) => {
       Count: tenantsWithDetails.length
     };
     
-    console.log(`Found ${tenantsWithDetails.length} tenants with filters:`, { propertyId, landlordId });
+  console.log(`Found ${tenantsWithDetails.length} tenants with filters:`, { propertyId, landlordId });
     res.json(response);
   } catch (error) {
     console.error('Error fetching tenants:', error);
@@ -187,7 +275,12 @@ router.get('/', async (req, res) => {
       .toArray();
     
     console.log(`Found ${users.length} total users`);
-    res.json(users);
+    const shaped = users.map(u => ({
+      ...u,
+      _id: u._id?.toString?.() || u._id,
+      profileImageUrl: buildProfileImageUrl(u.profileImage || u.providerPicture, req),
+    }));
+    res.json(shaped);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users' });
@@ -216,7 +309,10 @@ router.get('/me', async (req, res) => {
       if (doc.landlordId) serialized.landlordId = doc.landlordId.toString();
       ['birthDate','updatedAt','createdAt','lastSeen','passwordChangedAt','sessionTokenCreatedAt']
         .forEach(k => { if (doc[k]) serialized[k] = new Date(doc[k]).toISOString(); });
-      delete serialized.password;
+  delete serialized.password;
+  // Prefer inline image if present
+  const inlineUrl = doc.profileImageInline ? buildInlineUserImageUrl(doc._id, req) : null;
+  serialized.profileImageUrl = inlineUrl || buildProfileImageUrl(doc.profileImage || doc.providerPicture, req);
     } catch (e) { /* no-op */ }
     return res.json(serialized);
   } catch (e) {
@@ -247,7 +343,9 @@ router.get('/by-id/:userId', async (req, res) => {
       if (doc.landlordId) serialized.landlordId = doc.landlordId.toString();
       ['birthDate','updatedAt','createdAt','lastSeen','passwordChangedAt','sessionTokenCreatedAt']
         .forEach(k => { if (doc[k]) serialized[k] = new Date(doc[k]).toISOString(); });
-      delete serialized.password;
+  delete serialized.password;
+  const inlineUrl2 = doc.profileImageInline ? buildInlineUserImageUrl(doc._id, req) : null;
+  serialized.profileImageUrl = inlineUrl2 || buildProfileImageUrl(doc.profileImage || doc.providerPicture, req);
     } catch (e) { /* no-op */ }
     return res.json(serialized);
   } catch (e) {
@@ -359,7 +457,7 @@ router.patch('/:userId', async (req, res) => {
     }
     const doc = result.value;
     // Build a stable JSON-friendly user object
-    const serialized = { ...doc };
+  const serialized = { ...doc };
     try {
       if (doc._id) serialized._id = doc._id.toString();
       if (doc.propertyId) serialized.propertyId = doc.propertyId.toString();
@@ -367,8 +465,10 @@ router.patch('/:userId', async (req, res) => {
       // Coerce dates to ISO strings
       ['birthDate','updatedAt','createdAt','lastSeen','passwordChangedAt','sessionTokenCreatedAt']
         .forEach(k => { if (doc[k]) serialized[k] = new Date(doc[k]).toISOString(); });
-      // Remove sensitive fields
-      delete serialized.password;
+    // Remove sensitive fields
+    delete serialized.password;
+    const inlineUrl3 = doc.profileImageInline ? buildInlineUserImageUrl(doc._id, req) : null;
+    serialized.profileImageUrl = inlineUrl3 || buildProfileImageUrl(doc.profileImage || doc.providerPicture, req);
     } catch (e) {
       console.warn('[Users PATCH] serialize warning:', e.message);
     }
@@ -537,6 +637,57 @@ router.post('/:userId/unblock', async (req, res) => {
   } catch (e) {
     console.error('Unblock user error:', e);
     res.status(500).json({ message: 'Failed to unblock user' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Upload inline profile image for the current user resolved from Authorization header
+router.post('/me/profile-image', async (req, res) => {
+  const client = new MongoClient(dbUri);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    let auth = req.headers['authorization'] || req.headers['Authorization'];
+    if (!auth || typeof auth !== 'string') return res.status(401).json({ message: 'Authorization required' });
+    auth = auth.trim();
+    // Support both "Bearer <token>" and raw token
+    const token = auth.toLowerCase().startsWith('bearer ') ? auth.slice(7).trim() : auth;
+    const user = await db.collection('users').findOne({ sessionToken: token }, { projection: { _id: 1 } });
+    if (!user) return res.status(401).json({ message: 'Invalid token' });
+
+    let contentType = null;
+    let buffer = null;
+    if (req.is('application/json')) {
+      const dataUrl = req.body?.dataUrl || req.body?.dataURL || null;
+      const base64 = req.body?.base64 || null;
+      if (dataUrl && typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
+        const match = /^data:([^;]+);base64,(.*)$/i.exec(dataUrl);
+        if (!match) return res.status(400).json({ message: 'Invalid dataUrl' });
+        contentType = match[1];
+        buffer = Buffer.from(match[2], 'base64');
+      } else if (base64 && typeof base64 === 'string') {
+        contentType = 'image/png';
+        buffer = Buffer.from(base64, 'base64');
+      }
+    }
+    if (!buffer && typeof req.body === 'string') {
+      contentType = 'image/png';
+      buffer = Buffer.from(req.body, 'base64');
+    }
+    if (!buffer) return res.status(400).json({ message: 'No image data provided' });
+
+    const update = {
+      $set: {
+        profileImageInline: { contentType: contentType || 'image/png', data: buffer, uploadedAt: new Date() },
+        updatedAt: new Date(),
+      }
+    };
+    await db.collection('users').updateOne({ _id: new ObjectId(user._id) }, update);
+    return res.json({ ok: true, profileImageUrl: buildInlineUserImageUrl(user._id, req) });
+  } catch (e) {
+    console.error('POST /users/me/profile-image error', e);
+    return res.status(500).json({ message: 'Failed to upload profile image' });
   } finally {
     await client.close();
   }

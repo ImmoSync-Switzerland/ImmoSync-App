@@ -268,7 +268,10 @@ class _TenantsSearchTab extends ConsumerWidget {
                   color: colors.surfaceCards,
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: UserAvatar(imageRef: tenant.profileImage, name: tenant.fullName, size: 40),
+                    leading: UserAvatar(
+                        imageRef: tenant.profileImage,
+                        name: tenant.fullName,
+                        size: 40),
                     title: Text(
                       tenant.fullName,
                       style: TextStyle(
@@ -479,7 +482,13 @@ class _MessagesSearchTab extends ConsumerWidget {
               color: colors.surfaceCards,
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(
-                leading: UserAvatar(imageRef: conversation.otherParticipantAvatar, name: conversation.otherParticipantName, size: 40),
+                leading: UserAvatar(
+                  imageRef: conversation.getOtherParticipantAvatarUrl() ??
+                      conversation.otherParticipantAvatar,
+                  name: conversation.otherParticipantName,
+                  size: 40,
+                  fallbackToCurrentUser: false,
+                ),
                 title: Text(
                   conversation.otherParticipantName ?? 'Unbekannt',
                   style: TextStyle(
@@ -497,7 +506,8 @@ class _MessagesSearchTab extends ConsumerWidget {
                   final name = conversation.otherParticipantName ?? 'User';
                   final otherId = conversation.otherParticipantId ?? '';
                   final avatar = conversation.otherParticipantAvatar ?? '';
-                  context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+                  context.push(
+                      '/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
                 },
               ),
             );
@@ -664,7 +674,10 @@ class _AllSearchTab extends ConsumerWidget {
                       color: colors.surfaceCards,
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
-                        leading: UserAvatar(imageRef: tenant.profileImage, name: tenant.fullName, size: 40),
+                        leading: UserAvatar(
+                            imageRef: tenant.profileImage,
+                            name: tenant.fullName,
+                            size: 40),
                         title: Text(
                           tenant.fullName,
                           style: TextStyle(
@@ -821,7 +834,13 @@ class _AllSearchTab extends ConsumerWidget {
                   color: colors.surfaceCards,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    leading: UserAvatar(imageRef: conversation.otherParticipantAvatar, name: conversation.otherParticipantName, size: 40),
+                    leading: UserAvatar(
+                      imageRef: conversation.getOtherParticipantAvatarUrl() ??
+                          conversation.otherParticipantAvatar,
+                      name: conversation.otherParticipantName,
+                      size: 40,
+                      fallbackToCurrentUser: false,
+                    ),
                     title: Text(
                       conversation.otherParticipantName ?? 'Unbekannt',
                       style: TextStyle(
@@ -840,7 +859,8 @@ class _AllSearchTab extends ConsumerWidget {
                       final name = conversation.otherParticipantName ?? 'User';
                       final otherId = conversation.otherParticipantId ?? '';
                       final avatar = conversation.otherParticipantAvatar ?? '';
-                      context.push('/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+                      context.push(
+                          '/chat/${conversation.id}?otherUserId=$otherId&otherUser=${Uri.encodeComponent(name)}&otherAvatar=${Uri.encodeComponent(avatar)}');
                     },
                   ),
                 )),

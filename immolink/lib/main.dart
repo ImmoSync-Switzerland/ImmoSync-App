@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'core/notifications/fcm_service.dart';
 import '../l10n/app_localizations.dart';
 import 'package:immosync/core/routes/app_router.dart';
@@ -19,8 +20,10 @@ import 'package:immosync/l10n_helper.dart';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_frb_events_adapter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:immosync/frb_generated.dart';
 
 void main() async {
   bool _appStarted = false; // track if primary runApp already executed
@@ -30,7 +33,8 @@ void main() async {
     if (details.stack != null) {
       debugPrint(details.stack.toString());
     }
-    Zone.current.handleUncaughtError(details.exception, details.stack ?? StackTrace.empty);
+    Zone.current.handleUncaughtError(
+        details.exception, details.stack ?? StackTrace.empty);
   };
   // Platform dispatcher errors (async / isolates)
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -45,8 +49,13 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     debugPrint('[Startup] Widgets binding ensured');
 
-    // Step 1: (Removed .env loading) Using compile-time dart-define values instead.
-  // Environment values now provided via --dart-define; no runtime load needed.
+    // Step 1: Load .env (optional) to allow runtime configuration on desktop/dev
+    try {
+      await dotenv.dotenv.load(fileName: '.env');
+      debugPrint('[Startup] .env loaded');
+    } catch (e) {
+      debugPrint('[Startup][INFO] .env not loaded (optional): $e');
+    }
 
     // Step 2: Firebase (deferred errors tolerated)
     try {
@@ -61,15 +70,18 @@ void main() async {
 
     // Step 3: Stripe (only on supported platforms: web, Android, iOS)
     try {
-      final isStripeSupported = kIsWeb || (
-        !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)
-      );
+      final isStripeSupported = kIsWeb ||
+          (!kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.android ||
+                  defaultTargetPlatform == TargetPlatform.iOS));
       if (!isStripeSupported) {
-        debugPrint('[Startup][INFO] Stripe unsupported on this platform (${defaultTargetPlatform.name}) – skipping Stripe init');
+        debugPrint(
+            '[Startup][INFO] Stripe unsupported on this platform (${defaultTargetPlatform.name}) – skipping Stripe init');
       } else {
         const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
         if (stripeKey.isEmpty) {
-          debugPrint('[Startup][INFO] Stripe key missing – skipping Stripe init');
+          debugPrint(
+              '[Startup][INFO] Stripe key missing – skipping Stripe init');
         } else {
           Stripe.publishableKey = stripeKey;
           await Stripe.instance.applySettings();
@@ -98,11 +110,24 @@ void main() async {
       debugPrint(st.toString());
     }
 
+    // Step 6: Initialize flutter_rust_bridge before any FRB usage
+    // This must run before widgets/providers that call into the bridge (e.g., subscribeEvents)
+    try {
+      await RustLib.init();
+      debugPrint('[Startup] flutter_rust_bridge initialized');
+    } catch (e, st) {
+      debugPrint('[Startup][FATAL] flutter_rust_bridge init failed: $e');
+      debugPrint(st.toString());
+      // Re-throw to surface a clear startup error UI if FRB cannot load
+      rethrow;
+    }
+
     // Run app – heavy providers will lazy load AFTER first frame
     try {
       runApp(const ProviderScope(child: ImmoSync()));
       _appStarted = true;
-      debugPrint('[Startup] runApp completed in ${stopwatch.elapsedMilliseconds} ms');
+      debugPrint(
+          '[Startup] runApp completed in ${stopwatch.elapsedMilliseconds} ms');
     } catch (e, st) {
       debugPrint('[Startup][FATAL] runApp threw: $e');
       debugPrint(st.toString());
@@ -143,6 +168,8 @@ class ImmoSync extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Start FCM service side effects and keep instance
     final fcm = ref.watch(fcmServiceProvider);
+    // Receive chat messages from native Matrix FRB stream only (no WS message ingestion)
+    ref.watch(matrixFrbEventsAdapterProvider);
     // Listen for auth userId changes (avoid triggering on every rebuild)
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {
@@ -156,10 +183,10 @@ class ImmoSync extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final currentLocale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
-    
+
     // Ensure settings are loaded
     ref.watch(settingsProvider);
-    
+
     // Determine which theme mode to use
     ThemeMode appThemeMode;
     switch (themeMode) {
@@ -175,8 +202,8 @@ class ImmoSync extends ConsumerWidget {
       default:
         appThemeMode = ThemeMode.light;
     }
-    
-  return MaterialApp.router(
+
+    return MaterialApp.router(
       routerConfig: router,
       title: 'ImmoSync',
       theme: AppTheme.lightTheme,
@@ -217,12 +244,10 @@ Future<void> _initMatrixForUser(String userId) async {
     final username = data['username'] as String?;
     final password = data['password'] as String?;
     if (homeserver.isEmpty || username == null || password == null) return;
-    await MatrixChatService.instance.ensureInitialized(homeserver: homeserver);
-    await MatrixChatService.instance
-        .login(username: username, password: password);
+    // Centralized readiness (idempotent) avoids duplicate login/sync
+    await MatrixChatService.instance.ensureReadyForUser(userId);
   } catch (e, st) {
     debugPrint('Matrix init/login failed: $e');
     debugPrint(st.toString());
   }
 }
-

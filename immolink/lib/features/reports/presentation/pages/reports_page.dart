@@ -26,7 +26,8 @@ class ReportsPage extends ConsumerStatefulWidget {
 
 // Animated numeric value widget (count-up) used for KPI cards (outside state class)
 class _AnimatedValue extends StatefulWidget {
-  final String displayValue; // Original formatted value (e.g., CHF 1,230.00 / 75%)
+  final String
+      displayValue; // Original formatted value (e.g., CHF 1,230.00 / 75%)
   final double? numericValue; // Parsed numeric portion if available
   const _AnimatedValue({required this.displayValue, this.numericValue});
 
@@ -34,17 +35,20 @@ class _AnimatedValue extends StatefulWidget {
   State<_AnimatedValue> createState() => _AnimatedValueState();
 }
 
-class _AnimatedValueState extends State<_AnimatedValue> with SingleTickerProviderStateMixin {
+class _AnimatedValueState extends State<_AnimatedValue>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900));
     _anim = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     // Stagger a bit for nicer cascade
-    Future.delayed(const Duration(milliseconds: 60), () => _controller.forward());
+    Future.delayed(
+        const Duration(milliseconds: 60), () => _controller.forward());
   }
 
   @override
@@ -67,9 +71,11 @@ class _AnimatedValueState extends State<_AnimatedValue> with SingleTickerProvide
             text = '${current.toStringAsFixed(0)}%';
           } else {
             // Try detect currency prefix (e.g., CHF, €, $)
-            final match = RegExp(r'^[A-Z€$£]{1,4}').firstMatch(widget.displayValue.replaceAll(',', ''));
+            final match = RegExp(r'^[A-Z€$£]{1,4}')
+                .firstMatch(widget.displayValue.replaceAll(',', ''));
             if (match != null) {
-              text = '${match.group(0)} ${current.toStringAsFixed(current >= 1000 ? 0 : 2)}';
+              text =
+                  '${match.group(0)} ${current.toStringAsFixed(current >= 1000 ? 0 : 2)}';
             } else {
               text = current.toStringAsFixed(current >= 1000 ? 0 : 2);
             }
@@ -171,71 +177,120 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       builder: (_) => AlertDialog(
         title: Text(title),
         content: const Text('No further data available.'),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'))
+        ],
       ),
     );
   }
 
-  Future<void> _showFinancialDetailDialog(AppLocalizations l10n, AsyncValue properties, AsyncValue payments, DynamicAppColors colors) async {
+  Future<void> _showFinancialDetailDialog(
+      AppLocalizations l10n,
+      AsyncValue properties,
+      AsyncValue payments,
+      DynamicAppColors colors) async {
     final props = await properties.whenData((value) => value).valueOrNull ?? [];
     final pays = await payments.whenData((value) => value).valueOrNull ?? [];
-    final totalRevenue = props.where((p) => p.status == 'rented').fold<double>(0, (s,p)=> s + p.rentAmount);
-    final collected = pays.where((p) => p.status == 'completed').fold<double>(0,(s,p)=> s + p.amount);
-    final outstanding = pays.where((p) => p.status == 'pending').fold<double>(0,(s,p)=> s + p.amount);
-    showDialog(context: context, builder: (_) => AlertDialog(
-      title: Text(l10n.financialOverview),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _detailRow(l10n.monthlyRevenue, _formatCurrency(totalRevenue)),
-          _detailRow(l10n.collected, _formatCurrency(collected)),
-          _detailRow(l10n.outstanding, _formatCurrency(outstanding)),
-          const Divider(),
-          Text(l10n.analyticsAndReports, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-      actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: Text(l10n.close))],
-    ));
+    final totalRevenue = props
+        .where((p) => p.status == 'rented')
+        .fold<double>(0, (s, p) => s + p.rentAmount);
+    final collected = pays
+        .where((p) => p.status == 'completed')
+        .fold<double>(0, (s, p) => s + p.amount);
+    final outstanding = pays
+        .where((p) => p.status == 'pending')
+        .fold<double>(0, (s, p) => s + p.amount);
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text(l10n.financialOverview),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _detailRow(
+                      l10n.monthlyRevenue, _formatCurrency(totalRevenue)),
+                  _detailRow(l10n.collected, _formatCurrency(collected)),
+                  _detailRow(l10n.outstanding, _formatCurrency(outstanding)),
+                  const Divider(),
+                  Text(l10n.analyticsAndReports,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                ],
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(l10n.close))
+              ],
+            ));
   }
 
-  Future<void> _showTenantPaymentDetailDialog(AppLocalizations l10n, AsyncValue payments, DynamicAppColors colors) async {
-    final list = await payments.whenData((v)=>v).valueOrNull ?? [];
-    final totalPaid = list.where((p)=> p.status=='completed').fold<double>(0,(s,p)=> s+p.amount);
-    final pending = list.where((p)=> p.status=='pending').fold<double>(0,(s,p)=> s+p.amount);
-    showDialog(context: context, builder: (_) => AlertDialog(
-      title: Text(l10n.paymentSummary),
-      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _detailRow(l10n.totalPaid, _formatCurrency(totalPaid)),
-        _detailRow(l10n.pending, _formatCurrency(pending)),
-        _detailRow(l10n.totalPayments, list.length.toString()),
-      ]),
-      actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: Text(l10n.close))],
-    ));
+  Future<void> _showTenantPaymentDetailDialog(AppLocalizations l10n,
+      AsyncValue payments, DynamicAppColors colors) async {
+    final list = await payments.whenData((v) => v).valueOrNull ?? [];
+    final totalPaid = list
+        .where((p) => p.status == 'completed')
+        .fold<double>(0, (s, p) => s + p.amount);
+    final pending = list
+        .where((p) => p.status == 'pending')
+        .fold<double>(0, (s, p) => s + p.amount);
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text(l10n.paymentSummary),
+              content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _detailRow(l10n.totalPaid, _formatCurrency(totalPaid)),
+                    _detailRow(l10n.pending, _formatCurrency(pending)),
+                    _detailRow(l10n.totalPayments, list.length.toString()),
+                  ]),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(l10n.close))
+              ],
+            ));
   }
 
-  Future<void> _showPropertyDetailDialog(AppLocalizations l10n, AsyncValue properties, DynamicAppColors colors) async {
-    final list = await properties.whenData((v)=>v).valueOrNull ?? [];
+  Future<void> _showPropertyDetailDialog(AppLocalizations l10n,
+      AsyncValue properties, DynamicAppColors colors) async {
+    final list = await properties.whenData((v) => v).valueOrNull ?? [];
     final total = list.length;
-    final rented = list.where((p)=> p.status == 'rented').length;
-    final available = list.where((p)=> p.status == 'available').length;
+    final rented = list.where((p) => p.status == 'rented').length;
+    final available = list.where((p) => p.status == 'available').length;
     final occupancy = total == 0 ? 0 : (rented / total * 100).round();
-    showDialog(context: context, builder: (_) => AlertDialog(
-      title: Text(l10n.propertyOverview),
-      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _detailRow(l10n.totalProperties, total.toString()),
-        _detailRow(l10n.occupied, rented.toString()),
-        _detailRow(l10n.available, available.toString()),
-        _detailRow(l10n.occupancyRate, '$occupancy%'),
-      ]),
-      actions: [TextButton(onPressed: ()=> Navigator.pop(context), child: Text(l10n.close))],
-    ));
+    showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text(l10n.propertyOverview),
+              content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _detailRow(l10n.totalProperties, total.toString()),
+                    _detailRow(l10n.occupied, rented.toString()),
+                    _detailRow(l10n.available, available.toString()),
+                    _detailRow(l10n.occupancyRate, '$occupancy%'),
+                  ]),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(l10n.close))
+              ],
+            ));
   }
 
   Widget _detailRow(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical:4),
-    child: Row(children:[Expanded(child: Text(label)), Text(value, style: const TextStyle(fontWeight: FontWeight.w600))]),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(children: [
+          Expanded(child: Text(label)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600))
+        ]),
+      );
 
   @override
   void initState() {
@@ -345,7 +400,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildHeroHeader(AppLocalizations l10n, bool isLandlord, DynamicAppColors colors) {
+  Widget _buildHeroHeader(
+      AppLocalizations l10n, bool isLandlord, DynamicAppColors colors) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
@@ -369,7 +425,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               ],
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: colors.borderLight.withValues(alpha: 0.25), width: 1),
+            border: Border.all(
+                color: colors.borderLight.withValues(alpha: 0.25), width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.18),
@@ -388,7 +445,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   color: Colors.white.withValues(alpha: 0.18),
                 ),
                 child: Icon(
-                  isLandlord ? Icons.analytics_outlined : Icons.insights_outlined,
+                  isLandlord
+                      ? Icons.analytics_outlined
+                      : Icons.insights_outlined,
                   size: compact ? 26 : 30,
                   color: Colors.white,
                 ),
@@ -472,10 +531,16 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildKpiStrip(bool isLandlord, AppLocalizations l10n, DynamicAppColors colors) {
-    final payments = ref.watch(isLandlord ? landlordPaymentsProvider : tenantPaymentsProvider);
-    final maintenance = ref.watch(isLandlord ? landlordMaintenanceRequestsProvider : tenantMaintenanceRequestsProvider);
-    final properties = isLandlord ? ref.watch(landlordPropertiesProvider) : ref.watch(tenantPropertiesProvider);
+  Widget _buildKpiStrip(
+      bool isLandlord, AppLocalizations l10n, DynamicAppColors colors) {
+    final payments = ref
+        .watch(isLandlord ? landlordPaymentsProvider : tenantPaymentsProvider);
+    final maintenance = ref.watch(isLandlord
+        ? landlordMaintenanceRequestsProvider
+        : tenantMaintenanceRequestsProvider);
+    final properties = isLandlord
+        ? ref.watch(landlordPropertiesProvider)
+        : ref.watch(tenantPropertiesProvider);
 
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
@@ -498,7 +563,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           asyncValue: payments,
           icon: Icons.check_circle_outline,
           color: colors.success,
-          valueBuilder: (list) => _formatCurrency(list.where((p) => p.status == 'completed').fold<double>(0, (s, p) => s + p.amount)),
+          valueBuilder: (list) => _formatCurrency(list
+              .where((p) => p.status == 'completed')
+              .fold<double>(0, (s, p) => s + p.amount)),
           minWidth: cardWidth,
         ),
         _asyncKpiCard(
@@ -506,7 +573,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           asyncValue: payments,
           icon: Icons.hourglass_bottom,
           color: colors.warning,
-          valueBuilder: (list) => _formatCurrency(list.where((p) => p.status == 'pending').fold<double>(0, (s, p) => s + p.amount)),
+          valueBuilder: (list) => _formatCurrency(list
+              .where((p) => p.status == 'pending')
+              .fold<double>(0, (s, p) => s + p.amount)),
           minWidth: cardWidth,
         ),
       ];
@@ -531,17 +600,21 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         _asyncKpiCard(
           label: l10n.maintenance,
           asyncValue: maintenance,
-            icon: Icons.build_circle_outlined,
-            color: colors.error,
-            valueBuilder: (list) => list.where((r) => r.status != 'completed' && r.status != 'closed').length.toString(),
-            minWidth: cardWidth,
-          ),
+          icon: Icons.build_circle_outlined,
+          color: colors.error,
+          valueBuilder: (list) => list
+              .where((r) => r.status != 'completed' && r.status != 'closed')
+              .length
+              .toString(),
+          minWidth: cardWidth,
+        ),
       );
 
       return Wrap(
         spacing: spacing,
         runSpacing: spacing,
-        children: cards.map((c) => SizedBox(width: cardWidth, child: c)).toList(),
+        children:
+            cards.map((c) => SizedBox(width: cardWidth, child: c)).toList(),
       );
     });
   }
@@ -560,32 +633,37 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         mouseCursor: SystemMouseCursors.click,
         onShowFocusHighlight: (_) => setState(() {}),
         child: AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      child: Container(
-        constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withValues(alpha: 0.55),
-              color.withValues(alpha: 0.25),
-            ],
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: Container(
+            constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withValues(alpha: 0.55),
+                  color.withValues(alpha: 0.25),
+                ],
+              ),
+              border:
+                  Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                    color: color.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4))
+              ],
+            ),
+            child: asyncValue.when(
+              data: (data) =>
+                  _kpiContent(label, valueBuilder(data), icon, color),
+              loading: () => _kpiShimmer(label, icon, color),
+              error: (_, __) => _kpiError(label, icon, color),
+            ),
           ),
-          border: Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
-          boxShadow: [
-            BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0,4))
-          ],
-        ),
-        child: asyncValue.when(
-          data: (data) => _kpiContent(label, valueBuilder(data), icon, color),
-          loading: () => _kpiShimmer(label, icon, color),
-          error: (_, __) => _kpiError(label, icon, color),
-        ),
-      ),
         ),
       ),
     );
@@ -644,11 +722,25 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 16, width: 80, decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: color.withValues(alpha: 0.25))),
+              Container(
+                  height: 16,
+                  width: 80,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      color: color.withValues(alpha: 0.25))),
               const SizedBox(height: 6),
-              Container(height: 10, width: 60, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: color.withValues(alpha: 0.18))),
+              Container(
+                  height: 10,
+                  width: 60,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: color.withValues(alpha: 0.18))),
               const SizedBox(height: 2),
-              Text(label.toUpperCase(), style: TextStyle(fontSize: 9, color: color.withValues(alpha: 0.4), letterSpacing: 0.6)),
+              Text(label.toUpperCase(),
+                  style: TextStyle(
+                      fontSize: 9,
+                      color: color.withValues(alpha: 0.4),
+                      letterSpacing: 0.6)),
             ],
           ),
         ),
@@ -661,13 +753,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 8),
-        Expanded(child: Text('—', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color))),
+        Expanded(
+            child: Text('—',
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold, color: color))),
         Text(label.toUpperCase(), style: TextStyle(fontSize: 10)),
       ],
     );
   }
 
-  Widget _buildModernReport(bool isLandlord, AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildModernReport(
+      bool isLandlord, AppLocalizations l10n, DynamicAppColors colors) {
     // Use existing detailed sections below but wrap them into a modern layered container set
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -684,9 +780,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  Widget _buildRevenueRangeSelector(DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildRevenueRangeSelector(
+      DynamicAppColors colors, AppLocalizations l10n) {
     final range = ref.watch(revenueRangeProvider);
-    final options = const [3,6,12];
+    final options = const [3, 6, 12];
     return Wrap(
       spacing: 12,
       children: options.map((m) {
@@ -697,15 +794,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             mouseCursor: SystemMouseCursors.click,
             onShowFocusHighlight: (_) => setState(() {}),
             child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              gradient: selected ? ReportGradients.glassAccent(colors.success, isDark: colors.isDark) : null,
-              border: Border.all(color: selected ? Colors.white.withValues(alpha:0.4) : colors.borderLight),
-              boxShadow: selected ? [BoxShadow(color: colors.success.withValues(alpha:0.35), blurRadius:12, offset: const Offset(0,4))] : null,
-            ),
-            child: Text('${m}M', style: TextStyle(color: selected ? Colors.white : colors.textSecondary, fontWeight: FontWeight.w600)),
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(22),
+                gradient: selected
+                    ? ReportGradients.glassAccent(colors.success,
+                        isDark: colors.isDark)
+                    : null,
+                border: Border.all(
+                    color: selected
+                        ? Colors.white.withValues(alpha: 0.4)
+                        : colors.borderLight),
+                boxShadow: selected
+                    ? [
+                        BoxShadow(
+                            color: colors.success.withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4))
+                      ]
+                    : null,
+              ),
+              child: Text('${m}M',
+                  style: TextStyle(
+                      color: selected ? Colors.white : colors.textSecondary,
+                      fontWeight: FontWeight.w600)),
             ),
           ),
         );
@@ -713,9 +826,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-
   Widget _animatedSection(int index, Widget child) {
-    final visible = index < _sectionVisible.length ? _sectionVisible[index] : true;
+    final visible =
+        index < _sectionVisible.length ? _sectionVisible[index] : true;
     return VisibilityDetector(
       key: Key('report-sec-$index'),
       onVisibilityChanged: (info) {
@@ -777,13 +890,16 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-  _animatedSection(2, _buildFinancialOverview(properties, payments, ref, l10n, colors)),
+        _animatedSection(2,
+            _buildFinancialOverview(properties, payments, ref, l10n, colors)),
         const SizedBox(height: 24),
-  _animatedSection(3, _buildPropertyMetrics(properties, l10n, colors)),
+        _animatedSection(3, _buildPropertyMetrics(properties, l10n, colors)),
         const SizedBox(height: 24),
-  _animatedSection(4, _buildMaintenanceOverview(maintenanceRequests, l10n, colors)),
+        _animatedSection(
+            4, _buildMaintenanceOverview(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-  _animatedSection(5, _buildRevenueChart(properties, payments, ref, l10n, colors)),
+        _animatedSection(
+            5, _buildRevenueChart(properties, payments, ref, l10n, colors)),
       ],
     );
   }
@@ -797,11 +913,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-  _animatedSection(2, _buildTenantPaymentSummary(payments, ref, l10n, colors)),
+        _animatedSection(
+            2, _buildTenantPaymentSummary(payments, ref, l10n, colors)),
         const SizedBox(height: 24),
-  _animatedSection(3, _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors)),
+        _animatedSection(3,
+            _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-  _animatedSection(4, _buildPaymentHistory(payments, ref, l10n, colors)),
+        _animatedSection(4, _buildPaymentHistory(payments, ref, l10n, colors)),
       ],
     );
   }
@@ -810,90 +928,112 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     final accent = colors.success;
     return _HoverScale(
-      onTap: () => _showFinancialDetailDialog(l10n, properties, payments, colors),
-      child: Container(
-      padding: const EdgeInsets.all(26),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: ReportGradients.glassAccent(accent, isDark: colors.isDark),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title icon (left) with title underneath (stacked)
-          Column(
+        onTap: () =>
+            _showFinancialDetailDialog(l10n, properties, payments, colors),
+        child: Container(
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient:
+                ReportGradients.glassAccent(accent, isDark: colors.isDark),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+          ),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.25),
-                ),
-                child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 22),
+              // Title icon (left) with title underneath (stacked)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
+                    child: const Icon(Icons.account_balance_wallet_outlined,
+                        color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.financialOverview,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 20),
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.financialOverview,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 20),
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
+              const SizedBox(height: 28),
+              properties.when(
+                data: (propertyList) {
+                  final totalRevenue = propertyList
+                      .where((p) => p.status == 'rented')
+                      .fold(0.0, (sum, p) => sum + p.rentAmount);
+
+                  return payments.when(
+                    data: (paymentsList) {
+                      final completedPayments = paymentsList
+                          .where((p) => p.status == 'completed')
+                          .fold(0.0, (sum, p) => sum + p.amount);
+                      final pendingPayments = paymentsList
+                          .where((p) => p.status == 'pending')
+                          .fold(0.0, (sum, p) => sum + p.amount);
+                      return LayoutBuilder(builder: (context, c) {
+                        final maxW = c.maxWidth;
+                        // Each metric limited to 75% width of container (max 420) and centered horizontally
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _metricSizedBox(
+                              child: _buildFinancialMetric(
+                                  l10n.monthlyRevenue,
+                                  _formatCurrency(totalRevenue),
+                                  Icons.trending_up,
+                                  Colors.white,
+                                  colors),
+                              parentWidth: maxW,
+                            ),
+                            const SizedBox(height: 22),
+                            _metricSizedBox(
+                              child: _buildFinancialMetric(
+                                  l10n.collected,
+                                  _formatCurrency(completedPayments),
+                                  Icons.check_circle_outline,
+                                  Colors.white,
+                                  colors),
+                              parentWidth: maxW,
+                            ),
+                            const SizedBox(height: 22),
+                            _metricSizedBox(
+                              child: _buildFinancialMetric(
+                                  l10n.outstanding,
+                                  _formatCurrency(pendingPayments),
+                                  Icons.hourglass_empty,
+                                  Colors.white,
+                                  colors),
+                              parentWidth: maxW,
+                            ),
+                          ],
+                        );
+                      });
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => Text(l10n.errorLoadingPaymentHistory,
+                        style: const TextStyle(color: Colors.white70)),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Text(l10n.errorLoadingProperties,
+                    style: const TextStyle(color: Colors.white70)),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          properties.when(
-            data: (propertyList) {
-              final totalRevenue = propertyList
-                  .where((p) => p.status == 'rented')
-                  .fold(0.0, (sum, p) => sum + p.rentAmount);
-
-              return payments.when(
-                data: (paymentsList) {
-                  final completedPayments = paymentsList
-                      .where((p) => p.status == 'completed')
-                      .fold(0.0, (sum, p) => sum + p.amount);
-                  final pendingPayments = paymentsList
-                      .where((p) => p.status == 'pending')
-                      .fold(0.0, (sum, p) => sum + p.amount);
-                  return LayoutBuilder(builder: (context, c) {
-                    final maxW = c.maxWidth;
-                    // Each metric limited to 75% width of container (max 420) and centered horizontally
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _metricSizedBox(
-                          child: _buildFinancialMetric(l10n.monthlyRevenue, _formatCurrency(totalRevenue), Icons.trending_up, Colors.white, colors),
-                          parentWidth: maxW,
-                        ),
-                        const SizedBox(height: 22),
-                        _metricSizedBox(
-                          child: _buildFinancialMetric(l10n.collected, _formatCurrency(completedPayments), Icons.check_circle_outline, Colors.white, colors),
-                          parentWidth: maxW,
-                        ),
-                        const SizedBox(height: 22),
-                        _metricSizedBox(
-                          child: _buildFinancialMetric(l10n.outstanding, _formatCurrency(pendingPayments), Icons.hourglass_empty, Colors.white, colors),
-                          parentWidth: maxW,
-                        ),
-                      ],
-                    );
-                  });
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => Text(l10n.errorLoadingPaymentHistory, style: const TextStyle(color: Colors.white70)),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingProperties, style: const TextStyle(color: Colors.white70)),
-          ),
-        ],
-      ),
-    ));
+        ));
   }
 
   String _formatCurrency(double amount) {
@@ -987,68 +1127,93 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       AsyncValue properties, AppLocalizations l10n, DynamicAppColors colors) {
     final accent = colors.info;
     return _HoverScale(
-      onTap: () => _showPropertyDetailDialog(l10n, properties, colors),
-      child: Container(
-      padding: const EdgeInsets.all(26),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: ReportGradients.glassAccent(accent, isDark: colors.isDark),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
+        onTap: () => _showPropertyDetailDialog(l10n, properties, colors),
+        child: Container(
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient:
+                ReportGradients.glassAccent(accent, isDark: colors.isDark),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+          ),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.25),
-                ),
-                child: const Icon(Icons.home_work_outlined, color: Colors.white, size: 22),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
+                    child: const Icon(Icons.home_work_outlined,
+                        color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.propertyOverview,
+                    style: TextStyle(
+                      fontSize: _getResponsiveFontSize(context, 20),
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.propertyOverview,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 20),
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
+              const SizedBox(height: 28),
+              properties.when(
+                data: (propertyList) {
+                  final totalProperties = propertyList.length;
+                  final rentedProperties =
+                      propertyList.where((p) => p.status == 'rented').length;
+                  final availableProperties =
+                      propertyList.where((p) => p.status == 'available').length;
+                  return LayoutBuilder(builder: (context, c) {
+                    final maxW = c.maxWidth;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _metricSizedBox(
+                            child: _buildFinancialMetric(
+                                l10n.totalProperties,
+                                totalProperties.toString(),
+                                Icons.home_outlined,
+                                Colors.white,
+                                colors),
+                            parentWidth: maxW),
+                        const SizedBox(height: 22),
+                        _metricSizedBox(
+                            child: _buildFinancialMetric(
+                                l10n.occupied,
+                                rentedProperties.toString(),
+                                Icons.check_circle_outline,
+                                Colors.white,
+                                colors),
+                            parentWidth: maxW),
+                        const SizedBox(height: 22),
+                        _metricSizedBox(
+                            child: _buildFinancialMetric(
+                                l10n.available,
+                                availableProperties.toString(),
+                                Icons.radio_button_unchecked,
+                                Colors.white,
+                                colors),
+                            parentWidth: maxW),
+                      ],
+                    );
+                  });
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Text(l10n.errorLoadingProperties,
+                    style: const TextStyle(color: Colors.white70)),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          properties.when(
-            data: (propertyList) {
-              final totalProperties = propertyList.length;
-              final rentedProperties =
-                  propertyList.where((p) => p.status == 'rented').length;
-              final availableProperties =
-                  propertyList.where((p) => p.status == 'available').length;
-              return LayoutBuilder(builder: (context, c) {
-                final maxW = c.maxWidth;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _metricSizedBox(child: _buildFinancialMetric(l10n.totalProperties, totalProperties.toString(), Icons.home_outlined, Colors.white, colors), parentWidth: maxW),
-                    const SizedBox(height: 22),
-                    _metricSizedBox(child: _buildFinancialMetric(l10n.occupied, rentedProperties.toString(), Icons.check_circle_outline, Colors.white, colors), parentWidth: maxW),
-                    const SizedBox(height: 22),
-                    _metricSizedBox(child: _buildFinancialMetric(l10n.available, availableProperties.toString(), Icons.radio_button_unchecked, Colors.white, colors), parentWidth: maxW),
-                  ],
-                );
-              });
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingProperties, style: const TextStyle(color: Colors.white70)),
-          ),
-        ],
-      ),
-    ));
+        ));
   }
 
   Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests,
@@ -1061,9 +1226,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [accent.withValues(alpha: 0.9), accent.withValues(alpha: 0.6), accent.withValues(alpha: 0.3)],
+          colors: [
+            accent.withValues(alpha: 0.9),
+            accent.withValues(alpha: 0.6),
+            accent.withValues(alpha: 0.3)
+          ],
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1077,7 +1247,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.25),
                 ),
-                child: const Icon(Icons.build_circle_outlined, color: Colors.white, size: 22),
+                child: const Icon(Icons.build_circle_outlined,
+                    color: Colors.white, size: 22),
               ),
               const SizedBox(height: 12),
               Text(
@@ -1104,17 +1275,39 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _metricSizedBox(child: _buildFinancialMetric(l10n.totalRequests, totalRequests.toString(), Icons.list_alt_outlined, Colors.white, colors), parentWidth: maxW),
+                    _metricSizedBox(
+                        child: _buildFinancialMetric(
+                            l10n.totalRequests,
+                            totalRequests.toString(),
+                            Icons.list_alt_outlined,
+                            Colors.white,
+                            colors),
+                        parentWidth: maxW),
                     const SizedBox(height: 22),
-                    _metricSizedBox(child: _buildFinancialMetric(l10n.pending, pendingRequests.toString(), Icons.hourglass_empty, Colors.white, colors), parentWidth: maxW),
+                    _metricSizedBox(
+                        child: _buildFinancialMetric(
+                            l10n.pending,
+                            pendingRequests.toString(),
+                            Icons.hourglass_empty,
+                            Colors.white,
+                            colors),
+                        parentWidth: maxW),
                     const SizedBox(height: 22),
-                    _metricSizedBox(child: _buildFinancialMetric(l10n.completed, completedRequests.toString(), Icons.check_circle_outline, Colors.white, colors), parentWidth: maxW),
+                    _metricSizedBox(
+                        child: _buildFinancialMetric(
+                            l10n.completed,
+                            completedRequests.toString(),
+                            Icons.check_circle_outline,
+                            Colors.white,
+                            colors),
+                        parentWidth: maxW),
                   ],
                 );
               });
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l10n.errorLoadingMaintenanceData, style: const TextStyle(color: Colors.white70)),
+            error: (_, __) => Text(l10n.errorLoadingMaintenanceData,
+                style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
@@ -1126,16 +1319,20 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return payments.when(
       data: (paymentsList) {
         // Aggregate last 6 months revenue from completed payments
-  final rangeMonths = ref.watch(revenueRangeProvider);
-  final now = DateTime.now();
-  final months = List.generate(rangeMonths, (i) => DateTime(now.year, now.month - (rangeMonths - 1 - i), 1));
-        final monthKeys = months.map((d) => '${d.year}-${d.month.toString().padLeft(2,'0')}').toList();
+        final rangeMonths = ref.watch(revenueRangeProvider);
+        final now = DateTime.now();
+        final months = List.generate(rangeMonths,
+            (i) => DateTime(now.year, now.month - (rangeMonths - 1 - i), 1));
+        final monthKeys = months
+            .map((d) => '${d.year}-${d.month.toString().padLeft(2, '0')}')
+            .toList();
         final totals = {for (final k in monthKeys) k: 0.0};
         for (final p in paymentsList.where((p) => p.status == 'completed')) {
-          final k = '${p.date.year}-${p.date.month.toString().padLeft(2,'0')}';
+          final k = '${p.date.year}-${p.date.month.toString().padLeft(2, '0')}';
           if (totals.containsKey(k)) totals[k] = (totals[k] ?? 0) + p.amount;
         }
-        final maxY = (totals.values.fold<double>(0, (m, v) => v > m ? v : m)).clamp(1, double.infinity);
+        final maxY = (totals.values.fold<double>(0, (m, v) => v > m ? v : m))
+            .clamp(1, double.infinity);
         final spots = <FlSpot>[];
         for (var i = 0; i < monthKeys.length; i++) {
           spots.add(FlSpot(i.toDouble(), totals[monthKeys[i]]!));
@@ -1143,7 +1340,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
         String monthLabel(int index) {
           if (index < 0 || index >= months.length) return '';
-            return DateFormat('MMM').format(months[index]);
+          return DateFormat('MMM').format(months[index]);
         }
 
         final accent = const Color(0xFF8B5CF6);
@@ -1158,134 +1355,148 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
               gradient: ReportGradients.glassAccent(accent, isDark: isDark),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15), width: 1.2),
             ),
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.25),
-                    ),
-                    child: const Icon(Icons.trending_up, color: Colors.white, size: 22),
-                  ),
-                  const SizedBox(width: 20),
-                  Text(
-                    l10n.revenueAnalytics,
-                    style: TextStyle(
-                      fontSize: _getResponsiveFontSize(context, 20),
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 220,
-                child: LineChart(
-                  LineChartData(
-                    minY: 0,
-                    maxY: maxY * 1.2,
-                    gridData: FlGridData(
-                      show: true,
-                      horizontalInterval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
-                      getDrawingHorizontalLine: (value) => FlLine(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
                         color: Colors.white.withValues(alpha: 0.25),
-                        strokeWidth: 1,
                       ),
-                      drawVerticalLine: false,
+                      child: const Icon(Icons.trending_up,
+                          color: Colors.white, size: 22),
                     ),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 44,
-                          interval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
-                          getTitlesWidget: (v, meta) => Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Text(
-                              _compactCurrency(v),
-                              style: const TextStyle(fontSize: 10, color: Colors.white70),
+                    const SizedBox(width: 20),
+                    Text(
+                      l10n.revenueAnalytics,
+                      style: TextStyle(
+                        fontSize: _getResponsiveFontSize(context, 20),
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 220,
+                  child: LineChart(
+                    LineChartData(
+                      minY: 0,
+                      maxY: maxY * 1.2,
+                      gridData: FlGridData(
+                        show: true,
+                        horizontalInterval:
+                            maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          strokeWidth: 1,
+                        ),
+                        drawVerticalLine: false,
+                      ),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 44,
+                            interval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
+                            getTitlesWidget: (v, meta) => Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Text(
+                                _compactCurrency(v),
+                                style: const TextStyle(
+                                    fontSize: 10, color: Colors.white70),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          interval: 1,
-                          getTitlesWidget: (v, meta) => Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              monthLabel(v.toInt()),
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: 1,
+                            getTitlesWidget: (v, meta) => Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                monthLabel(v.toInt()),
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white70),
+                              ),
                             ),
                           ),
                         ),
+                        rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
                       ),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    lineTouchData: LineTouchData(
-                      touchTooltipData: LineTouchTooltipData(
-                        tooltipRoundedRadius: 10,
-                        tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        tooltipMargin: 12,
-                        fitInsideHorizontally: true,
-                        fitInsideVertically: true,
-                        getTooltipItems: (touched) => touched.map((barSpot) {
-                          final idx = barSpot.x.toInt();
-                          return LineTooltipItem(
-                            '${monthLabel(idx)}\n${_formatCurrency(barSpot.y)}',
-                            const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
-                          );
-                        }).toList(),
+                      borderData: FlBorderData(show: false),
+                      lineTouchData: LineTouchData(
+                        touchTooltipData: LineTouchTooltipData(
+                          tooltipRoundedRadius: 10,
+                          tooltipPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          tooltipMargin: 12,
+                          fitInsideHorizontally: true,
+                          fitInsideVertically: true,
+                          getTooltipItems: (touched) => touched.map((barSpot) {
+                            final idx = barSpot.x.toInt();
+                            return LineTooltipItem(
+                              '${monthLabel(idx)}\n${_formatCurrency(barSpot.y)}',
+                              const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12),
+                            );
+                          }).toList(),
+                        ),
                       ),
-                    ),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: spots,
-                        isCurved: true,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white,
-                            Colors.white.withValues(alpha: 0.75),
-                          ],
-                        ),
-                        barWidth: 3,
-                        dotData: FlDotData(
-                          show: true,
-                          getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-                            radius: 4,
-                            color: Colors.white,
-                            strokeColor: Colors.white.withValues(alpha: 0.2),
-                            strokeWidth: 2,
-                          ),
-                        ),
-                        belowBarData: BarAreaData(
-                          show: true,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
                             colors: [
-                              Colors.white.withValues(alpha: 0.30),
-                              Colors.white.withValues(alpha: 0.03),
+                              Colors.white,
+                              Colors.white.withValues(alpha: 0.75),
                             ],
                           ),
+                          barWidth: 3,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, bar, index) =>
+                                FlDotCirclePainter(
+                              radius: 4,
+                              color: Colors.white,
+                              strokeColor: Colors.white.withValues(alpha: 0.2),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.30),
+                                Colors.white.withValues(alpha: 0.03),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
             ),
           ),
         );
@@ -1310,7 +1521,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           children: [
             Icon(Icons.error_outline, color: colors.error),
             const SizedBox(width: 12),
-            Expanded(child: Text(l10n.errorLoadingPaymentHistory, style: TextStyle(color: colors.textSecondary))),
+            Expanded(
+                child: Text(l10n.errorLoadingPaymentHistory,
+                    style: TextStyle(color: colors.textSecondary))),
           ],
         ),
       ),
@@ -1324,34 +1537,32 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return v.toStringAsFixed(1);
   }
 
-  
-
   Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests,
       AppLocalizations l10n, DynamicAppColors colors) {
     return LayoutBuilder(builder: (context, c) {
-  final parentW = c.maxWidth;
-  final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
+      final parentW = c.maxWidth;
+      final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
       return FractionallySizedBox(
         widthFactor: targetW / parentW,
         alignment: Alignment.center,
         child: Container(
           padding: const EdgeInsets.all(28.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  colors.warning.withValues(alpha: 0.55),
-                  colors.warning.withValues(alpha: 0.28),
-                  colors.warning.withValues(alpha: 0.10),
-                ],
-              ),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.18),
-                width: 1.1,
-              ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colors.warning.withValues(alpha: 0.55),
+                colors.warning.withValues(alpha: 0.28),
+                colors.warning.withValues(alpha: 0.10),
+              ],
             ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 1.1,
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1411,18 +1622,21 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   // Constrain inner list width further for readability
                   return LayoutBuilder(builder: (context, c2) {
                     final w = c2.maxWidth;
-                    final contentW = _safeTargetWidth(w, minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
+                    final contentW = _safeTargetWidth(w,
+                        minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
                     return FractionallySizedBox(
                       widthFactor: contentW / w,
                       alignment: Alignment.center,
                       child: Column(
                         children: requestList.take(5).map<Widget>((request) {
-                          final statusColor = _getMaintenanceStatusColor(request.status, colors);
+                          final statusColor = _getMaintenanceStatusColor(
+                              request.status, colors);
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
                             margin: const EdgeInsets.only(bottom: 18),
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 16),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(24),
                               gradient: LinearGradient(
@@ -1444,19 +1658,23 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                               children: [
                                 ClipOval(
                                   child: BackdropFilter(
-                                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                    filter: ui.ImageFilter.blur(
+                                        sigmaX: 12, sigmaY: 12),
                                     child: Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.white.withValues(alpha: 0.28),
+                                        color: Colors.white
+                                            .withValues(alpha: 0.28),
                                         border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.40),
+                                          color: Colors.white
+                                              .withValues(alpha: 0.40),
                                           width: 1,
                                         ),
                                       ),
                                       child: Icon(
-                                        _getMaintenanceStatusIcon(request.status),
+                                        _getMaintenanceStatusIcon(
+                                            request.status),
                                         color: Colors.white,
                                         size: 20,
                                       ),
@@ -1466,14 +1684,16 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                 const SizedBox(width: 18),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         request.title,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: _getResponsiveFontSize(context, 15),
+                                          fontSize: _getResponsiveFontSize(
+                                              context, 15),
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: -0.25,
                                           color: Colors.white,
@@ -1481,19 +1701,23 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
-                                        DateFormat('MMM d, yyyy').format(request.requestedDate),
+                                        DateFormat('MMM d, yyyy')
+                                            .format(request.requestedDate),
                                         style: TextStyle(
-                                          fontSize: _getResponsiveFontSize(context, 11),
+                                          fontSize: _getResponsiveFontSize(
+                                              context, 11),
                                           fontWeight: FontWeight.w500,
                                           letterSpacing: 0.5,
-                                          color: Colors.white.withValues(alpha: 0.85),
+                                          color: Colors.white
+                                              .withValues(alpha: 0.85),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
                                     gradient: LinearGradient(
@@ -1504,9 +1728,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                     ),
                                   ),
                                   child: Text(
-                                    _formatStatusText(request.status).toUpperCase(),
+                                    _formatStatusText(request.status)
+                                        .toUpperCase(),
                                     style: TextStyle(
-                                      fontSize: _getResponsiveFontSize(context, 10),
+                                      fontSize:
+                                          _getResponsiveFontSize(context, 10),
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.9,
                                       color: Colors.white,
@@ -1535,8 +1761,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref,
       AppLocalizations l10n, DynamicAppColors colors) {
     return LayoutBuilder(builder: (context, c) {
-  final parentW = c.maxWidth;
-  final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
+      final parentW = c.maxWidth;
+      final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
       return FractionallySizedBox(
         widthFactor: targetW / parentW,
         alignment: Alignment.center,
@@ -1607,14 +1833,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   final limited = list.take(5).toList();
                   return LayoutBuilder(builder: (context, c2) {
                     final w = c2.maxWidth;
-                    final contentW = _safeTargetWidth(w, minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
+                    final contentW = _safeTargetWidth(w,
+                        minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
                     return FractionallySizedBox(
                       widthFactor: contentW / w,
                       alignment: Alignment.center,
                       child: Column(
                         children: limited.map<Widget>((p) {
                           final status = p.status?.toString() ?? '';
-                          final amount = (p.amount is num) ? (p.amount as num).toDouble() : 0.0;
+                          final amount = (p.amount is num)
+                              ? (p.amount as num).toDouble()
+                              : 0.0;
                           Color statusColor;
                           IconData icon;
                           switch (status.toLowerCase()) {
@@ -1639,7 +1868,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
                             margin: const EdgeInsets.only(bottom: 18),
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 16),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(24),
                               gradient: LinearGradient(
@@ -1660,18 +1890,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                               children: [
                                 ClipOval(
                                   child: BackdropFilter(
-                                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                    filter: ui.ImageFilter.blur(
+                                        sigmaX: 12, sigmaY: 12),
                                     child: Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.white.withValues(alpha: 0.28),
+                                        color: Colors.white
+                                            .withValues(alpha: 0.28),
                                         border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.40),
+                                          color: Colors.white
+                                              .withValues(alpha: 0.40),
                                           width: 1,
                                         ),
                                       ),
-                                      child: Icon(icon, color: Colors.white, size: 20),
+                                      child: Icon(icon,
+                                          color: Colors.white, size: 20),
                                     ),
                                   ),
                                 ),
@@ -1682,7 +1916,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: _getResponsiveFontSize(context, 15),
+                                      fontSize:
+                                          _getResponsiveFontSize(context, 15),
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: -0.25,
                                       color: Colors.white,
@@ -1690,7 +1925,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
                                     gradient: LinearGradient(
@@ -1703,7 +1939,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                   child: Text(
                                     status.toUpperCase(),
                                     style: TextStyle(
-                                      fontSize: _getResponsiveFontSize(context, 10),
+                                      fontSize:
+                                          _getResponsiveFontSize(context, 10),
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.9,
                                       color: Colors.white,
@@ -1733,8 +1970,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     final accent = colors.success;
     return LayoutBuilder(
       builder: (context, c) {
-  final parentW = c.maxWidth;
-  final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
+        final parentW = c.maxWidth;
+        final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
         return _HoverScale(
           onTap: () => _showTenantPaymentDetailDialog(l10n, payments, colors),
           child: FractionallySizedBox(
@@ -1744,7 +1981,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               padding: const EdgeInsets.all(26),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
-                gradient: ReportGradients.glassAccent(accent, isDark: colors.isDark),
+                gradient:
+                    ReportGradients.glassAccent(accent, isDark: colors.isDark),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.15),
                   width: 1.2,
@@ -1756,7 +1994,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _glassHeaderIcon(Icons.account_balance_wallet_outlined, accent),
+                      _glassHeaderIcon(
+                          Icons.account_balance_wallet_outlined, accent),
                       const SizedBox(width: 18),
                       Expanded(
                         child: Text(
@@ -1820,7 +2059,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                         ],
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (_, __) => Text(
                       l10n.errorLoadingPaymentSummary,
                       style: const TextStyle(color: Colors.white70),
@@ -1975,7 +2215,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       );
 
       // Helpers to map dates to yyyy-MM keys
-      String keyFor(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}';
+      String keyFor(DateTime d) =>
+          '${d.year}-${d.month.toString().padLeft(2, '0')}';
 
       // Initialize maps for sums
       final revenueByMonth = <String, double>{
@@ -2037,14 +2278,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         double monthlyPlannedRevenue = 0.0;
         try {
           if (isLandlord) {
-            final properties = await ref.read(landlordPropertiesProvider.future);
+            final properties =
+                await ref.read(landlordPropertiesProvider.future);
             monthlyPlannedRevenue = properties
                 .where((p) => p.status.toLowerCase() == 'rented')
                 .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
           } else {
             final tenantProps = await ref.read(tenantPropertiesProvider.future);
-            monthlyPlannedRevenue = tenantProps
-                .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
+            monthlyPlannedRevenue =
+                tenantProps.fold<double>(0.0, (sum, p) => sum + p.rentAmount);
           }
         } catch (_) {}
         for (final m in months) {
@@ -2054,12 +2296,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       }
 
       // Convert to aligned int lists for PDF
-      final revenue = months
-          .map((m) => revenueByMonth[keyFor(m)]?.round() ?? 0)
-          .toList();
-      final expenses = months
-          .map((m) => expensesByMonth[keyFor(m)]?.round() ?? 0)
-          .toList();
+      final revenue =
+          months.map((m) => revenueByMonth[keyFor(m)]?.round() ?? 0).toList();
+      final expenses =
+          months.map((m) => expensesByMonth[keyFor(m)]?.round() ?? 0).toList();
 
       // Compute occupancy (landlord only)
       double occupancyRate = 1.0;
@@ -2118,8 +2358,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         // Tenant: show Monthly Rent Due (sum of tenant properties rent amounts if available)
         try {
           final tenantProps = await ref.read(tenantPropertiesProvider.future);
-          final totalMonthlyRent = tenantProps
-              .fold<double>(0.0, (sum, p) => sum + p.rentAmount);
+          final totalMonthlyRent =
+              tenantProps.fold<double>(0.0, (sum, p) => sum + p.rentAmount);
           monthlyRevenueLabel = AppLocalizations.of(context)!.monthlyRent;
           monthlyRevenueValue = currencyFmt.format(totalMonthlyRent);
         } catch (_) {
@@ -2152,10 +2392,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         outstandingLabel: AppLocalizations.of(context)!.outstanding,
         outstandingValue: currencyFmt.format(outstandingSum),
         reportModeLabel: isPlanned ? l10n.planned : l10n.actual,
-  monthHeader: AppLocalizations.of(context)!.month,
-  revenueHeader: AppLocalizations.of(context)!.revenue,
-  expensesHeader: AppLocalizations.of(context)!.expenses,
-  netHeader: AppLocalizations.of(context)!.net,
+        monthHeader: AppLocalizations.of(context)!.month,
+        revenueHeader: AppLocalizations.of(context)!.revenue,
+        expensesHeader: AppLocalizations.of(context)!.expenses,
+        netHeader: AppLocalizations.of(context)!.net,
         showOccupancy: isLandlord,
         altKpiLabel: isLandlord ? null : AppLocalizations.of(context)!.status,
         altKpiValue: isLandlord ? null : '✔ $completedCount • ⏳ $pendingCount',
@@ -2193,7 +2433,8 @@ class _HoverScale extends StatefulWidget {
   State<_HoverScale> createState() => _HoverScaleState();
 }
 
-class _HoverScaleState extends State<_HoverScale> with SingleTickerProviderStateMixin {
+class _HoverScaleState extends State<_HoverScale>
+    with SingleTickerProviderStateMixin {
   double _scale = 1.0;
   @override
   Widget build(BuildContext context) {

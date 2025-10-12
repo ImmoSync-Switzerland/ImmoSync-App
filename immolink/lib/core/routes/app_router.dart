@@ -72,7 +72,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/forgot-password',
-  builder: (context, state) => const _GermanOnly(child: ForgotPasswordPage()),
+        builder: (context, state) =>
+            const _GermanOnly(child: ForgotPasswordPage()),
       ),
       GoRoute(
         path: '/home',
@@ -302,7 +303,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/support-requests/:id',
-        builder: (context, state) => SupportRequestDetailPage(requestId: state.pathParameters['id']!),
+        builder: (context, state) =>
+            SupportRequestDetailPage(requestId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/tickets/open',

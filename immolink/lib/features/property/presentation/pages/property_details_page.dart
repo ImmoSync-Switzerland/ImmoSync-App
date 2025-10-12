@@ -88,7 +88,8 @@ class PropertyDetailsPage extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
     final street = property.address.street.trim();
-    final cityPostal = '${property.address.city}, ${property.address.postalCode}';
+    final cityPostal =
+        '${property.address.city}, ${property.address.postalCode}';
     final hasStreet = street.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),

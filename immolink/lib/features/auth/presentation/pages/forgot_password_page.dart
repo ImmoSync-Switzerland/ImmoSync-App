@@ -38,7 +38,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              l10n?.passwordResetEmailSent ?? 'Password reset email sent! Please check your inbox.',
+              l10n?.passwordResetEmailSent ??
+                  'Password reset email sent! Please check your inbox.',
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.green,
@@ -69,7 +70,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-  final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -100,7 +101,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  l10n?.forgotPasswordDescription ?? 'Enter your email address and we\'ll send you a link to reset your password.',
+                  l10n?.forgotPasswordDescription ??
+                      'Enter your email address and we\'ll send you a link to reset your password.',
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
@@ -132,12 +134,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     fillColor: AppColors.surfaceSecondary,
                   ),
                   validator: (value) {
-        if (value == null || value.isEmpty) {
-      return l10n?.pleaseEnterYourEmail ?? 'Please enter your email';
+                    if (value == null || value.isEmpty) {
+                      return l10n?.pleaseEnterYourEmail ??
+                          'Please enter your email';
                     }
                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                         .hasMatch(value)) {
-      return l10n?.pleaseEnterValidEmail ?? 'Please enter a valid email address';
+                      return l10n?.pleaseEnterValidEmail ??
+                          'Please enter a valid email address';
                     }
                     return null;
                   },
@@ -165,8 +169,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-            : Text(
-              l10n?.sendResetEmail ?? 'Send Reset Email',
+                        : Text(
+                            l10n?.sendResetEmail ?? 'Send Reset Email',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -178,7 +182,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 TextButton(
                   onPressed: () => context.pop(),
                   child: Text(
-          l10n?.backToLogin ?? 'Back to Login',
+                    l10n?.backToLogin ?? 'Back to Login',
                     style: TextStyle(
                       color: AppColors.primaryAccent,
                       fontSize: 16,

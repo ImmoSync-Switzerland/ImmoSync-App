@@ -12,8 +12,17 @@ router.get('/user/:userId', async (req, res) => {
     const db = client.db(dbName);
     const userId = req.params.userId;
 
+    const oid = ObjectId.isValid(userId) ? new ObjectId(userId) : null;
     const convs = await db.collection('conversations').aggregate([
-      { $match: { participants: userId } },
+      // Match conversations for both modern and legacy schemas
+      { $match: { $or: [
+        { participants: userId },
+        ...(oid ? [{ participants: oid }] : []),
+        { landlordId: userId },
+        { tenantId: userId },
+        ...(oid ? [{ landlordId: oid }] : []),
+        ...(oid ? [{ tenantId: oid }] : []),
+      ] } },
       // Lookup latest message (sorted desc, limit 1)
       { $lookup: {
           from: 'messages',
@@ -37,7 +46,17 @@ router.get('/user/:userId', async (req, res) => {
     ]).toArray();
 
     // Fetch distinct other participant IDs to batch user lookups
-    const otherIds = [...new Set(convs.map(c => (c.participants || []).find(p => p !== userId)).filter(Boolean))];
+    const otherIds = [...new Set(convs.map(c => {
+      const parts = (c.participants || []).map(p => p && p.toString ? p.toString() : String(p));
+      let other = parts.find(p => p !== userId);
+      if (!other) {
+        const lid = c.landlordId ? (c.landlordId.toString ? c.landlordId.toString() : String(c.landlordId)) : null;
+        const tid = c.tenantId ? (c.tenantId.toString ? c.tenantId.toString() : String(c.tenantId)) : null;
+        if (lid && lid !== userId) other = lid;
+        else if (tid && tid !== userId) other = tid;
+      }
+      return other;
+    }).filter(Boolean))];
     const usersById = {};
     if (otherIds.length) {
       const userDocs = await db.collection('users').find({ _id: { $in: otherIds.map(id => { try { return new ObjectId(id); } catch { return null; } }).filter(Boolean) } }).project({ fullName:1, email:1, role:1, profileImage:1, lastSeen:1 }).toArray();
@@ -46,17 +65,26 @@ router.get('/user/:userId', async (req, res) => {
 
     const now = Date.now();
     const populated = convs.map(c => {
-      const otherParticipantId = (c.participants || []).find(p => p !== userId) || null;
+      const parts = (c.participants || []).map(p => p && p.toString ? p.toString() : String(p));
+      let otherParticipantId = parts.find(p => p !== userId) || null;
+      if (!otherParticipantId) {
+        const lid = c.landlordId ? (c.landlordId.toString ? c.landlordId.toString() : String(c.landlordId)) : null;
+        const tid = c.tenantId ? (c.tenantId.toString ? c.tenantId.toString() : String(c.tenantId)) : null;
+        if (lid && lid !== userId) otherParticipantId = lid;
+        else if (tid && tid !== userId) otherParticipantId = tid;
+      }
       const other = otherParticipantId ? usersById[otherParticipantId] : null;
       const lastSeen = other?.lastSeen || null;
       const online = lastSeen ? (now - new Date(lastSeen).getTime() < 60000) : false;
       return {
         ...c,
+        _id: c._id && c._id.toString ? c._id.toString() : c._id,
+        participants: parts,
         otherParticipantId,
         otherParticipantName: other?.fullName || 'Unknown User',
         otherParticipantEmail: other?.email || '',
         otherParticipantRole: other?.role || 'unknown',
-        otherParticipantAvatar: other?.profileImage || null,
+        otherParticipantAvatar: other?.profileImageUrl || other?.profileImage || null,
         otherParticipantOnline: online,
         otherParticipantLastSeen: lastSeen,
       };
