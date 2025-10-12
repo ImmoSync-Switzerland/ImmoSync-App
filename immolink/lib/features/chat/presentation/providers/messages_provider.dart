@@ -231,8 +231,7 @@ class ChatMessagesNotifier
         messageType: 'text',
         metadata: const {},
         conversationId: _conversationId,
-        isEncrypted:
-            false, // Matrix handles encryption display separately in the UI layer
+        isEncrypted: true, // Matrix rooms are encrypted, content is auto-decrypted by SDK
       );
       final timeline = _ref.read(matrixTimelineServiceProvider);
       // Use resolved roomId as the local timeline key (fallback to conversationId)
