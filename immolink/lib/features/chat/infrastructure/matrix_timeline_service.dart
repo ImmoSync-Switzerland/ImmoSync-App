@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
+import 'package:immosync/bridge.dart' as frb;
 
 /// MatrixTimelineService
 ///
@@ -13,6 +16,7 @@ class MatrixTimelineService {
 
   final Map<String, StreamController<List<ChatMessage>>> _controllers = {};
   final Map<String, List<ChatMessage>> _buffers = {};
+  final Map<String, bool> _historyLoaded = {}; // Track which rooms have loaded history
 
   Stream<List<ChatMessage>> watchRoom(String roomId) {
     final ctrl = _controllers.putIfAbsent(
@@ -20,11 +24,83 @@ class MatrixTimelineService {
       () => StreamController<List<ChatMessage>>.broadcast(),
     );
     _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);
+    
+    // Load historical messages if not already loaded
+    if (!_historyLoaded.containsKey(roomId)) {
+      _historyLoaded[roomId] = true;
+      _loadHistoricalMessages(roomId);
+    }
+    
     // Emit current buffer on new subscription
     scheduleMicrotask(() {
       if (!ctrl.isClosed) ctrl.add(List.unmodifiable(_buffers[roomId]!));
     });
     return ctrl.stream;
+  }
+  
+  /// Load historical messages from Matrix room
+  Future<void> _loadHistoricalMessages(String roomId) async {
+    try {
+      debugPrint('[MatrixTimeline] Loading history for room: $roomId');
+      
+      // Wait a bit for sync to complete before querying
+      await Future.delayed(const Duration(seconds: 2));
+      
+      debugPrint('[MatrixTimeline] Calling getRoomMessages...');
+      final jsonStr = await frb.getRoomMessages(roomId: roomId, limit: 50);
+      debugPrint('[MatrixTimeline] getRoomMessages returned: $jsonStr');
+      
+      final List<dynamic> messages = jsonDecode(jsonStr);
+      
+      debugPrint('[MatrixTimeline] Loaded ${messages.length} historical messages');
+      
+      if (messages.isEmpty) {
+        debugPrint('[MatrixTimeline] No messages found - room might be new or user not synced yet');
+        return;
+      }
+      
+      for (final msgData in messages) {
+        try {
+          // Extract user ID from Matrix MXID format: @userid:homeserver -> userid
+          String extractUserId(String mxid) {
+            if (mxid.startsWith('@') && mxid.contains(':')) {
+              return mxid.substring(1, mxid.indexOf(':'));
+            }
+            return mxid;
+          }
+          
+          // Timestamp is in seconds from Rust, convert to milliseconds
+          final timestampSecs = msgData['timestamp'] as int;
+          final senderMxid = msgData['sender'] as String;
+          final senderId = extractUserId(senderMxid);
+          
+          final message = ChatMessage(
+            id: msgData['eventId'] as String,
+            conversationId: roomId,
+            senderId: senderId,
+            receiverId: '', // Will be determined by context
+            content: msgData['body'] as String,
+            timestamp: DateTime.fromMillisecondsSinceEpoch(
+              timestampSecs * 1000, isUtc: true
+            ),
+            isEncrypted: false,
+            messageType: 'text',
+          );
+          
+          debugPrint('[MatrixTimeline] Ingesting message from $senderMxid -> $senderId: ${message.content}');
+          
+          // Use ingestMatrixEvent to avoid duplicates
+          ingestMatrixEvent(roomId, message);
+        } catch (e) {
+          debugPrint('[MatrixTimeline] Failed to parse message: $e');
+        }
+      }
+      
+      debugPrint('[MatrixTimeline] History loaded successfully for $roomId: ${messages.length} messages');
+    } catch (e) {
+      debugPrint('[MatrixTimeline] Failed to load history for $roomId: $e');
+      // Continue gracefully - new messages will still work via event stream
+    }
   }
 
   void pushLocal(String roomId, ChatMessage msg) {

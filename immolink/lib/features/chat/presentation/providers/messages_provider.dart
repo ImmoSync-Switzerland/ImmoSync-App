@@ -28,6 +28,21 @@ class ChatMessagesNotifier
 
   Future<void> _initMatrixTimeline() async {
     try {
+      // Ensure Matrix client is ready and syncing for current user
+      final currentUserId = _ref.read(currentUserProvider)?.id ?? '';
+      if (currentUserId.isNotEmpty) {
+        try {
+          debugPrint('[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
+          await _ref.read(chatServiceProvider).ensureMatrixReady(userId: currentUserId);
+          debugPrint('[MessagesProvider] Matrix ready, waiting for initial sync...');
+          // Give sync a moment to start and connect
+          await Future.delayed(const Duration(seconds: 3));
+          debugPrint('[MessagesProvider] Initial sync delay complete');
+        } catch (e) {
+          debugPrint('[MessagesProvider] Failed to ensure Matrix ready: $e');
+        }
+      }
+      
       // Resolve Matrix roomId for this conversation via backend mapping
       String? roomId;
       try {
@@ -35,7 +50,7 @@ class ChatMessagesNotifier
             .read(chatServiceProvider)
             .getMatrixRoomIdForConversation(
                 conversationId: _conversationId,
-                currentUserId: _ref.read(currentUserProvider)?.id ?? '',
+                currentUserId: currentUserId,
                 otherUserId: '');
       } catch (_) {
         // Fallback: try to fetch via conversationId mapping

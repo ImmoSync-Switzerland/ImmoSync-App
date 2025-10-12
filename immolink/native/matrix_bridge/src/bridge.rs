@@ -233,6 +233,65 @@ pub fn mark_read(room_id: String, event_id: String) -> Result<(), String> {
     })
 }
 
+/// Get timeline messages from a room
+/// Returns a JSON array of messages: [{"sender":"@user:server","body":"text","timestamp":1234567890,"eventId":"$xyz"}]
+#[frb]
+pub fn get_room_messages(room_id: String, limit: u32) -> Result<String, String> {
+    use matrix_sdk::ruma::events::room::message::MessageType;
+    use matrix_sdk::ruma::events::AnyTimelineEvent;
+    use serde_json::json;
+    
+    let rt = get_rt();
+    rt.block_on(async move {
+        let client = CLIENT.get().ok_or_else(|| "Client not initialized".to_string())?.clone();
+        let rid = RoomId::parse(&room_id).map_err(|e| e.to_string())?;
+        let room = client
+            .get_room(&rid)
+            .ok_or_else(|| "Room not found".to_string())?;
+        
+        // Get messages using /messages endpoint
+        use matrix_sdk::ruma::api::client::message::get_message_events;
+        let mut request = get_message_events::v3::Request::backward(rid);
+        request.limit = limit.try_into().unwrap_or(50u32.try_into().unwrap());
+        
+        let response = client.send(request, None).await.map_err(|e| format!("Failed to get messages: {}", e))?;
+        
+        let mut messages = Vec::new();
+        
+        // Parse timeline events
+        for event in response.chunk.iter().rev() {
+            if let Ok(timeline_event) = event.deserialize() {
+                match timeline_event {
+                    AnyTimelineEvent::MessageLike(msg_like) => {
+                        if let matrix_sdk::ruma::events::AnyMessageLikeEvent::RoomMessage(
+                            matrix_sdk::ruma::events::MessageLikeEvent::Original(msg)
+                        ) = msg_like {
+                            let body = match &msg.content.msgtype {
+                                MessageType::Text(text) => text.body.clone(),
+                                _ => continue, // Skip non-text messages for now
+                            };
+                            
+                            // Convert timestamp: MilliSecondsSinceUnixEpoch to seconds
+                            let timestamp_secs = msg.origin_server_ts.as_secs();
+                            
+                            messages.push(json!({
+                                "sender": msg.sender.to_string(),
+                                "body": body,
+                                "timestamp": timestamp_secs,
+                                "eventId": msg.event_id.to_string(),
+                            }));
+                        }
+                    },
+                    _ => continue,
+                }
+            }
+        }
+        
+        let result = json!(messages);
+        Ok(result.to_string())
+    })
+}
+
 #[frb]
 pub fn start_sync() -> Result<(), String> {
     let rt = get_rt();
@@ -269,7 +328,8 @@ pub fn start_sync() -> Result<(), String> {
                 let rid = room.room_id().to_string();
                 let eid = ev.event_id.to_string();
                 let sender = ev.sender.to_string();
-                let ts: i64 = i64::from(ev.origin_server_ts.0);
+                // Convert timestamp to seconds (consistent with get_room_messages)
+                let ts: i64 = ev.origin_server_ts.as_secs().into();
                 // Extract plaintext (SDK has already decrypted if keys available)
                 let content = match &ev.content.msgtype {
                     MessageType::Text(t) => Some(t.body.clone()),
@@ -280,26 +340,47 @@ pub fn start_sync() -> Result<(), String> {
                 // If we have content, message was successfully decrypted (or was plaintext)
                 // Mark as encrypted=false since the content is available
                 let is_encrypted = false;
+                eprintln!("[Bridge][sync] Emitting event to Dart: room={} event={} content={:?}", &rid, &eid, &content);
                 let evt = MatrixEvent { room_id: rid, event_id: eid, sender, ts, content, is_encrypted };
                 if let Some(cell) = EVENT_SINK.get() {
                     if let Ok(mut guard) = cell.lock() {
                         if let Some(sink) = guard.as_mut() {
-                            let _ = sink.add(evt);
+                            match sink.add(evt) {
+                                Ok(_) => eprintln!("[Bridge][sync] Event emitted successfully"),
+                                Err(e) => eprintln!("[Bridge][sync] Failed to emit event: {:?}", e),
+                            }
+                        } else {
+                            eprintln!("[Bridge][sync] No sink available");
                         }
                     }
                 }
             });
 
-            let mut settings = SyncSettings::default();
+            // Use long-polling sync for real-time updates
+            // Important: Keep the same settings object so sync token gets updated between calls
+            let mut settings = SyncSettings::default().timeout(std::time::Duration::from_secs(30));
+            eprintln!("[Bridge][sync] Sync loop starting with 30s long-polling...");
+            let mut sync_count = 0;
             loop {
-                if let Err(e) = client.sync_once(settings.clone()).await {
-                    eprintln!("[matrix][sync] error: {}", e);
-                    // brief backoff on error
-                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                } else {
-                    // small delay to avoid tight loop; real apps should use long-polling sync
-                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                sync_count += 1;
+                if sync_count % 5 == 1 {
+                    eprintln!("[Bridge][sync] Sync iteration {} (long-polling for 30s or until events arrive)", sync_count);
                 }
+                match client.sync_once(settings.clone()).await {
+                    Ok(response) => {
+                        // Update settings with the new sync token for incremental sync
+                        settings = settings.token(response.next_batch);
+                        if sync_count <= 5 {
+                            eprintln!("[Bridge][sync] Sync successful, got token for next iteration");
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("[Bridge][sync] error: {}", e);
+                        // brief backoff on error
+                        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                    }
+                }
+                // No delay needed with long-polling - server holds connection until events arrive
             }
         }
     });

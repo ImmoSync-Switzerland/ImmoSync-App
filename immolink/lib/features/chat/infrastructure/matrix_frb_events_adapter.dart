@@ -27,8 +27,9 @@ class MatrixFrbEventsAdapter {
       try {
         final roomId = evt.roomId;
         if (roomId.isEmpty) return;
-        final tsMs = evt.ts.toInt();
-        final ts = DateTime.fromMillisecondsSinceEpoch(tsMs, isUtc: true);
+        // Timestamp is in seconds from Rust, convert to milliseconds
+        final tsSecs = evt.ts.toInt();
+        final ts = DateTime.fromMillisecondsSinceEpoch(tsSecs * 1000, isUtc: true);
 
         // Content should already be decrypted by the SDK if keys are available
         // If content is null/empty but marked encrypted, show placeholder
@@ -36,9 +37,20 @@ class MatrixFrbEventsAdapter {
             ? evt.content!
             : (evt.isEncrypted ? '[encrypted]' : '');
 
+        // Extract user ID from Matrix MXID format: @userid:homeserver -> userid
+        // Example: @6838699baefe2c0213aba1c3:matrix.immosync.ch -> 6838699baefe2c0213aba1c3
+        String extractUserId(String mxid) {
+          if (mxid.startsWith('@') && mxid.contains(':')) {
+            return mxid.substring(1, mxid.indexOf(':'));
+          }
+          return mxid; // fallback if format is unexpected
+        }
+        
+        final senderId = extractUserId(evt.sender);
+
         final msg = ChatMessage(
           id: evt.eventId,
-          senderId: evt.sender,
+          senderId: senderId,
           receiverId: '',
           content: displayContent,
           timestamp: ts,
@@ -55,7 +67,7 @@ class MatrixFrbEventsAdapter {
         );
 
         print(
-            '[MatrixAdapter] Ingesting event roomId=$roomId eventId=${evt.eventId} encrypted=${evt.isEncrypted} hasContent=${evt.content != null} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
+            '[MatrixAdapter] Ingesting event roomId=$roomId eventId=${evt.eventId} sender=${evt.sender} extracted=$senderId encrypted=${evt.isEncrypted} hasContent=${evt.content != null} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
 
         _timeline.ingestMatrixEvent(roomId, msg);
       } catch (e) {

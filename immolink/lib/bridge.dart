@@ -34,6 +34,12 @@ Future<String> sendMessage({required String roomId, required String body}) =>
 Future<void> markRead({required String roomId, required String eventId}) =>
     RustLib.instance.api.crateBridgeMarkRead(roomId: roomId, eventId: eventId);
 
+/// Get timeline messages from a room
+/// Returns a JSON array of messages: [{"sender":"@user:server","body":"text","timestamp":1234567890,"eventId":"$xyz"}]
+Future<String> getRoomMessages({required String roomId, required int limit}) =>
+    RustLib.instance.api
+        .crateBridgeGetRoomMessages(roomId: roomId, limit: limit);
+
 Future<void> startSync() => RustLib.instance.api.crateBridgeStartSync();
 
 Future<void> stopSync() => RustLib.instance.api.crateBridgeStopSync();

@@ -82,6 +82,11 @@ class ChatService {
     throw Exception('Failed to fetch messages');
   }
 
+  /// Ensure Matrix client is initialized, logged in, and syncing for the given user
+  Future<void> ensureMatrixReady({required String userId}) async {
+    await MatrixChatService.instance.ensureReadyForUser(userId);
+  }
+
   Future<String> sendMessage({
     required String conversationId,
     required String senderId,

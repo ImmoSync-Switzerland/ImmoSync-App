@@ -50,11 +50,19 @@ class MatrixChatService {
   /// created, user logged in, sync started) for the given app user.
   /// This is safe to call repeatedly and will no-op if already ready.
   Future<void> ensureReadyForUser(String userId) async {
-    if (_readyUserId == userId) return;
+    print('[MatrixChatService] ensureReadyForUser called for userId=$userId');
+    if (_readyUserId == userId) {
+      print('[MatrixChatService] Already ready for user $userId');
+      return;
+    }
+    
     // Fetch or provision account credentials from backend
     final api = DbConfig.apiUrl;
+    print('[MatrixChatService] Fetching Matrix account from $api/matrix/account/$userId');
+    
     Future<Map<String, dynamic>?> fetchAccount() async {
       final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
+      print('[MatrixChatService] Fetch account response: ${r.statusCode}');
       if (r.statusCode != 200) return null;
       return json.decode(r.body) as Map<String, dynamic>;
     }
@@ -62,6 +70,7 @@ class MatrixChatService {
     var data = await fetchAccount();
     if (data == null) {
       // Attempt to provision the account, then fetch again
+      print('[MatrixChatService] Account not found, attempting to provision...');
       await http.post(Uri.parse('$api/matrix/provision'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({'userId': userId}));
@@ -74,17 +83,32 @@ class MatrixChatService {
     final homeserver = (data['baseUrl'] as String?) ?? '';
     final username = data['username'] as String?;
     final password = data['password'] as String?;
+    print('[MatrixChatService] Credentials: homeserver=$homeserver, username=$username');
+    
     if (homeserver.isEmpty || username == null || password == null) {
       throw Exception('Incomplete Matrix credentials for user $userId');
     }
 
+    print('[MatrixChatService] Initializing Matrix client...');
     await ensureInitialized(homeserver: homeserver);
+    
     if (!_loggedIn) {
+      print('[MatrixChatService] Logging in as $username...');
       await login(username: username, password: password);
+      print('[MatrixChatService] Login successful');
+    } else {
+      print('[MatrixChatService] Already logged in');
     }
+    
     if (!_syncStarted) {
+      print('[MatrixChatService] Starting Matrix sync...');
       await startSync();
+      print('[MatrixChatService] Sync started successfully');
+    } else {
+      print('[MatrixChatService] Sync already running');
     }
+    
     _readyUserId = userId;
+    print('[MatrixChatService] Matrix ready for user $userId');
   }
 }
