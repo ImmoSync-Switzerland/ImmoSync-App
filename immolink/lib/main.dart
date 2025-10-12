@@ -59,10 +59,15 @@ void main() async {
 
     // Step 2: Firebase (deferred errors tolerated)
     try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      debugPrint('[Startup] Firebase initialized');
+      // Skip Firebase initialization on Windows as it's not fully supported
+      if (defaultTargetPlatform == TargetPlatform.windows) {
+        debugPrint('[Startup][INFO] Firebase initialization skipped on Windows platform');
+      } else {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        debugPrint('[Startup] Firebase initialized');
+      }
     } catch (e, st) {
       debugPrint('[Startup][WARN] Firebase init failed: $e');
       debugPrint(st.toString());
@@ -166,14 +171,22 @@ class ImmoSync extends ConsumerWidget {
   const ImmoSync({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Start FCM service side effects and keep instance
-    final fcm = ref.watch(fcmServiceProvider);
+    // Start FCM service side effects and keep instance (skip on Windows)
+    if (defaultTargetPlatform != TargetPlatform.windows) {
+      final fcm = ref.watch(fcmServiceProvider);
+      // Listen for auth userId changes (avoid triggering on every rebuild)
+      ref.listen<AuthState>(authProvider, (prev, next) {
+        if (prev?.userId != next.userId) {
+          fcm.updateUserId(next.userId);
+        }
+      });
+    }
+    
     // Receive chat messages from native Matrix FRB stream only (no WS message ingestion)
     ref.watch(matrixFrbEventsAdapterProvider);
     // Listen for auth userId changes (avoid triggering on every rebuild)
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {
-        fcm.updateUserId(next.userId);
         // Initialize and login Matrix bridge once user is known
         if (next.isAuthenticated && next.userId != null) {
           _initMatrixForUser(next.userId!);

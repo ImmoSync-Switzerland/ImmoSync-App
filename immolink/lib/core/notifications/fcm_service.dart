@@ -14,6 +14,12 @@ import 'package:immosync/core/config/api_config.dart';
 /// Top-level background handler (required by Firebase Messaging)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Skip Firebase initialization on Windows as it's not fully supported
+  if (defaultTargetPlatform == TargetPlatform.windows) {
+    debugPrint('[FCM][BG][INFO] Background handler skipped on Windows platform');
+    return;
+  }
+  
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
@@ -41,6 +47,12 @@ class FcmService {
   Future<void> ensureInitialized() async {
     if (_started) return;
     _started = true;
+    
+    // Skip FCM initialization on Windows as Firebase is not fully supported
+    if (defaultTargetPlatform == TargetPlatform.windows) {
+      debugPrint('[FCM][INFO] FCM initialization skipped on Windows platform');
+      return;
+    }
 
     // Register background handler (no-op on web)
     try {
