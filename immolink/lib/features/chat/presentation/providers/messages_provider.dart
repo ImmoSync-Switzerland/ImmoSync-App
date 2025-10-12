@@ -218,20 +218,20 @@ class ChatMessagesNotifier
       }
 
       // Optimistically append a local message using the Matrix event id
+      final now = DateTime.now();
       final optimistic = ChatMessage(
         id: mxEventId,
         senderId: senderId,
         receiverId: receiverId,
         content: content,
-        timestamp: DateTime.now(),
+        timestamp: now,
         isRead: false,
-        deliveredAt: null,
+        deliveredAt: now, // Set deliveredAt immediately for optimistic message
         readAt: null,
         messageType: 'text',
         metadata: const {},
         conversationId: _conversationId,
-        isEncrypted:
-            false, // Matrix handles encryption display separately in the UI layer
+        isEncrypted: true, // Matrix rooms are encrypted, content is auto-decrypted by SDK
       );
       final timeline = _ref.read(matrixTimelineServiceProvider);
       // Use resolved roomId as the local timeline key (fallback to conversationId)

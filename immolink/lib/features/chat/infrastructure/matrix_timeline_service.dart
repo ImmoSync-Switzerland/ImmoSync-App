@@ -86,7 +86,7 @@ class MatrixTimelineService {
             content: msgData['body'] as String,
             timestamp: ts,
             deliveredAt: ts, // Historical messages were already delivered to server
-            isEncrypted: false, // Matrix handles encryption transparently
+            isEncrypted: true, // Matrix rooms use encryption, content is auto-decrypted by SDK
             messageType: 'text',
           );
           

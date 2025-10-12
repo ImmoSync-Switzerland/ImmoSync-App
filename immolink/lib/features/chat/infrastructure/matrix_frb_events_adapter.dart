@@ -60,7 +60,7 @@ class MatrixFrbEventsAdapter {
           messageType: 'text',
           metadata: null,
           conversationId: roomId, // we will key timeline by roomId here
-          isEncrypted: false, // Matrix handles encryption transparently - content is already decrypted
+          isEncrypted: true, // Matrix rooms use encryption, content is auto-decrypted by SDK
           e2ee: null,
         );
 
