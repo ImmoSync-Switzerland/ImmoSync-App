@@ -57,7 +57,6 @@ flutter:
   assets:
     - assets/icon/
     - assets/fonts/
-    - .env
 
 dependency_overrides:
   web:
