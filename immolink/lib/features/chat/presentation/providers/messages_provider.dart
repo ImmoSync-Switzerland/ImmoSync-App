@@ -218,14 +218,15 @@ class ChatMessagesNotifier
       }
 
       // Optimistically append a local message using the Matrix event id
+      final now = DateTime.now();
       final optimistic = ChatMessage(
         id: mxEventId,
         senderId: senderId,
         receiverId: receiverId,
         content: content,
-        timestamp: DateTime.now(),
+        timestamp: now,
         isRead: false,
-        deliveredAt: null,
+        deliveredAt: now, // Set deliveredAt immediately for optimistic message
         readAt: null,
         messageType: 'text',
         metadata: const {},
