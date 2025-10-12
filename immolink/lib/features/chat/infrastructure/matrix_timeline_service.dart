@@ -74,16 +74,19 @@ class MatrixTimelineService {
           final senderMxid = msgData['sender'] as String;
           final senderId = extractUserId(senderMxid);
           
+          final ts = DateTime.fromMillisecondsSinceEpoch(
+            timestampSecs * 1000, isUtc: true
+          );
+          
           final message = ChatMessage(
             id: msgData['eventId'] as String,
             conversationId: roomId,
             senderId: senderId,
             receiverId: '', // Will be determined by context
             content: msgData['body'] as String,
-            timestamp: DateTime.fromMillisecondsSinceEpoch(
-              timestampSecs * 1000, isUtc: true
-            ),
-            isEncrypted: false,
+            timestamp: ts,
+            deliveredAt: ts, // Historical messages were already delivered to server
+            isEncrypted: false, // Matrix handles encryption transparently
             messageType: 'text',
           );
           

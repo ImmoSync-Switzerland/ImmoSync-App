@@ -28,9 +28,34 @@ class ChatMessagesNotifier
 
   Future<void> _initMatrixTimeline() async {
     try {
-      // Ensure Matrix client is ready and syncing for current user
-      final currentUserId = _ref.read(currentUserProvider)?.id ?? '';
-      if (currentUserId.isNotEmpty) {
+      // Wait for user to be loaded (with timeout)
+      String currentUserId = _ref.read(currentUserProvider)?.id ?? '';
+      
+      // Also try authState userId as fallback
+      if (currentUserId.isEmpty || currentUserId == 'null') {
+        final authUserId = _ref.read(authProvider).userId;
+        if (authUserId != null && authUserId != 'null') {
+          currentUserId = authUserId;
+        }
+      }
+      
+      if (currentUserId.isEmpty || currentUserId == 'null') {
+        debugPrint('[MessagesProvider] Waiting for user to be loaded...');
+        for (int i = 0; i < 10 && (currentUserId.isEmpty || currentUserId == 'null'); i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          currentUserId = _ref.read(currentUserProvider)?.id ?? '';
+          if (currentUserId.isEmpty || currentUserId == 'null') {
+            final authUserId = _ref.read(authProvider).userId;
+            if (authUserId != null && authUserId != 'null') {
+              currentUserId = authUserId;
+            }
+          }
+        }
+      }
+      
+      if (currentUserId.isEmpty || currentUserId == 'null') {
+        debugPrint('[MessagesProvider] WARNING: User ID still empty/null after waiting, Matrix will not be initialized');
+      } else {
         try {
           debugPrint('[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
           await _ref.read(chatServiceProvider).ensureMatrixReady(userId: currentUserId);

@@ -55,14 +55,12 @@ class MatrixFrbEventsAdapter {
           content: displayContent,
           timestamp: ts,
           isRead: false,
-          deliveredAt: null,
+          deliveredAt: ts, // Message is delivered since we received it from server
           readAt: null,
           messageType: 'text',
           metadata: null,
           conversationId: roomId, // we will key timeline by roomId here
-          isEncrypted: evt.isEncrypted &&
-              displayContent ==
-                  '[encrypted]', // only mark encrypted if we couldn't decrypt
+          isEncrypted: false, // Matrix handles encryption transparently - content is already decrypted
           e2ee: null,
         );
 

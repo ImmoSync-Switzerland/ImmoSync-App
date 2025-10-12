@@ -189,6 +189,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('userId');
+    
+    // Handle corrupted userId (string "null" instead of actual null)
+    if (userId == 'null' || userId?.isEmpty == true) {
+      userId = null;
+    }
+    
     // Normalize legacy persisted userId that might be in Extended JSON like '{"$oid":"..."}'
     if (userId != null) {
       final match = RegExp(r'\{\s*"?\$oid"?\s*:\s*"([a-fA-F0-9]{24})"\s*\}')
@@ -253,25 +259,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
           await _authService.loginUser(email: email, password: password);
       print('AuthProvider: Login successful, userData: $userData');
 
+      // Validate userId before storing
+      final userId = userData['userId'];
+      if (userId == null || userId == 'null' || userId.toString().isEmpty) {
+        throw Exception('Invalid userId received from login: $userId');
+      }
+
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([
-        prefs.setString('userId', userData['userId']),
+        prefs.setString('userId', userId),
         if (userData['sessionToken'] != null)
           prefs.setString('sessionToken', userData['sessionToken']),
         prefs.setString('email', userData['email']),
         prefs.setString('userRole', userData['role']),
         prefs.setString('fullName', userData['fullName']),
         if (userData['profileImage'] != null)
-          prefs.setString('immosync-profileImage-${userData['userId']}',
+          prefs.setString('immosync-profileImage-$userId',
               userData['profileImage']),
       ]);
 
       ref.read(userRoleProvider.notifier).setUserRole(userData['role']);
-      await ref.read(currentUserProvider.notifier).setUser(userData['userId']);
+      await ref.read(currentUserProvider.notifier).setUser(userId);
       // Hydrate cached profile image early
       try {
         final cached =
-            prefs.getString('immosync-profileImage-${userData['userId']}');
+            prefs.getString('immosync-profileImage-$userId');
         if (cached != null) {
           final current = ref.read(currentUserProvider);
           if (current != null &&
@@ -286,7 +298,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(
           isLoading: false,
           isAuthenticated: true,
-          userId: userData['userId'],
+          userId: userId,
           sessionToken: userData['sessionToken']);
       // Fetch full user profile (includes profileImage) and update provider
       try {
