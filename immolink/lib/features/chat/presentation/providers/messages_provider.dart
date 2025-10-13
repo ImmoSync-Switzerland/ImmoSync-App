@@ -1,21 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../../domain/models/chat_message.dart';
-import '../../infrastructure/http_chat_service.dart';
+import '../../domain/services/chat_service.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import 'package:flutter/foundation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../infrastructure/matrix_timeline_service.dart';
 
-// Provider for HTTP chat service
-final chatServiceProvider = Provider<HttpChatService>((ref) {
-  return HttpChatService();
+// Provider for chat service (with Matrix support)
+final chatServiceProvider = Provider<ChatService>((ref) {
+  return ChatService();
 });
 
 // StateNotifier for managing chat messages
 class ChatMessagesNotifier
     extends StateNotifier<AsyncValue<List<ChatMessage>>> {
-  final HttpChatService _chatService;
+  final ChatService _chatService;
   final String _conversationId;
   final Ref _ref;
   StreamSubscription<List<ChatMessage>>? _sub;
@@ -202,7 +202,7 @@ class ChatMessagesNotifier
   Future<void> _loadMessages() async {
     try {
       debugPrint('[MessagesProvider] Loading messages for conversation: $_conversationId');
-      final messages = await _chatService.getMessagesForConversation(_conversationId);
+      final messages = await _chatService.getMessages(_conversationId);
       state = AsyncValue.data(messages);
       debugPrint('[MessagesProvider] Loaded ${messages.length} messages');
     } catch (error, stackTrace) {

@@ -9,7 +9,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../domain/models/contact_user.dart';
 import '../providers/contact_providers.dart';
-import '../providers/chat_service_provider.dart';
+import '../providers/chat_provider.dart';
 
 class AddressBookPage extends ConsumerStatefulWidget {
   const AddressBookPage({super.key});
@@ -475,8 +475,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
       // Find or create conversation to preserve chat history
       final chatService = ref.read(chatServiceProvider);
       final conversationId = await chatService.findOrCreateConversation(
-        senderId: currentUser!.id,
-        receiverId: contact.id,
+        currentUserId: currentUser!.id,
+        otherUserId: contact.id,
       );
 
       // Close loading dialog
