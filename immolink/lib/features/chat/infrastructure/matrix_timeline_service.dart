@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/bridge.dart' as frb;
+import 'mobile_matrix_client.dart';
 
 /// MatrixTimelineService
 ///
@@ -17,6 +18,13 @@ class MatrixTimelineService {
   final Map<String, StreamController<List<ChatMessage>>> _controllers = {};
   final Map<String, List<ChatMessage>> _buffers = {};
   final Map<String, bool> _historyLoaded = {}; // Track which rooms have loaded history
+
+  /// Check if the current platform supports the Matrix Rust bridge
+  bool get _isRustBridgeSupported {
+    return defaultTargetPlatform == TargetPlatform.windows || 
+           defaultTargetPlatform == TargetPlatform.linux ||
+           defaultTargetPlatform == TargetPlatform.macOS;
+  }
 
   Stream<List<ChatMessage>> watchRoom(String roomId) {
     final ctrl = _controllers.putIfAbsent(
@@ -47,7 +55,17 @@ class MatrixTimelineService {
       await Future.delayed(const Duration(seconds: 2));
       
       debugPrint('[MatrixTimeline] Calling getRoomMessages...');
-      final jsonStr = await frb.getRoomMessages(roomId: roomId, limit: 50);
+      
+      // Use appropriate client based on platform
+      String jsonStr;
+      if (_isRustBridgeSupported) {
+        jsonStr = await frb.getRoomMessages(roomId: roomId, limit: 50);
+      } else {
+        // Use mobile client
+        final mobileClient = MobileMatrixClient.instance;
+        jsonStr = await mobileClient.getRoomMessages(roomId, 50);
+      }
+      
       debugPrint('[MatrixTimeline] getRoomMessages returned: $jsonStr');
       
       final List<dynamic> messages = jsonDecode(jsonStr);

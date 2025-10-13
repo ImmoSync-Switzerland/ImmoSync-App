@@ -118,13 +118,20 @@ void main() async {
     // Step 6: Initialize flutter_rust_bridge before any FRB usage
     // This must run before widgets/providers that call into the bridge (e.g., subscribeEvents)
     try {
-      await RustLib.init();
-      debugPrint('[Startup] flutter_rust_bridge initialized');
+      // Only initialize Rust bridge on platforms where it's available
+      // For now, skip on mobile platforms where the native library might not be built
+      if (defaultTargetPlatform == TargetPlatform.windows || 
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS) {
+        await RustLib.init();
+        debugPrint('[Startup] flutter_rust_bridge initialized');
+      } else {
+        debugPrint('[Startup][INFO] flutter_rust_bridge initialization skipped on ${defaultTargetPlatform.name}');
+      }
     } catch (e, st) {
-      debugPrint('[Startup][FATAL] flutter_rust_bridge init failed: $e');
+      debugPrint('[Startup][WARN] flutter_rust_bridge init failed: $e');
       debugPrint(st.toString());
-      // Re-throw to surface a clear startup error UI if FRB cannot load
-      rethrow;
+      // Don't re-throw, continue without Rust bridge on mobile
     }
 
     // Run app – heavy providers will lazy load AFTER first frame
@@ -183,7 +190,13 @@ class ImmoSync extends ConsumerWidget {
     }
     
     // Receive chat messages from native Matrix FRB stream only (no WS message ingestion)
-    ref.watch(matrixFrbEventsAdapterProvider);
+    // Only on platforms where Rust bridge is available
+    if (defaultTargetPlatform == TargetPlatform.windows || 
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      ref.watch(matrixFrbEventsAdapterProvider);
+    }
+    
     // Listen for auth userId changes (avoid triggering on every rebuild)
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {

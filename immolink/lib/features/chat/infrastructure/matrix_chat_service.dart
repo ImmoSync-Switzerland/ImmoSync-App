@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:immosync/bridge.dart' as frb;
 import 'package:immosync/core/config/db_config.dart';
@@ -5,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'mobile_matrix_client.dart';
 
 class MatrixChatService {
   static final MatrixChatService instance = MatrixChatService._();
@@ -16,37 +18,81 @@ class MatrixChatService {
   bool _syncStarted = false;
   Future<void>? _initializationInProgress;
 
+  /// Check if the current platform supports the Matrix Rust bridge
+  bool get _isRustBridgeSupported {
+    return defaultTargetPlatform == TargetPlatform.windows || 
+           defaultTargetPlatform == TargetPlatform.linux ||
+           defaultTargetPlatform == TargetPlatform.macOS;
+  }
+
+  /// Get the appropriate Matrix client for the current platform
+  MobileMatrixClient? get _mobileClient => _isRustBridgeSupported ? null : MobileMatrixClient.instance;
+
   Future<void> ensureInitialized({required String homeserver}) async {
     if (_inited) return;
-    final dir = await getApplicationSupportDirectory();
-    await frb.init(homeserver: homeserver, dataDir: dir.path);
+    
+    if (_isRustBridgeSupported) {
+      // Use Rust bridge on desktop platforms
+      final dir = await getApplicationSupportDirectory();
+      await frb.init(homeserver: homeserver, dataDir: dir.path);
+    } else {
+      // Use mobile client on mobile platforms
+      print('[MatrixChatService] Using mobile Matrix client for ${defaultTargetPlatform.name}');
+      final dir = await getApplicationSupportDirectory();
+      await _mobileClient!.init(homeserver, dir.path);
+    }
+    
     _inited = true;
   }
 
   Future<void> login(
       {required String username, required String password}) async {
-    await frb.login(user: username, password: password);
+    if (_isRustBridgeSupported) {
+      await frb.login(user: username, password: password);
+    } else {
+      final result = await _mobileClient!.login(username, password);
+      print('[MatrixChatService] Mobile login successful: ${result['userId']}');
+    }
     _loggedIn = true;
   }
 
   Future<String> sendMessage(
       {required String roomId, required String body}) async {
-    return frb.sendMessage(roomId: roomId, body: body);
+    if (_isRustBridgeSupported) {
+      return frb.sendMessage(roomId: roomId, body: body);
+    } else {
+      return _mobileClient!.sendMessage(roomId, body);
+    }
   }
 
   Future<void> startSync() async {
     if (_syncStarted) return;
-    await frb.startSync();
+    
+    if (_isRustBridgeSupported) {
+      await frb.startSync();
+    } else {
+      // Mobile client handles sync automatically after login
+      print('[MatrixChatService] Mobile client sync is automatic');
+    }
     _syncStarted = true;
   }
 
   Future<void> stopSync() async {
-    await frb.stopSync();
+    if (_isRustBridgeSupported) {
+      await frb.stopSync();
+    } else {
+      // Mobile client doesn't need explicit sync stop
+      print('[MatrixChatService] Mobile client sync management is automatic');
+    }
     _syncStarted = false;
   }
 
   Future<void> markRead({required String roomId, required String eventId}) {
-    return frb.markRead(roomId: roomId, eventId: eventId);
+    if (_isRustBridgeSupported) {
+      return frb.markRead(roomId: roomId, eventId: eventId);
+    } else {
+      return _mobileClient!.markRead(roomId, eventId);
+    }
   }
 
   /// Ensure the native Matrix bridge is fully ready (FRB initialized, client

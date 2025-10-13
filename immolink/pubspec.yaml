@@ -47,6 +47,7 @@ dependencies:
   open_filex: ^4.5.0
   fl_chart: ^0.69.0
   visibility_detector: ^0.4.0+2
+  matrix: ^3.0.0
 
   flutter_rust_bridge: 2.11.1
   mime: any
