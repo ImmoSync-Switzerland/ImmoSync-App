@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/pages/login_page.dart';
@@ -49,6 +50,7 @@ import 'package:immosync/features/support/presentation/pages/support_requests_pa
 import 'package:immosync/features/support/presentation/pages/support_request_detail_page.dart';
 import 'package:immosync/features/support/presentation/pages/open_tickets_page.dart';
 import 'package:immosync/features/reports/presentation/pages/revenue_detail_page.dart';
+import 'package:immosync/features/debug/matrix_logs_viewer.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -273,6 +275,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/contact-support',
         builder: (context, state) => const ContactSupportPage(),
       ),
+      // Debug Matrix Logs route (only in debug mode)
+      if (kDebugMode)
+        GoRoute(
+          path: '/debug/matrix-logs',
+          builder: (context, state) => const MatrixLogsViewer(),
+        ),
       // Terms of Service route
       GoRoute(
         path: '/terms-of-service',

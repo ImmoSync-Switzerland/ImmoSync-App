@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -67,6 +68,11 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildSupportSection(context, ref, l10n),
             const SizedBox(height: 24),
+            // Debug section only visible in debug mode
+            if (kDebugMode) ...[
+              _buildDebugSection(context, ref, l10n),
+              const SizedBox(height: 24),
+            ],
             _buildLogoutButton(context, ref, l10n),
           ],
         ),
@@ -676,6 +682,57 @@ class SettingsPage extends ConsumerWidget {
                 style: TextStyle(color: colors.primaryAccent, inherit: true)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDebugSection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+    final colors = ref.watch(dynamicColorsProvider);
+    return Card(
+      elevation: 4,
+      color: colors.surfaceCards,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.bug_report, color: colors.primaryAccent),
+                const SizedBox(width: 8),
+                Text(
+                  'Debug Tools',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                    inherit: true,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.analytics, color: colors.primaryAccent),
+              title: Text(
+                'Matrix Logs',
+                style: TextStyle(color: colors.textPrimary, inherit: true),
+              ),
+              subtitle: Text(
+                'View Matrix client logs and debug info',
+                style: TextStyle(color: colors.textSecondary, inherit: true),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, color: colors.textSecondary, size: 16),
+              onTap: () {
+                context.push('/debug/matrix-logs');
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

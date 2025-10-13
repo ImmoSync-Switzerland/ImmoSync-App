@@ -5,6 +5,31 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
+/// Logger utility for mobile Matrix client
+class MobileMatrixLogger {
+  static final List<String> _logs = [];
+  static final StreamController<String> _logController = StreamController<String>.broadcast();
+  
+  static void log(String message) {
+    final timestamp = DateTime.now().toString();
+    final logEntry = '[$timestamp] $message';
+    _logs.add(logEntry);
+    _logController.add(logEntry);
+    
+    // Keep only last 100 log entries to prevent memory issues
+    if (_logs.length > 100) {
+      _logs.removeAt(0);
+    }
+    
+    // Also print to debug console
+    debugPrint(logEntry);
+  }
+  
+  static List<String> getLogs() => List.from(_logs);
+  static Stream<String> get logStream => _logController.stream;
+  static void clearLogs() => _logs.clear();
+}
+
 /// Mobile Matrix client implementation using the official Matrix Dart SDK
 /// This provides Matrix functionality for Android, iOS, and other platforms
 /// where the Rust bridge is not available.
@@ -37,7 +62,7 @@ class MobileMatrixClient {
     }
 
     try {
-      debugPrint('[MobileMatrix] Initializing client for $homeserver');
+      MobileMatrixLogger.log('[MobileMatrix] Initializing client for $homeserver');
       
       // Create client name based on platform
       final clientName = 'ImmoLink-${defaultTargetPlatform.name}';
@@ -45,6 +70,8 @@ class MobileMatrixClient {
       // Get database directory
       final Directory appDir = await getApplicationDocumentsDirectory();
       final dbPath = '${appDir.path}/matrix_mobile.db';
+      
+      MobileMatrixLogger.log('[MobileMatrix] Database path: $dbPath');
       
       // Create Matrix client with required database parameter
       _client = matrix.Client(
@@ -58,9 +85,9 @@ class MobileMatrixClient {
       _currentHomeserver = homeserver;
       _isInitialized = true;
       
-      debugPrint('[MobileMatrix] Client initialized successfully');
+      MobileMatrixLogger.log('[MobileMatrix] Client initialized successfully');
     } catch (e) {
-      debugPrint('[MobileMatrix] Failed to initialize: $e');
+      MobileMatrixLogger.log('[MobileMatrix] Failed to initialize: $e');
       rethrow;
     }
   }
@@ -72,7 +99,7 @@ class MobileMatrixClient {
     }
 
     try {
-      debugPrint('[MobileMatrix] Logging in as $username');
+      MobileMatrixLogger.log('[MobileMatrix] Logging in as $username');
       
       final loginResponse = await _client!.login(
         matrix.LoginType.mLoginPassword,
@@ -83,7 +110,7 @@ class MobileMatrixClient {
       _currentUserId = _client!.userID;
       _isLoggedIn = true;
       
-      debugPrint('[MobileMatrix] Login successful for ${_client!.userID}');
+      MobileMatrixLogger.log('[MobileMatrix] Login successful for ${_client!.userID}');
       
       // Start sync
       await _startSync();
@@ -93,7 +120,7 @@ class MobileMatrixClient {
         'accessToken': loginResponse.accessToken,
       };
     } catch (e) {
-      debugPrint('[MobileMatrix] Login failed: $e');
+      MobileMatrixLogger.log('[MobileMatrix] Login failed: $e');
       rethrow;
     }
   }
