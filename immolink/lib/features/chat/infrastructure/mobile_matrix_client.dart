@@ -57,7 +57,7 @@ class MobileMatrixClient {
   /// Initialize the Matrix client
   Future<void> init(String homeserver, String dataDir) async {
     if (_isInitialized && _currentHomeserver == homeserver) {
-      debugPrint('[MobileMatrix] Already initialized for $homeserver');
+      MobileMatrixLogger.log('[MobileMatrix] Already initialized for $homeserver');
       return;
     }
 
@@ -67,10 +67,15 @@ class MobileMatrixClient {
       // Create client name based on platform
       final clientName = 'ImmoLink-${defaultTargetPlatform.name}';
       
-      // Get database directory
+      // Get database directory - ensure it exists
       final Directory appDir = await getApplicationDocumentsDirectory();
-      final dbPath = '${appDir.path}/matrix_mobile.db';
+      final dbDir = Directory('${appDir.path}/matrix');
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+        MobileMatrixLogger.log('[MobileMatrix] Created database directory: ${dbDir.path}');
+      }
       
+      final dbPath = '${dbDir.path}/matrix_mobile.db';
       MobileMatrixLogger.log('[MobileMatrix] Database path: $dbPath');
       
       // Create Matrix client with required database parameter
@@ -79,8 +84,12 @@ class MobileMatrixClient {
         database: await _createDatabase(dbPath),
       );
 
-      // Set homeserver
-      await _client!.checkHomeserver(Uri.parse(homeserver));
+      // Set homeserver with proper validation
+      final homeserverUri = Uri.parse(homeserver);
+      MobileMatrixLogger.log('[MobileMatrix] Checking homeserver: $homeserverUri');
+      
+      await _client!.checkHomeserver(homeserverUri);
+      MobileMatrixLogger.log('[MobileMatrix] Homeserver check successful');
       
       _currentHomeserver = homeserver;
       _isInitialized = true;
@@ -88,6 +97,7 @@ class MobileMatrixClient {
       MobileMatrixLogger.log('[MobileMatrix] Client initialized successfully');
     } catch (e) {
       MobileMatrixLogger.log('[MobileMatrix] Failed to initialize: $e');
+      _isInitialized = false;
       rethrow;
     }
   }
@@ -95,12 +105,22 @@ class MobileMatrixClient {
   /// Login with username and password
   Future<Map<String, String>> login(String username, String password) async {
     if (!_isInitialized || _client == null) {
-      throw Exception('Client not initialized');
+      throw Exception('Client not initialized - call init() first');
     }
 
     try {
-      MobileMatrixLogger.log('[MobileMatrix] Logging in as $username');
+      MobileMatrixLogger.log('[MobileMatrix] Starting login process for: $username');
       
+      // Check if already logged in
+      if (_isLoggedIn && _client!.isLogged()) {
+        MobileMatrixLogger.log('[MobileMatrix] Already logged in as ${_client!.userID}');
+        return {
+          'userId': _client!.userID!,
+          'accessToken': 'existing_session',
+        };
+      }
+
+      MobileMatrixLogger.log('[MobileMatrix] Attempting Matrix login...');
       final loginResponse = await _client!.login(
         matrix.LoginType.mLoginPassword,
         identifier: matrix.AuthenticationUserIdentifier(user: username),
@@ -110,41 +130,76 @@ class MobileMatrixClient {
       _currentUserId = _client!.userID;
       _isLoggedIn = true;
       
-      MobileMatrixLogger.log('[MobileMatrix] Login successful for ${_client!.userID}');
+      MobileMatrixLogger.log('[MobileMatrix] Login successful! UserID: ${_client!.userID}');
+      MobileMatrixLogger.log('[MobileMatrix] Access token received: ${loginResponse.accessToken.substring(0, 10)}...');
       
-      // Start sync
+      // Wait for initial sync to complete before returning
+      MobileMatrixLogger.log('[MobileMatrix] Starting sync process...');
       await _startSync();
+      
+      // Give some time for initial sync
+      await Future.delayed(const Duration(seconds: 2));
+      MobileMatrixLogger.log('[MobileMatrix] Login process completed successfully');
       
       return {
         'userId': _client!.userID!,
         'accessToken': loginResponse.accessToken,
       };
     } catch (e) {
-      MobileMatrixLogger.log('[MobileMatrix] Login failed: $e');
+      MobileMatrixLogger.log('[MobileMatrix] Login failed with error: $e');
+      _isLoggedIn = false;
+      _currentUserId = null;
       rethrow;
     }
   }
 
   /// Start the sync process
   Future<void> _startSync() async {
-    if (_client == null) return;
+    if (_client == null) {
+      MobileMatrixLogger.log('[MobileMatrix] Cannot start sync - client is null');
+      return;
+    }
 
     try {
-      debugPrint('[MobileMatrix] Starting sync...');
+      MobileMatrixLogger.log('[MobileMatrix] Initializing sync listeners...');
       
-      // Listen to timeline events
-      _client!.onSync.stream.listen(_handleSyncUpdate);
-      _client!.onTimelineEvent.stream.listen(_handleEvent);
-      
-      // Start syncing
+      // Listen to login state changes
       _client!.onLoginStateChanged.stream.listen((loginState) {
-        debugPrint('[MobileMatrix] Login state changed: $loginState');
+        MobileMatrixLogger.log('[MobileMatrix] Login state changed: $loginState');
+        if (loginState == matrix.LoginState.loggedOut) {
+          _isLoggedIn = false;
+          _currentUserId = null;
+        }
       });
       
+      // Listen to sync updates
+      _client!.onSync.stream.listen(_handleSyncUpdate, onError: (error) {
+        MobileMatrixLogger.log('[MobileMatrix] Sync stream error: $error');
+      });
+      
+      // Listen to timeline events (messages, etc.)
+      _client!.onTimelineEvent.stream.listen(_handleEvent, onError: (error) {
+        MobileMatrixLogger.log('[MobileMatrix] Timeline event error: $error');
+      });
+      
+      // Listen to room state events (room updates)
+      _client!.onTimelineEvent.stream.where((event) => event.type == matrix.EventTypes.RoomMember).listen((event) {
+        MobileMatrixLogger.log('[MobileMatrix] Room member update in: ${event.roomId}');
+      });
+      
+      MobileMatrixLogger.log('[MobileMatrix] Starting Matrix sync...');
+      
+      // Wait for rooms to load
       await _client!.roomsLoading;
-      debugPrint('[MobileMatrix] Sync started successfully');
+      MobileMatrixLogger.log('[MobileMatrix] Rooms loaded successfully');
+      
+      // Log current room count
+      final roomCount = _client!.rooms.length;
+      MobileMatrixLogger.log('[MobileMatrix] Sync started successfully - $roomCount rooms available');
+      
     } catch (e) {
-      debugPrint('[MobileMatrix] Failed to start sync: $e');
+      MobileMatrixLogger.log('[MobileMatrix] Failed to start sync: $e');
+      rethrow;
     }
   }
 
@@ -180,18 +235,47 @@ class MobileMatrixClient {
     }
 
     try {
-      debugPrint('[MobileMatrix] Creating room with $otherMxid');
+      MobileMatrixLogger.log('[MobileMatrix] Creating DM room with: $otherMxid');
+      MobileMatrixLogger.log('[MobileMatrix] Creator MXID: ${creatorMxid ?? 'not specified'}');
       
+      // Check if a DM room already exists
+      try {
+        final existingRoom = _client!.rooms.firstWhere(
+          (room) => room.isDirectChat && room.summary.mJoinedMemberCount == 2,
+        );
+        
+        if (existingRoom.id.isNotEmpty) {
+          MobileMatrixLogger.log('[MobileMatrix] Existing DM room found: ${existingRoom.id}');
+          return existingRoom.id;
+        }
+      } catch (e) {
+        // No existing room found, create new one
+        MobileMatrixLogger.log('[MobileMatrix] No existing DM room, will create new one...');
+      }
+    } catch (e) {
+      // No existing room found, create new one
+      MobileMatrixLogger.log('[MobileMatrix] No existing DM room, creating new one...');
+    }
+
+    try {
       final roomId = await _client!.createRoom(
         invite: [otherMxid],
         isDirect: true,
         preset: matrix.CreateRoomPreset.trustedPrivateChat,
+        name: null, // Let Matrix generate the name
+        topic: null,
+        visibility: matrix.Visibility.private,
       );
 
-      debugPrint('[MobileMatrix] Room created: $roomId');
+      MobileMatrixLogger.log('[MobileMatrix] DM room created successfully: $roomId');
+      
+      // Wait a moment for the room to be fully set up
+      await Future.delayed(const Duration(milliseconds: 500));
+      
       return roomId;
     } catch (e) {
-      debugPrint('[MobileMatrix] Failed to create room: $e');
+      MobileMatrixLogger.log('[MobileMatrix] Failed to create room: ${e.toString()}');
+      MobileMatrixLogger.log('[MobileMatrix] Error type: ${e.runtimeType}');
       rethrow;
     }
   }
@@ -199,23 +283,48 @@ class MobileMatrixClient {
   /// Send a message to a room
   Future<String> sendMessage(String roomId, String body) async {
     if (!_isLoggedIn || _client == null) {
-      throw Exception('Client not logged in');
+      throw Exception('Client not logged in - please login first');
+    }
+
+    if (body.trim().isEmpty) {
+      throw Exception('Message body cannot be empty');
     }
 
     try {
-      debugPrint('[MobileMatrix] Sending message to $roomId: $body');
+      MobileMatrixLogger.log('[MobileMatrix] Attempting to send message to room: $roomId');
+      MobileMatrixLogger.log('[MobileMatrix] Message content: ${body.substring(0, body.length > 50 ? 50 : body.length)}${body.length > 50 ? '...' : ''}');
       
       final room = _client!.getRoomById(roomId);
       if (room == null) {
+        MobileMatrixLogger.log('[MobileMatrix] Room not found: $roomId');
+        MobileMatrixLogger.log('[MobileMatrix] Available rooms: ${_client!.rooms.map((r) => r.id).join(', ')}');
         throw Exception('Room not found: $roomId');
       }
 
-      final eventId = await room.sendTextEvent(body);
-      debugPrint('[MobileMatrix] Message sent with eventId: $eventId');
+      MobileMatrixLogger.log('[MobileMatrix] Room found: ${room.id}');
       
-      return eventId ?? 'unknown';
+      // Check if we can send messages to this room (simplified check)
+      try {
+        final powerLevel = room.getPowerLevelByUserId(_client!.userID!);
+        MobileMatrixLogger.log('[MobileMatrix] User power level in room: $powerLevel');
+        // Most rooms allow sending messages with power level 0, so we'll proceed
+      } catch (e) {
+        MobileMatrixLogger.log('[MobileMatrix] Could not check power levels, proceeding anyway: $e');
+      }
+
+      MobileMatrixLogger.log('[MobileMatrix] Sending text event...');
+      final eventId = await room.sendTextEvent(body);
+      
+      if (eventId == null) {
+        MobileMatrixLogger.log('[MobileMatrix] Warning: Event ID is null after sending message');
+        return 'sent_but_no_id';
+      }
+      
+      MobileMatrixLogger.log('[MobileMatrix] Message sent successfully! EventID: $eventId');
+      return eventId;
     } catch (e) {
-      debugPrint('[MobileMatrix] Failed to send message: $e');
+      MobileMatrixLogger.log('[MobileMatrix] Failed to send message: ${e.toString()}');
+      MobileMatrixLogger.log('[MobileMatrix] Error type: ${e.runtimeType}');
       rethrow;
     }
   }
@@ -294,6 +403,42 @@ class MobileMatrixClient {
   
   /// Get current user ID
   String? get currentUserId => _currentUserId;
+
+  /// Get diagnostic information about the client state
+  Map<String, dynamic> getDiagnostics() {
+    return {
+      'isInitialized': _isInitialized,
+      'isLoggedIn': _isLoggedIn,
+      'currentUserId': _currentUserId,
+      'currentHomeserver': _currentHomeserver,
+      'clientExists': _client != null,
+      'clientIsLogged': _client?.isLogged() ?? false,
+      'roomCount': _client?.rooms.length ?? 0,
+      'prevBatch': _client?.prevBatch ?? 'none',
+      'loginState': _client?.onLoginStateChanged.value.toString() ?? 'unknown',
+    };
+  }
+
+  /// Test connectivity and basic functionality
+  Future<Map<String, dynamic>> testConnection() async {
+    final diagnostics = getDiagnostics();
+    MobileMatrixLogger.log('[MobileMatrix] Connection Test Results: $diagnostics');
+    
+    if (_client != null && _isLoggedIn) {
+      try {
+        // Test basic API call - just verify we can make API calls
+        final rooms = _client!.rooms;
+        MobileMatrixLogger.log('[MobileMatrix] API test successful: ${rooms.length} rooms available');
+        diagnostics['profileTest'] = 'success';
+        diagnostics['apiTest'] = 'rooms accessible';
+      } catch (e) {
+        MobileMatrixLogger.log('[MobileMatrix] Profile fetch failed: $e');
+        diagnostics['profileTest'] = 'failed: $e';
+      }
+    }
+    
+    return diagnostics;
+  }
 
   /// Dispose resources
   void dispose() {

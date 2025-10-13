@@ -1,21 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../../domain/models/chat_message.dart';
-import '../../domain/services/chat_service.dart';
-import '../../infrastructure/matrix_timeline_service.dart';
+import '../../infrastructure/http_chat_service.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import 'package:flutter/foundation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
-// Provider for chat service
-final chatServiceProvider = Provider<ChatService>((ref) {
-  return ChatService();
+// Provider for HTTP chat service
+final chatServiceProvider = Provider<HttpChatService>((ref) {
+  return HttpChatService();
 });
 
 // StateNotifier for managing chat messages
 class ChatMessagesNotifier
     extends StateNotifier<AsyncValue<List<ChatMessage>>> {
-  final ChatService _chatService;
+  final HttpChatService _chatService;
   final String _conversationId;
   final Ref _ref;
   StreamSubscription<List<ChatMessage>>? _sub;
@@ -181,67 +180,33 @@ class ChatMessagesNotifier
     required String content,
   }) async {
     try {
-      final mxEventId = await _chatService.sendMessage(
+      debugPrint('[MessagesProvider] Sending message via HTTP API');
+      final messageId = await _chatService.sendMessage(
         conversationId: _conversationId,
         senderId: senderId,
         receiverId: receiverId,
         content: content,
-        ref: _ref,
-        otherUserId: receiverId,
       );
 
-      // After successful send, re-resolve the Matrix room ID if we didn't have it
-      if (_roomId == _conversationId) {
-        try {
-          final actualRoomId = await _ref
-              .read(chatServiceProvider)
-              .getMatrixRoomIdForConversation(
-                  conversationId: _conversationId,
-                  currentUserId: senderId,
-                  otherUserId: receiverId);
-          if (actualRoomId != null && actualRoomId != _roomId) {
-            debugPrint(
-                '[MessagesProvider] Resolved actual roomId=$actualRoomId, re-subscribing');
-            _roomId = actualRoomId;
-            // Re-subscribe to the correct room timeline
-            final timeline = _ref.read(matrixTimelineServiceProvider);
-            _sub?.cancel();
-            _sub = timeline.watchRoom(_roomId!).listen((messages) {
-              final sorted = List<ChatMessage>.from(messages)
-                ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-              state = AsyncValue.data(sorted);
-            });
-          }
-        } catch (_) {
-          // Continue with existing subscription
-        }
-      }
-
-      // Optimistically append a local message using the Matrix event id
-      final now = DateTime.now();
-      final optimistic = ChatMessage(
-        id: mxEventId,
-        senderId: senderId,
-        receiverId: receiverId,
-        content: content,
-        timestamp: now,
-        isRead: false,
-        deliveredAt: now, // Set deliveredAt immediately for optimistic message
-        readAt: null,
-        messageType: 'text',
-        metadata: const {},
-        conversationId: _conversationId,
-        isEncrypted: true, // Matrix rooms are encrypted, content is auto-decrypted by SDK
-      );
-      final timeline = _ref.read(matrixTimelineServiceProvider);
-      // Use resolved roomId as the local timeline key (fallback to conversationId)
-      final key = _roomId ?? _conversationId;
-      timeline.pushLocal(key, optimistic);
+      debugPrint('[MessagesProvider] Message sent successfully with ID: $messageId');
+      
+      // Refresh messages after successful send
+      await _loadMessages();
     } catch (error, _) {
-      // Handle error but don't change the state to error
-      // as we still want to show existing messages
-      print('Error sending message: $error');
+      debugPrint('[MessagesProvider] Error sending message: $error');
       rethrow;
+    }
+  }
+
+  Future<void> _loadMessages() async {
+    try {
+      debugPrint('[MessagesProvider] Loading messages for conversation: $_conversationId');
+      final messages = await _chatService.getMessagesForConversation(_conversationId);
+      state = AsyncValue.data(messages);
+      debugPrint('[MessagesProvider] Loaded ${messages.length} messages');
+    } catch (error, stackTrace) {
+      debugPrint('[MessagesProvider] Error loading messages: $error');
+      state = AsyncValue.error(error, stackTrace);
     }
   }
 

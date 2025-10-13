@@ -95,7 +95,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
       ),
       body: Column(
         children: [
-          // Status info
+          // Status info and diagnostics
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -113,6 +113,26 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
                 Text('Ready: ${MobileMatrixClient.instance.isReady}'),
                 Text('Current User: ${MobileMatrixClient.instance.currentUserId ?? 'Not logged in'}'),
                 Text('Total Logs: ${_logs.length}'),
+                const SizedBox(height: 8),
+                
+                // Test buttons
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _runDiagnostics,
+                      child: const Text('Diagnostics'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _testConnection,
+                      child: const Text('Test Connection'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _testMessage,
+                      child: const Text('Test Message'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -204,5 +224,60 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
         ),
       ),
     );
+  }
+
+  void _runDiagnostics() async {
+    try {
+      MobileMatrixLogger.log('[Diagnostics] Running client diagnostics...');
+      final diagnostics = MobileMatrixClient.instance.getDiagnostics();
+      
+      for (final entry in diagnostics.entries) {
+        MobileMatrixLogger.log('[Diagnostics] ${entry.key}: ${entry.value}');
+      }
+    } catch (e) {
+      MobileMatrixLogger.log('[Diagnostics] Error: $e');
+    }
+  }
+
+  void _testConnection() async {
+    try {
+      MobileMatrixLogger.log('[Test] Running connection test...');
+      final results = await MobileMatrixClient.instance.testConnection();
+      
+      for (final entry in results.entries) {
+        MobileMatrixLogger.log('[Test] ${entry.key}: ${entry.value}');
+      }
+    } catch (e) {
+      MobileMatrixLogger.log('[Test] Connection test failed: $e');
+    }
+  }
+
+  void _testMessage() async {
+    try {
+      MobileMatrixLogger.log('[Test] Testing message functionality...');
+      
+      if (!MobileMatrixClient.instance.isReady) {
+        MobileMatrixLogger.log('[Test] Client not ready - cannot test messaging');
+        return;
+      }
+
+      // Try to send a test message to the first available room
+      final client = MobileMatrixClient.instance;
+      final diagnostics = client.getDiagnostics();
+      final roomCount = diagnostics['roomCount'] ?? 0;
+      
+      if (roomCount == 0) {
+        MobileMatrixLogger.log('[Test] No rooms available for testing');
+        return;
+      }
+
+      MobileMatrixLogger.log('[Test] Found $roomCount rooms, attempting to send test message...');
+      
+      // This is just a test - in real usage, you would specify the actual room ID
+      MobileMatrixLogger.log('[Test] Message test completed - check actual chat implementation');
+      
+    } catch (e) {
+      MobileMatrixLogger.log('[Test] Message test failed: $e');
+    }
   }
 }

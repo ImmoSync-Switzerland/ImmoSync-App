@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -105,6 +106,31 @@ class ProfilePage extends ConsumerWidget {
           title: l10n.changePassword,
           subtitle: l10n.updatePassword,
           onTap: () => context.push('/change-password'),
+        ),
+        const SizedBox(height: 12),
+        // Debug and testing options - always visible for development
+        _buildOptionTile(
+          context,
+          icon: Icons.bug_report_outlined,
+          title: 'Matrix Debug Logs',
+          subtitle: 'View real-time Matrix client logs',
+          onTap: () => context.push('/debug/matrix-logs'),
+        ),
+        const SizedBox(height: 12),
+        _buildOptionTile(
+          context,
+          icon: Icons.chat_bubble_outline,
+          title: 'Matrix Test Tool',
+          subtitle: 'Test Matrix messaging directly',
+          onTap: () => context.push('/debug/matrix-test'),
+        ),
+        const SizedBox(height: 12),
+        _buildOptionTile(
+          context,
+          icon: Icons.settings_outlined,
+          title: l10n.settings,
+          subtitle: l10n.appSettings,
+          onTap: () => context.push('/settings'),
         ),
         const SizedBox(height: 12),
         _buildOptionTile(

@@ -62,7 +62,7 @@ class CommonBottomNav extends ConsumerWidget {
               context.go('/reports');
               break;
             case 4: // Profile
-              context.go('/settings');
+              context.go('/profile');
               break;
           }
         },

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/services/chat_service.dart';
+import '../../infrastructure/http_chat_service.dart';
 
-final chatServiceProvider = Provider<ChatService>((ref) {
-  return ChatService();
+final chatServiceProvider = Provider<HttpChatService>((ref) {
+  return HttpChatService();
 });
