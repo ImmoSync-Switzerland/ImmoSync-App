@@ -11,7 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
-import 'package:immosync/features/chat/presentation/providers/chat_service_provider.dart'
+import 'package:immosync/features/chat/presentation/providers/chat_provider.dart'
     as chat_providers;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';

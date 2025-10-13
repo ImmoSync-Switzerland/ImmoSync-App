@@ -475,8 +475,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage> {
       // Find or create conversation to preserve chat history
       final chatService = ref.read(chatServiceProvider);
       final conversationId = await chatService.findOrCreateConversation(
-        currentUserId: currentUser!.id,
-        otherUserId: contact.id,
+        senderId: currentUser!.id,
+        receiverId: contact.id,
       );
 
       // Close loading dialog

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/services/chat_service.dart';
 import '../../domain/models/conversation.dart';
-import 'messages_provider.dart'; // For chatServiceProvider
+import 'chat_provider.dart'; // For chatServiceProvider
 
 // Provider for finding or creating conversations
 final conversationFinderProvider =

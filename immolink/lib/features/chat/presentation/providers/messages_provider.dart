@@ -5,6 +5,7 @@ import '../../infrastructure/http_chat_service.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import 'package:flutter/foundation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../infrastructure/matrix_timeline_service.dart';
 
 // Provider for HTTP chat service
 final chatServiceProvider = Provider<HttpChatService>((ref) {
