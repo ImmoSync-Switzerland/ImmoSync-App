@@ -101,13 +101,23 @@ class ChatMessagesNotifier
         state = AsyncValue.data(sorted);
       });
 
-      // Emit empty state initially so UI shows loading -> empty rather than stuck loading
-      if (state is AsyncLoading) {
-        state = const AsyncValue.data([]);
-      }
+      // CRITICAL: Load initial messages from backend HTTP API
+      // Matrix timeline only provides new messages, not history
+      debugPrint('[MessagesProvider] Loading initial messages from backend...');
+      await _loadMessages();
+      debugPrint('[MessagesProvider] Initial messages loaded, timeline will update on new messages');
+      
     } catch (e, st) {
       debugPrint('[MessagesProvider] Timeline init error: $e');
       state = AsyncValue.error(e, st);
+      
+      // Even if Matrix fails, try to load from backend
+      try {
+        debugPrint('[MessagesProvider] Matrix failed, trying backend fallback...');
+        await _loadMessages();
+      } catch (backendError) {
+        debugPrint('[MessagesProvider] Backend fallback also failed: $backendError');
+      }
     }
   }
 
@@ -181,12 +191,13 @@ class ChatMessagesNotifier
     required String content,
   }) async {
     try {
-      debugPrint('[MessagesProvider] Sending message via HTTP API');
+      debugPrint('[MessagesProvider] Sending message via ChatService');
       final messageId = await _chatService.sendMessage(
         conversationId: _conversationId,
         senderId: senderId,
         receiverId: receiverId,
         content: content,
+        ref: _ref,
       );
 
       debugPrint('[MessagesProvider] Message sent successfully with ID: $messageId');
@@ -202,11 +213,12 @@ class ChatMessagesNotifier
   Future<void> _loadMessages() async {
     try {
       debugPrint('[MessagesProvider] Loading messages for conversation: $_conversationId');
-      final messages = await _chatService.getMessages(_conversationId);
+      final messages = await _chatService.getMessages(_conversationId, ref: _ref);
       state = AsyncValue.data(messages);
-      debugPrint('[MessagesProvider] Loaded ${messages.length} messages');
+      debugPrint('[MessagesProvider] Loaded ${messages.length} messages from backend');
     } catch (error, stackTrace) {
       debugPrint('[MessagesProvider] Error loading messages: $error');
+      debugPrint('[MessagesProvider] Stack trace: $stackTrace');
       state = AsyncValue.error(error, stackTrace);
     }
   }

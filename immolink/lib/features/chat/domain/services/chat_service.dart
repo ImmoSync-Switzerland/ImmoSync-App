@@ -16,6 +16,23 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;
   final Map<String, List<int>> _attachmentCache = {};
+  
+  /// Get headers with authorization token if available
+  Map<String, String> _getHeaders({Ref? ref}) {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (ref != null) {
+      try {
+        final auth = ref.read(authProvider);
+        final token = auth.sessionToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+      } catch (e) {
+        print('[ChatService] Could not get auth token: $e');
+      }
+    }
+    return headers;
+  }
 
   Future<List<Conversation>> getConversationsForUser(String userId) async {
     final response = await http.get(
@@ -69,17 +86,25 @@ class ChatService {
     return []; // Return empty list instead of throwing
   }
 
-  Future<List<ChatMessage>> getMessages(String conversationId) async {
+  Future<List<ChatMessage>> getMessages(String conversationId, {Ref? ref}) async {
+    print('[ChatService] Fetching messages for conversation: $conversationId');
+    print('[ChatService] API URL: $_apiUrl/chat/$conversationId/messages');
+    
     final response = await http.get(
       Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _getHeaders(ref: ref),
     );
 
+    print('[ChatService] Response status: ${response.statusCode}');
+    
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
+      print('[ChatService] Fetched ${data.length} messages from backend');
       return data.map((json) => ChatMessage.fromMap(json)).toList();
     }
-    throw Exception('Failed to fetch messages');
+    
+    print('[ChatService] Failed to fetch messages: ${response.statusCode} - ${response.body}');
+    throw Exception('Failed to fetch messages: ${response.statusCode}');
   }
 
   /// Ensure Matrix client is initialized, logged in, and syncing for the given user
@@ -135,6 +160,7 @@ class ChatService {
           content: content,
           matrixRoomId: roomId,
           matrixEventId: matrixEventId,
+          ref: ref,
         );
         print('[MatrixSend] Message stored in backend successfully');
       } catch (backendError) {
@@ -218,6 +244,7 @@ class ChatService {
             content: content,
             matrixRoomId: roomId,
             matrixEventId: matrixEventId,
+            ref: ref,
           );
         } catch (backendError) {
           print('[MatrixSend] WARNING: Failed to store in backend (retry): $backendError');
@@ -247,6 +274,7 @@ class ChatService {
             content: content,
             matrixRoomId: roomId,
             matrixEventId: finalEventId,
+            ref: ref,
           );
         } catch (backendError) {
           print('[MatrixSend] WARNING: Failed to store in backend (final): $backendError');
@@ -484,10 +512,12 @@ class ChatService {
     required String content,
     required String matrixRoomId,
     required String matrixEventId,
+    Ref? ref,
   }) async {
+    print('[ChatService] Storing message in backend: $conversationId');
     final response = await http.post(
       Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _getHeaders(ref: ref),
       body: json.encode({
         'conversationId': conversationId,
         'senderId': senderId,
@@ -499,10 +529,13 @@ class ChatService {
       }),
     );
 
+    print('[ChatService] Backend store response: ${response.statusCode}');
     if (response.statusCode != 201 && response.statusCode != 200) {
+      print('[ChatService] Backend store failed: ${response.body}');
       throw Exception(
           'Failed to store message in backend: ${response.statusCode} ${response.body}');
     }
+    print('[ChatService] Message stored successfully in backend');
   }
 
   // Note: Conversation preview updates are handled by backend on message POST
