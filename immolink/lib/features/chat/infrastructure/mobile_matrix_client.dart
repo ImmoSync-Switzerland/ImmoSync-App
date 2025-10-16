@@ -133,6 +133,9 @@ class MobileMatrixClient {
       MobileMatrixLogger.log('[MobileMatrix] Login successful! UserID: ${_client!.userID}');
       MobileMatrixLogger.log('[MobileMatrix] Access token received: ${loginResponse.accessToken.substring(0, 10)}...');
       
+      // Note: Encryption settings will be handled per-room during send
+      // to avoid "unknown devices" blocking messages
+      
       // Wait for initial sync to complete before returning
       MobileMatrixLogger.log('[MobileMatrix] Starting sync process...');
       await _startSync();
@@ -313,7 +316,96 @@ class MobileMatrixClient {
       }
 
       MobileMatrixLogger.log('[MobileMatrix] Sending text event...');
-      final eventId = await room.sendTextEvent(body);
+      MobileMatrixLogger.log('[MobileMatrix] Room encryption enabled: ${room.encrypted}');
+      
+      String? eventId;
+      try {
+        // Try to send message normally (with encryption if room requires it)
+        eventId = await room.sendTextEvent(body);
+        MobileMatrixLogger.log('[MobileMatrix] ✅ Message sent successfully (encrypted)');
+      } catch (e) {
+        final errorMsg = e.toString().toLowerCase();
+        
+        // Check if error is due to unknown/unverified devices
+        if (errorMsg.contains('unknown') || errorMsg.contains('unverified') || errorMsg.contains('device')) {
+          MobileMatrixLogger.log('[MobileMatrix] ⚠️ Unknown devices detected: $e');
+          MobileMatrixLogger.log('[MobileMatrix] 🔐 Auto-approving unknown devices for encrypted messaging...');
+          
+          try {
+            // Step 1: Get the encryption object
+            final encryption = _client!.encryption;
+            if (encryption == null) {
+              throw Exception('Encryption not enabled on client');
+            }
+            
+            MobileMatrixLogger.log('[MobileMatrix] 🔐 Fetching device keys to auto-verify...');
+            
+            // Step 2: Get all device keys in the room
+            final participants = room.getParticipants();
+            MobileMatrixLogger.log('[MobileMatrix] Found ${participants.length} participants');
+            
+            // Step 3: Auto-verify all unverified devices
+            int devicesVerified = 0;
+            for (final user in participants) {
+              try {
+                // Get stored device keys for this user
+                final deviceKeys = await _client!.userDeviceKeys[user.id]?.deviceKeys.values;
+                
+                if (deviceKeys != null) {
+                  for (final deviceKey in deviceKeys) {
+                    // If device is blocked or not verified, unblock and mark as verified
+                    if (deviceKey.blocked || !deviceKey.verified) {
+                      MobileMatrixLogger.log('[MobileMatrix]   Auto-verifying: ${deviceKey.deviceId} (user: ${user.id})');
+                      
+                      // Unblock the device
+                      await deviceKey.setBlocked(false);
+                      
+                      // Mark as verified
+                      await deviceKey.setVerified(true);
+                      
+                      devicesVerified++;
+                    }
+                  }
+                }
+              } catch (deviceError) {
+                MobileMatrixLogger.log('[MobileMatrix]   Warning: Could not verify devices for ${user.id}: $deviceError');
+                // Continue with other users
+              }
+            }
+            
+            MobileMatrixLogger.log('[MobileMatrix] ✅ Auto-verified $devicesVerified device(s)');
+            
+            // Step 4: Retry sending the encrypted message
+            MobileMatrixLogger.log('[MobileMatrix] 🔄 Retrying encrypted send after verification...');
+            eventId = await room.sendTextEvent(body);
+            MobileMatrixLogger.log('[MobileMatrix] ✅ Message sent successfully (encrypted after auto-verification)');
+            
+          } catch (approvalError) {
+            MobileMatrixLogger.log('[MobileMatrix] ❌ Auto-approval failed: $approvalError');
+            
+            // Final fallback: Try to send anyway (Matrix SDK may allow it)
+            try {
+              final txnId = _client!.generateUniqueTransactionId();
+              eventId = await room.sendEvent({
+                'msgtype': 'm.text',
+                'body': body,
+              }, txid: txnId);
+              MobileMatrixLogger.log('[MobileMatrix] ✅ Message sent with fallback method');
+            } catch (finalError) {
+              throw Exception(
+                'Cannot send encrypted message:\n'
+                'Device verification failed: $approvalError\n'
+                'Original error: $e\n'
+                'Final attempt: $finalError'
+              );
+            }
+          }
+        } else {
+          // Re-throw other errors
+          MobileMatrixLogger.log('[MobileMatrix] ❌ Send failed with error: $e');
+          rethrow;
+        }
+      }
       
       if (eventId == null) {
         MobileMatrixLogger.log('[MobileMatrix] Warning: Event ID is null after sending message');

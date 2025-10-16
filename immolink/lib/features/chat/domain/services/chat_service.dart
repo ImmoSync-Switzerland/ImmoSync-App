@@ -173,6 +173,9 @@ class ChatService {
       final msg = e.toString().toLowerCase();
       // ignore: avoid_print
       print('[MatrixSend] caught error: $msg');
+      
+      // NOTE: Device auto-verification is now handled in MobileMatrixClient
+      // If we still get encryption errors here, it means auto-verification failed
       final looksNoRoom = msg.contains('room not found') ||
           msg.contains('no such room') ||
           msg.contains('unknown room');
