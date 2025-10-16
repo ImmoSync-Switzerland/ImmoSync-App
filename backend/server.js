@@ -39,6 +39,7 @@ const chatAttachmentsRoutes = require('./routes/chat_attachments');
 const matrixProvision = require('./routes/matrix_provision');
 const matrixRooms = require('./routes/matrix_rooms');
 const supportRequestsRoutes = require('./routes/support_requests');
+const deviceVerificationRoutes = require('./routes/device_verification');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -70,6 +71,7 @@ app.get('/api/health', (req, res) => {
 // Mount auth routes
 app.use('/api/auth', authRoutes);
 app.use('/api/auth/2fa', auth2faRoutes);
+app.use('/api/auth/device', deviceVerificationRoutes);
 
 // Mount routes
 app.use('/api/properties', propertyRoutes);
