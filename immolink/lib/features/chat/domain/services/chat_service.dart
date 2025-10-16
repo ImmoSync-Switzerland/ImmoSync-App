@@ -124,6 +124,24 @@ class ChatService {
       print('[MatrixSend] attempt -> conv=$conversationId roomId=$roomId');
       final matrixEventId =
           await frb.sendMessage(roomId: roomId, body: content);
+      
+      // CRITICAL: Also store in HTTP backend for persistence and search
+      try {
+        print('[MatrixSend] Storing message in backend: eventId=$matrixEventId');
+        await _storeMessageInBackend(
+          conversationId: conversationId,
+          senderId: senderId,
+          receiverId: receiverId,
+          content: content,
+          matrixRoomId: roomId,
+          matrixEventId: matrixEventId,
+        );
+        print('[MatrixSend] Message stored in backend successfully');
+      } catch (backendError) {
+        // Log but don't fail - Matrix message was sent successfully
+        print('[MatrixSend] WARNING: Failed to store in backend: $backendError');
+      }
+      
       return matrixEventId;
     } catch (e) {
       final msg = e.toString().toLowerCase();
@@ -190,6 +208,21 @@ class ChatService {
         // ignore: avoid_print
         print(
             '[MatrixSend] SUCCESS! Message sent with event ID: $matrixEventId');
+        
+        // Store in backend (retry path)
+        try {
+          await _storeMessageInBackend(
+            conversationId: conversationId,
+            senderId: senderId,
+            receiverId: receiverId,
+            content: content,
+            matrixRoomId: roomId,
+            matrixEventId: matrixEventId,
+          );
+        } catch (backendError) {
+          print('[MatrixSend] WARNING: Failed to store in backend (retry): $backendError');
+        }
+        
         return matrixEventId;
       } catch (e2) {
         final msg2 = e2.toString().toLowerCase();
@@ -204,6 +237,21 @@ class ChatService {
         await Future.delayed(const Duration(seconds: 2));
         final finalEventId =
             await frb.sendMessage(roomId: roomId, body: content);
+        
+        // Store in backend (final attempt path)
+        try {
+          await _storeMessageInBackend(
+            conversationId: conversationId,
+            senderId: senderId,
+            receiverId: receiverId,
+            content: content,
+            matrixRoomId: roomId,
+            matrixEventId: finalEventId,
+          );
+        } catch (backendError) {
+          print('[MatrixSend] WARNING: Failed to store in backend (final): $backendError');
+        }
+        
         return finalEventId;
       }
     }
@@ -425,6 +473,36 @@ class ChatService {
         conversationId: conversationId,
         creatorUserId: currentUserId,
         otherUserId: otherUserId);
+  }
+
+  /// Store a Matrix message in the HTTP backend for persistence
+  /// This ensures messages are searchable and survive Matrix sync issues
+  Future<void> _storeMessageInBackend({
+    required String conversationId,
+    required String senderId,
+    required String receiverId,
+    required String content,
+    required String matrixRoomId,
+    required String matrixEventId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_apiUrl/chat/$conversationId/messages'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'conversationId': conversationId,
+        'senderId': senderId,
+        'receiverId': receiverId,
+        'content': content,
+        'messageType': 'text',
+        'matrixRoomId': matrixRoomId,
+        'matrixEventId': matrixEventId,
+      }),
+    );
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception(
+          'Failed to store message in backend: ${response.statusCode} ${response.body}');
+    }
   }
 
   // Note: Conversation preview updates are handled by backend on message POST
