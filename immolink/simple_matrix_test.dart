@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
-import 'dart:io';
 
 void main() {
   runApp(const MatrixTestApp());

@@ -192,6 +192,24 @@ class ChatMessagesNotifier
   }) async {
     try {
       debugPrint('[MessagesProvider] Sending message via ChatService');
+      
+      // 1. Optimistic UI Update - show message immediately
+      final tempMessage = ChatMessage(
+        id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+        senderId: senderId,
+        receiverId: receiverId,
+        content: content,
+        timestamp: DateTime.now(),
+        isRead: false,
+        messageType: 'text',
+        conversationId: _conversationId,
+        isEncrypted: false,
+      );
+      
+      addOptimisticMessage(tempMessage);
+      debugPrint('[MessagesProvider] Added optimistic message to UI');
+      
+      // 2. Send via Matrix + Backend
       final messageId = await _chatService.sendMessage(
         conversationId: _conversationId,
         senderId: senderId,
@@ -202,10 +220,20 @@ class ChatMessagesNotifier
 
       debugPrint('[MessagesProvider] Message sent successfully with ID: $messageId');
       
-      // Refresh messages after successful send
+      // 3. Wait briefly for backend write to complete
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // 4. Refresh messages from backend to get real message with proper ID
       await _loadMessages();
+      
     } catch (error, _) {
       debugPrint('[MessagesProvider] Error sending message: $error');
+      
+      // Remove optimistic message on error
+      final current = List<ChatMessage>.from(state.asData?.value ?? []);
+      current.removeWhere((m) => m.id.startsWith('temp_'));
+      state = AsyncValue.data(current);
+      
       rethrow;
     }
   }
