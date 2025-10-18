@@ -220,11 +220,33 @@ class ChatMessagesNotifier
 
       debugPrint('[MessagesProvider] Message sent successfully with ID: $messageId');
       
-      // 3. Wait briefly for backend write to complete
-      await Future.delayed(const Duration(milliseconds: 500));
+      // 3. Poll for the message to appear in backend (with retries)
+      bool messageFound = false;
+      for (int i = 0; i < 6; i++) {
+        await Future.delayed(Duration(milliseconds: 500 * (i + 1))); // 500ms, 1s, 1.5s, 2s, 2.5s, 3s
+        
+        debugPrint('[MessagesProvider] Polling attempt ${i + 1}/6 for new message');
+        final messages = await _chatService.getMessages(_conversationId, ref: _ref);
+        
+        // Check if the message we just sent is in the response
+        final foundMessage = messages.any((m) => 
+          m.content == content && 
+          m.senderId == senderId &&
+          DateTime.now().difference(m.timestamp).inSeconds < 10
+        );
+        
+        if (foundMessage) {
+          debugPrint('[MessagesProvider] Message found in backend on attempt ${i + 1}');
+          state = AsyncValue.data(messages);
+          messageFound = true;
+          break;
+        }
+      }
       
-      // 4. Refresh messages from backend to get real message with proper ID
-      await _loadMessages();
+      if (!messageFound) {
+        debugPrint('[MessagesProvider] WARNING: Message not found in backend after 6 retries, keeping optimistic message');
+        // Keep the optimistic message if backend hasn't confirmed
+      }
       
     } catch (error, _) {
       debugPrint('[MessagesProvider] Error sending message: $error');
@@ -242,8 +264,32 @@ class ChatMessagesNotifier
     try {
       debugPrint('[MessagesProvider] Loading messages for conversation: $_conversationId');
       final messages = await _chatService.getMessages(_conversationId, ref: _ref);
-      state = AsyncValue.data(messages);
-      debugPrint('[MessagesProvider] Loaded ${messages.length} messages from backend');
+      
+      // Preserve optimistic messages if they're not in the backend yet
+      final current = state.asData?.value ?? [];
+      final optimisticMessages = current.where((m) => m.id.startsWith('temp_')).toList();
+      
+      if (optimisticMessages.isNotEmpty) {
+        debugPrint('[MessagesProvider] Preserving ${optimisticMessages.length} optimistic messages');
+        
+        // Merge: remove optimistic messages that now have real counterparts
+        final filteredOptimistic = optimisticMessages.where((opt) {
+          return !messages.any((real) =>
+            real.content == opt.content &&
+            real.senderId == opt.senderId &&
+            real.timestamp.difference(opt.timestamp).inSeconds.abs() < 10
+          );
+        }).toList();
+        
+        final mergedMessages = [...messages, ...filteredOptimistic]
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        
+        state = AsyncValue.data(mergedMessages);
+        debugPrint('[MessagesProvider] Loaded ${messages.length} backend messages + ${filteredOptimistic.length} optimistic messages');
+      } else {
+        state = AsyncValue.data(messages);
+        debugPrint('[MessagesProvider] Loaded ${messages.length} messages from backend');
+      }
     } catch (error, stackTrace) {
       debugPrint('[MessagesProvider] Error loading messages: $error');
       debugPrint('[MessagesProvider] Stack trace: $stackTrace');
