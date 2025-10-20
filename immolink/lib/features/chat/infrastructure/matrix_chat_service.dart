@@ -132,30 +132,69 @@ class MatrixChatService {
     Future<Map<String, dynamic>?> fetchAccount() async {
       final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
       print('[MatrixChatService] Fetch account response: ${r.statusCode}');
+      if (r.statusCode == 503) {
+        // Matrix service not configured on backend
+        print('[MatrixChatService] Matrix service not configured on backend (503)');
+        return {'configured': false};
+      }
       if (r.statusCode != 200) return null;
       return json.decode(r.body) as Map<String, dynamic>;
     }
 
     var data = await fetchAccount();
+    
+    // Check if Matrix is configured on backend
+    if (data != null && data['configured'] == false) {
+      print('[MatrixChatService] WARNING: Matrix service not configured on backend');
+      print('[MatrixChatService] Chat will use HTTP-only mode (no real-time updates)');
+      _readyUserId = userId;
+      _initializationInProgress = null;
+      completer.complete();
+      return; // Skip Matrix initialization
+    }
+    
     if (data == null) {
       // Attempt to provision the account, then fetch again
       print('[MatrixChatService] Account not found, attempting to provision...');
-      await http.post(Uri.parse('$api/matrix/provision'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({'userId': userId}));
+      try {
+        final provisionResp = await http.post(Uri.parse('$api/matrix/provision'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'userId': userId}));
+        
+        if (provisionResp.statusCode == 503 || provisionResp.statusCode == 500) {
+          print('[MatrixChatService] WARNING: Matrix provisioning failed (server not configured)');
+          print('[MatrixChatService] Chat will use HTTP-only mode');
+          _readyUserId = userId;
+          _initializationInProgress = null;
+          completer.complete();
+          return; // Skip Matrix initialization
+        }
+      } catch (provisionError) {
+        print('[MatrixChatService] Provision error: $provisionError');
+      }
+      
       data = await fetchAccount();
     }
+    
     if (data == null) {
-      throw Exception('Matrix account not available for user $userId');
+      print('[MatrixChatService] WARNING: Matrix account not available, using HTTP-only mode');
+      _readyUserId = userId;
+      _initializationInProgress = null;
+      completer.complete();
+      return; // Skip Matrix initialization
     }
 
-    final homeserver = (data['baseUrl'] as String?) ?? '';
+    final homeserver = (data['homeserver'] as String?) ?? (data['baseUrl'] as String?) ?? '';
     final username = data['username'] as String?;
     final password = data['password'] as String?;
     print('[MatrixChatService] Credentials: homeserver=$homeserver, username=$username');
     
     if (homeserver.isEmpty || username == null || password == null) {
-      throw Exception('Incomplete Matrix credentials for user $userId');
+      print('[MatrixChatService] WARNING: Incomplete credentials, using HTTP-only mode');
+      _readyUserId = userId;
+      _initializationInProgress = null;
+      completer.complete();
+      return; // Skip Matrix initialization
     }
 
     print('[MatrixChatService] Initializing Matrix client...');

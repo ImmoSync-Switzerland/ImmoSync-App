@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/domain/models/user.dart';
 import 'package:immosync/features/auth/domain/services/auth_service.dart';
@@ -413,8 +414,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final e2ee = ref.read(e2eeServiceProvider);
       await e2ee.ensureInitialized();
-      await e2ee.publishIdentityKey(userId);
-    } catch (_) {}
+      final result = await e2ee.publishIdentityKey(userId);
+      if (result != null) {
+        debugPrint('[AuthProvider] Identity key published successfully for user $userId');
+      } else {
+        debugPrint('[AuthProvider] Failed to publish identity key for user $userId');
+      }
+    } catch (e) {
+      debugPrint('[AuthProvider] Error publishing identity key: $e');
+    }
   }
 
   Future<void> completeSocialProfile({

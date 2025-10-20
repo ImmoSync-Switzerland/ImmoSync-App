@@ -228,12 +228,23 @@ class ChatMessagesNotifier
         debugPrint('[MessagesProvider] Polling attempt ${i + 1}/6 for new message');
         final messages = await _chatService.getMessages(_conversationId, ref: _ref);
         
-        // Check if the message we just sent is in the response
-        final foundMessage = messages.any((m) => 
-          m.content == content && 
-          m.senderId == senderId &&
-          DateTime.now().difference(m.timestamp).inSeconds < 10
-        );
+        // Check if the message we just sent is in the response.
+        // Note: encrypted messages are stored with empty/placeholder content,
+        // so match by any of: returned message id, identical plaintext (fallback),
+        // or presence of e2ee/isEncrypted from the same sender within a recent window.
+        final foundMessage = messages.any((m) {
+          // Exact ID match (best)
+          if (m.id == messageId) return true;
+          // Plaintext fallback (older behavior)
+          if (m.content == content && m.senderId == senderId) {
+            if (DateTime.now().difference(m.timestamp).inSeconds < 10) return true;
+          }
+          // Encrypted message match: same sender and marked encrypted and recent
+          if (m.isEncrypted == true && m.senderId == senderId) {
+            if (DateTime.now().difference(m.timestamp).inSeconds < 10) return true;
+          }
+          return false;
+        });
         
         if (foundMessage) {
           debugPrint('[MessagesProvider] Message found in backend on attempt ${i + 1}');
@@ -263,6 +274,9 @@ class ChatMessagesNotifier
   Future<void> _loadMessages() async {
     try {
       debugPrint('[MessagesProvider] Loading messages for conversation: $_conversationId');
+      // DEBUG: Print bearer token
+      final token = _ref.read(authProvider).sessionToken;
+      debugPrint('[MessagesProvider] DEBUG Bearer Token: $token');
       final messages = await _chatService.getMessages(_conversationId, ref: _ref);
       
       // Preserve optimistic messages if they're not in the backend yet

@@ -119,172 +119,118 @@ class ChatService {
     required String content,
     Ref? ref,
     String? otherUserId,
-    // Removed misplaced import statement
   }) async {
-    // Ensure Matrix native client is ready for this sender (init/login/sync)
-    await MatrixChatService.instance.ensureReadyForUser(senderId);
-    // Resolve Matrix roomId for this conversation (server must provide mapping)
-    String? roomId = await _fetchOrCreateMatrixRoomId(
-        conversationId: conversationId,
-        creatorUserId: senderId,
-        otherUserId: receiverId,
-        ref: ref);
-    if (roomId == null || roomId.isEmpty) {
-      // Try to ensure/create the room immediately before aborting
-      roomId = await _ensureRoom(
-        conversationId: conversationId,
-        creatorUserId: senderId,
-        otherUserId: receiverId,
-        ref: ref,
-      );
-      if (roomId == null || roomId.isEmpty) {
-        throw Exception(
-            'Matrix roomId not found for conversation $conversationId');
-      }
-    }
-    // Send via FRB and capture Matrix event id; on room-not-found, ensure room and retry once
+    // Try to ensure Matrix is ready (will gracefully skip if not configured)
     try {
-      // Debug log for tracing
-      // ignore: avoid_print
-      print('[MatrixSend] attempt -> conv=$conversationId roomId=$roomId');
-      final matrixEventId =
-          await frb.sendMessage(roomId: roomId, body: content);
-      
-      // CRITICAL: Also store in HTTP backend for persistence and search
+      await MatrixChatService.instance.ensureReadyForUser(senderId);
+    } catch (matrixError) {
+      print('[ChatService] Matrix not available: $matrixError');
+      print('[ChatService] Falling back to HTTP-only mode');
+    }
+    
+    // Encrypt message if E2EE is available
+    Map<String, dynamic>? e2eeBundle;
+    String contentToSend = content;
+    
+    if (ref != null && receiverId.isNotEmpty) {
       try {
-        print('[MatrixSend] Storing message in backend: eventId=$matrixEventId');
-        await _storeMessageInBackend(
+        final e2ee = ref.read(e2eeServiceProvider);
+        await e2ee.ensureInitialized();
+        
+        // Try to encrypt the message
+        e2eeBundle = await e2ee.encryptMessage(
           conversationId: conversationId,
-          senderId: senderId,
-          receiverId: receiverId,
-          content: content,
-          matrixRoomId: roomId,
-          matrixEventId: matrixEventId,
+          otherUserId: receiverId,
+          plaintext: content,
+        );
+        
+        if (e2eeBundle != null) {
+          print('[ChatService] Message encrypted successfully');
+          // Send empty content, actual message is in e2ee bundle
+          contentToSend = '';
+        } else {
+          print('[ChatService] Encryption not ready yet, sending plaintext');
+        }
+      } catch (encryptError) {
+        print('[ChatService] Encryption failed: $encryptError');
+        print('[ChatService] Falling back to plaintext');
+      }
+    } else {
+      print('[ChatService] Ref or receiverId not available, skipping encryption');
+    }
+    
+    // Try Matrix first, but fall back to HTTP if it fails
+    String? matrixEventId;
+    String? roomId;
+    
+    try {
+      // Resolve Matrix roomId for this conversation (server must provide mapping)
+      roomId = await _fetchOrCreateMatrixRoomId(
+          conversationId: conversationId,
+          creatorUserId: senderId,
+          otherUserId: receiverId,
+          ref: ref);
+          
+      if (roomId == null || roomId.isEmpty) {
+        // Try to ensure/create the room immediately
+        roomId = await _ensureRoom(
+          conversationId: conversationId,
+          creatorUserId: senderId,
+          otherUserId: receiverId,
           ref: ref,
         );
-        print('[MatrixSend] Message stored in backend successfully');
-      } catch (backendError) {
-        // Log but don't fail - Matrix message was sent successfully
-        print('[MatrixSend] WARNING: Failed to store in backend: $backendError');
       }
       
-      return matrixEventId;
-    } catch (e) {
-      final msg = e.toString().toLowerCase();
-      // ignore: avoid_print
-      print('[MatrixSend] caught error: $msg');
+      if (roomId != null && roomId.isNotEmpty) {
+        // Try to send via Matrix (send encrypted indicator if encrypted)
+        final matrixContent = e2eeBundle != null ? '[encrypted]' : content;
+        print('[ChatService] Attempting Matrix send to room: $roomId');
+        matrixEventId = await frb.sendMessage(roomId: roomId, body: matrixContent);
+        print('[ChatService] Matrix send successful: $matrixEventId');
+      }
+    } catch (matrixError) {
+      print('[ChatService] Matrix send failed: $matrixError');
+      print('[ChatService] Will use HTTP-only fallback');
+    }
+    
+    // ALWAYS store in HTTP backend (whether Matrix worked or not)
+    try {
+      print('[ChatService] Storing message in backend via HTTP');
+      final requestBody = {
+        'conversationId': conversationId,
+        'senderId': senderId,
+        'receiverId': receiverId,
+        'content': contentToSend,
+        'messageType': 'text',
+        if (roomId != null) 'matrixRoomId': roomId,
+        if (matrixEventId != null) 'matrixEventId': matrixEventId,
+        if (e2eeBundle != null) 'e2ee': e2eeBundle,
+      };
       
-      // NOTE: Device auto-verification is now handled in MobileMatrixClient
-      // If we still get encryption errors here, it means auto-verification failed
-      final looksNoRoom = msg.contains('room not found') ||
-          msg.contains('no such room') ||
-          msg.contains('unknown room');
-      final notInvited =
-          msg.contains('not invited') || msg.contains('m_forbidden');
-
-      // ignore: avoid_print
-      print('[MatrixSend] looksNoRoom=$looksNoRoom notInvited=$notInvited');
-
-      if (!looksNoRoom && !notInvited) {
-        // ignore: avoid_print
-        print('[MatrixSend] rethrowing error');
-        rethrow;
-      }
-
-      // If "not invited", delete the old mapping and force recreation via SDK
-      if (notInvited) {
-        // ignore: avoid_print
-        print(
-            '[MatrixSend] not invited to room, deleting old mapping and recreating...');
-        await _deleteRoomMapping(conversationId, ref);
-        // Clear the old roomId to force fetching the new one
-        roomId = null;
-      }
-
-      // Attempt to (re)create/ensure the room and retry once
-      // ignore: avoid_print
-      print('[MatrixSend] room missing, ensuring + retrying once...');
-      final newRoomId = await _ensureRoom(
-        conversationId: conversationId,
-        creatorUserId: senderId,
-        otherUserId: receiverId,
-        ref: ref,
+      print('[ChatService] Request body: ${e2eeBundle != null ? "ENCRYPTED" : "PLAINTEXT"}');
+      
+      final response = await http.post(
+        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
+        headers: _getHeaders(ref: ref),
+        body: json.encode(requestBody),
       );
-      if (newRoomId != null && newRoomId.isNotEmpty) {
-        roomId = newRoomId;
+
+      print('[ChatService] Backend store response: ${response.statusCode}');
+      
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        print('[ChatService] Backend store failed: ${response.body}');
+        throw Exception('Failed to store message in backend: ${response.statusCode}');
       }
-      // Wait longer for background sync to pick up the newly created room
-      // ignore: avoid_print
-      print('[MatrixSend] waiting for sync to fetch new room...');
-      await Future.delayed(const Duration(seconds: 3));
-      // Re-fetch mapping in case a different roomId was created
-      roomId ??= await _fetchOrCreateMatrixRoomId(
-        conversationId: conversationId,
-        creatorUserId: senderId,
-        otherUserId: receiverId,
-        ref: ref,
-      );
-      if (roomId == null || roomId.isEmpty) {
-        throw Exception('Send failed: unable to ensure Matrix room');
-      }
-      // ignore: avoid_print
-      print('[MatrixSend] retry -> conv=$conversationId roomId=$roomId');
-      try {
-        // ignore: avoid_print
-        print('[MatrixSend] calling frb.sendMessage with new roomId...');
-        final matrixEventId =
-            await frb.sendMessage(roomId: roomId, body: content);
-        // ignore: avoid_print
-        print(
-            '[MatrixSend] SUCCESS! Message sent with event ID: $matrixEventId');
-        
-        // Store in backend (retry path)
-        try {
-          await _storeMessageInBackend(
-            conversationId: conversationId,
-            senderId: senderId,
-            receiverId: receiverId,
-            content: content,
-            matrixRoomId: roomId,
-            matrixEventId: matrixEventId,
-            ref: ref,
-          );
-        } catch (backendError) {
-          print('[MatrixSend] WARNING: Failed to store in backend (retry): $backendError');
-        }
-        
-        return matrixEventId;
-      } catch (e2) {
-        final msg2 = e2.toString().toLowerCase();
-        final stillNoRoom = msg2.contains('room not found') ||
-            msg2.contains('no such room') ||
-            msg2.contains('unknown room');
-        if (!stillNoRoom) rethrow;
-        // Last attempt: wait a bit longer for sync to catch up and try once more
-        // ignore: avoid_print
-        print(
-            '[MatrixSend] still missing after ensure; waiting 2s and trying final time...');
-        await Future.delayed(const Duration(seconds: 2));
-        final finalEventId =
-            await frb.sendMessage(roomId: roomId, body: content);
-        
-        // Store in backend (final attempt path)
-        try {
-          await _storeMessageInBackend(
-            conversationId: conversationId,
-            senderId: senderId,
-            receiverId: receiverId,
-            content: content,
-            matrixRoomId: roomId,
-            matrixEventId: finalEventId,
-            ref: ref,
-          );
-        } catch (backendError) {
-          print('[MatrixSend] WARNING: Failed to store in backend (final): $backendError');
-        }
-        
-        return finalEventId;
-      }
+      
+      final responseData = json.decode(response.body);
+      final messageId = responseData['messageId'] ?? matrixEventId ?? 'unknown';
+      print('[ChatService] Message stored successfully with ID: $messageId');
+      
+      return messageId.toString();
+      
+    } catch (backendError) {
+      print('[ChatService] ERROR: Failed to store message: $backendError');
+      rethrow;
     }
   }
 
