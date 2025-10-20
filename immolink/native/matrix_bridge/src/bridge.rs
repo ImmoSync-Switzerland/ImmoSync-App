@@ -151,6 +151,9 @@ pub fn login(user: String, password: String) -> Result<LoginResult, String> {
         }
         
         eprintln!("[Bridge][login] Not logged in, performing login for {}", user);
+        eprintln!("[Bridge][login] Username: {}", user);
+        eprintln!("[Bridge][login] Password length: {} chars", password.len());
+        eprintln!("[Bridge][login] Password (first 8 chars): {}...", &password[..password.len().min(8)]);
         
         // CRITICAL: The login MUST be done with the Matrix client that has the SQLite store
         // configured, otherwise the session won't persist across restarts!

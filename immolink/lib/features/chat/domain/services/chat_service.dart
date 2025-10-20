@@ -128,36 +128,11 @@ class ChatService {
       print('[ChatService] Falling back to HTTP-only mode');
     }
     
-    // Encrypt message if E2EE is available
-    Map<String, dynamic>? e2eeBundle;
+    // DISABLED: Custom E2EE - Using Matrix native E2EE instead
+    // Matrix SDK handles encryption automatically for encrypted rooms
     String contentToSend = content;
     
-    if (ref != null && receiverId.isNotEmpty) {
-      try {
-        final e2ee = ref.read(e2eeServiceProvider);
-        await e2ee.ensureInitialized();
-        
-        // Try to encrypt the message
-        e2eeBundle = await e2ee.encryptMessage(
-          conversationId: conversationId,
-          otherUserId: receiverId,
-          plaintext: content,
-        );
-        
-        if (e2eeBundle != null) {
-          print('[ChatService] Message encrypted successfully');
-          // Send empty content, actual message is in e2ee bundle
-          contentToSend = '';
-        } else {
-          print('[ChatService] Encryption not ready yet, sending plaintext');
-        }
-      } catch (encryptError) {
-        print('[ChatService] Encryption failed: $encryptError');
-        print('[ChatService] Falling back to plaintext');
-      }
-    } else {
-      print('[ChatService] Ref or receiverId not available, skipping encryption');
-    }
+    print('[ChatService] Using Matrix native E2EE (custom E2EE disabled)');
     
     // Try Matrix first, but fall back to HTTP if it fails
     String? matrixEventId;
@@ -182,10 +157,9 @@ class ChatService {
       }
       
       if (roomId != null && roomId.isNotEmpty) {
-        // Try to send via Matrix (send encrypted indicator if encrypted)
-        final matrixContent = e2eeBundle != null ? '[encrypted]' : content;
+        // Send via Matrix with actual content (Matrix SDK handles encryption)
         print('[ChatService] Attempting Matrix send to room: $roomId');
-        matrixEventId = await frb.sendMessage(roomId: roomId, body: matrixContent);
+        matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
         print('[ChatService] Matrix send successful: $matrixEventId');
       }
     } catch (matrixError) {
@@ -204,10 +178,10 @@ class ChatService {
         'messageType': 'text',
         if (roomId != null) 'matrixRoomId': roomId,
         if (matrixEventId != null) 'matrixEventId': matrixEventId,
-        if (e2eeBundle != null) 'e2ee': e2eeBundle,
+        // No custom e2ee bundle - Matrix handles encryption
       };
       
-      print('[ChatService] Request body: ${e2eeBundle != null ? "ENCRYPTED" : "PLAINTEXT"}');
+      print('[ChatService] Request body: PLAINTEXT (Matrix handles encryption)');
       
       final response = await http.post(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),

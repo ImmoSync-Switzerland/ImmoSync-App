@@ -188,6 +188,8 @@ class MatrixChatService {
     final username = data['username'] as String?;
     final password = data['password'] as String?;
     print('[MatrixChatService] Credentials: homeserver=$homeserver, username=$username');
+    print('[MatrixChatService] Password length: ${password?.length ?? 0} chars');
+    print('[MatrixChatService] Password (first 8 chars): ${password?.substring(0, password.length > 8 ? 8 : password.length) ?? 'MISSING'}...');
     
     if (homeserver.isEmpty || username == null || password == null) {
       print('[MatrixChatService] WARNING: Incomplete credentials, using HTTP-only mode');
