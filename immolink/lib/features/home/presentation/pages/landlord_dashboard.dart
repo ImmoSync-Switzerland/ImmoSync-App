@@ -472,73 +472,68 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         .fold(0.0, (sum, p) => sum + (p.outstandingPayments));
 
     return Container(
-      padding: const EdgeInsets.all(32.0),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF059669).withValues(alpha: 0.95),
+            const Color(0xFF10B981).withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
+            color: const Color(0xFF059669).withValues(alpha: 0.3),
+            blurRadius: 20,
             offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
             spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colors.primaryAccent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: colors.textOnAccent,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  l10n.financialOverview,
-                  style: TextStyle(
-                    fontSize: _getResponsiveFontSize(context, 22),
-                    fontWeight: FontWeight.w800,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.6,
-                  ),
-                ),
-              ),
-            ],
+          // Centered Icon and Title
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.account_balance_wallet_outlined,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
-          const SizedBox(height: 28),
-          Column(
-            children: [
-              _buildFinancialCard(
-                l10n.monthlyRevenue,
-                ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
-                Icons.trending_up_outlined,
-                colors.success,
-              ),
-              const SizedBox(height: 16),
-              _buildFinancialCard(
-                l10n.outstanding,
-                ref.read(currencyProvider.notifier).formatAmount(outstanding),
-                Icons.warning_outlined,
-                colors.warning,
-              ),
-            ],
+          const SizedBox(height: 16),
+          Text(
+            l10n.financialOverview,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.6,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          // Revenue Card
+          _buildFinancialCard(
+            l10n.monthlyRevenue,
+            ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
+            Icons.trending_up_outlined,
+            colors.success,
+          ),
+          const SizedBox(height: 16),
+          // Outstanding Card
+          _buildFinancialCard(
+            l10n.outstanding,
+            ref.read(currencyProvider.notifier).formatAmount(outstanding),
+            Icons.warning_outlined,
+            colors.warning,
           ),
         ],
       ),
@@ -554,73 +549,72 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         _navigateToFinancialDetails(title, amount);
       },
       child: Container(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
-          color: colors.surfaceCards,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: colors.borderLight,
-            width: 1,
-          ),
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: colors.shadowColor,
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: title.toLowerCase().contains('outstanding')
-                        ? colors.warningLight
-                        : colors.successLight,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color: title.toLowerCase().contains('outstanding')
-                        ? colors.warning
-                        : colors.success,
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: colors.textSecondary,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              amount,
-              style: TextStyle(
-                fontSize: _getResponsiveFontSize(context, 28),
-                fontWeight: FontWeight.w800,
-                color: colors.textPrimary,
-                letterSpacing: -0.8,
+            // Icon on left
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: title.toLowerCase().contains('outstanding')
+                    ? colors.warningLight
+                    : colors.successLight,
+                borderRadius: BorderRadius.circular(12),
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: colors.textSecondary,
-                letterSpacing: 0.8,
+              child: Icon(
+                icon,
+                size: 24,
+                color: title.toLowerCase().contains('outstanding')
+                    ? colors.warning
+                    : colors.success,
               ),
+            ),
+            const SizedBox(width: 16),
+            // Amount and label
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    amount,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: colors.textPrimary,
+                      letterSpacing: -0.8,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    title.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textSecondary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: colors.textSecondary,
             ),
           ],
         ),
@@ -1301,109 +1295,79 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     final colors = ref.watch(dynamicColorsProvider);
     final filteredProperties = _filterProperties(properties);
     return Container(
-      padding: const EdgeInsets.all(20.0), // Reduced from 28.0
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colors.surfaceCards,
-            colors.accentLight.withValues(alpha: 0.2),
+            const Color(0xFF3B82F6).withValues(alpha: 0.95),
+            const Color(0xFF8B5CF6).withValues(alpha: 0.85),
           ],
         ),
-        borderRadius: BorderRadius.circular(20), // Reduced from 24
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 20, // Reduced from 24
-            offset: const Offset(0, 8), // Reduced from 12
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.surfaceCards.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Centered Header
+          Column(
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colors.primaryAccent.withValues(alpha: 0.2),
-                            colors.primaryAccent.withValues(alpha: 0.1),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colors.primaryAccent.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.home_work_outlined,
-                        color: colors.primaryAccent,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Text(
-                        _propertyFilter == 'all'
-                            ? l10n.properties
-                            : '${l10n.properties} (${_getFilterDisplayName()})',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                  ],
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.home_work_outlined,
+                  color: Colors.white,
+                  size: 32,
                 ),
               ),
+              const SizedBox(height: 16),
+              Text(
+                _propertyFilter == 'all'
+                    ? l10n.properties
+                    : '${l10n.properties} (${_getFilterDisplayName()})',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: colors.primaryAccent.withValues(alpha: 0.1),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: colors.primaryAccent.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   '${filteredProperties.length} ${l10n.total}',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: colors.primaryAccent,
+                    color: Colors.white,
                     letterSpacing: -0.1,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
           ...filteredProperties.take(3).map((property) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: _buildPropertyCard(property),
               )),
           if (filteredProperties.length > 3)
@@ -1414,19 +1378,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(
-                      color: colors.primaryAccent.withValues(alpha: 0.2)),
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      colors.primaryAccent.withValues(alpha: 0.05),
-                      colors.primaryAccent.withValues(alpha: 0.02),
-                    ],
-                  ),
+                  color: Colors.white.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1469,25 +1424,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         context.push('/property/${property.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceCards,
-              statusColor.withValues(alpha: 0.02),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: statusColor.withValues(alpha: 0.15),
-            width: 1,
-          ),
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: statusColor.withValues(alpha: 0.08),
-              blurRadius: 12,
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
           ],
@@ -1495,8 +1440,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         child: Row(
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -1516,7 +1461,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       size: 24,
                     ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1524,7 +1469,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                   Text(
                     property.address.street,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: colors.textPrimary,
                       letterSpacing: -0.2,
@@ -1537,14 +1482,14 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     children: [
                       Icon(
                         Icons.attach_money,
-                        size: 16,
+                        size: 14,
                         color: colors.success,
                       ),
                       Expanded(
                         child: Text(
                           '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/${AppLocalizations.of(context)!.monthlyInterval}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: colors.success,
                             letterSpacing: -0.1,
@@ -1558,7 +1503,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -1570,10 +1515,10 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               child: Text(
                 _getLocalizedStatus(property.status),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: statusColor,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.3,
                 ),
               ),
             ),
@@ -1584,98 +1529,81 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   }
 
   Widget _buildRecentMessages() {
-    final colors = ref.watch(dynamicColorsProvider);
     return Container(
-      padding: const EdgeInsets.all(28.0),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart,
+            const Color(0xFF059669).withValues(alpha: 0.95),
+            const Color(0xFF10B981).withValues(alpha: 0.85),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: const Color(0xFF059669).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          // Centered Header
+          Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.success.withValues(alpha: 0.2),
-                      colors.success.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colors.success.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
                   Icons.chat_bubble_outline,
-                  color: colors.success,
-                  size: 24,
+                  color: Colors.white,
+                  size: 32,
                 ),
               ),
-              const SizedBox(width: 18),
+              const SizedBox(height: 16),
               Text(
                 AppLocalizations.of(context)!.recentMessages,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.5,
-                  inherit: true,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.6,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
           const SizedBox(height: 24),
           if (_isLoadingDashboardData)
-            const Center(child: CircularProgressIndicator())
+            const Center(child: CircularProgressIndicator(color: Colors.white))
           else if (_recentMessages.isEmpty)
             Container(
               padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Text(
                 AppLocalizations.of(context)!.noRecentMessages,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
-                  color: colors.textSecondary,
-                  inherit: true,
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
             )
           else
             ..._recentMessages
                 .map((conversation) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: _buildMessageItem(
                         conversation,
                       ),
@@ -1691,26 +1619,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     return GestureDetector(
       onTap: () => _navigateToChat(conversation),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceCards,
-              colors.primaryAccent.withValues(alpha: 0.02),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: colors.primaryAccent.withValues(alpha: 0.1),
-            width: 1,
-          ),
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: colors.shadowColor,
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -1721,7 +1638,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               name: conversation.otherParticipantName,
               size: 44,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1736,7 +1653,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                             fontWeight: FontWeight.w700,
                             color: colors.textPrimary,
                             letterSpacing: -0.2,
-                            inherit: true,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1744,10 +1660,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       Text(
                         _getTimeAgo(conversation.lastMessageTime),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: colors.textTertiary,
                           fontWeight: FontWeight.w500,
-                          inherit: true,
                         ),
                       ),
                     ],
@@ -1756,12 +1671,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                   Text(
                     conversation.lastMessage,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: colors.textSecondary,
                       letterSpacing: -0.1,
-                      inherit: true,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -1852,101 +1766,84 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   }
 
   Widget _buildMaintenanceRequests() {
-    final colors = ref.watch(dynamicColorsProvider);
     return Container(
-      padding: const EdgeInsets.all(28.0),
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colors.surfaceCards,
-            colors.warningLight.withValues(alpha: 0.3),
+            const Color(0xFFEA580C).withValues(alpha: 0.95),
+            const Color(0xFFDC2626).withValues(alpha: 0.85),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.9),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          // Centered Header
+          Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.warning.withValues(alpha: 0.2),
-                      colors.warning.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colors.warning.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
                   Icons.build_circle_outlined,
-                  color: colors.warning,
-                  size: 24,
+                  color: Colors.white,
+                  size: 32,
                 ),
               ),
-              const SizedBox(width: 18),
+              const SizedBox(height: 16),
               Text(
                 AppLocalizations.of(context)!.maintenanceRequests,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.5,
-                  inherit: true,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.6,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
           const SizedBox(height: 24),
           if (_isLoadingDashboardData)
-            const Center(child: CircularProgressIndicator())
+            const Center(child: CircularProgressIndicator(color: Colors.white))
           else if (_recentMaintenanceRequests
               .where((request) => request.status != 'completed')
               .isEmpty)
             Container(
               padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Text(
                 AppLocalizations.of(context)!.noPendingMaintenanceRequests,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
-                  color: colors.textSecondary,
-                  inherit: true,
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
             )
           else
             ..._recentMaintenanceRequests
                 .where((request) => request.status != 'completed')
                 .map((request) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: _buildMaintenanceCard(
                         request,
                         context,
@@ -1969,26 +1866,15 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         context.push('/maintenance/${request.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceCards,
-              priorityColor.withValues(alpha: 0.02),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: priorityColor.withValues(alpha: 0.15),
-            width: 1,
-          ),
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: colors.shadowColor,
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -1997,23 +1883,12 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    priorityColor.withValues(alpha: 0.2),
-                    priorityColor.withValues(alpha: 0.1),
-                  ],
-                ),
+                color: priorityColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: priorityColor.withValues(alpha: 0.2),
-                  width: 1,
-                ),
               ),
-              child: Icon(icon, color: priorityColor, size: 20),
+              child: Icon(icon, color: priorityColor, size: 24),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2025,7 +1900,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       fontWeight: FontWeight.w700,
                       color: colors.textPrimary,
                       letterSpacing: -0.2,
-                      inherit: true,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -2035,7 +1909,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     children: [
                       Icon(
                         Icons.location_on_outlined,
-                        size: 14,
+                        size: 13,
                         color: colors.textTertiary,
                       ),
                       const SizedBox(width: 4),
@@ -2043,10 +1917,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                         child: Text(
                           request.location,
                           style: TextStyle(
-                            fontSize: 14,
-                            color: colors.textTertiary,
+                            fontSize: 13,
+                            color: colors.textSecondary,
                             letterSpacing: -0.1,
-                            inherit: true,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -2057,23 +1930,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: priorityColor.withValues(alpha: 0.1),
+                color: priorityColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: priorityColor.withValues(alpha: 0.2),
-                  width: 1,
-                ),
               ),
               child: Text(
-                request.priorityDisplayText.toUpperCase(),
+                request.priority.toUpperCase(),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: priorityColor,
-                  letterSpacing: 0.5,
-                  inherit: true,
+                  letterSpacing: 0.3,
                 ),
               ),
             ),

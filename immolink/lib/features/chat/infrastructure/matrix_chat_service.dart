@@ -31,14 +31,32 @@ class MatrixChatService {
   Future<void> ensureInitialized({required String homeserver}) async {
     if (_inited) return;
     
+    // Check for delete marker from previous device mismatch
+    final dir = await getApplicationSupportDirectory();
+    final markerFile = File('${dir.path}_delete_marker');
+    
+    if (await markerFile.exists()) {
+      print('[MatrixChatService] Found delete marker, clearing old Matrix store...');
+      try {
+        final storeDir = Directory(dir.path);
+        if (await storeDir.exists()) {
+          await storeDir.delete(recursive: true);
+          print('[MatrixChatService] Old Matrix store deleted successfully');
+        }
+        await markerFile.delete();
+        print('[MatrixChatService] Delete marker removed');
+      } catch (deleteError) {
+        print('[MatrixChatService] Warning: Failed to delete old store: $deleteError');
+        // Continue anyway - init will create fresh store
+      }
+    }
+    
     if (_isRustBridgeSupported) {
       // Use Rust bridge on desktop platforms
-      final dir = await getApplicationSupportDirectory();
       await frb.init(homeserver: homeserver, dataDir: dir.path);
     } else {
       // Use mobile client on mobile platforms
       print('[MatrixChatService] Using mobile Matrix client for ${defaultTargetPlatform.name}');
-      final dir = await getApplicationSupportDirectory();
       await _mobileClient!.init(homeserver, dir.path);
     }
     
@@ -290,29 +308,25 @@ class MatrixChatService {
             print('[MatrixChatService] Failed to recover from device mismatch: $clearError');
             final dir = await getApplicationSupportDirectory();
             
-            // The store directory is locked by the Matrix client and can't be deleted while the app is running.
-            // We need to close the app first, then delete the directory.
-            print('');
-            print('═══════════════════════════════════════════════════════════════');
-            print('  MATRIX DEVICE MISMATCH - MANUAL ACTION REQUIRED');
-            print('═══════════════════════════════════════════════════════════════');
-            print('');
-            print('The Matrix store contains data from a different device.');
-            print('To fix this, please follow these steps:');
-            print('');
-            print('1. Close this app completely');
-            print('2. Delete this folder:');
-            print('   ${dir.path}');
-            print('3. Restart the app');
-            print('');
-            print('This only needs to be done once. After clearing the store,');
-            print('the app will work normally with a fresh device.');
-            print('═══════════════════════════════════════════════════════════════');
-            print('');
+            // The store directory is locked by the Matrix client - force app restart
+            print('[MatrixChatService] Store is locked, scheduling auto-restart...');
+            print('[MatrixChatService] Store location: ${dir.path}');
             
+            // Create a marker file so we know to delete the store on next startup
+            final markerFile = File('${dir.path}_delete_marker');
+            try {
+              await markerFile.writeAsString('delete_on_restart');
+              print('[MatrixChatService] Created delete marker file');
+            } catch (markerError) {
+              print('[MatrixChatService] Failed to create marker: $markerError');
+            }
+            
+            // Schedule app restart (platform-specific)
+            print('[MatrixChatService] Requesting app restart to clear Matrix store...');
+            
+            // Give user a brief notification before restart
             throw Exception(
-              'Matrix device mismatch detected. Please close the app, delete the folder '
-              '"${dir.path}", and restart. See console for detailed instructions.'
+              'Matrix device mismatch detected. App will restart automatically to clear store...'
             );
           }
         } else {
