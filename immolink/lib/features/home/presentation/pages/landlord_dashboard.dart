@@ -625,320 +625,119 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   Widget _buildQuickAccess() {
     final colors = ref.watch(dynamicColorsProvider);
     return Container(
-      padding: const EdgeInsets.all(24.0), // Reduced from 32.0
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(14), // Reduced from 16
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFEA580C).withValues(alpha: 0.95),
+            const Color(0xFFDC2626).withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20, // Reduced from 24
-            offset: const Offset(0, 6), // Reduced from 8
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Centered Icon and Title
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.flash_on_outlined,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context)!.quickActions,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.6,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          // Action buttons in grid
+          _buildSubscriptionAwareButton(
+            AppLocalizations.of(context)!.addProperty,
+            Icons.add_home_outlined,
+            colors.primaryAccent,
+            () {
+              HapticFeedback.mediumImpact();
+              context.push('/add-property');
+            },
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colors.primaryAccent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.flash_on_outlined,
-                  color: colors.textOnAccent,
-                  size: 24,
+              Expanded(
+                child: _buildQuickAccessButton(
+                  AppLocalizations.of(context)!.messages,
+                  Icons.chat_bubble_outline,
+                  colors.success,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/conversations');
+                  },
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  AppLocalizations.of(context)!.quickActions,
-                  style: TextStyle(
-                    fontSize: _getResponsiveFontSize(context, 22),
-                    fontWeight: FontWeight.w800,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.6,
-                  ),
+                child: _buildQuickAccessButton(
+                  AppLocalizations.of(context)!.reports,
+                  Icons.analytics_outlined,
+                  colors.warning,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/reports');
+                  },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          // Use a more compact grid layout for mobile
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < 400) {
-                // Mobile layout - 2 columns
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSubscriptionAwareButton(
-                            AppLocalizations.of(context)!.addProperty,
-                            Icons.add_home_outlined,
-                            colors.primaryAccent,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/add-property');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.messages,
-                            Icons.chat_bubble_outline,
-                            colors.success,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/conversations');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.reports,
-                            Icons.analytics_outlined,
-                            colors.warning,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/reports');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.maintenance,
-                            Icons.build_circle_outlined,
-                            colors.error,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/maintenance/manage');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.tenants,
-                            Icons.people_outline,
-                            colors.luxuryGold,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/tenants');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.services,
-                            Icons.room_service_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/landlord/services');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.documents,
-                            Icons.folder_outlined,
-                            colors.success,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/landlord/documents');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.subscription,
-                            Icons.payment_outlined,
-                            colors.luxuryGold,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/subscription/landlord');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.supportRequests,
-                            Icons.support_agent_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/support-requests');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              } else {
-                // Tablet/desktop layout - 3 columns
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSubscriptionAwareButton(
-                            AppLocalizations.of(context)!.addProperty,
-                            Icons.add_home_outlined,
-                            colors.primaryAccent,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/add-property');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.messages,
-                            Icons.chat_bubble_outline,
-                            colors.success,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/conversations');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.reports,
-                            Icons.analytics_outlined,
-                            colors.warning,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/reports');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.maintenance,
-                            Icons.build_circle_outlined,
-                            colors.error,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/maintenance/manage');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.tenants,
-                            Icons.people_outline,
-                            colors.luxuryGold,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/tenants');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.services,
-                            Icons.room_service_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/landlord/services');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.documents,
-                            Icons.folder_outlined,
-                            colors.success,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/landlord/documents');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.subscription,
-                            Icons.payment_outlined,
-                            colors.luxuryGold,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/subscription/landlord');
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickAccessButton(
-                            AppLocalizations.of(context)!.supportRequests,
-                            Icons.support_agent_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/support-requests');
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              }
-            },
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickAccessButton(
+                  AppLocalizations.of(context)!.maintenance,
+                  Icons.build_circle_outlined,
+                  colors.error,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/maintenance/manage');
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickAccessButton(
+                  AppLocalizations.of(context)!.tenants,
+                  Icons.people_outline,
+                  colors.luxuryGold,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/tenants');
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -951,76 +750,46 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        height: 120, // Fixed height for consistency
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              iconColor.withValues(alpha: 0.15),
-              iconColor.withValues(alpha: 0.08),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: iconColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: colors.shadowColor,
-              blurRadius: 6,
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
               offset: const Offset(0, 2),
-              spreadRadius: 0,
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colors.surfaceCards.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: colors.surfaceCards.withValues(alpha: 0.6),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.surfaceCards.withValues(alpha: 0.8),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ],
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                size: 20,
+                size: 24,
                 color: iconColor,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: colors.textPrimary,
-                letterSpacing: -0.2,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                  letterSpacing: -0.2,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -1043,73 +812,34 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               ? onPressed
               : () => _showSubscriptionRequiredDialog(),
           child: Container(
-            height: 120, // Fixed height for consistency
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: hasActiveSubscription
-                    ? [
-                        iconColor.withValues(alpha: 0.15),
-                        iconColor.withValues(alpha: 0.08),
-                      ]
-                    : [
-                        colors.textTertiary.withValues(alpha: 0.15),
-                        colors.textTertiary.withValues(alpha: 0.08),
-                      ],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: hasActiveSubscription
-                    ? iconColor.withValues(alpha: 0.2)
-                    : colors.textTertiary.withValues(alpha: 0.2),
-                width: 1,
-              ),
+              color: Colors.white.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: hasActiveSubscription
-                      ? iconColor.withValues(alpha: 0.15)
-                      : colors.textTertiary.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: colors.shadowColor,
-                  blurRadius: 6,
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
-                  spreadRadius: 0,
                 ),
               ],
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colors.surfaceCards.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: colors.surfaceCards.withValues(alpha: 0.6),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.surfaceCards.withValues(alpha: 0.8),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                        spreadRadius: 0,
-                      ),
-                    ],
+                    color: hasActiveSubscription 
+                        ? iconColor.withValues(alpha: 0.1)
+                        : colors.textTertiary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       Icon(
                         icon,
-                        size: 20,
+                        size: 24,
                         color: hasActiveSubscription
                             ? iconColor
                             : colors.textTertiary,
@@ -1127,47 +857,56 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     ],
                   ),
                 ),
-                const SizedBox(height: 8), // Reduced spacing to fit
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: hasActiveSubscription
-                        ? colors.textPrimary
-                        : colors.textTertiary,
-                    letterSpacing: -0.2,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: hasActiveSubscription
+                              ? colors.textPrimary
+                              : colors.textTertiary,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (!hasActiveSubscription) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          AppLocalizations.of(context)!.subscriptionRequired,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: colors.warning,
+                            letterSpacing: -0.1,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1, // Reduced to 1 line to fit
-                  overflow: TextOverflow.ellipsis,
                 ),
-                if (!hasActiveSubscription)
-                  Text(
-                    AppLocalizations.of(context)!.subscriptionRequired,
-                    style: TextStyle(
-                      fontSize: 9, // Smaller font size
-                      fontWeight: FontWeight.w500,
-                      color: colors.warning,
-                      letterSpacing: -0.1,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
               ],
             ),
           ),
         );
       },
-      loading: () => SizedBox(
-        height: 120,
-        child: _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+      loading: () => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, __) => SizedBox(
-        height: 120,
-        child: _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
-      ),
+      error: (_, __) => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
     );
   }
 

@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../providers/conversations_provider.dart';
 import '../../domain/models/conversation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/navigation_provider.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/user_avatar.dart';
 import '../../../../core/config/db_config.dart';
@@ -43,23 +43,24 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
     final conversationsAsync = ref.watch(conversationsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           l10n.messages,
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -70,7 +71,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.contacts_outlined, color: AppColors.primaryAccent),
+            icon: Icon(Icons.contacts_outlined, color: colors.primaryAccent),
             onPressed: () {
               HapticFeedback.lightImpact();
               context.push('/address-book');
@@ -112,22 +113,25 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: AppColors.error),
-                    const SizedBox(height: 16),
-                    Text(
-                        '${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(conversationsProvider),
-                      child: Text(AppLocalizations.of(context)!.retry),
-                    ),
-                  ],
-                ),
-              ),
+              error: (error, _) {
+                final colors = ref.watch(dynamicColorsProvider);
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 48, color: colors.error),
+                      const SizedBox(height: 16),
+                      Text(
+                          '${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref.invalidate(conversationsProvider),
+                        child: Text(AppLocalizations.of(context)!.retry),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -136,25 +140,20 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   }
 
   Widget _buildSearchBar() {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Container(
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart,
-          ],
-        ),
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.borderLight,
+          color: colors.borderLight,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
+            color: colors.shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -168,14 +167,14 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           });
         },
         style: TextStyle(
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: 'Search conversations...',
           hintStyle: TextStyle(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 15,
             fontWeight: FontWeight.w400,
           ),
@@ -183,7 +182,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             padding: const EdgeInsets.all(12),
             child: Icon(
               Icons.search_outlined,
-              color: AppColors.primaryAccent,
+              color: colors.primaryAccent,
               size: 20,
             ),
           ),
@@ -191,7 +190,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     size: 20,
                   ),
                   onPressed: () {
@@ -242,6 +241,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   }
 
   Widget _buildEmptyState() {
+    final colors = ref.watch(dynamicColorsProvider);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -253,8 +254,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryAccent.withValues(alpha: 0.1),
-                  AppColors.primaryAccent.withValues(alpha: 0.05),
+                  colors.primaryAccent.withValues(alpha: 0.1),
+                  colors.primaryAccent.withValues(alpha: 0.05),
                 ],
               ),
               shape: BoxShape.circle,
@@ -262,7 +263,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             child: Icon(
               Icons.chat_bubble_outline,
               size: 48,
-              color: AppColors.primaryAccent,
+              color: colors.primaryAccent,
             ),
           ),
           const SizedBox(height: 24),
@@ -273,7 +274,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -283,7 +284,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 : 'Start a conversation with your properties',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -313,33 +314,30 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
+            const Color(0xFF3B82F6).withValues(alpha: 0.95),
+            const Color(0xFF8B5CF6).withValues(alpha: 0.85),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isBlocked ? AppColors.warning : AppColors.borderLight,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: ListTile(
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         leading: UserAvatar(
           imageRef: conversation.getOtherParticipantAvatarRef() ??
               (otherUserId.isNotEmpty
                   ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image'
                   : null),
           name: otherUserName,
-          size: 50,
+          size: 52,
           fallbackToCurrentUser: false,
         ),
         title: Row(
@@ -347,10 +345,11 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             Expanded(
               child: Text(
                 otherUserName,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -358,18 +357,18 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             if (isBlocked) ...[
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.warning, width: 0.5),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   AppLocalizations.of(context)!.blockedLabel,
-                  style: TextStyle(
-                    color: AppColors.warning,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
@@ -383,12 +382,13 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               Text(
                 'Property: ${conversation.propertyAddress}',
                 style: TextStyle(
-                  color: AppColors.textTertiary,
+                  color: Colors.white.withValues(alpha: 0.85),
                   fontSize: 12,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.1,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
             ],
             const SizedBox(height: 4),
             Text(
@@ -412,28 +412,37 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 return lm;
               })(),
               style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                letterSpacing: -0.1,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               conversation.lastMessageTime.toString(),
               style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textTertiary,
-                fontWeight: FontWeight.w400,
+                fontSize: 11,
+                color: Colors.white.withValues(alpha: 0.65),
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.2,
               ),
             ),
           ],
         ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          color: AppColors.primaryAccent,
-          size: 16,
+        trailing: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.arrow_forward_ios,
+            color: Colors.white,
+            size: 16,
+          ),
         ),
         onTap: () {
           HapticFeedback.lightImpact();

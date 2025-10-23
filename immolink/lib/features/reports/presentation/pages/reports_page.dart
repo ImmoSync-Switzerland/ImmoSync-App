@@ -937,18 +937,29 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildFinancialOverview(AsyncValue properties, AsyncValue payments,
       WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
-    final accent = colors.success;
     return _HoverScale(
         onTap: () =>
             _showFinancialDetailDialog(l10n, properties, payments, colors),
         child: Container(
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient:
-                ReportGradients.glassAccent(accent, isDark: colors.isDark),
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+            borderRadius: BorderRadius.circular(32),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF059669).withValues(alpha: 0.95),
+                const Color(0xFF10B981).withValues(alpha: 0.85),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF059669).withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -958,22 +969,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.25),
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(Icons.account_balance_wallet_outlined,
-                        color: Colors.white, size: 22),
+                        color: Colors.white, size: 32),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Text(
                     l10n.financialOverview,
-                    style: TextStyle(
-                      fontSize: _getResponsiveFontSize(context, 20),
-                      fontWeight: FontWeight.w800,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
                       color: Colors.white,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.6,
                     ),
                   ),
                 ],
@@ -993,44 +1004,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       final pendingPayments = paymentsList
                           .where((p) => p.status == 'pending')
                           .fold(0.0, (sum, p) => sum + p.amount);
-                      return LayoutBuilder(builder: (context, c) {
-                        final maxW = c.maxWidth;
-                        // Each metric limited to 75% width of container (max 420) and centered horizontally
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _metricSizedBox(
-                              child: _buildFinancialMetric(
-                                  l10n.monthlyRevenue,
-                                  _formatCurrency(totalRevenue),
-                                  Icons.trending_up,
-                                  Colors.white,
-                                  colors),
-                              parentWidth: maxW,
-                            ),
-                            const SizedBox(height: 22),
-                            _metricSizedBox(
-                              child: _buildFinancialMetric(
-                                  l10n.collected,
-                                  _formatCurrency(completedPayments),
-                                  Icons.check_circle_outline,
-                                  Colors.white,
-                                  colors),
-                              parentWidth: maxW,
-                            ),
-                            const SizedBox(height: 22),
-                            _metricSizedBox(
-                              child: _buildFinancialMetric(
-                                  l10n.outstanding,
-                                  _formatCurrency(pendingPayments),
-                                  Icons.hourglass_empty,
-                                  Colors.white,
-                                  colors),
-                              parentWidth: maxW,
-                            ),
-                          ],
-                        );
-                      });
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildFinancialMetric(
+                              l10n.monthlyRevenue,
+                              _formatCurrency(totalRevenue),
+                              Icons.trending_up,
+                              colors.success,
+                              colors),
+                          const SizedBox(height: 22),
+                          _buildFinancialMetric(
+                              l10n.collected,
+                              _formatCurrency(completedPayments),
+                              Icons.check_circle_outline,
+                              colors.success,
+                              colors),
+                          const SizedBox(height: 22),
+                          _buildFinancialMetric(
+                              l10n.outstanding,
+                              _formatCurrency(pendingPayments),
+                              Icons.hourglass_empty,
+                              colors.warning,
+                              colors),
+                        ],
+                      );
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
@@ -1069,55 +1067,55 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildFinancialMetric(String title, String value, IconData icon,
       Color color, DynamicAppColors colors) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeOutCubic,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.15),
-            Colors.white.withValues(alpha: 0.05),
-          ],
-        ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.20),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, size: 22, color: Colors.white),
+            child: Icon(icon, size: 28, color: color),
           ),
-          const SizedBox(height: 12),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: _getResponsiveFontSize(context, 18),
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 14),
           Text(
             title.toUpperCase(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: _getResponsiveFontSize(context, 10),
+              fontSize: 10,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.7,
-              color: Colors.white.withValues(alpha: 0.85),
+              letterSpacing: 0.5,
+              color: colors.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                color: colors.textPrimary,
+              ),
             ),
           ),
         ],
@@ -1136,17 +1134,28 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildPropertyMetrics(
       AsyncValue properties, AppLocalizations l10n, DynamicAppColors colors) {
-    final accent = colors.info;
     return _HoverScale(
         onTap: () => _showPropertyDetailDialog(l10n, properties, colors),
         child: Container(
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient:
-                ReportGradients.glassAccent(accent, isDark: colors.isDark),
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+            borderRadius: BorderRadius.circular(32),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF3B82F6).withValues(alpha: 0.95),
+                const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1155,22 +1164,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.25),
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(Icons.home_work_outlined,
-                        color: Colors.white, size: 22),
+                        color: Colors.white, size: 32),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Text(
                     l10n.propertyOverview,
-                    style: TextStyle(
-                      fontSize: _getResponsiveFontSize(context, 20),
-                      fontWeight: FontWeight.w800,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
                       color: Colors.white,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.6,
                     ),
                   ),
                 ],
@@ -1183,40 +1192,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       propertyList.where((p) => p.status == 'rented').length;
                   final availableProperties =
                       propertyList.where((p) => p.status == 'available').length;
-                  return LayoutBuilder(builder: (context, c) {
-                    final maxW = c.maxWidth;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _metricSizedBox(
-                            child: _buildFinancialMetric(
-                                l10n.totalProperties,
-                                totalProperties.toString(),
-                                Icons.home_outlined,
-                                Colors.white,
-                                colors),
-                            parentWidth: maxW),
-                        const SizedBox(height: 22),
-                        _metricSizedBox(
-                            child: _buildFinancialMetric(
-                                l10n.occupied,
-                                rentedProperties.toString(),
-                                Icons.check_circle_outline,
-                                Colors.white,
-                                colors),
-                            parentWidth: maxW),
-                        const SizedBox(height: 22),
-                        _metricSizedBox(
-                            child: _buildFinancialMetric(
-                                l10n.available,
-                                availableProperties.toString(),
-                                Icons.radio_button_unchecked,
-                                Colors.white,
-                                colors),
-                            parentWidth: maxW),
-                      ],
-                    );
-                  });
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildFinancialMetric(
+                          l10n.totalProperties,
+                          totalProperties.toString(),
+                          Icons.home_outlined,
+                          colors.primaryAccent,
+                          colors),
+                      const SizedBox(height: 22),
+                      _buildFinancialMetric(
+                          l10n.occupied,
+                          rentedProperties.toString(),
+                          Icons.check_circle_outline,
+                          colors.success,
+                          colors),
+                      const SizedBox(height: 22),
+                      _buildFinancialMetric(
+                          l10n.available,
+                          availableProperties.toString(),
+                          Icons.radio_button_unchecked,
+                          colors.info,
+                          colors),
+                    ],
+                  );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, __) => Text(l10n.errorLoadingProperties,
@@ -1229,22 +1229,26 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildMaintenanceOverview(AsyncValue maintenanceRequests,
       AppLocalizations l10n, DynamicAppColors colors) {
-    final accent = colors.warning;
     return Container(
       padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(32),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            accent.withValues(alpha: 0.9),
-            accent.withValues(alpha: 0.6),
-            accent.withValues(alpha: 0.3)
+            const Color(0xFFEA580C).withValues(alpha: 0.95),
+            const Color(0xFFDC2626).withValues(alpha: 0.85),
           ],
         ),
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1253,22 +1257,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(Icons.build_circle_outlined,
-                    color: Colors.white, size: 22),
+                    color: Colors.white, size: 32),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Text(
                 l10n.maintenanceOverview,
-                style: TextStyle(
-                  fontSize: _getResponsiveFontSize(context, 20),
-                  fontWeight: FontWeight.w800,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
                   color: Colors.white,
-                  letterSpacing: -0.5,
+                  letterSpacing: -0.6,
                 ),
               ),
             ],
@@ -1281,40 +1285,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   requestList.where((r) => r.status == 'pending').length;
               final completedRequests =
                   requestList.where((r) => r.status == 'completed').length;
-              return LayoutBuilder(builder: (context, c) {
-                final maxW = c.maxWidth;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _metricSizedBox(
-                        child: _buildFinancialMetric(
-                            l10n.totalRequests,
-                            totalRequests.toString(),
-                            Icons.list_alt_outlined,
-                            Colors.white,
-                            colors),
-                        parentWidth: maxW),
-                    const SizedBox(height: 22),
-                    _metricSizedBox(
-                        child: _buildFinancialMetric(
-                            l10n.pending,
-                            pendingRequests.toString(),
-                            Icons.hourglass_empty,
-                            Colors.white,
-                            colors),
-                        parentWidth: maxW),
-                    const SizedBox(height: 22),
-                    _metricSizedBox(
-                        child: _buildFinancialMetric(
-                            l10n.completed,
-                            completedRequests.toString(),
-                            Icons.check_circle_outline,
-                            Colors.white,
-                            colors),
-                        parentWidth: maxW),
-                  ],
-                );
-              });
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildFinancialMetric(
+                      l10n.totalRequests,
+                      totalRequests.toString(),
+                      Icons.list_alt_outlined,
+                      colors.error,
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.pending,
+                      pendingRequests.toString(),
+                      Icons.hourglass_empty,
+                      colors.warning,
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.completed,
+                      completedRequests.toString(),
+                      Icons.check_circle_outline,
+                      colors.success,
+                      colors),
+                ],
+              );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, __) => Text(l10n.errorLoadingMaintenanceData,
@@ -1354,8 +1349,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           return DateFormat('MMM').format(months[index]);
         }
 
-        final accent = const Color(0xFF8B5CF6);
-        final isDark = Theme.of(context).brightness == Brightness.dark;
         return _HoverScale(
           onTap: () {
             _safeHaptic();
@@ -1364,10 +1357,23 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           child: Container(
             padding: const EdgeInsets.all(28.0),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: ReportGradients.glassAccent(accent, isDark: isDark),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15), width: 1.2),
+              borderRadius: BorderRadius.circular(32),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF8B5CF6).withValues(alpha: 0.95),
+                  const Color(0xFF3B82F6).withValues(alpha: 0.85),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1375,22 +1381,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.25),
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Icon(Icons.trending_up,
-                          color: Colors.white, size: 22),
+                          color: Colors.white, size: 32),
                     ),
                     const SizedBox(width: 20),
                     Text(
                       l10n.revenueAnalytics,
-                      style: TextStyle(
-                        fontSize: _getResponsiveFontSize(context, 20),
-                        fontWeight: FontWeight.w800,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
                         color: Colors.white,
-                        letterSpacing: -0.5,
+                        letterSpacing: -0.6,
                       ),
                     ),
                   ],

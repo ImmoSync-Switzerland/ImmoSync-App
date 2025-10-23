@@ -686,96 +686,88 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
         context.push('/property/${property.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(24.0),
         decoration: BoxDecoration(
-          color: colors.surfaceCards,
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF3B82F6).withValues(alpha: 0.95),
+              const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: colors.shadowColor,
-              blurRadius: 24,
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+              blurRadius: 20,
               offset: const Offset(0, 8),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: colors.shadowColor.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
               spreadRadius: 0,
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colors.primaryAccent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.home_outlined,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Builder(builder: (context) {
-                    final l10n = AppLocalizations.of(context)!;
-                    return Text(
-                      l10n.yourProperty,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: colors.textPrimary,
-                        letterSpacing: -0.6,
-                        inherit: true,
-                      ),
-                    );
-                  }),
-                ),
-                Builder(builder: (context) {
-                  final l10n = AppLocalizations.of(context)!;
-                  return Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: colors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      l10n.statusActiveUpper,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors.success,
-                        letterSpacing: 0.5,
-                        inherit: true,
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-            const SizedBox(height: 28),
+            // Centered Icon and Title
             Container(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors.borderLight,
-                  width: 1,
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.home_outlined,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Builder(builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return Text(
+                l10n.yourProperty,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.6,
                 ),
+                textAlign: TextAlign.center,
+              );
+            }),
+            const SizedBox(height: 8),
+            Builder(builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.statusActiveUpper,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 24),
+            // Property Details Card
+            Container(
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: colors.shadowColor,
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                     spreadRadius: 0,
                   ),
                 ],
@@ -788,8 +780,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: colors.surfaceCards,
-                          borderRadius: BorderRadius.circular(8),
+                          color: colors.primaryAccent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.location_on_outlined,
@@ -965,279 +957,146 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
 
   Widget _buildQuickActions(DynamicAppColors colors) {
     return Container(
-      padding: const EdgeInsets.all(24.0), // Reduced from 32.0
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(14), // Reduced from 16
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFEA580C).withValues(alpha: 0.95),
+            const Color(0xFFDC2626).withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20, // Reduced from 24
-            offset: const Offset(0, 6), // Reduced from 8
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Centered Icon and Title
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.flash_on_outlined,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context)!.quickActions,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.6,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          // Action buttons in white cards
+          _buildActionCard(
+            AppLocalizations.of(context)!.maintenance,
+            Icons.build_circle_outlined,
+            colors.error,
+            () {
+              HapticFeedback.mediumImpact();
+              context.push('/tenant/maintenance');
+            },
+            colors,
+          ),
+          const SizedBox(height: 12),
+          _buildActionCard(
+            AppLocalizations.of(context)!.messages,
+            Icons.chat_bubble_outline,
+            colors.success,
+            () {
+              HapticFeedback.mediumImpact();
+              context.push('/conversations');
+            },
+            colors,
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colors.primaryAccent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.flash_on_outlined,
-                  color: Colors.white,
-                  size: 24,
+              Expanded(
+                child: _buildActionCard(
+                  AppLocalizations.of(context)!.autoPayment,
+                  Icons.payment_outlined,
+                  colors.primaryAccent,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/payments/auto-setup');
+                  },
+                  colors,
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  AppLocalizations.of(context)!.quickActions,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.6,
-                    inherit: true,
-                  ),
+                child: _buildActionCard(
+                  AppLocalizations.of(context)!.services,
+                  Icons.room_service_outlined,
+                  colors.info,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/tenant/services');
+                  },
+                  colors,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          // Use a more compact grid layout for mobile
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < 400) {
-                // Mobile layout - 2 columns
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.maintenance,
-                            Icons.build_circle_outlined,
-                            colors.error,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/tenant/maintenance');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.messages,
-                            Icons.chat_bubble_outline,
-                            colors.success,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/conversations');
-                            },
-                            colors,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.autoPayment,
-                            Icons.payment_outlined,
-                            colors.primaryAccent,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/payments/auto-setup');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.services,
-                            Icons.room_service_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/tenant/services');
-                            },
-                            colors,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.paymentHistory,
-                            Icons.history_outlined,
-                            colors.warning,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/payments/history');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.settings,
-                            Icons.settings_outlined,
-                            colors.luxuryGold,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/settings');
-                            },
-                            colors,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.supportRequests,
-                            Icons.support_agent_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/support-requests');
-                            },
-                            colors,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              } else {
-                // Tablet/desktop layout - 3 columns
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.maintenance,
-                            Icons.build_circle_outlined,
-                            colors.error,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/tenant/maintenance');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.messages,
-                            Icons.chat_bubble_outline,
-                            colors.success,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/conversations');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.autoPayment,
-                            Icons.payment_outlined,
-                            colors.primaryAccent,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/payments/auto-setup');
-                            },
-                            colors,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.services,
-                            Icons.room_service_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/tenant/services');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.paymentHistory,
-                            Icons.history_outlined,
-                            colors.warning,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/payments/history');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.settings,
-                            Icons.settings_outlined,
-                            colors.luxuryGold,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/settings');
-                            },
-                            colors,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildActionCard(
-                            AppLocalizations.of(context)!.supportRequests,
-                            Icons.support_agent_outlined,
-                            colors.info,
-                            () {
-                              HapticFeedback.mediumImpact();
-                              context.push('/support-requests');
-                            },
-                            colors,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              }
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  AppLocalizations.of(context)!.paymentHistory,
+                  Icons.history_outlined,
+                  colors.warning,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/payments/history');
+                  },
+                  colors,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionCard(
+                  AppLocalizations.of(context)!.settings,
+                  Icons.settings_outlined,
+                  colors.luxuryGold,
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/settings');
+                  },
+                  colors,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildActionCard(
+            AppLocalizations.of(context)!.supportRequests,
+            Icons.support_agent_outlined,
+            colors.info,
+            () {
+              HapticFeedback.mediumImpact();
+              context.push('/support-requests');
             },
+            colors,
           ),
         ],
       ),
@@ -1249,75 +1108,46 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14), // Reduced from 20
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              iconColor.withValues(alpha: 0.08),
-              iconColor.withValues(alpha: 0.04),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(14), // Reduced from 16
-          border: Border.all(
-            color: iconColor.withValues(alpha: 0.15),
-            width: 1,
-          ),
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withValues(alpha: 0.15),
-              blurRadius: 12, // Reduced from 16
-              offset: const Offset(0, 4), // Reduced from 6
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: colors.shadowColor.withValues(alpha: 0.04),
-              blurRadius: 6, // Reduced from 8
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
               offset: const Offset(0, 2),
-              spreadRadius: 0,
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12), // Reduced from 16
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colors.surfaceCards,
-                borderRadius: BorderRadius.circular(10), // Reduced from 12
-                border: Border.all(
-                  color: colors.borderLight.withValues(alpha: 0.5),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.shadowColor.withValues(alpha: 0.1),
-                    blurRadius: 6, // Reduced from 8
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ],
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                size: 20, // Reduced from 24
+                size: 24,
                 color: iconColor,
               ),
             ),
-            const SizedBox(height: 12), // Reduced from 16
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13, // Reduced from 14
-                fontWeight: FontWeight.w700,
-                color: colors.textPrimary,
-                letterSpacing: -0.2,
-                inherit: true,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                  letterSpacing: -0.2,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

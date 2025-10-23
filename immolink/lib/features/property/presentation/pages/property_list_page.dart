@@ -324,11 +324,28 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   Widget _buildPropertyCard(Property property, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
-    final statusColor = property.status == 'rented'
-        ? colors.success
+    
+    // Gradient colors based on status
+    final gradientColors = property.status == 'rented'
+        ? [
+            const Color(0xFF059669).withValues(alpha: 0.95),
+            const Color(0xFF10B981).withValues(alpha: 0.85),
+          ]
         : property.status == 'available'
-            ? colors.primaryAccent
-            : colors.warning;
+            ? [
+                const Color(0xFF3B82F6).withValues(alpha: 0.95),
+                const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+              ]
+            : [
+                const Color(0xFFF59E0B).withValues(alpha: 0.95),
+                const Color(0xFFEA580C).withValues(alpha: 0.85),
+              ];
+    
+    final shadowColor = property.status == 'rented'
+        ? const Color(0xFF059669)
+        : property.status == 'available'
+            ? const Color(0xFF3B82F6)
+            : const Color(0xFFF59E0B);
 
     return GestureDetector(
       onTap: () {
@@ -336,32 +353,19 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         context.push('/property/${property.id}');
       },
       child: Container(
-        padding: const EdgeInsets.all(14.0), // Reduced from 16.0
+        padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceCards,
-              statusColor.withValues(alpha: 0.02),
-            ],
+            colors: gradientColors,
           ),
-          borderRadius: BorderRadius.circular(16), // Reduced from 20
-          border: Border.all(
-            color: statusColor.withValues(alpha: 0.15),
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06), // Reduced opacity
-              blurRadius: 20, // Reduced from 24
-              offset: const Offset(0, 6), // Reduced from 8
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03), // Reduced opacity
-              blurRadius: 4, // Reduced from 6
-              offset: const Offset(0, 2),
+              color: shadowColor.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
               spreadRadius: 0,
             ),
           ],
@@ -373,62 +377,54 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             Row(
               children: [
                 Container(
-                  width: 70, // Reduced from 80
-                  height: 70, // Reduced from 80
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14), // Reduced from 16
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                    color: property.imageUrls.isEmpty
-                        ? statusColor.withValues(alpha: 0.1)
-                        : null,
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white.withValues(alpha: 0.2),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: property.imageUrls.isNotEmpty
                       ? _buildPropertyImage(property.imageUrls.first)
                       : Icon(
                           Icons.home_outlined,
-                          color: statusColor,
-                          size: 28, // Reduced from 32
+                          color: Colors.white,
+                          size: 32,
                         ),
                 ),
-                const SizedBox(width: 16), // Reduced from 20
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         property.address.street,
-                        style: TextStyle(
-                          fontSize: 15, // Reduced from 16
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                          letterSpacing: -0.3,
-                          inherit: true,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.4,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4), // Reduced from 6
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Icon(
                             Icons.location_on_outlined,
-                            size: 14, // Reduced from 16
-                            color: colors.textSecondary,
+                            size: 14,
+                            color: Colors.white.withValues(alpha: 0.85),
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               '${property.address.city}, ${property.address.postalCode}',
                               style: TextStyle(
-                                fontSize: 12, // Reduced from 13
-                                color: colors.textSecondary,
+                                fontSize: 13,
+                                color: Colors.white.withValues(alpha: 0.85),
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: -0.1,
-                                inherit: true,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -439,42 +435,33 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12), // Reduced from 16
+                const SizedBox(width: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5), // Reduced padding
+                      horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6), // Reduced from 8
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     _getLocalizedStatus(property.status, l10n),
-                    style: TextStyle(
-                      fontSize: 10, // Reduced from 11
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                       letterSpacing: 0.5,
-                      inherit: true,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 18), // Reduced from 24
+            const SizedBox(height: 18),
             // Property details in modern card layout
             Container(
-              padding: const EdgeInsets.all(16), // Reduced from 20
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colors.surfaceCards,
-                borderRadius: BorderRadius.circular(14), // Reduced from 16
-                border: Border.all(
-                  color: colors.borderLight,
-                  width: 1,
-                ),
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [

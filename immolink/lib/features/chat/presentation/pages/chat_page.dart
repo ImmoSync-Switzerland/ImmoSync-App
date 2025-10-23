@@ -254,7 +254,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
 
   PreferredSizeWidget _buildAppBar() {
     final colors = ref.watch(dynamicColorsProvider);
-
+    
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
@@ -280,8 +280,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
               children: [
                 Text(
                   widget.otherUserName,
-                  style: AppTypography.subhead.copyWith(
+                  style: TextStyle(
                     color: colors.textPrimary,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     inherit: true,
                   ),
@@ -289,8 +290,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 if (_otherTyping)
                   Text(
                     'typing...',
-                    style: AppTypography.caption.copyWith(
+                    style: TextStyle(
                       color: colors.primaryAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       fontStyle: FontStyle.italic,
                       inherit: true,
                     ),
@@ -303,15 +306,18 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         height: 8,
                         margin: const EdgeInsets.only(right: 4),
                         decoration: BoxDecoration(
-                          color:
-                              _otherOnline ? Colors.green : colors.textTertiary,
+                          color: _otherOnline
+                              ? Colors.green
+                              : colors.textTertiary,
                           shape: BoxShape.circle,
                         ),
                       ),
                       Text(
                         _otherOnline ? 'Online' : _formatLastSeen(),
-                        style: AppTypography.caption.copyWith(
+                        style: TextStyle(
                           color: colors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                           inherit: true,
                         ),
                       ),
@@ -478,23 +484,24 @@ class _ChatPageState extends ConsumerState<ChatPage>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 gradient: isMe
-                    ? LinearGradient(
+                    ? const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          colors.primaryAccent,
-                          colors.primaryAccent.withValues(alpha: 0.8),
+                          Color(0xF23B82F6), // Blue #3B82F6 @ 95%
+                          Color(0xD98B5CF6), // Purple #8B5CF6 @ 85%
                         ],
                       )
                     : null,
-                color: isMe ? null : colors.surfaceCards,
-                borderRadius: BorderRadius.circular(18),
-                border: isMe
-                    ? null
-                    : Border.all(
-                        color: colors.borderLight,
-                        width: 1,
-                      ),
+                color: isMe ? null : Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,14 +512,17 @@ class _ChatPageState extends ConsumerState<ChatPage>
                       if (message.isEncrypted) ...[
                         Icon(Icons.lock,
                             size: 14,
-                            color:
-                                isMe ? Colors.white70 : colors.textSecondary),
+                            color: isMe
+                                ? Colors.white.withValues(alpha: 0.75)
+                                : colors.textSecondary),
                         const SizedBox(width: 4),
                       ] else if (_encryptionReady &&
                           message.messageType == 'text') ...[
                         Icon(Icons.warning_amber_outlined,
                             size: 14,
-                            color: isMe ? Colors.white70 : Colors.orangeAccent),
+                            color: isMe
+                                ? Colors.white.withValues(alpha: 0.75)
+                                : Colors.orangeAccent),
                         const SizedBox(width: 4),
                       ],
                       Expanded(
@@ -522,10 +532,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
                   const SizedBox(height: 4),
                   Text(
                     _formatTime(message.timestamp),
-                    style: AppTypography.caption.copyWith(
+                    style: TextStyle(
                       color: isMe
-                          ? Colors.white.withValues(alpha: 0.7)
+                          ? Colors.white.withValues(alpha: 0.75)
                           : colors.textTertiary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
                       inherit: true,
                     ),
                   ),
@@ -539,10 +551,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                               : Icons.access_time),
                       size: 14,
                       color: message.readAt != null
-                          ? Colors.lightBlueAccent
+                          ? Colors.white.withValues(alpha: 0.95)
                           : (message.deliveredAt != null
-                              ? Colors.white70
-                              : Colors.white38),
+                              ? Colors.white.withValues(alpha: 0.75)
+                              : Colors.white.withValues(alpha: 0.5)),
                     )
                   ]
                 ],
@@ -657,12 +669,13 @@ class _ChatPageState extends ConsumerState<ChatPage>
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       decoration: BoxDecoration(
         color: colors.primaryBackground,
-        border: Border(
-          top: BorderSide(
-            color: colors.borderLight,
-            width: 0.5,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
           ),
-        ),
+        ],
       ),
       child: SafeArea(
         child: Column(
@@ -674,45 +687,80 @@ class _ChatPageState extends ConsumerState<ChatPage>
             Row(
               children: [
                 // Attachment button
-                IconButton(
-                  icon: Icon(
-                    Icons.attach_file,
-                    color: colors.textSecondary,
-                    size: 24,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  onPressed: () => _showAttachmentOptions(),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.attach_file,
+                      color: colors.textSecondary,
+                      size: 22,
+                    ),
+                    onPressed: () => _showAttachmentOptions(),
+                  ),
                 ),
+                const SizedBox(width: 8),
                 // Emoji button
-                IconButton(
-                  icon: Icon(
-                    Icons.emoji_emotions_outlined,
-                    color: colors.textSecondary,
-                    size: 24,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  onPressed: () => _showEmojiPicker(),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.emoji_emotions_outlined,
+                      color: colors.textSecondary,
+                      size: 22,
+                    ),
+                    onPressed: () => _showEmojiPicker(),
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: colors.surfaceCards,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 0.5,
-                      ),
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: TextField(
                       controller: _messageController,
-                      style: AppTypography.body.copyWith(
+                      style: TextStyle(
                         color: colors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                         inherit: true,
                       ),
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(context)!.typeAMessage,
-                        hintStyle: AppTypography.body.copyWith(
+                        hintStyle: TextStyle(
                           color: colors.textTertiary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                           inherit: true,
                         ),
                         border: InputBorder.none,
@@ -763,25 +811,29 @@ class _ChatPageState extends ConsumerState<ChatPage>
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          _sendingAttachment
-                              ? colors.textTertiary
-                              : colors.primaryAccent,
-                          (_sendingAttachment
-                                  ? colors.textTertiary
-                                  : colors.primaryAccent)
-                              .withValues(alpha: 0.8),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
+                      gradient: _sendingAttachment
+                          ? LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colors.textTertiary,
+                                colors.textTertiary.withValues(alpha: 0.8),
+                              ],
+                            )
+                          : const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xF23B82F6), // Blue #3B82F6 @ 95%
+                                Color(0xD98B5CF6), // Purple #8B5CF6 @ 85%
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: colors.primaryAccent.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          color: const Color(0x4D3B82F6).withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),

@@ -323,15 +323,16 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
         Text(
           'Select available amenities',
           style: TextStyle(
-            fontSize: 14,
-            color: colors.textTertiary,
-            fontWeight: FontWeight.w400,
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.85),
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.1,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: amenitiesList.map((amenity) {
             final isSelected = selectedAmenities.contains(amenity);
             return GestureDetector(
@@ -349,21 +350,19 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
                 duration: const Duration(milliseconds: 150),
                 curve: Curves.easeInOut,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 decoration: BoxDecoration(
-                  color:
-                      isSelected ? colors.primaryAccent : colors.surfaceCards,
+                  color: isSelected 
+                      ? Colors.white.withValues(alpha: 0.95)
+                      : Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: isSelected
-                      ? null
-                      : Border.all(color: colors.borderLight, width: 1),
                 ),
                 child: Text(
                   amenity,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : colors.textSecondary,
+                    color: isSelected ? colors.textPrimary : Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     letterSpacing: -0.1,
                   ),
                 ),
@@ -488,33 +487,91 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
       {required String title,
       required List<Widget> children,
       required DynamicAppColors colors}) {
+    
+    // Assign gradient colors based on card title
+    List<Color> gradientColors;
+    Color shadowColor;
+    IconData iconData;
+    
+    if (title.toLowerCase().contains('location')) {
+      gradientColors = [
+        const Color(0xFF3B82F6).withValues(alpha: 0.95),
+        const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+      ];
+      shadowColor = const Color(0xFF3B82F6);
+      iconData = Icons.location_on_outlined;
+    } else if (title.toLowerCase().contains('detail')) {
+      gradientColors = [
+        const Color(0xFF059669).withValues(alpha: 0.95),
+        const Color(0xFF10B981).withValues(alpha: 0.85),
+      ];
+      shadowColor = const Color(0xFF059669);
+      iconData = Icons.home_outlined;
+    } else if (title.toLowerCase().contains('amenities')) {
+      gradientColors = [
+        const Color(0xFFEA580C).withValues(alpha: 0.95),
+        const Color(0xFFDC2626).withValues(alpha: 0.85),
+      ];
+      shadowColor = const Color(0xFFEA580C);
+      iconData = Icons.star_outline;
+    } else {
+      // Images card - Purple
+      gradientColors = [
+        const Color(0xFF8B5CF6).withValues(alpha: 0.95),
+        const Color(0xFF3B82F6).withValues(alpha: 0.85),
+      ];
+      shadowColor = const Color(0xFF8B5CF6);
+      iconData = Icons.image_outlined;
+    }
+    
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: colors.primaryBackground,
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: shadowColor.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-              letterSpacing: -0.3,
-              inherit: true,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  iconData,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.6,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           ...children,
         ],
       ),
@@ -535,14 +592,13 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: colors.textTertiary,
+            color: Colors.white.withValues(alpha: 0.85),
             letterSpacing: 0.5,
-            inherit: true,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         TextFormField(
           controller: controller,
           validator: validator,
@@ -551,37 +607,36 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 16,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             letterSpacing: -0.2,
-            inherit: true,
           ),
           decoration: InputDecoration(
             hintText: 'Enter $label',
             hintStyle: TextStyle(
               color: colors.textTertiary,
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w400,
             ),
             filled: true,
-            fillColor: colors.surfaceCards,
+            fillColor: Colors.white.withValues(alpha: 0.95),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: colors.primaryAccent, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: colors.error, width: 1),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: colors.error, width: 2),
             ),
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           ),
         ),
       ],
