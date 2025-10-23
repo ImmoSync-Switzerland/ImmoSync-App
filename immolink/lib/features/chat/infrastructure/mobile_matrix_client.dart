@@ -188,6 +188,11 @@ class MobileMatrixClient {
       // Listen to room state events (room updates)
       _client!.onTimelineEvent.stream.where((event) => event.type == matrix.EventTypes.RoomMember).listen((event) {
         MobileMatrixLogger.log('[MobileMatrix] Room member update in: ${event.roomId}');
+        // Check if this is an invite for us
+        if (event.content['membership'] == 'invite' && event.stateKey == _client!.userID) {
+          MobileMatrixLogger.log('[MobileMatrix] Received room invite: ${event.roomId}');
+          _handleRoomInvite(event.roomId!);
+        }
       });
       
       MobileMatrixLogger.log('[MobileMatrix] Starting Matrix sync...');
@@ -200,9 +205,58 @@ class MobileMatrixClient {
       final roomCount = _client!.rooms.length;
       MobileMatrixLogger.log('[MobileMatrix] Sync started successfully - $roomCount rooms available');
       
+      // Auto-join any pending invites
+      await _autoJoinInvites();
+      
     } catch (e) {
       MobileMatrixLogger.log('[MobileMatrix] Failed to start sync: $e');
       rethrow;
+    }
+  }
+
+  /// Automatically join all pending room invitations
+  Future<void> _autoJoinInvites() async {
+    if (_client == null) return;
+    
+    try {
+      final invitedRooms = _client!.rooms.where((room) => room.membership == matrix.Membership.invite).toList();
+      
+      if (invitedRooms.isEmpty) {
+        MobileMatrixLogger.log('[MobileMatrix] No pending invites to join');
+        return;
+      }
+      
+      MobileMatrixLogger.log('[MobileMatrix] Found ${invitedRooms.length} pending invites, auto-joining...');
+      
+      for (final room in invitedRooms) {
+        try {
+          MobileMatrixLogger.log('[MobileMatrix] Auto-joining room: ${room.id}');
+          await room.join();
+          MobileMatrixLogger.log('[MobileMatrix] Successfully joined room: ${room.id}');
+        } catch (e) {
+          MobileMatrixLogger.log('[MobileMatrix] Failed to join room ${room.id}: $e');
+        }
+      }
+    } catch (e) {
+      MobileMatrixLogger.log('[MobileMatrix] Error during auto-join: $e');
+    }
+  }
+
+  /// Handle a new room invitation by auto-joining
+  Future<void> _handleRoomInvite(String roomId) async {
+    if (_client == null) return;
+    
+    try {
+      final room = _client!.getRoomById(roomId);
+      if (room == null || room.membership != matrix.Membership.invite) {
+        return;
+      }
+      
+      MobileMatrixLogger.log('[MobileMatrix] Auto-joining invited room: $roomId');
+      await room.join();
+      MobileMatrixLogger.log('[MobileMatrix] Successfully auto-joined room: $roomId');
+    } catch (e) {
+      MobileMatrixLogger.log('[MobileMatrix] Failed to auto-join room $roomId: $e');
     }
   }
 

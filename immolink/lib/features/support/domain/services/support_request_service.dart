@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/models/support_request.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/config/db_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final supportRequestServiceProvider =
     Provider((ref) => SupportRequestService(ref));
@@ -10,15 +11,30 @@ final supportRequestServiceProvider =
 class SupportRequestService {
   final Ref ref;
   SupportRequestService(this.ref);
-  static const _base = String.fromEnvironment('API_BASE',
-      defaultValue: 'http://localhost:3000/api');
+  
+  String get _base => DbConfig.apiUrl;
 
   Future<List<SupportRequest>> list({String? status}) async {
-    final uri = Uri.parse(
-        '$_base/support-requests${status != null ? '?status=$status' : ''}');
+    // Get userId from SharedPreferences to add to query
+    String? userId;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      userId = prefs.getString('userId');
+    } catch (e) {
+      print('[SupportRequestService] Failed to get userId from prefs: $e');
+    }
+    
+    final queryParams = <String, String>{};
+    if (status != null) queryParams['status'] = status;
+    if (userId != null && userId.isNotEmpty) queryParams['userId'] = userId;
+    
+    final uri = Uri.parse('$_base/support-requests').replace(queryParameters: queryParams);
+    print('[SupportRequestService] Fetching from: $uri');
     final resp = await http.get(uri, headers: await _headers());
+    print('[SupportRequestService] Response status: ${resp.statusCode}');
+    print('[SupportRequestService] Response body: ${resp.body}');
     if (resp.statusCode != 200) {
-      throw Exception('Failed to load support requests');
+      throw Exception('Failed to load support requests (${resp.statusCode}): ${resp.body}');
     }
     final data = jsonDecode(resp.body);
     final list = (data['requests'] as List)
@@ -76,11 +92,25 @@ class SupportRequestService {
   }
 
   Future<Map<String, String>> _headers() async {
-    final auth = ref.read(authProvider);
     final headers = {'Content-Type': 'application/json'};
-    if (auth.sessionToken != null) {
-      headers['Authorization'] = 'Bearer ${auth.sessionToken}';
+    
+    // Get token directly from SharedPreferences like user_service does
+    String? token;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      token = prefs.getString('sessionToken');
+      print('[SupportRequestService] Raw token from prefs: $token');
+    } catch (e) {
+      print('[SupportRequestService] Failed to get token from prefs: $e');
     }
+    
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+      print('[SupportRequestService] Sending Authorization: Bearer ${token.substring(0, 20)}...');
+    } else {
+      print('[SupportRequestService] WARNING: No auth token in SharedPreferences');
+    }
+    
     return headers;
   }
 }

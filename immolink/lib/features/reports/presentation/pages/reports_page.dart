@@ -384,14 +384,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Modern hero header & period selector
               _buildHeroHeader(l10n, isLandlord, colors),
-              const SizedBox(height: 30),
+              const SizedBox(height: 28),
               _buildModernReport(isLandlord, l10n, colors),
+              const SizedBox(height: 24), // Bottom padding for better scroll experience
             ],
           ),
         ),
@@ -402,94 +403,104 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildHeroHeader(
       AppLocalizations l10n, bool isLandlord, DynamicAppColors colors) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final compact = w < 360;
-        final titleSize = _getResponsiveFontSize(context, compact ? 22 : 26);
-        final subtitleSize = compact ? 11.5 : 13.0;
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: compact ? 18 : 24,
-            vertical: compact ? 24 : 30,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF3B82F6).withValues(alpha: 0.95),
+            const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.primaryAccent.withValues(alpha: 0.95),
-                colors.info.withValues(alpha: 0.85),
-                colors.info.withValues(alpha: 0.45),
-              ],
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header Icon
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
             ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-                color: colors.borderLight.withValues(alpha: 0.25), width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 22,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            child: Icon(
+              isLandlord ? Icons.analytics_rounded : Icons.insights_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: EdgeInsets.all(compact ? 12 : 14),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.18),
-                ),
-                child: Icon(
-                  isLandlord
-                      ? Icons.analytics_outlined
-                      : Icons.insights_outlined,
-                  size: compact ? 26 : 30,
-                  color: Colors.white,
+          const SizedBox(height: 16),
+          Text(
+            isLandlord ? l10n.analyticsAndReports : l10n.paymentSummary,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isLandlord ? l10n.financialOverview : l10n.recentActivity,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withValues(alpha: 0.85),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Export Button
+          GestureDetector(
+            onTap: _showExportDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  width: 1,
                 ),
               ),
-              const SizedBox(height: 18),
-              FittedBox(
-                alignment: Alignment.centerLeft,
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  isLandlord ? l10n.analyticsAndReports : l10n.paymentSummary,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: TextStyle(
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.8,
-                    height: 1.05,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.picture_as_pdf_rounded,
                     color: Colors.white,
+                    size: 20,
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.export.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                isLandlord ? l10n.financialOverview : l10n.recentActivity,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: subtitleSize,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.85),
-                  letterSpacing: -0.2,
-                  height: 1.15,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildExportPill(l10n, colors),
-              SizedBox(height: compact ? 18 : 26),
-              _buildKpiStrip(isLandlord, l10n, colors),
-            ],
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 24),
+          _buildKpiStrip(isLandlord, l10n, colors),
+        ],
+      ),
     );
   }
 
@@ -497,7 +508,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     return GestureDetector(
       onTap: _showExportDialog,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           gradient: LinearGradient(
@@ -505,23 +516,23 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           ),
           boxShadow: [
             BoxShadow(
-              color: colors.info.withValues(alpha: 0.35),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+              color: colors.info.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.picture_as_pdf_outlined, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
+            Icon(Icons.picture_as_pdf_outlined, size: 18, color: Colors.white),
+            const SizedBox(width: 8),
             Text(
               l10n.export,
               style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
                 color: Colors.white,
               ),
             ),
@@ -637,24 +648,24 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           curve: Curves.easeOut,
           child: Container(
             constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  color.withValues(alpha: 0.55),
-                  color.withValues(alpha: 0.25),
+                  color.withValues(alpha: 0.65),
+                  color.withValues(alpha: 0.35),
                 ],
               ),
               border:
-                  Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
+                  Border.all(color: color.withValues(alpha: 0.65), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                    color: color.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4))
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5))
               ],
             ),
             child: asyncValue.when(
@@ -677,28 +688,28 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+            color: Colors.white.withValues(alpha: 0.22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.5),
           ),
-          child: Icon(icon, size: 22, color: Colors.white),
+          child: Icon(icon, size: 24, color: Colors.white),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         _AnimatedValue(
           displayValue: value,
           numericValue: numeric,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Text(
           label.toUpperCase(),
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.9,
-            color: Colors.white.withValues(alpha: 0.85),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.0,
+            color: Colors.white.withValues(alpha: 0.9),
           ),
         ),
       ],
@@ -888,7 +899,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     final colors = ref.watch(dynamicColorsProvider);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _animatedSection(2,
             _buildFinancialOverview(properties, payments, ref, l10n, colors)),
@@ -911,7 +922,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     final colors = ref.watch(dynamicColorsProvider);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _animatedSection(
             2, _buildTenantPaymentSummary(payments, ref, l10n, colors)),
@@ -1539,539 +1550,606 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
   Widget _buildTenantMaintenanceHistory(AsyncValue maintenanceRequests,
       AppLocalizations l10n, DynamicAppColors colors) {
-    return LayoutBuilder(builder: (context, c) {
-      final parentW = c.maxWidth;
-      final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
-      return FractionallySizedBox(
-        widthFactor: targetW / parentW,
-        alignment: Alignment.center,
-        child: Container(
-          padding: const EdgeInsets.all(28.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colors.warning.withValues(alpha: 0.55),
-                colors.warning.withValues(alpha: 0.28),
-                colors.warning.withValues(alpha: 0.10),
-              ],
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFEA580C).withValues(alpha: 0.95),
+            const Color(0xFFDC2626).withValues(alpha: 0.85),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
             ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-              width: 1.1,
+            child: Icon(
+              Icons.build_rounded,
+              color: Colors.white,
+              size: 32,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _glassHeaderIcon(Icons.handyman_outlined, colors.warning),
-                  const SizedBox(height: 18),
-                  Text(
-                    l10n.maintenanceRequests,
-                    style: TextStyle(
-                      fontSize: _getResponsiveFontSize(context, 22),
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.75,
-                      height: 1.05,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.30),
-                          offset: const Offset(0, 1.2),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.maintenanceRequests,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 24),
+          maintenanceRequests.when(
+            data: (requestList) {
+              if (requestList.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(48),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              maintenanceRequests.when(
-                data: (requestList) {
-                  if (requestList.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(40),
-                      child: Center(
-                        child: Column(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 56,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.noMaintenanceRequests,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Column(
+                children: requestList.take(5).map<Widget>((request) {
+                  final statusColor = _getMaintenanceStatusColor(
+                      request.status, colors);
+                  final statusText = _formatStatusText(request.status);
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            const Icon(
-                              Icons.check_circle_outline,
-                              size: 48,
-                              color: Color(0xFF10B981),
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                _getMaintenanceStatusIcon(request.status),
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              l10n.noMaintenanceRequests,
-                              style: TextStyle(
-                                fontSize: _getResponsiveFontSize(context, 16),
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF64748B),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    request.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('MMM d, yyyy')
+                                        .format(request.requestedDate),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  }
-
-                  // Constrain inner list width further for readability
-                  return LayoutBuilder(builder: (context, c2) {
-                    final w = c2.maxWidth;
-                    final contentW = _safeTargetWidth(w,
-                        minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
-                    return FractionallySizedBox(
-                      widthFactor: contentW / w,
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: requestList.take(5).map<Widget>((request) {
-                          final statusColor = _getMaintenanceStatusColor(
-                              request.status, colors);
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOutCubic,
-                            margin: const EdgeInsets.only(bottom: 18),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  colors.warning.withValues(alpha: 1.0),
-                                  colors.warning.withValues(alpha: 0.45),
-                                  colors.warning.withValues(alpha: 0.18),
-                                ],
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.36),
-                                width: 1.2,
-                              ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            statusText.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              color: Colors.white,
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                ClipOval(
-                                  child: BackdropFilter(
-                                    filter: ui.ImageFilter.blur(
-                                        sigmaX: 12, sigmaY: 12),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white
-                                            .withValues(alpha: 0.28),
-                                        border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.40),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        _getMaintenanceStatusIcon(
-                                            request.status),
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 18),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        request.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: _getResponsiveFontSize(
-                                              context, 15),
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.25,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        DateFormat('MMM d, yyyy')
-                                            .format(request.requestedDate),
-                                        style: TextStyle(
-                                          fontSize: _getResponsiveFontSize(
-                                              context, 11),
-                                          fontWeight: FontWeight.w500,
-                                          letterSpacing: 0.5,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.85),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        statusColor.withValues(alpha: 0.55),
-                                        statusColor.withValues(alpha: 0.25),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Text(
-                                    _formatStatusText(request.status)
-                                        .toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize:
-                                          _getResponsiveFontSize(context, 10),
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.9,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  });
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => Text(l10n.errorLoadingMaintenanceRequests),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+            error: (_, __) => Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(24),
               ),
-            ],
+              child: Text(
+                l10n.errorLoadingMaintenanceRequests,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            ),
           ),
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 
   // Reintroduced payment history (simplified glass list similar to maintenance)
   Widget _buildPaymentHistory(AsyncValue payments, WidgetRef ref,
       AppLocalizations l10n, DynamicAppColors colors) {
-    return LayoutBuilder(builder: (context, c) {
-      final parentW = c.maxWidth;
-      final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
-      return FractionallySizedBox(
-        widthFactor: targetW / parentW,
-        alignment: Alignment.center,
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colors.success.withValues(alpha: 0.55),
-                colors.success.withValues(alpha: 0.28),
-                colors.success.withValues(alpha: 0.10),
-              ],
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF059669).withValues(alpha: 0.95),
+            const Color(0xFF10B981).withValues(alpha: 0.85),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF059669).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
             ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-              width: 1.1,
+            child: Icon(
+              Icons.receipt_long_rounded,
+              color: Colors.white,
+              size: 32,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+          Text(
+            l10n.paymentHistory,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 24),
+          payments.when(
+            data: (list) {
+              if (list.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(48),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 56,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.noPaymentsFound,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final limited = list.take(5).toList();
+              return Column(
+                children: limited.map<Widget>((p) {
+                  final status = p.status?.toString() ?? '';
+                  final amount =
+                      (p.amount is num) ? (p.amount as num).toDouble() : 0.0;
+                  Color statusColor;
+                  IconData icon;
+                  switch (status.toLowerCase()) {
+                    case 'completed':
+                      statusColor = const Color(0xFF10B981);
+                      icon = Icons.check_circle_rounded;
+                      break;
+                    case 'pending':
+                      statusColor = const Color(0xFFF59E0B);
+                      icon = Icons.schedule_rounded;
+                      break;
+                    case 'failed':
+                    case 'canceled':
+                      statusColor = const Color(0xFFEF4444);
+                      icon = Icons.cancel_rounded;
+                      break;
+                    default:
+                      statusColor = const Color(0xFF3B82F6);
+                      icon = Icons.payments_rounded;
+                  }
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            icon,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _formatCurrency(amount),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  status.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+            error: (_, __) => Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Text(
+                'Error loading payments',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref,
+      AppLocalizations l10n, DynamicAppColors colors) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF059669).withValues(alpha: 0.95),
+            const Color(0xFF10B981).withValues(alpha: 0.85),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF059669).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.account_balance_wallet_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.paymentSummary,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 24),
+          payments.when(
+            data: (paymentsList) {
+              final totalPaid = paymentsList
+                  .where((p) => p.status == 'completed')
+                  .fold(0.0, (sum, p) => sum + p.amount);
+              final pendingAmount = paymentsList
+                  .where((p) => p.status == 'pending')
+                  .fold(0.0, (sum, p) => sum + p.amount);
+              final totalPayments = paymentsList.length;
+
+              return Column(
                 children: [
-                  _glassHeaderIcon(Icons.receipt_long_outlined, colors.success),
-                  const SizedBox(height: 18),
-                  Text(
-                    l10n.paymentHistory,
-                    style: TextStyle(
-                      fontSize: _getResponsiveFontSize(context, 22),
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.75,
-                      height: 1.05,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.30),
-                          offset: const Offset(0, 1.2),
-                          blurRadius: 4,
+                  // Total Paid Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _formatCurrency(totalPaid),
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.totalPaid.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.0,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Pending Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _formatCurrency(pendingAmount),
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.pending.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.0,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Total Payments Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.receipt_long_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          totalPayments.toString(),
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.totalPayments.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.0,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 28),
-              payments.when(
-                data: (list) {
-                  if (list.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Text(
-                          l10n.noPaymentsFound,
-                          style: TextStyle(
-                            fontSize: _getResponsiveFontSize(context, 16),
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  final limited = list.take(5).toList();
-                  return LayoutBuilder(builder: (context, c2) {
-                    final w = c2.maxWidth;
-                    final contentW = _safeTargetWidth(w,
-                        minW: 220, maxW: 560, enforceMinOnlyIfFits: true);
-                    return FractionallySizedBox(
-                      widthFactor: contentW / w,
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: limited.map<Widget>((p) {
-                          final status = p.status?.toString() ?? '';
-                          final amount = (p.amount is num)
-                              ? (p.amount as num).toDouble()
-                              : 0.0;
-                          Color statusColor;
-                          IconData icon;
-                          switch (status.toLowerCase()) {
-                            case 'completed':
-                              statusColor = colors.success;
-                              icon = Icons.check_circle_outline;
-                              break;
-                            case 'pending':
-                              statusColor = colors.warning;
-                              icon = Icons.hourglass_empty;
-                              break;
-                            case 'failed':
-                            case 'canceled':
-                              statusColor = colors.error;
-                              icon = Icons.error_outline;
-                              break;
-                            default:
-                              statusColor = colors.info;
-                              icon = Icons.payments_outlined;
-                          }
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOutCubic,
-                            margin: const EdgeInsets.only(bottom: 18),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  colors.success.withValues(alpha: 1.0),
-                                  colors.success.withValues(alpha: 0.45),
-                                  colors.success.withValues(alpha: 0.18),
-                                ],
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.36),
-                                width: 1.2,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                ClipOval(
-                                  child: BackdropFilter(
-                                    filter: ui.ImageFilter.blur(
-                                        sigmaX: 12, sigmaY: 12),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white
-                                            .withValues(alpha: 0.28),
-                                        border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.40),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Icon(icon,
-                                          color: Colors.white, size: 20),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 18),
-                                Expanded(
-                                  child: Text(
-                                    _formatCurrency(amount),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize:
-                                          _getResponsiveFontSize(context, 15),
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: -0.25,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        statusColor.withValues(alpha: 0.55),
-                                        statusColor.withValues(alpha: 0.25),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Text(
-                                    status.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize:
-                                          _getResponsiveFontSize(context, 10),
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.9,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  });
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => Text(l10n.errorLoadingPaymentHistory),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  Widget _buildTenantPaymentSummary(AsyncValue payments, WidgetRef ref,
-      AppLocalizations l10n, DynamicAppColors colors) {
-    final accent = colors.success;
-    return LayoutBuilder(
-      builder: (context, c) {
-        final parentW = c.maxWidth;
-        final targetW = _safeTargetWidth(parentW, minW: 360, maxW: 720);
-        return _HoverScale(
-          onTap: () => _showTenantPaymentDetailDialog(l10n, payments, colors),
-          child: FractionallySizedBox(
-            widthFactor: targetW / parentW,
-            alignment: Alignment.center,
-            child: Container(
-              padding: const EdgeInsets.all(26),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+            error: (_, __) => Container(
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                gradient:
-                    ReportGradients.glassAccent(accent, isDark: colors.isDark),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1.2,
-                ),
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(24),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _glassHeaderIcon(
-                          Icons.account_balance_wallet_outlined, accent),
-                      const SizedBox(width: 18),
-                      Expanded(
-                        child: Text(
-                          l10n.paymentSummary,
-                          style: TextStyle(
-                            fontSize: _getResponsiveFontSize(context, 20),
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.55,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  payments.when(
-                    data: (paymentsList) {
-                      final totalPaid = paymentsList
-                          .where((p) => p.status == 'completed')
-                          .fold(0.0, (sum, p) => sum + p.amount);
-                      final pendingAmount = paymentsList
-                          .where((p) => p.status == 'pending')
-                          .fold(0.0, (sum, p) => sum + p.amount);
-                      final totalPayments = paymentsList.length;
-                      final maxW = targetW; // reuse constrained width
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _metricSizedBox(
-                            child: _buildFinancialMetric(
-                              l10n.totalPaid,
-                              _formatCurrency(totalPaid),
-                              Icons.check_circle_outline,
-                              Colors.white,
-                              colors,
-                            ),
-                            parentWidth: maxW,
-                          ),
-                          const SizedBox(height: 22),
-                          _metricSizedBox(
-                            child: _buildFinancialMetric(
-                              l10n.pending,
-                              _formatCurrency(pendingAmount),
-                              Icons.hourglass_empty,
-                              Colors.white,
-                              colors,
-                            ),
-                            parentWidth: maxW,
-                          ),
-                          const SizedBox(height: 22),
-                          _metricSizedBox(
-                            child: _buildFinancialMetric(
-                              l10n.totalPayments,
-                              totalPayments.toString(),
-                              Icons.receipt_long_outlined,
-                              Colors.white,
-                              colors,
-                            ),
-                            parentWidth: maxW,
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => Text(
-                      l10n.errorLoadingPaymentSummary,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                ],
+              child: Text(
+                l10n.errorLoadingPaymentSummary,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
               ),
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

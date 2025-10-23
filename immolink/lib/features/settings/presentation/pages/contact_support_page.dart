@@ -7,6 +7,7 @@ import 'dart:convert';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/config/db_config.dart';
 
 class ContactSupportPage extends ConsumerStatefulWidget {
   const ContactSupportPage({super.key});
@@ -558,8 +559,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     // Simulate API call
     try {
       final user = ref.read(currentUserProvider);
-      final apiBase = const String.fromEnvironment('API_BASE',
-          defaultValue: 'http://localhost:3000/api');
+      final apiBase = DbConfig.apiUrl;
       final uri = Uri.parse('$apiBase/support-requests');
       final body = {
         'subject': _subjectController.text.trim(),
