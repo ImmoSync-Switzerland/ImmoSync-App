@@ -2654,4 +2654,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get updateProperty => 'Aggiorna proprietà';
+
+  @override
+  String get payments => 'Pagamenti';
+
+  @override
+  String get overview => 'Panoramica';
+
+  @override
+  String get payouts => 'Prelievi';
+
+  @override
+  String get refresh => 'Aggiorna';
 }

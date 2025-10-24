@@ -4985,6 +4985,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update Property'**
   String get updateProperty;
+
+  /// No description provided for @payments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get payments;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @payouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payouts'**
+  String get payouts;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
 }
 
 class _AppLocalizationsDelegate

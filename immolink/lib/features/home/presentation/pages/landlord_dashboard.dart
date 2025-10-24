@@ -696,6 +696,16 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          _buildQuickAccessButton(
+            AppLocalizations.of(context)!.payments,
+            Icons.account_balance_wallet_outlined,
+            const Color(0xFF10B981),
+            () {
+              HapticFeedback.mediumImpact();
+              context.push('/landlord/payments');
+            },
+          ),
         ],
       ),
     );
@@ -707,7 +717,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(20),
@@ -722,29 +732,29 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                size: 24,
+                size: 22,
                 color: iconColor,
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: colors.textPrimary,
                   letterSpacing: -0.2,
+                  height: 1.2,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -769,7 +779,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               ? onPressed
               : () => _showSubscriptionRequiredDialog(),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(20),
@@ -784,7 +794,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: hasActiveSubscription 
                         ? iconColor.withValues(alpha: 0.1)
@@ -796,7 +806,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     children: [
                       Icon(
                         icon,
-                        size: 24,
+                        size: 22,
                         color: hasActiveSubscription
                             ? iconColor
                             : colors.textTertiary,
@@ -814,7 +824,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     ],
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -823,12 +833,13 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       Text(
                         label,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: hasActiveSubscription
                               ? colors.textPrimary
                               : colors.textTertiary,
                           letterSpacing: -0.2,
+                          height: 1.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

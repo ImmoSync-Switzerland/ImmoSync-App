@@ -938,4 +938,8 @@
   ,"@imagesSelected":{"placeholders":{"count":{}}}
   ,"saveProperty":"Save Property"
   ,"updateProperty":"Update Property"
+  ,"payments":"Payments"
+  ,"overview":"Overview"
+  ,"payouts":"Payouts"
+  ,"refresh":"Refresh"
 }

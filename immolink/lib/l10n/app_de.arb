@@ -937,4 +937,8 @@
   ,"@imagesSelected":{"placeholders":{"count":{}}}
   ,"saveProperty":"Immobilie speichern"
   ,"updateProperty":"Immobilie aktualisieren"
+  ,"payments":"Zahlungen"
+  ,"overview":"Übersicht"
+  ,"payouts":"Auszahlungen"
+  ,"refresh":"Aktualisieren"
 }

@@ -2627,4 +2627,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateProperty => 'Update Property';
+
+  @override
+  String get payments => 'Payments';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get payouts => 'Payouts';
+
+  @override
+  String get refresh => 'Refresh';
 }

@@ -2675,4 +2675,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get updateProperty => 'Mettre à jour la propriété';
+
+  @override
+  String get payments => 'Paiements';
+
+  @override
+  String get overview => 'Aperçu';
+
+  @override
+  String get payouts => 'Versements';
+
+  @override
+  String get refresh => 'Actualiser';
 }

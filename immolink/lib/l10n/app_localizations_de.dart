@@ -2669,4 +2669,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get updateProperty => 'Immobilie aktualisieren';
+
+  @override
+  String get payments => 'Zahlungen';
+
+  @override
+  String get overview => 'Übersicht';
+
+  @override
+  String get payouts => 'Auszahlungen';
+
+  @override
+  String get refresh => 'Aktualisieren';
 }

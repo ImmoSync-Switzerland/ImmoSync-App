@@ -982,5 +982,9 @@
   ,"@imagesSelected":{"placeholders":{"count":{}}}
   ,"saveProperty":"Salva proprietà"
   ,"updateProperty":"Aggiorna proprietà"
+  ,"payments":"Pagamenti"
+  ,"overview":"Panoramica"
+  ,"payouts":"Prelievi"
+  ,"refresh":"Aggiorna"
 }
 

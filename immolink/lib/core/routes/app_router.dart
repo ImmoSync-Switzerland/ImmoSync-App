@@ -38,6 +38,7 @@ import 'package:immosync/features/search/presentation/pages/universal_search_pag
 import 'package:immosync/features/tenant/presentation/pages/tenant_services_booking_page.dart';
 import 'package:immosync/features/landlord/presentation/pages/landlord_services_booking_page.dart';
 import 'package:immosync/features/landlord/presentation/pages/landlord_documents_page.dart';
+import 'package:immosync/features/payment/presentation/pages/landlord_payments_page.dart';
 import 'package:immosync/features/subscription/presentation/pages/landlord_subscription_page.dart';
 import 'package:immosync/features/subscription/presentation/pages/subscription_payment_page.dart';
 import 'package:immosync/features/subscription/domain/models/subscription.dart';
@@ -169,6 +170,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/landlord/documents',
         builder: (context, state) => const LandlordDocumentsPage(),
+      ),
+      // Landlord payments page (Stripe Connect)
+      GoRoute(
+        path: '/landlord/payments',
+        builder: (context, state) => const LandlordPaymentsPage(),
       ),
       // Subscription routes
       GoRoute(
