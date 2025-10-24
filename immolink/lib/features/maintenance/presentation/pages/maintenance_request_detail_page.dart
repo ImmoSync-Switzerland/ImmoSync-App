@@ -81,9 +81,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
   Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request,
       AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
-    Color statusColor = _getStatusColor(request.status, colors);
     IconData statusIcon = _getStatusIcon(request.status);
-    Color priorityColor = _getPriorityColor(request.priority, colors);
 
     return CustomScrollView(
       slivers: [
@@ -92,26 +90,18 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           child: Container(
             margin: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  CategoryUtils.getCategoryColor(request.category)
-                      .withValues(alpha: 0.1),
-                  CategoryUtils.getCategoryColor(request.category)
-                      .withValues(alpha: 0.05),
+                  Color(0xF2EA580C), // Orange #EA580C @ 95%
+                  Color(0xD9DC2626), // Red #DC2626 @ 85%
                 ],
               ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: CategoryUtils.getCategoryColor(request.category)
-                    .withValues(alpha: 0.2),
-                width: 1,
-              ),
+              borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: CategoryUtils.getCategoryColor(request.category)
-                      .withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -127,30 +117,12 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color:
-                              CategoryUtils.getCategoryColor(request.category)
-                                  .withValues(alpha: 0.15),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color:
-                                CategoryUtils.getCategoryColor(request.category)
-                                    .withValues(alpha: 0.3),
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: CategoryUtils.getCategoryColor(
-                                      request.category)
-                                  .withValues(alpha: 0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: Icon(
                           CategoryUtils.getCategoryIcon(request.category),
-                          color:
-                              CategoryUtils.getCategoryColor(request.category),
+                          color: Colors.white,
                           size: 32,
                         ),
                       ),
@@ -161,10 +133,10 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                           children: [
                             Text(
                               request.title,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: colors.textPrimary,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
                                 height: 1.2,
                               ),
                             ),
@@ -179,11 +151,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: statusColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(25),
-                                    border: Border.all(
-                                      color: statusColor.withValues(alpha: 0.3),
-                                    ),
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -191,15 +160,15 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                                       Icon(
                                         statusIcon,
                                         size: 16,
-                                        color: statusColor,
+                                        color: Colors.white,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
                                         request.statusDisplayText.toUpperCase(),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,
-                                          color: statusColor,
+                                          color: Colors.white,
                                           letterSpacing: 0.5,
                                         ),
                                       ),
@@ -212,20 +181,15 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color:
-                                        priorityColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(25),
-                                    border: Border.all(
-                                      color:
-                                          priorityColor.withValues(alpha: 0.3),
-                                    ),
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                     '${request.priorityDisplayText.toUpperCase()} PRIORITY',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: priorityColor,
+                                      color: Colors.white,
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -248,13 +212,13 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: colors.shadowColor.withValues(alpha: 0.08),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -265,17 +229,24 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.description_outlined,
-                        color: colors.textSecondary,
-                        size: 20,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colors.primaryAccent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.description_outlined,
+                          color: colors.primaryAccent,
+                          size: 20,
+                        ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Text(
                         l10n.description,
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                           color: colors.textPrimary,
                         ),
                       ),
@@ -301,13 +272,13 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: colors.shadowColor.withValues(alpha: 0.08),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -318,17 +289,24 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: colors.textSecondary,
-                        size: 20,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colors.primaryAccent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.info_outline,
+                          color: colors.primaryAccent,
+                          size: 20,
+                        ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Text(
                         l10n.details,
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                           color: colors.textPrimary,
                         ),
                       ),
@@ -348,13 +326,13 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: colors.surfaceCards,
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(32),
                 boxShadow: [
                   BoxShadow(
-                    color: colors.shadowColor.withValues(alpha: 0.08),
+                    color: Colors.black.withValues(alpha: 0.15),
                     blurRadius: 20,
-                    offset: const Offset(0, 4),
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -365,17 +343,24 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.person_outline,
-                          color: colors.textSecondary,
-                          size: 20,
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colors.primaryAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.person_outline,
+                            color: colors.primaryAccent,
+                            size: 20,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Text(
                           l10n.contractorInformation,
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
                             color: colors.textPrimary,
                           ),
                         ),

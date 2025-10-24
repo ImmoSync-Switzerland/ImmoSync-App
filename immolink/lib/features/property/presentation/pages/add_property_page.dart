@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../../../../l10n/app_localizations.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
@@ -115,7 +116,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
           onPressed: () => context.pop(),
         ),
         title: Text(
-          widget.propertyToEdit != null ? 'Edit Property' : 'Add Property',
+          widget.propertyToEdit != null ? AppLocalizations.of(context)!.editProperty : AppLocalizations.of(context)!.addProperty,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 18,
@@ -178,8 +179,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
           const SizedBox(height: 24),
           Text(
             widget.propertyToEdit != null
-                ? 'Updating property...'
-                : 'Creating property...',
+                ? AppLocalizations.of(context)!.updatingProperty
+                : AppLocalizations.of(context)!.creatingProperty,
             style: TextStyle(
               color: colors.textTertiary,
               fontSize: 16,
@@ -199,7 +200,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isEditing ? 'Edit Property' : 'New Property',
+          isEditing ? AppLocalizations.of(context)!.editProperty : AppLocalizations.of(context)!.newProperty,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w700,
@@ -212,8 +213,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
         const SizedBox(height: 8),
         Text(
           isEditing
-              ? 'Update your property details'
-              : 'Add property details to get started',
+              ? AppLocalizations.of(context)!.updatePropertyDetails
+              : AppLocalizations.of(context)!.addPropertyDetails,
           style: TextStyle(
             fontSize: 16,
             color: colors.textTertiary,
@@ -227,16 +228,17 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
   }
 
   Widget _buildLocationCard(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Location',
+      title: l10n.location,
       colors: colors,
       children: [
         _buildTextField(
           colors: colors,
           controller: _addressController,
-          label: 'Street Address',
+          label: l10n.streetAddress,
           validator: (value) =>
-              value?.isEmpty ?? true ? 'Address is required' : null,
+              value?.isEmpty ?? true ? l10n.addressRequired : null,
         ),
         const SizedBox(height: 24),
         Row(
@@ -246,9 +248,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
               child: _buildTextField(
                 colors: colors,
                 controller: _cityController,
-                label: 'City',
+                label: l10n.city,
                 validator: (value) =>
-                    value?.isEmpty ?? true ? 'City is required' : null,
+                    value?.isEmpty ?? true ? l10n.cityRequired : null,
               ),
             ),
             const SizedBox(width: 16),
@@ -256,9 +258,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
               child: _buildTextField(
                 colors: colors,
                 controller: _postalCodeController,
-                label: 'Postal Code',
+                label: l10n.postalCode,
                 validator: (value) =>
-                    value?.isEmpty ?? true ? 'Required' : null,
+                    value?.isEmpty ?? true ? l10n.postalCodeRequired : null,
               ),
             ),
           ],
@@ -268,19 +270,20 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
   }
 
   Widget _buildDetailsCard(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      title: 'Property Details',
+      title: l10n.propertyDetails,
       colors: colors,
       children: [
         _buildTextField(
           controller: _rentController,
           label:
-              'Monthly Rent (${ref.read(currencyProvider.notifier).getSymbol()})',
+              '${l10n.monthlyRent} (${ref.read(currencyProvider.notifier).getSymbol()})',
           colors: colors,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           validator: (value) {
-            if (value?.isEmpty ?? true) return 'Rent amount is required';
+            if (value?.isEmpty ?? true) return l10n.rentRequired;
             if (double.tryParse(value!) == null) return 'Invalid amount';
             return null;
           },
@@ -292,7 +295,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
               child: _buildTextField(
                 colors: colors,
                 controller: _sizeController,
-                label: 'Size (m²)',
+                label: '${l10n.size} (m²)',
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
@@ -304,7 +307,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
               child: _buildTextField(
                 colors: colors,
                 controller: _roomsController,
-                label: 'Rooms',
+                label: l10n.rooms,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
@@ -316,12 +319,13 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
   }
 
   Widget _buildAmenitiesCard(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
       colors: colors,
-      title: 'Amenities',
+      title: l10n.amenities,
       children: [
         Text(
-          'Select available amenities',
+          l10n.selectAmenities,
           style: TextStyle(
             fontSize: 13,
             color: Colors.white.withValues(alpha: 0.85),
@@ -375,9 +379,10 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
   }
 
   Widget _buildImagesCard(DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return _buildCard(
       colors: colors,
-      title: 'Images',
+      title: l10n.images,
       children: [
         GestureDetector(
           onTap: _pickImages,
@@ -412,8 +417,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
                   const SizedBox(height: 8),
                   Text(
                     selectedImages.isEmpty
-                        ? 'Tap to upload images'
-                        : '${selectedImages.length} image(s) selected',
+                        ? l10n.tapToUploadImages
+                        : l10n.imagesSelected(selectedImages.length),
                     style: TextStyle(
                       color: selectedImages.isEmpty
                           ? colors.textTertiary
@@ -662,8 +667,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
           ),
           child: Text(
             widget.propertyToEdit != null
-                ? 'Update Property'
-                : 'Create Property',
+                ? AppLocalizations.of(context)!.updateProperty
+                : AppLocalizations.of(context)!.saveProperty,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -715,7 +720,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Keine Bilder ausgewählt'),
+            content: Text(AppLocalizations.of(context)!.noImagesSelected),
             backgroundColor: colors.textSecondary,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -853,7 +858,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Image removed'),
+        content: Text(AppLocalizations.of(context)!.imageRemoved),
         backgroundColor: colors.textSecondary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -980,7 +985,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Immobilie erfolgreich aktualisiert!'),
+              content: Text(AppLocalizations.of(context)!.propertyUpdatedSuccessfully),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -997,7 +1002,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Immobilie erfolgreich erstellt!'),
+              content: Text(AppLocalizations.of(context)!.propertyCreatedSuccessfully),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -1132,7 +1137,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('View Plans'),
+            child: Text(AppLocalizations.of(context)!.viewPlans),
           ),
         ],
       ),
@@ -1223,7 +1228,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Upgrade Plan'),
+            child: Text(AppLocalizations.of(context)!.upgradePlan),
           ),
         ],
       ),

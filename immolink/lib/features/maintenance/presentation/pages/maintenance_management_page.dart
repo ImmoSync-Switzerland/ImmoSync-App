@@ -116,31 +116,54 @@ class _MaintenanceManagementPageState
       BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xF2EA580C), // Orange #EA580C @ 95%
+            Color(0xD9DC2626), // Red #DC2626 @ 85%
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.filterRequests,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: colors.textPrimary,
-              inherit: true,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.filter_list,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                l10n.filterRequests,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -207,22 +230,41 @@ class _MaintenanceManagementPageState
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: colors.primaryBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.borderLight),
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: DropdownButtonFormField<String>(
-        initialValue: value,
+        value: value,
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,
-          labelStyle: TextStyle(color: colors.textSecondary, inherit: true),
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+          labelStyle: TextStyle(
+            color: colors.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            inherit: true,
+          ),
         ),
         items: items,
         onChanged: onChanged,
-        dropdownColor: colors.surfaceCards,
-        style: TextStyle(color: colors.textPrimary, inherit: true),
+        dropdownColor: Colors.white,
+        isDense: true,
+        style: TextStyle(
+          color: colors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          inherit: true,
+        ),
       ),
     );
   }
@@ -326,13 +368,13 @@ class _MaintenanceManagementPageState
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -342,7 +384,7 @@ class _MaintenanceManagementPageState
           onTap: () {
             context.push('/maintenance/${request.id}');
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(

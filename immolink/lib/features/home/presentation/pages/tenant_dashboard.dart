@@ -645,27 +645,9 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               size: 20,
             ),
           ),
-          suffixIcon: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colors.surfaceSecondary.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                _showFilterDialog();
-              },
-              icon: Icon(
-                Icons.filter_list_outlined,
-                color: colors.textSecondary,
-                size: 18,
-              ),
-            ),
-          ),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         ),
         style: TextStyle(
           color: colors.textPrimary,

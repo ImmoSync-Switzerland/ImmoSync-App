@@ -18,6 +18,7 @@ class InvitationCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
     final statusColor = _getStatusColor(invitation.status);
     final isExpired = invitation.expiresAt != null &&
@@ -71,7 +72,7 @@ class InvitationCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isLandlord ? 'Invitation Sent' : 'Property Invitation',
+                        isLandlord ? l10n.invitationSent : l10n.propertyInvitation,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -82,8 +83,8 @@ class InvitationCard extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         isLandlord
-                            ? 'To ${invitation.tenantName ?? "Unknown Tenant"} • ${invitation.propertyAddress ?? "Property"}'
-                            : 'From ${invitation.landlordName ?? "Landlord"}',
+                            ? l10n.toTenant(invitation.tenantName ?? l10n.unknownTenant, invitation.propertyAddress ?? l10n.properties)
+                            : l10n.fromLandlord(invitation.landlordName ?? l10n.landlord),
                         style: TextStyle(
                           fontSize: 14,
                           color: colors.textSecondary,
@@ -105,7 +106,7 @@ class InvitationCard extends ConsumerWidget {
                     ),
                   ),
                   child: Text(
-                    _getStatusText(invitation.status).toUpperCase(),
+                    _getStatusText(invitation.status, l10n).toUpperCase(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -150,7 +151,7 @@ class InvitationCard extends ConsumerWidget {
                           if (invitation.propertyRent != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Rent: \$${invitation.propertyRent!.toStringAsFixed(0)}/${AppLocalizations.of(context)!.monthlyInterval}',
+                              '${l10n.rent}: \$${invitation.propertyRent!.toStringAsFixed(0)}/${l10n.monthlyInterval}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: colors.textSecondary,
@@ -190,7 +191,7 @@ class InvitationCard extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Message',
+                          l10n.messageLabel,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -221,7 +222,7 @@ class InvitationCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    _getDateText(),
+                    _getDateText(l10n),
                     style: TextStyle(
                       fontSize: 12,
                       color: colors.textSecondary,
@@ -233,13 +234,13 @@ class InvitationCard extends ConsumerWidget {
                     invitation.status == 'pending' &&
                     !isExpired) ...[
                   _buildActionButton(
-                    'Decline',
+                    l10n.decline,
                     const Color(0xFFEF4444),
                     () => _respondToInvitation(context, ref, 'declined'),
                   ),
                   const SizedBox(width: 8),
                   _buildActionButton(
-                    'Accept',
+                    l10n.accept,
                     const Color(0xFF10B981),
                     () => _respondToInvitation(context, ref, 'accepted'),
                   ),
@@ -269,7 +270,7 @@ class InvitationCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'This invitation has expired',
+                      l10n.invitationExpired,
                       style: TextStyle(
                         fontSize: 12,
                         color: const Color(0xFFF59E0B),
@@ -327,38 +328,38 @@ class InvitationCard extends ConsumerWidget {
     }
   }
 
-  String _getStatusText(String status) {
+  String _getStatusText(String status, AppLocalizations l10n) {
     switch (status) {
       case 'accepted':
-        return 'Accepted';
+        return l10n.invitationAccepted;
       case 'declined':
-        return 'Declined';
+        return l10n.invitationDeclined;
       case 'pending':
       default:
-        return 'Pending';
+        return l10n.invitationPending;
     }
   }
 
-  String _getDateText() {
+  String _getDateText(AppLocalizations l10n) {
     if (invitation.acceptedAt != null) {
-      return 'Accepted ${_formatDate(invitation.acceptedAt!)}';
+      return '${l10n.acceptedOn} ${_formatDate(invitation.acceptedAt!, l10n)}';
     } else if (invitation.declinedAt != null) {
-      return 'Declined ${_formatDate(invitation.declinedAt!)}';
+      return '${l10n.declinedOn} ${_formatDate(invitation.declinedAt!, l10n)}';
     } else {
-      return 'Received ${_formatDate(invitation.createdAt)}';
+      return '${l10n.receivedOn} ${_formatDate(invitation.createdAt, l10n)}';
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, AppLocalizations l10n) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return l10n.minutesAgo(difference.inMinutes);
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
+      return l10n.hoursAgo(difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return l10n.daysAgo(difference.inDays);
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

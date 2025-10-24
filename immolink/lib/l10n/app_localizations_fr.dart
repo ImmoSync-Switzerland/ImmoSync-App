@@ -525,7 +525,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get description => 'Description';
 
   @override
-  String get amenities => 'Commodités';
+  String get amenities => 'Équipements';
 
   @override
   String get balcony => 'Balcon';
@@ -1182,7 +1182,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Invitation acceptée avec succès !';
 
   @override
-  String get invitationDeclined => 'Invitation refusée.';
+  String get invitationDeclined => 'Refusée';
 
   @override
   String get failedToRespondInvitation => 'Échec de la réponse à l\'invitation';
@@ -1418,7 +1418,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les options de filtrage seront implémentées';
 
   @override
-  String get imagesSelected => 'Image(s) sélectionnée(s)';
+  String imagesSelected(Object count) {
+    return '$count image(s) sélectionnée(s)';
+  }
 
   @override
   String get noImagesSelected => 'Aucune image sélectionnée';
@@ -1987,14 +1989,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String daysAgo(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Il y a $count jours',
-      one: 'Il y a 1 jour',
-    );
-    return '$_temp0';
+  String daysAgo(Object days) {
+    return 'Il y a ${days}j';
   }
 
   @override
@@ -2456,4 +2452,227 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get noAppToOpenFile =>
       'Aucune application trouvée pour ouvrir ce fichier';
+
+  @override
+  String get subscriptionStatus => 'Statut';
+
+  @override
+  String get subscriptionMonthlyAmount => 'Montant mensuel';
+
+  @override
+  String get subscriptionYearlyCost => 'Coût annuel';
+
+  @override
+  String get subscriptionMonthlyCost => 'Coût mensuel';
+
+  @override
+  String get subscriptionNextBilling => 'Prochaine facturation';
+
+  @override
+  String get subscriptionBillingInterval => 'Intervalle de facturation';
+
+  @override
+  String get subscriptionMySubscription => 'Mon abonnement';
+
+  @override
+  String get subscriptionActive => 'Actif';
+
+  @override
+  String get subscriptionPastDue => 'En retard';
+
+  @override
+  String get subscriptionCanceled => 'Annulé';
+
+  @override
+  String get subscriptionPaymentDue => 'Paiement dû !';
+
+  @override
+  String get subscriptionNextPayment => 'Prochain paiement';
+
+  @override
+  String subscriptionInDays(Object days) {
+    return 'Dans $days jours';
+  }
+
+  @override
+  String get subscriptionToday => 'Aujourd\'hui';
+
+  @override
+  String get subscriptionOverdue => 'En retard';
+
+  @override
+  String get subscriptionMemberSince => 'Membre depuis';
+
+  @override
+  String get subscriptionMonthly => 'Mensuel';
+
+  @override
+  String get subscriptionYearly => 'Annuel';
+
+  @override
+  String get noActiveSubscription => 'Aucun abonnement actif';
+
+  @override
+  String get noActiveSubscriptionLandlord =>
+      'Abonnez-vous pour débloquer les fonctionnalités premium et gérer vos propriétés plus efficacement.';
+
+  @override
+  String get noActiveSubscriptionTenant =>
+      'Abonnez-vous pour accéder à toutes les fonctionnalités et profiter d\'une expérience sans faille.';
+
+  @override
+  String get tenantPayments => 'Paiements des locataires';
+
+  @override
+  String get totalOutstanding => 'Total en suspens';
+
+  @override
+  String get pendingPayments => 'Paiements en attente';
+
+  @override
+  String get overduePayments => 'En retard (>30 jours)';
+
+  @override
+  String get noTenantsYetMessage =>
+      'Ajoutez des locataires à vos propriétés pour suivre leurs paiements d\'abonnement.';
+
+  @override
+  String get invitationSent => 'Invitation envoyée';
+
+  @override
+  String get propertyInvitation => 'Invitation de propriété';
+
+  @override
+  String toTenant(Object tenantName, Object propertyAddress) {
+    return 'À $tenantName • $propertyAddress';
+  }
+
+  @override
+  String fromLandlord(Object landlordName) {
+    return 'De $landlordName';
+  }
+
+  @override
+  String get unknownTenant => 'Locataire inconnu';
+
+  @override
+  String get invitationAccepted => 'Acceptée';
+
+  @override
+  String get invitationPending => 'En attente';
+
+  @override
+  String get messageLabel => 'Message';
+
+  @override
+  String get decline => 'Refuser';
+
+  @override
+  String get accept => 'Accepter';
+
+  @override
+  String get invitationExpired => 'Cette invitation a expiré';
+
+  @override
+  String acceptedOn(Object date) {
+    return 'Acceptée le $date';
+  }
+
+  @override
+  String declinedOn(Object date) {
+    return 'Refusée le $date';
+  }
+
+  @override
+  String receivedOn(Object date) {
+    return 'Reçue le $date';
+  }
+
+  @override
+  String get justNow => 'à l\'instant';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return 'Il y a ${minutes}m';
+  }
+
+  @override
+  String hoursAgo(Object hours) {
+    return 'Il y a ${hours}h';
+  }
+
+  @override
+  String get imageRemoved => 'Image supprimée';
+
+  @override
+  String get upgradePlan => 'Mettre à niveau le plan';
+
+  @override
+  String get editProperty => 'Modifier la propriété';
+
+  @override
+  String get newProperty => 'Nouvelle propriété';
+
+  @override
+  String get addPropertyDetails =>
+      'Ajoutez les détails de la propriété pour commencer';
+
+  @override
+  String get updatePropertyDetails =>
+      'Mettez à jour les détails de votre propriété';
+
+  @override
+  String get streetAddress => 'Adresse';
+
+  @override
+  String get city => 'Ville';
+
+  @override
+  String get postalCode => 'Code postal';
+
+  @override
+  String get images => 'Images';
+
+  @override
+  String get addressRequired => 'L\'adresse est requise';
+
+  @override
+  String get cityRequired => 'La ville est requise';
+
+  @override
+  String get postalCodeRequired => 'Le code postal est requis';
+
+  @override
+  String get rentRequired => 'Le loyer est requis';
+
+  @override
+  String get sizeRequired => 'La taille est requise';
+
+  @override
+  String get roomsRequired => 'Les pièces sont requises';
+
+  @override
+  String get updatingProperty => 'Mise à jour de la propriété...';
+
+  @override
+  String get creatingProperty => 'Création de la propriété...';
+
+  @override
+  String get selectAmenities => 'Sélectionner les équipements';
+
+  @override
+  String get addPhotos => 'Ajouter des photos';
+
+  @override
+  String get selectPhotosDescription =>
+      'Sélectionnez des photos pour présenter votre propriété';
+
+  @override
+  String get tapToUploadImages => 'Appuyez pour télécharger des images';
+
+  @override
+  String get saveProperty => 'Enregistrer la propriété';
+
+  @override
+  String get updateProperty => 'Mettre à jour la propriété';
 }

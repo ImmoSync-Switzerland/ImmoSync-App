@@ -1158,7 +1158,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Invitation accepted successfully!';
 
   @override
-  String get invitationDeclined => 'Invitation declined.';
+  String get invitationDeclined => 'Declined';
 
   @override
   String get failedToRespondInvitation => 'Failed to respond to invitation';
@@ -1387,7 +1387,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Filter options will be implemented';
 
   @override
-  String get imagesSelected => 'image(s) selected';
+  String imagesSelected(Object count) {
+    return '$count image(s) selected';
+  }
 
   @override
   String get noImagesSelected => 'No images selected';
@@ -1946,14 +1948,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daysAgo(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count days ago',
-      one: '1 day ago',
-    );
-    return '$_temp0';
+  String daysAgo(Object days) {
+    return '${days}d ago';
   }
 
   @override
@@ -2410,4 +2406,225 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noAppToOpenFile => 'No app found to open this file';
+
+  @override
+  String get subscriptionStatus => 'Status';
+
+  @override
+  String get subscriptionMonthlyAmount => 'Monthly Amount';
+
+  @override
+  String get subscriptionYearlyCost => 'Yearly Cost';
+
+  @override
+  String get subscriptionMonthlyCost => 'Monthly Cost';
+
+  @override
+  String get subscriptionNextBilling => 'Next Billing';
+
+  @override
+  String get subscriptionBillingInterval => 'Billing Interval';
+
+  @override
+  String get subscriptionMySubscription => 'My Subscription';
+
+  @override
+  String get subscriptionActive => 'Active';
+
+  @override
+  String get subscriptionPastDue => 'Past Due';
+
+  @override
+  String get subscriptionCanceled => 'Canceled';
+
+  @override
+  String get subscriptionPaymentDue => 'Payment Due!';
+
+  @override
+  String get subscriptionNextPayment => 'Next Payment';
+
+  @override
+  String subscriptionInDays(Object days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get subscriptionToday => 'Today';
+
+  @override
+  String get subscriptionOverdue => 'Overdue';
+
+  @override
+  String get subscriptionMemberSince => 'Member Since';
+
+  @override
+  String get subscriptionMonthly => 'Monthly';
+
+  @override
+  String get subscriptionYearly => 'Yearly';
+
+  @override
+  String get noActiveSubscription => 'No Active Subscription';
+
+  @override
+  String get noActiveSubscriptionLandlord =>
+      'Subscribe to unlock premium features and manage your properties more efficiently.';
+
+  @override
+  String get noActiveSubscriptionTenant =>
+      'Subscribe to access all features and enjoy a seamless experience.';
+
+  @override
+  String get tenantPayments => 'Tenant Payments';
+
+  @override
+  String get totalOutstanding => 'Total Outstanding';
+
+  @override
+  String get pendingPayments => 'Pending Payments';
+
+  @override
+  String get overduePayments => 'Overdue (>30 days)';
+
+  @override
+  String get noTenantsYetMessage =>
+      'Add tenants to your properties to track their subscription payments.';
+
+  @override
+  String get invitationSent => 'Invitation Sent';
+
+  @override
+  String get propertyInvitation => 'Property Invitation';
+
+  @override
+  String toTenant(Object tenantName, Object propertyAddress) {
+    return 'To $tenantName • $propertyAddress';
+  }
+
+  @override
+  String fromLandlord(Object landlordName) {
+    return 'From $landlordName';
+  }
+
+  @override
+  String get unknownTenant => 'Unknown Tenant';
+
+  @override
+  String get invitationAccepted => 'Accepted';
+
+  @override
+  String get invitationPending => 'Pending';
+
+  @override
+  String get messageLabel => 'Message';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get invitationExpired => 'This invitation has expired';
+
+  @override
+  String acceptedOn(Object date) {
+    return 'Accepted $date';
+  }
+
+  @override
+  String declinedOn(Object date) {
+    return 'Declined $date';
+  }
+
+  @override
+  String receivedOn(Object date) {
+    return 'Received $date';
+  }
+
+  @override
+  String get justNow => 'just now';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String hoursAgo(Object hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String get imageRemoved => 'Image removed';
+
+  @override
+  String get upgradePlan => 'Upgrade Plan';
+
+  @override
+  String get editProperty => 'Edit Property';
+
+  @override
+  String get newProperty => 'New Property';
+
+  @override
+  String get addPropertyDetails => 'Add property details to get started';
+
+  @override
+  String get updatePropertyDetails => 'Update your property details';
+
+  @override
+  String get streetAddress => 'Street Address';
+
+  @override
+  String get city => 'City';
+
+  @override
+  String get postalCode => 'Postal Code';
+
+  @override
+  String get images => 'Images';
+
+  @override
+  String get addressRequired => 'Address is required';
+
+  @override
+  String get cityRequired => 'City is required';
+
+  @override
+  String get postalCodeRequired => 'Postal code is required';
+
+  @override
+  String get rentRequired => 'Rent is required';
+
+  @override
+  String get sizeRequired => 'Size is required';
+
+  @override
+  String get roomsRequired => 'Rooms are required';
+
+  @override
+  String get updatingProperty => 'Updating property...';
+
+  @override
+  String get creatingProperty => 'Creating property...';
+
+  @override
+  String get selectAmenities => 'Select amenities';
+
+  @override
+  String get addPhotos => 'Add Photos';
+
+  @override
+  String get selectPhotosDescription =>
+      'Select photos to showcase your property';
+
+  @override
+  String get tapToUploadImages => 'Tap to upload images';
+
+  @override
+  String get saveProperty => 'Save Property';
+
+  @override
+  String get updateProperty => 'Update Property';
 }

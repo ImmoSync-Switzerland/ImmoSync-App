@@ -2313,7 +2313,7 @@ abstract class AppLocalizations {
   /// No description provided for @invitationDeclined.
   ///
   /// In en, this message translates to:
-  /// **'Invitation declined.'**
+  /// **'Declined'**
   String get invitationDeclined;
 
   /// No description provided for @failedToRespondInvitation.
@@ -2763,8 +2763,8 @@ abstract class AppLocalizations {
   /// No description provided for @imagesSelected.
   ///
   /// In en, this message translates to:
-  /// **'image(s) selected'**
-  String get imagesSelected;
+  /// **'{count} image(s) selected'**
+  String imagesSelected(Object count);
 
   /// No description provided for @noImagesSelected.
   ///
@@ -3783,8 +3783,8 @@ abstract class AppLocalizations {
   /// No description provided for @daysAgo.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
-  String daysAgo(num count);
+  /// **'{days}d ago'**
+  String daysAgo(Object days);
 
   /// No description provided for @weeksAgo.
   ///
@@ -4583,6 +4583,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No app found to open this file'**
   String get noAppToOpenFile;
+
+  /// No description provided for @subscriptionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get subscriptionStatus;
+
+  /// No description provided for @subscriptionMonthlyAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Amount'**
+  String get subscriptionMonthlyAmount;
+
+  /// No description provided for @subscriptionYearlyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly Cost'**
+  String get subscriptionYearlyCost;
+
+  /// No description provided for @subscriptionMonthlyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Cost'**
+  String get subscriptionMonthlyCost;
+
+  /// No description provided for @subscriptionNextBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Billing'**
+  String get subscriptionNextBilling;
+
+  /// No description provided for @subscriptionBillingInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing Interval'**
+  String get subscriptionBillingInterval;
+
+  /// No description provided for @subscriptionMySubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'My Subscription'**
+  String get subscriptionMySubscription;
+
+  /// No description provided for @subscriptionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get subscriptionActive;
+
+  /// No description provided for @subscriptionPastDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Past Due'**
+  String get subscriptionPastDue;
+
+  /// No description provided for @subscriptionCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Canceled'**
+  String get subscriptionCanceled;
+
+  /// No description provided for @subscriptionPaymentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Due!'**
+  String get subscriptionPaymentDue;
+
+  /// No description provided for @subscriptionNextPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Payment'**
+  String get subscriptionNextPayment;
+
+  /// No description provided for @subscriptionInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {days} days'**
+  String subscriptionInDays(Object days);
+
+  /// No description provided for @subscriptionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get subscriptionToday;
+
+  /// No description provided for @subscriptionOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get subscriptionOverdue;
+
+  /// No description provided for @subscriptionMemberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member Since'**
+  String get subscriptionMemberSince;
+
+  /// No description provided for @subscriptionMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get subscriptionMonthly;
+
+  /// No description provided for @subscriptionYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get subscriptionYearly;
+
+  /// No description provided for @noActiveSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'No Active Subscription'**
+  String get noActiveSubscription;
+
+  /// No description provided for @noActiveSubscriptionLandlord.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to unlock premium features and manage your properties more efficiently.'**
+  String get noActiveSubscriptionLandlord;
+
+  /// No description provided for @noActiveSubscriptionTenant.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to access all features and enjoy a seamless experience.'**
+  String get noActiveSubscriptionTenant;
+
+  /// No description provided for @tenantPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Payments'**
+  String get tenantPayments;
+
+  /// No description provided for @totalOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Outstanding'**
+  String get totalOutstanding;
+
+  /// No description provided for @pendingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Payments'**
+  String get pendingPayments;
+
+  /// No description provided for @overduePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue (>30 days)'**
+  String get overduePayments;
+
+  /// No description provided for @noTenantsYetMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tenants to your properties to track their subscription payments.'**
+  String get noTenantsYetMessage;
+
+  /// No description provided for @invitationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation Sent'**
+  String get invitationSent;
+
+  /// No description provided for @propertyInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Invitation'**
+  String get propertyInvitation;
+
+  /// No description provided for @toTenant.
+  ///
+  /// In en, this message translates to:
+  /// **'To {tenantName} • {propertyAddress}'**
+  String toTenant(Object tenantName, Object propertyAddress);
+
+  /// No description provided for @fromLandlord.
+  ///
+  /// In en, this message translates to:
+  /// **'From {landlordName}'**
+  String fromLandlord(Object landlordName);
+
+  /// No description provided for @unknownTenant.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Tenant'**
+  String get unknownTenant;
+
+  /// No description provided for @invitationAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get invitationAccepted;
+
+  /// No description provided for @invitationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get invitationPending;
+
+  /// No description provided for @messageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messageLabel;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get decline;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @invitationExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation has expired'**
+  String get invitationExpired;
+
+  /// No description provided for @acceptedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted {date}'**
+  String acceptedOn(Object date);
+
+  /// No description provided for @declinedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined {date}'**
+  String declinedOn(Object date);
+
+  /// No description provided for @receivedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Received {date}'**
+  String receivedOn(Object date);
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String minutesAgo(Object minutes);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String hoursAgo(Object hours);
+
+  /// No description provided for @imageRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Image removed'**
+  String get imageRemoved;
+
+  /// No description provided for @upgradePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade Plan'**
+  String get upgradePlan;
+
+  /// No description provided for @editProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Property'**
+  String get editProperty;
+
+  /// No description provided for @newProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'New Property'**
+  String get newProperty;
+
+  /// No description provided for @addPropertyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add property details to get started'**
+  String get addPropertyDetails;
+
+  /// No description provided for @updatePropertyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your property details'**
+  String get updatePropertyDetails;
+
+  /// No description provided for @streetAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Street Address'**
+  String get streetAddress;
+
+  /// No description provided for @city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get city;
+
+  /// No description provided for @postalCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal Code'**
+  String get postalCode;
+
+  /// No description provided for @images.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get images;
+
+  /// No description provided for @addressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Address is required'**
+  String get addressRequired;
+
+  /// No description provided for @cityRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'City is required'**
+  String get cityRequired;
+
+  /// No description provided for @postalCodeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal code is required'**
+  String get postalCodeRequired;
+
+  /// No description provided for @rentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent is required'**
+  String get rentRequired;
+
+  /// No description provided for @sizeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Size is required'**
+  String get sizeRequired;
+
+  /// No description provided for @roomsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms are required'**
+  String get roomsRequired;
+
+  /// No description provided for @updatingProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating property...'**
+  String get updatingProperty;
+
+  /// No description provided for @creatingProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating property...'**
+  String get creatingProperty;
+
+  /// No description provided for @selectAmenities.
+  ///
+  /// In en, this message translates to:
+  /// **'Select amenities'**
+  String get selectAmenities;
+
+  /// No description provided for @addPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photos'**
+  String get addPhotos;
+
+  /// No description provided for @selectPhotosDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Select photos to showcase your property'**
+  String get selectPhotosDescription;
+
+  /// No description provided for @tapToUploadImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload images'**
+  String get tapToUploadImages;
+
+  /// No description provided for @saveProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Property'**
+  String get saveProperty;
+
+  /// No description provided for @updateProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Property'**
+  String get updateProperty;
 }
 
 class _AppLocalizationsDelegate

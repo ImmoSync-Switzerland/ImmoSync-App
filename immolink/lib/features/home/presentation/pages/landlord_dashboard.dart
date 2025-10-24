@@ -403,52 +403,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               size: 20,
             ),
           ),
-          suffixIcon: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: _propertyFilter != 'all'
-                  ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
-                  : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
-              border: _propertyFilter != 'all'
-                  ? Border.all(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.3))
-                  : null,
-            ),
-            child: Stack(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    _showFilterDialog(context);
-                  },
-                  icon: Icon(
-                    Icons.filter_list_outlined,
-                    color: _propertyFilter != 'all'
-                        ? const Color(0xFF3B82F6)
-                        : const Color(0xFF64748B),
-                    size: 18,
-                  ),
-                ),
-                if (_propertyFilter != 'all')
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         ),
         style: TextStyle(
           color: const Color(0xFF0F172A),

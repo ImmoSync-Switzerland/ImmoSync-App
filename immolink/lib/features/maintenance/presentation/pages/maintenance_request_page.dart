@@ -103,7 +103,7 @@ class _MaintenanceRequestPageState
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header with Glassmorphism
+            // Custom Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -111,16 +111,12 @@ class _MaintenanceRequestPageState
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: colors.surfaceCards,
+                      color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 1,
-                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: colors.shadowColor,
-                          blurRadius: 10,
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -140,7 +136,7 @@ class _MaintenanceRequestPageState
                       'Maintenance Request',
                       style: TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                         color: colors.textPrimary,
                       ),
                     ),
@@ -156,46 +152,39 @@ class _MaintenanceRequestPageState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Header Card with Glassmorphism
+                    // Header Card with Orange/Red Gradient
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: colors.surfaceCards,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: colors.borderLight,
-                          width: 1,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xF2EA580C), // Orange #EA580C @ 95%
+                            Color(0xD9DC2626), // Red #DC2626 @ 85%
+                          ],
                         ),
+                        borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: colors.shadowColor,
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 20,
-                            offset: const Offset(0, 4),
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  colors.primaryAccent.withValues(alpha: 0.1),
-                                  colors.primaryAccent.withValues(alpha: 0.05),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color:
-                                    colors.primaryAccent.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.build_circle_outlined,
-                              color: colors.primaryAccent,
-                              size: 24,
+                              color: Colors.white,
+                              size: 32,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -203,20 +192,21 @@ class _MaintenanceRequestPageState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Submit Request',
                                   style: TextStyle(
                                     fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: colors.textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Describe your maintenance issue',
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: colors.textSecondary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withValues(alpha: 0.85),
                                   ),
                                 ),
                               ],
@@ -227,21 +217,17 @@ class _MaintenanceRequestPageState
                     ),
                     const SizedBox(height: 24),
 
-                    // Form Card with Glassmorphism
+                    // Form Card with White Background
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: colors.surfaceCards,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: colors.borderLight,
-                          width: 1,
-                        ),
+                        color: Colors.white.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: colors.shadowColor,
+                            color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 20,
-                            offset: const Offset(0, 4),
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
@@ -570,19 +556,20 @@ class _MaintenanceRequestPageState
                             // Submit Button
                             Container(
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                   colors: [
-                                    colors.primaryAccent,
-                                    colors.primaryAccent.withValues(alpha: 0.8),
+                                    Color(0xF2EA580C), // Orange #EA580C @ 95%
+                                    Color(0xD9DC2626), // Red #DC2626 @ 85%
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colors.primaryAccent
-                                        .withValues(alpha: 0.3),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 4),
+                                    color: const Color(0x4DEA580C),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
                                   ),
                                 ],
                               ),
@@ -592,16 +579,16 @@ class _MaintenanceRequestPageState
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
                                   padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                                      const EdgeInsets.symmetric(vertical: 18),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                 ),
                                 child: const Text(
                                   'Submit Request',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w800,
                                     color: Colors.white,
                                   ),
                                 ),

@@ -7,6 +7,7 @@ import 'package:immosync/features/auth/presentation/providers/user_role_provider
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
+import 'package:immosync/features/subscription/presentation/providers/subscription_providers.dart';
 import 'package:immosync/core/widgets/common_bottom_nav.dart';
 import 'package:immosync/core/providers/currency_provider.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
@@ -106,8 +107,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   late Animation<double> _fadeAnimation;
   // Period selector removed
   // Track visibility for staggered section animations
-  // Expanded to 7 to allow unique indices across landlord & tenant variants
-  final List<bool> _sectionVisible = List<bool>.filled(6, false);
+  // Expanded to 7 sections to accommodate subscription analytics
+  // Set first section visible by default to avoid blank page on load
+  final List<bool> _sectionVisible = [true, false, false, false, false, false, false];
   bool _visibilityInitialized = false;
   final revenueRangeProvider = StateProvider<int>((ref) => 6);
 
@@ -846,7 +848,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         if (!_visibilityInitialized && info.visibleFraction > 0.1) {
           _visibilityInitialized = true;
         }
-        if (info.visibleFraction > 0.35 && !_sectionVisible[index]) {
+        if (info.visibleFraction > 0.1 && 
+            index < _sectionVisible.length && 
+            !_sectionVisible[index]) {
           setState(() => _sectionVisible[index] = true);
         }
       },
@@ -909,8 +913,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         _animatedSection(
             4, _buildMaintenanceOverview(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
+        _animatedSection(5, _buildSubscriptionOverviewLandlord(ref, l10n, colors)),
+        const SizedBox(height: 24),
         _animatedSection(
-            5, _buildRevenueChart(properties, payments, ref, l10n, colors)),
+            6, _buildRevenueChart(properties, payments, ref, l10n, colors)),
       ],
     );
   }
@@ -930,7 +936,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         _animatedSection(3,
             _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-        _animatedSection(4, _buildPaymentHistory(payments, ref, l10n, colors)),
+        _animatedSection(4, _buildSubscriptionOverviewTenant(ref, l10n, colors)),
+        const SizedBox(height: 24),
+        _animatedSection(5, _buildPaymentHistory(payments, ref, l10n, colors)),
       ],
     );
   }
@@ -1314,6 +1322,508 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, __) => Text(l10n.errorLoadingMaintenanceData,
                 style: const TextStyle(color: Colors.white70)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Subscription Overview for Landlord
+  Widget _buildSubscriptionOverviewLandlord(
+      WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
+    final userSubscription = ref.watch(userSubscriptionProvider);
+    final properties = ref.watch(landlordPropertiesProvider);
+
+    return userSubscription.when(
+      data: (subscription) {
+        if (subscription == null) {
+          return _buildNoSubscriptionCard(l10n, colors, isLandlord: true);
+        }
+
+        final isActive = subscription.status == 'active';
+        final isPastDue = subscription.status == 'past_due';
+        final isCanceled = subscription.status == 'canceled';
+        
+        return Column(
+          children: [
+            // Landlord's own subscription
+            Container(
+              padding: const EdgeInsets.all(26),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFFEA580C).withValues(alpha: 0.95),
+                    const Color(0xFFDC2626).withValues(alpha: 0.85),
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(Icons.credit_card,
+                            color: Colors.white, size: 32),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.subscriptionMySubscription,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -0.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildFinancialMetric(
+                          l10n.subscriptionStatus,
+                          isActive ? l10n.subscriptionActive : (isPastDue ? l10n.subscriptionPastDue : isCanceled ? l10n.subscriptionCanceled : subscription.status.toUpperCase()),
+                          isActive ? Icons.check_circle : (isPastDue ? Icons.warning : Icons.cancel),
+                          isActive ? colors.success : (isPastDue ? colors.warning : colors.error),
+                          colors),
+                      const SizedBox(height: 22),
+                      _buildFinancialMetric(
+                          l10n.subscriptionMonthlyAmount,
+                          _formatCurrency(subscription.amount),
+                          Icons.payments,
+                          const Color(0xFFEA580C),
+                          colors),
+                      const SizedBox(height: 22),
+                      _buildFinancialMetric(
+                          l10n.subscriptionNextBilling,
+                          DateFormat('dd.MM.yyyy').format(subscription.nextBillingDate),
+                          Icons.calendar_today,
+                          const Color(0xFF3B82F6),
+                          colors),
+                      const SizedBox(height: 22),
+                      _buildFinancialMetric(
+                          l10n.subscriptionBillingInterval,
+                          subscription.billingInterval == 'month' ? l10n.subscriptionMonthly : l10n.subscriptionYearly,
+                          Icons.repeat,
+                          colors.textSecondary,
+                          colors),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Tenant payments overview
+            properties.when(
+              data: (propertyList) {
+                // Get all tenant IDs from properties
+                final allTenantIds = <String>{};
+                for (final property in propertyList) {
+                  allTenantIds.addAll(property.tenantIds);
+                }
+                
+                if (allTenantIds.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(26),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(32),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colors.textSecondary.withValues(alpha: 0.15),
+                          colors.textSecondary.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      border: Border.all(color: colors.borderLight),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colors.textSecondary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(Icons.people_outline,
+                              color: colors.textSecondary, size: 32),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.noTenantsYet,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: colors.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.noTenantsYetMessage,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return _buildTenantPaymentsCard(allTenantIds, colors, ref, l10n);
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+          ],
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFFEA580C).withValues(alpha: 0.95),
+              const Color(0xFFDC2626).withValues(alpha: 0.85),
+            ],
+          ),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      ),
+      error: (_, __) => _buildNoSubscriptionCard(l10n, colors, isLandlord: true),
+    );
+  }
+
+  Widget _buildTenantPaymentsCard(Set<String> tenantIds, DynamicAppColors colors, WidgetRef ref, AppLocalizations l10n) {
+    // Note: This would require a backend endpoint to fetch tenant subscriptions
+    // For now, we'll show a simplified version with property payment data
+    final payments = ref.watch(landlordPaymentsProvider);
+    
+    return payments.when(
+      data: (paymentsList) {
+        final tenantPayments = paymentsList.where((p) => tenantIds.contains(p.tenantId)).toList();
+        final overduePayments = tenantPayments.where((p) => 
+          p.status == 'pending' && 
+          p.date.isBefore(DateTime.now().subtract(const Duration(days: 30)))
+        ).toList();
+        final pendingPayments = tenantPayments.where((p) => p.status == 'pending').toList();
+        final totalOutstanding = pendingPayments.fold<double>(0, (sum, p) => sum + p.amount);
+        
+        return Container(
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF3B82F6).withValues(alpha: 0.95),
+                const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.people,
+                        color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.tenantPayments,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.6,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildFinancialMetric(
+                      l10n.totalOutstanding,
+                      _formatCurrency(totalOutstanding),
+                      Icons.account_balance_wallet,
+                      totalOutstanding > 0 ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.pendingPayments,
+                      pendingPayments.length.toString(),
+                      Icons.hourglass_empty,
+                      const Color(0xFFF59E0B),
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.overduePayments,
+                      overduePayments.length.toString(),
+                      Icons.warning,
+                      overduePayments.isNotEmpty ? const Color(0xFFDC2626) : const Color(0xFF10B981),
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.activeTenants,
+                      tenantIds.length.toString(),
+                      Icons.people_outline,
+                      const Color(0xFF3B82F6),
+                      colors),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF3B82F6).withValues(alpha: 0.95),
+              const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+            ],
+          ),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }  // Subscription Overview for Tenant
+  Widget _buildSubscriptionOverviewTenant(
+      WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
+    final userSubscription = ref.watch(userSubscriptionProvider);
+
+    return userSubscription.when(
+      data: (subscription) {
+        if (subscription == null) {
+          return _buildNoSubscriptionCard(l10n, colors, isLandlord: false);
+        }
+
+        final isActive = subscription.status == 'active';
+        final isPastDue = subscription.status == 'past_due';
+        final isCanceled = subscription.status == 'canceled';
+        final daysUntilBilling = subscription.nextBillingDate.difference(DateTime.now()).inDays;
+        
+        return Container(
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFFEA580C).withValues(alpha: 0.95),
+                const Color(0xFFDC2626).withValues(alpha: 0.85),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFEA580C).withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.credit_card,
+                        color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.subscriptionMySubscription,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.6,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildFinancialMetric(
+                      l10n.subscriptionStatus,
+                      isActive ? l10n.subscriptionActive : (isPastDue ? l10n.subscriptionPaymentDue : isCanceled ? l10n.subscriptionCanceled : subscription.status.toUpperCase()),
+                      isActive ? Icons.check_circle : (isPastDue ? Icons.warning : Icons.cancel),
+                      isActive ? colors.success : (isPastDue ? colors.error : colors.textSecondary),
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      subscription.billingInterval == 'month' ? l10n.subscriptionMonthlyCost : l10n.subscriptionYearlyCost,
+                      _formatCurrency(subscription.amount),
+                      Icons.payments,
+                      const Color(0xFFEA580C),
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.subscriptionNextPayment,
+                      daysUntilBilling > 0
+                          ? l10n.subscriptionInDays(daysUntilBilling.toString())
+                          : (daysUntilBilling == 0 ? l10n.subscriptionToday : l10n.subscriptionOverdue),
+                      Icons.calendar_today,
+                      daysUntilBilling >= 7 ? colors.success : (daysUntilBilling >= 0 ? colors.warning : colors.error),
+                      colors),
+                  const SizedBox(height: 22),
+                  _buildFinancialMetric(
+                      l10n.subscriptionMemberSince,
+                      DateFormat('MMM yyyy').format(subscription.startDate),
+                      Icons.schedule,
+                      colors.textSecondary,
+                      colors),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFFEA580C).withValues(alpha: 0.95),
+              const Color(0xFFDC2626).withValues(alpha: 0.85),
+            ],
+          ),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      ),
+      error: (_, __) => _buildNoSubscriptionCard(l10n, colors, isLandlord: false),
+    );
+  }
+
+  Widget _buildNoSubscriptionCard(
+      AppLocalizations l10n, DynamicAppColors colors, {required bool isLandlord}) {
+    return Container(
+      padding: const EdgeInsets.all(26),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.textSecondary.withValues(alpha: 0.15),
+            colors.textSecondary.withValues(alpha: 0.08),
+          ],
+        ),
+        border: Border.all(
+          color: colors.borderLight,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors.textSecondary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.credit_card_off,
+              color: colors.textSecondary,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.noActiveSubscription,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: colors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            isLandlord
+                ? l10n.noActiveSubscriptionLandlord
+                : l10n.noActiveSubscriptionTenant,
+            style: TextStyle(
+              fontSize: 14,
+              color: colors.textSecondary,
+              height: 1.5,
+            ),
           ),
         ],
       ),
