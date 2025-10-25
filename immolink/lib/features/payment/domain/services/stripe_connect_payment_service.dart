@@ -1,10 +1,37 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 
 /// Service for handling Stripe Connect payments between tenants and landlords
 class StripeConnectPaymentService {
   final String _apiUrl = DbConfig.apiUrl;
+  final Ref? _ref;
+
+  StripeConnectPaymentService({Ref? ref}) : _ref = ref;
+
+  /// Get headers with authorization token if available
+  Map<String, String> _getHeaders() {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (_ref != null) {
+      try {
+        final auth = _ref.read(authProvider);
+        final token = auth.sessionToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+          print('[StripeConnect] Using auth token: ${token.substring(0, 20)}...');
+        } else {
+          print('[StripeConnect][WARN] No auth token available');
+        }
+      } catch (e) {
+        print('[StripeConnect][ERROR] Could not get auth token: $e');
+      }
+    } else {
+      print('[StripeConnect][WARN] No Ref provided, cannot include auth token');
+    }
+    return headers;
+  }
 
   /// Create a Stripe Connect account for a landlord
   Future<StripeConnectAccount> createConnectAccount({
@@ -14,9 +41,13 @@ class StripeConnectPaymentService {
     Map<String, dynamic>? additionalInfo,
   }) async {
     try {
+      final url = '$_apiUrl/connect/create-account';
+      print('[StripeConnect] Creating account at: $url');
+      print('[StripeConnect] Payload: landlordId=$landlordId, email=$email, businessType=${businessType ?? 'individual'}');
+      
       final response = await http.post(
-        Uri.parse('$_apiUrl/connect/create-account'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(url),
+        headers: _getHeaders(),
         body: json.encode({
           'landlordId': landlordId,
           'email': email,
@@ -25,14 +56,20 @@ class StripeConnectPaymentService {
         }),
       );
 
+      print('[StripeConnect] Response status: ${response.statusCode}');
+      print('[StripeConnect] Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         return StripeConnectAccount.fromJson(data);
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to create Connect account');
+        final errorMessage = error['message'] ?? error['error'] ?? 'Failed to create Connect account';
+        print('[StripeConnect][ERROR] API Error: $errorMessage');
+        throw Exception(errorMessage);
       }
     } catch (e) {
+      print('[StripeConnect][ERROR] Exception: $e');
       throw Exception('Error creating Connect account: $e');
     }
   }
@@ -40,20 +77,28 @@ class StripeConnectPaymentService {
   /// Get the Stripe Connect account details for a landlord
   Future<StripeConnectAccount> getConnectAccount(String landlordId) async {
     try {
+      final url = '$_apiUrl/connect/account/$landlordId';
+      print('[StripeConnect] Getting account from: $url');
+      
       final response = await http.get(
-        Uri.parse('$_apiUrl/connect/account/$landlordId'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(url),
+        headers: _getHeaders(),
       );
+
+      print('[StripeConnect] Get account response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return StripeConnectAccount.fromJson(data);
       } else if (response.statusCode == 404) {
+        print('[StripeConnect] No account found for landlord $landlordId');
         throw Exception('No Connect account found for this landlord');
       } else {
+        print('[StripeConnect][ERROR] Failed to get account: ${response.body}');
         throw Exception('Failed to get Connect account');
       }
     } catch (e) {
+      print('[StripeConnect][ERROR] Exception getting account: $e');
       throw Exception('Error getting Connect account: $e');
     }
   }
@@ -65,9 +110,13 @@ class StripeConnectPaymentService {
     String? returnUrl,
   }) async {
     try {
+      final url = '$_apiUrl/connect/create-onboarding-link';
+      print('[StripeConnect] Creating onboarding link at: $url');
+      print('[StripeConnect] AccountId: $accountId');
+      
       final response = await http.post(
-        Uri.parse('$_apiUrl/connect/create-onboarding-link'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(url),
+        headers: _getHeaders(),
         body: json.encode({
           'accountId': accountId,
           'refreshUrl': refreshUrl ?? '${DbConfig.apiUrl}/refresh',
@@ -75,13 +124,18 @@ class StripeConnectPaymentService {
         }),
       );
 
+      print('[StripeConnect] Onboarding link response status: ${response.statusCode}');
+      print('[StripeConnect] Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['url'];
       } else {
+        print('[StripeConnect][ERROR] Failed to create onboarding link: ${response.body}');
         throw Exception('Failed to create onboarding link');
       }
     } catch (e) {
+      print('[StripeConnect][ERROR] Exception creating onboarding link: $e');
       throw Exception('Error creating onboarding link: $e');
     }
   }

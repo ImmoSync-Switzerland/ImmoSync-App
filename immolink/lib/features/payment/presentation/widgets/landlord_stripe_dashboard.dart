@@ -4,6 +4,7 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 import 'package:immosync/features/payment/domain/services/stripe_connect_payment_service.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Widget for landlords to manage their Stripe Connect payments
 class LandlordStripeConnectDashboard extends ConsumerWidget {
@@ -426,25 +427,56 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
 
     final notifier = ref.read(stripeConnectNotifierProvider.notifier);
 
-    // First, create or get the Connect account
-    final account = await notifier.createConnectAccount(
-      landlordId: user.id,
-      email: user.email,
-    );
-
-    if (account != null) {
-      // Generate onboarding link
-      final onboardingUrl = await notifier.createOnboardingLink(
-        accountId: account.accountId,
-        refreshUrl: 'immosync://stripe-refresh',
-        returnUrl: 'immosync://stripe-return',
+    try {
+      // First, create or get the Connect account
+      final account = await notifier.createConnectAccount(
+        landlordId: user.id,
+        email: user.email,
       );
 
-      if (onboardingUrl != null && context.mounted) {
-        // TODO: Open onboarding URL in browser or WebView
+      if (!context.mounted) return;
+
+      if (account != null) {
+        // Generate onboarding link
+        final onboardingUrl = await notifier.createOnboardingLink(
+          accountId: account.accountId,
+          refreshUrl: 'immosync://stripe-refresh',
+          returnUrl: 'immosync://stripe-return',
+        );
+
+        if (!context.mounted) return;
+
+        if (onboardingUrl != null) {
+          // Open onboarding URL in browser
+          final uri = Uri.parse(onboardingUrl);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Opening Stripe Connect setup...'),
+                ),
+              );
+            }
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Could not open browser'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Opening Stripe Connect setup...'),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
           ),
         );
       }

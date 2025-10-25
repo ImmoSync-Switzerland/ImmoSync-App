@@ -78,7 +78,13 @@ class _AnimatedValueState extends State<_AnimatedValue>
               text =
                   '${match.group(0)} ${current.toStringAsFixed(current >= 1000 ? 0 : 2)}';
             } else {
-              text = current.toStringAsFixed(current >= 1000 ? 0 : 2);
+              // For integers (like maintenance count), show without decimals
+              // Check if target is a whole number
+              if (target == target.roundToDouble()) {
+                text = current.toStringAsFixed(0);
+              } else {
+                text = current.toStringAsFixed(current >= 1000 ? 0 : 2);
+              }
             }
           }
         } else {
@@ -640,42 +646,40 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     required Color color,
     required double minWidth,
   }) {
-    return _HoverScale(
-      onTap: () => _showCardDetail(label),
-      child: FocusableActionDetector(
-        mouseCursor: SystemMouseCursors.click,
-        onShowFocusHighlight: (_) => setState(() {}),
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: Container(
-            constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  color.withValues(alpha: 0.65),
-                  color.withValues(alpha: 0.35),
-                ],
-              ),
-              border:
-                  Border.all(color: color.withValues(alpha: 0.65), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                    color: color.withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5))
+    // Remove _HoverScale and onTap to make cards non-clickable
+    return FocusableActionDetector(
+      mouseCursor: SystemMouseCursors.basic, // Changed from click to basic cursor
+      onShowFocusHighlight: (_) => setState(() {}),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        child: Container(
+          constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.65),
+                color.withValues(alpha: 0.35),
               ],
             ),
-            child: asyncValue.when(
-              data: (data) =>
-                  _kpiContent(label, valueBuilder(data), icon, color),
-              loading: () => _kpiShimmer(label, icon, color),
-              error: (_, __) => _kpiError(label, icon, color),
-            ),
+            border:
+                Border.all(color: color.withValues(alpha: 0.65), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                  color: color.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5))
+            ],
+          ),
+          child: asyncValue.when(
+            data: (data) =>
+                _kpiContent(label, valueBuilder(data), icon, color),
+            loading: () => _kpiShimmer(label, icon, color),
+            error: (_, __) => _kpiError(label, icon, color),
           ),
         ),
       ),

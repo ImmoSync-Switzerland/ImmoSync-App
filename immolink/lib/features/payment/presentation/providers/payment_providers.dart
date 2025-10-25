@@ -88,7 +88,7 @@ final paymentNotifierProvider =
 /// Provider for the Stripe Connect payment service
 final stripeConnectPaymentServiceProvider =
     Provider<StripeConnectPaymentService>((ref) {
-  return StripeConnectPaymentService();
+  return StripeConnectPaymentService(ref: ref);
 });
 
 /// Provider for landlord's Stripe Connect account
@@ -307,7 +307,7 @@ class StripeConnectNotifier extends StateNotifier<AsyncValue<String?>> {
 }
 
 final stripeConnectNotifierProvider =
-    StateNotifierProvider.autoDispose<StripeConnectNotifier, AsyncValue<String?>>(
+    StateNotifierProvider<StripeConnectNotifier, AsyncValue<String?>>(
         (ref) {
   final service = ref.watch(stripeConnectPaymentServiceProvider);
   return StripeConnectNotifier(service);

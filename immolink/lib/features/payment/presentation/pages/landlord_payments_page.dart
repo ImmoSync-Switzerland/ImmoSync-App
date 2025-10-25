@@ -930,6 +930,9 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
     if (user == null) return;
 
     final notifier = ref.read(stripeConnectNotifierProvider.notifier);
+    
+    // Store mounted state and context before async operations
+    if (!mounted) return;
 
     try {
       // Show loading
@@ -945,9 +948,13 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         email: user.email,
       );
 
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
       if (account == null) {
-        if (mounted) Navigator.of(context).pop();
-        _showErrorSnackBar('Failed to create account');
+        if (mounted) {
+          _showErrorSnackBar('Failed to create Stripe account. Please check your internet connection and try again.');
+        }
         return;
       }
 
@@ -958,7 +965,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         returnUrl: 'immosync://stripe-return',
       );
 
-      if (mounted) Navigator.of(context).pop();
+      if (!mounted) return;
 
       if (onboardingUrl != null) {
         // Try to launch URL
@@ -975,15 +982,31 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
             );
           }
         } else {
-          _showErrorSnackBar('Could not open browser');
+          if (mounted) _showErrorSnackBar('Could not open browser');
         }
       } else {
-        _showErrorSnackBar('Failed to create onboarding link');
+        if (mounted) _showErrorSnackBar('Failed to create onboarding link. Please try again.');
       }
     } catch (e) {
+      print('[LandlordPayments] Error in _startOnboarding: $e');
       if (mounted) {
-        Navigator.of(context).pop();
-        _showErrorSnackBar('Error: $e');
+        // Try to close loading dialog
+        try {
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (_) {}
+        
+        // Show user-friendly error message
+        String errorMsg = 'Setup failed. Please try again.';
+        if (e.toString().contains('Failed to host lookup') || 
+            e.toString().contains('SocketException')) {
+          errorMsg = 'Network error. Please check your internet connection.';
+        } else if (e.toString().contains('timeout')) {
+          errorMsg = 'Request timeout. Please try again.';
+        } else if (e.toString().contains('404')) {
+          errorMsg = 'Service not available. Please contact support.';
+        }
+        
+        _showErrorSnackBar(errorMsg);
       }
     }
   }
@@ -998,7 +1021,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
       builder: (context) => _buildPayoutDialog(balance),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     setState(() {
       _isRequestingPayout = true;
@@ -1012,6 +1035,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         currency: balance.currency,
         description: 'Payout request',
       );
+
+      if (!mounted) return;
 
       if (payout != null) {
         ref.invalidate(landlordBalanceProvider);
@@ -1028,10 +1053,10 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           );
         }
       } else {
-        _showErrorSnackBar('Failed to create payout');
+        if (mounted) _showErrorSnackBar('Failed to create payout');
       }
     } catch (e) {
-      _showErrorSnackBar('Error: $e');
+      if (mounted) _showErrorSnackBar('Error: $e');
     } finally {
       if (mounted) {
         setState(() {
