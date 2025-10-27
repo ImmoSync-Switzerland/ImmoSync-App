@@ -959,10 +959,11 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
       }
 
       // Generate onboarding link
+      // Note: Stripe requires HTTP/HTTPS URLs, not deep links
       final onboardingUrl = await notifier.createOnboardingLink(
         accountId: account.accountId,
-        refreshUrl: 'immosync://stripe-refresh',
-        returnUrl: 'immosync://stripe-return',
+        refreshUrl: 'https://immosync.ch/connect/refresh',
+        returnUrl: 'https://immosync.ch/connect/return',
       );
 
       if (!mounted) return;

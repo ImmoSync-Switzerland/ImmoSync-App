@@ -21,6 +21,7 @@ import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_frb_events_adapter.dart';
+import 'package:immosync/core/services/deep_link_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:immosync/frb_generated.dart';
@@ -178,6 +179,13 @@ class ImmoSync extends ConsumerWidget {
   const ImmoSync({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize deep link service
+    final deepLinkService = ref.watch(deepLinkServiceProvider);
+    // Initialize on first build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      deepLinkService.initialize(ref);
+    });
+    
     // Start FCM service side effects and keep instance (skip on Windows)
     if (defaultTargetPlatform != TargetPlatform.windows) {
       final fcm = ref.watch(fcmServiceProvider);

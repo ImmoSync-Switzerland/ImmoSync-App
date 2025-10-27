@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
@@ -8,6 +9,7 @@ import 'package:immosync/features/payment/domain/services/payment_service.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 
 class PaymentHistoryPage extends ConsumerStatefulWidget {
   const PaymentHistoryPage({super.key});
@@ -17,15 +19,15 @@ class PaymentHistoryPage extends ConsumerStatefulWidget {
 }
 
 class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
-  String _selectedStatus = 'All';
-  String _selectedType = 'All';
+  String? _selectedStatus;
+  String? _selectedType;
   final PaymentService _paymentService = PaymentService();
 
   List<Payment> _filterPayments(List<Payment> payments) {
     return payments.where((payment) {
       bool statusMatch =
-          _selectedStatus == 'All' || payment.status == _selectedStatus;
-      bool typeMatch = _selectedType == 'All' || payment.type == _selectedType;
+          _selectedStatus == null || payment.status == _selectedStatus;
+      bool typeMatch = _selectedType == null || payment.type == _selectedType;
       return statusMatch && typeMatch;
     }).toList();
   }
@@ -149,7 +151,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         : ref.watch(tenantPaymentsProvider);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           'Payment History',
@@ -159,131 +162,154 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: colors.surfaceCards,
-        foregroundColor: colors.textPrimary,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: colors.textPrimary, size: 20),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colors.primaryBackground,
+              colors.surfaceSecondary,
+            ],
+          ),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFilterOptions(context, colors),
-            const SizedBox(height: 24),
+            SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight + 8),
             Expanded(
-              child: paymentsAsync.when(
-                data: (paymentsList) {
-                  final filteredPayments = _filterPayments(paymentsList);
-                  if (filteredPayments.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.payment_outlined,
-                            size: 64,
-                            color: colors.textTertiary,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No payment history found',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Your payment history will appear here once you make your first payment.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colors.textSecondary,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(colors),
+                    const SizedBox(height: 20),
+                    _buildFilterOptions(context, colors),
+                    const SizedBox(height: 24),
+                    Expanded(
+                      child: paymentsAsync.when(
+                        data: (paymentsList) {
+                          final filteredPayments = _filterPayments(paymentsList);
+                          if (filteredPayments.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.payment_outlined,
+                                    size: 64,
+                                    color: colors.textTertiary,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No payment history found',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: colors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Your payment history will appear here once you make your first payment.',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: colors.textSecondary,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
 
-                  return ListView.builder(
-                    itemCount: filteredPayments.length,
-                    itemBuilder: (context, index) {
-                      return _buildPaymentCard(
-                          context, filteredPayments[index], colors);
-                    },
-                  );
-                },
-                loading: () => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              colors.primaryAccent),
-                          strokeWidth: 2.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Loading payment history...',
-                        style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                error: (error, stack) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: colors.error),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error loading payment history',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        error.toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          ref.invalidate(currentUser?.role == 'landlord'
-                              ? landlordPaymentsProvider
-                              : tenantPaymentsProvider);
+                          return ListView.builder(
+                            itemCount: filteredPayments.length,
+                            itemBuilder: (context, index) {
+                              return _buildPaymentCard(
+                                  context, filteredPayments[index], colors);
+                            },
+                          );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colors.primaryAccent,
-                          foregroundColor: colors.textOnAccent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        loading: () => Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      colors.primaryAccent),
+                                  strokeWidth: 2.5,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Loading payment history...',
+                                style: TextStyle(
+                                  color: colors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.retry),
+                        error: (error, stack) => Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline, size: 48, color: colors.error),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error loading payment history',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                error.toString(),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: colors.textSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ref.invalidate(currentUser?.role == 'landlord'
+                                      ? landlordPaymentsProvider
+                                      : tenantPaymentsProvider);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colors.primaryAccent,
+                                  foregroundColor: colors.textOnAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(AppLocalizations.of(context)!.retry),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -293,142 +319,239 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildFilterOptions(BuildContext context, DynamicAppColors colors) {
+  Widget _buildHeader(DynamicAppColors colors) {
     return Container(
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2E7D32), // Dunkleres Grün
+            Color(0xFF66BB6A), // Helleres Grün
+          ],
         ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Filter Payments',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
+            child: Icon(
+              Icons.history_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colors.primaryBackground,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 1,
-                      ),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedStatus,
-                      decoration: InputDecoration(
-                        labelText: 'Status',
-                        labelStyle: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: 14,
-                      ),
-                      dropdownColor: colors.surfaceCards,
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(
-                            value: 'pending', child: Text('Pending')),
-                        DropdownMenuItem(
-                            value: 'completed', child: Text('Completed')),
-                        DropdownMenuItem(
-                            value: 'failed', child: Text('Failed')),
-                        DropdownMenuItem(
-                            value: 'refunded', child: Text('Refunded')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedStatus = value;
-                          });
-                        }
-                      },
-                    ),
+                Text(
+                  'Payment History',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colors.primaryBackground,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 1,
-                      ),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedType,
-                      decoration: InputDecoration(
-                        labelText: 'Type',
-                        labelStyle: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: 14,
-                      ),
-                      dropdownColor: colors.surfaceCards,
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(value: 'rent', child: Text('Rent')),
-                        DropdownMenuItem(
-                            value: 'deposit', child: Text('Deposit')),
-                        DropdownMenuItem(value: 'fee', child: Text('Fee')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedType = value;
-                          });
-                        }
-                      },
-                    ),
+                const SizedBox(height: 4),
+                Text(
+                  'Track all your transactions',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterOptions(BuildContext context, DynamicAppColors colors) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colors.surfaceCards,
+            colors.surfaceCards.withValues(alpha: 0.7),
           ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colors.borderLight.withValues(alpha: 0.5),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor.withValues(alpha: 0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.filter_list_rounded,
+                color: colors.textPrimary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Filter Payments',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Status',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: colors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildFilterChip('All', null, colors),
+              _buildFilterChip('Completed', 'completed', colors),
+              _buildFilterChip('Pending', 'pending', colors),
+              _buildFilterChip('Failed', 'failed', colors),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Type',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: colors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildFilterChip('All Types', null, colors, isTypeFilter: true),
+              _buildFilterChip('Rent', 'rent', colors, isTypeFilter: true),
+              _buildFilterChip('Maintenance', 'maintenance', colors, isTypeFilter: true),
+              _buildFilterChip('Other', 'other', colors, isTypeFilter: true),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(
+    String label,
+    String? value,
+    DynamicAppColors colors, {
+    bool isTypeFilter = false,
+  }) {
+    final isSelected = isTypeFilter
+        ? _selectedType == value
+        : _selectedStatus == value;
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() {
+          if (isTypeFilter) {
+            _selectedType = value;
+          } else {
+            _selectedStatus = value;
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    Color(0xFF2E7D32), // Dunkleres Grün
+                    Color(0xFF66BB6A), // Helleres Grün
+                  ],
+                )
+              : null,
+          color: isSelected ? null : colors.surfaceCards,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Color(0xFF2E7D32)
+                : colors.borderLight,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.white : colors.textSecondary,
+          ),
         ),
       ),
     );
+  }
+
+  IconData _getPaymentTypeIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return Icons.home_rounded;
+      case 'maintenance':
+        return Icons.build_rounded;
+      case 'deposit':
+        return Icons.account_balance_rounded;
+      case 'fee':
+        return Icons.receipt_long_rounded;
+      default:
+        return Icons.payment_rounded;
+    }
   }
 
   Widget _buildPaymentCard(
@@ -439,23 +562,23 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     switch (payment.status) {
       case 'pending':
         statusColor = colors.warning;
-        statusIcon = Icons.hourglass_empty;
+        statusIcon = Icons.hourglass_empty_rounded;
         break;
       case 'completed':
         statusColor = colors.success;
-        statusIcon = Icons.check_circle;
+        statusIcon = Icons.check_circle_rounded;
         break;
       case 'failed':
         statusColor = colors.error;
-        statusIcon = Icons.cancel;
+        statusIcon = Icons.cancel_rounded;
         break;
       case 'refunded':
         statusColor = colors.info;
-        statusIcon = Icons.replay;
+        statusIcon = Icons.replay_rounded;
         break;
       default:
         statusColor = colors.textTertiary;
-        statusIcon = Icons.help_outline;
+        statusIcon = Icons.help_outline_rounded;
     }
 
     final currencyFormat = NumberFormat.currency(symbol: 'CHF ');
@@ -463,27 +586,35 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.surfaceCards,
+            colors.surfaceCards.withValues(alpha: 0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colors.borderLight,
+          color: colors.borderLight.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: colors.shadowColor.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: InkWell(
         onTap: () {
+          HapticFeedback.lightImpact();
           _showPaymentDetails(context, payment);
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -491,12 +622,37 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      payment.type.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                statusColor.withValues(alpha: 0.2),
+                                statusColor.withValues(alpha: 0.1),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _getPaymentTypeIcon(payment.type),
+                            color: statusColor,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            payment.type.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Container(

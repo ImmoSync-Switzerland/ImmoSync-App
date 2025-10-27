@@ -132,6 +132,7 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
             ),
           ),
           child: SafeArea(
+            bottom: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.horizontalPadding),
@@ -191,49 +192,54 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
 
                   // Right: Notification bell
                   if (widget.showNotification)
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        IconButton(
-                          key: _bellKey,
-                          onPressed: widget.onNotificationTap ?? _togglePopup,
-                          icon: Icon(
-                            popupVisible
-                                ? Icons.notifications
-                                : Icons.notifications_outlined,
-                            size: AppSizes.iconMedium,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? AppColorsDark.textPrimary
-                                    : AppColors.textPrimary,
+                    SizedBox(
+                      width: AppSizes.iconMedium + 16,
+                      height: AppSizes.iconMedium + 16,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          IconButton(
+                            key: _bellKey,
+                            onPressed: widget.onNotificationTap ?? _togglePopup,
+                            padding: EdgeInsets.zero,
+                            icon: Icon(
+                              popupVisible
+                                  ? Icons.notifications
+                                  : Icons.notifications_outlined,
+                              size: AppSizes.iconMedium,
+                              color:
+                                  Theme.of(context).brightness == Brightness.dark
+                                      ? AppColorsDark.textPrimary
+                                      : AppColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        if (unreadCount > 0)
-                          Positioned(
-                            right: 6,
-                            top: 6,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              constraints: const BoxConstraints(minWidth: 18),
-                              child: Text(
-                                unreadCount > 99
-                                    ? '99+'
-                                    : unreadCount.toString(),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                          if (unreadCount > 0)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                constraints: const BoxConstraints(minWidth: 18),
+                                child: Text(
+                                  unreadCount > 99
+                                      ? '99+'
+                                      : unreadCount.toString(),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                 ],
               ),

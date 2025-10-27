@@ -7,6 +7,8 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../domain/services/connect_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../property/presentation/providers/property_providers.dart';
 
 class AutoPaymentSetupPage extends ConsumerStatefulWidget {
   const AutoPaymentSetupPage({super.key});
@@ -20,6 +22,9 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   String _selectedPaymentMethod = 'bank';
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  String? _landlordId;
+  String? _tenantId;
+  String? _propertyId;
 
   // Form controllers
   final _bankAccountController = TextEditingController();
@@ -28,6 +33,35 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   final _expiryController = TextEditingController();
   final _cvvController = TextEditingController();
   final _cardHolderController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTenantData();
+  }
+
+  Future<void> _loadTenantData() async {
+    try {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser == null) return;
+      
+      _tenantId = currentUser.id;
+      
+      // Get tenant's property to find landlord
+      final propertiesAsync = ref.read(tenantPropertiesProvider);
+      propertiesAsync.whenData((properties) {
+        if (properties.isNotEmpty) {
+          final property = properties.first;
+          setState(() {
+            _landlordId = property.landlordId;
+            _propertyId = property.id;
+          });
+        }
+      });
+    } catch (e) {
+      print('[AutoPayment] Error loading tenant data: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -46,27 +80,41 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     final colors = ref.watch(dynamicColorsProvider);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppBar(l10n, colors),
       bottomNavigationBar: const CommonBottomNav(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(l10n, colors),
-                const SizedBox(height: 32),
-                _buildPaymentMethodSelector(l10n, colors),
-                const SizedBox(height: 24),
-                _buildPaymentForm(l10n, colors),
-                const SizedBox(height: 32),
-                _buildSetupButton(l10n, colors),
-                const SizedBox(height: 24),
-                _buildSecurityNote(l10n, colors),
-              ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colors.primaryBackground,
+              colors.surfaceSecondary,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(l10n, colors),
+                  const SizedBox(height: 32),
+                  _buildPaymentMethodSelector(l10n, colors),
+                  const SizedBox(height: 24),
+                  _buildPaymentForm(l10n, colors),
+                  const SizedBox(height: 32),
+                  _buildSetupButton(l10n, colors),
+                  const SizedBox(height: 24),
+                  _buildSecurityNote(l10n, colors),
+                  const SizedBox(height: 100), // Extra padding for bottom nav
+                ],
+              ),
             ),
           ),
         ),
@@ -77,7 +125,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   PreferredSizeWidget _buildAppBar(
       AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       leading: IconButton(
@@ -107,17 +155,16 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart,
+            Color(0xFF2E7D32), // Dunkleres Grün
+            Color(0xFF66BB6A), // Helleres Grün
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderLight),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -127,42 +174,76 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.success.withValues(alpha: 0.2),
-                      colors.success.withValues(alpha: 0.1),
-                    ],
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
                   ),
-                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.payment_outlined,
-                  color: colors.success,
-                  size: 24,
+                  Icons.payment_rounded,
+                  color: Colors.white,
+                  size: 28,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text(
-                  'Automatic Payments',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Automatic Payments',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Never miss a rent payment',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Set up automatic rent payments to never miss a due date. Your payment information is encrypted and secure.',
-            style: TextStyle(
-              fontSize: 14,
-              color: colors.textSecondary,
-              height: 1.4,
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.security_rounded,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Encrypted & secure payment processing',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.95),
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -220,62 +301,76 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         HapticFeedback.lightImpact();
         setState(() => _selectedPaymentMethod = value);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: isSelected
                 ? [
-                    colors.primaryAccent.withValues(alpha: 0.1),
-                    colors.primaryAccent.withValues(alpha: 0.05)
+                    Color(0xFF2E7D32), // Dunkleres Grün
+                    Color(0xFF66BB6A), // Helleres Grün
                   ]
-                : [colors.surfaceCards, colors.surfaceCards],
+                : [
+                    colors.surfaceCards,
+                    colors.surfaceCards.withValues(alpha: 0.8)
+                  ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? colors.primaryAccent : colors.borderLight,
+            color: isSelected 
+                ? Color(0xFF2E7D32)
+                : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: colors.shadowColor,
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: isSelected
+                  ? Color(0xFF2E7D32).withValues(alpha: 0.4)
+                  : colors.shadowColor.withValues(alpha: 0.1),
+              blurRadius: isSelected ? 16 : 8,
+              offset: Offset(0, isSelected ? 6 : 3),
             ),
           ],
         ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? colors.primaryAccent.withValues(alpha: 0.1)
-                    : colors.textSecondary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: isSelected 
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : colors.textSecondary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? colors.primaryAccent : colors.textSecondary,
-                size: 24,
+                color: isSelected 
+                    ? Colors.white
+                    : colors.textSecondary,
+                size: 28,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
+                color: isSelected ? Colors.white : colors.textPrimary,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: colors.textSecondary,
+                color: isSelected 
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -451,34 +546,57 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   }
 
   Widget _buildSetupButton(AppLocalizations l10n, DynamicAppColors colors) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF2E7D32), // Dunkleres Grün
+            Color(0xFF66BB6A), // Helleres Grün
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _isLoading ? null : () => _setupAutoPayment(l10n, colors),
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.primaryAccent,
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          elevation: 0,
         ),
         child: _isLoading
             ? const SizedBox(
-                height: 20,
-                width: 20,
+                height: 24,
+                width: 24,
                 child: CircularProgressIndicator(
                   color: Colors.white,
-                  strokeWidth: 2,
+                  strokeWidth: 2.5,
                 ),
               )
-            : Text(
-                'Set Up Auto Payment',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle_outline_rounded, size: 22),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Set Up Auto Payment',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
       ),
     );
@@ -565,14 +683,28 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
       AppLocalizations l10n, DynamicAppColors colors) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    // Check if we have landlord information
+    if (_landlordId == null) {
+      _showErrorDialog(
+        context,
+        colors,
+        'Unable to setup payment: No property or landlord information found.',
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
 
     try {
-      // Create setup intent for recurring payments
+      // Create setup intent for recurring payments with landlord connection
       final connectService = ConnectService();
-      final setupResponse =
-          await connectService.createSetupIntent(_selectedPaymentMethod);
+      final setupResponse = await connectService.createSetupIntent(
+        paymentMethodType: _selectedPaymentMethod,
+        landlordId: _landlordId!,
+        tenantId: _tenantId,
+        propertyId: _propertyId,
+      );
 
       if (setupResponse['client_secret'] == null) {
         throw Exception('Failed to create setup intent');

@@ -639,6 +639,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               HapticFeedback.mediumImpact();
               context.push('/add-property');
             },
+            isFullWidth: true,
           ),
           const SizedBox(height: 12),
           Row(
@@ -652,6 +653,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     HapticFeedback.mediumImpact();
                     context.push('/conversations');
                   },
+                  isFullWidth: false,
                 ),
               ),
               const SizedBox(width: 12),
@@ -664,6 +666,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     HapticFeedback.mediumImpact();
                     context.push('/reports');
                   },
+                  isFullWidth: false,
                 ),
               ),
             ],
@@ -680,6 +683,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     HapticFeedback.mediumImpact();
                     context.push('/maintenance/manage');
                   },
+                  isFullWidth: false,
                 ),
               ),
               const SizedBox(width: 12),
@@ -692,19 +696,40 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                     HapticFeedback.mediumImpact();
                     context.push('/tenants');
                   },
+                  isFullWidth: false,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildQuickAccessButton(
-            AppLocalizations.of(context)!.payments,
-            Icons.account_balance_wallet_outlined,
-            const Color(0xFF10B981),
-            () {
-              HapticFeedback.mediumImpact();
-              context.push('/landlord/payments');
-            },
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickAccessButton(
+                  AppLocalizations.of(context)!.payments,
+                  Icons.account_balance_wallet_outlined,
+                  const Color(0xFF10B981),
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/landlord/payments');
+                  },
+                  isFullWidth: false,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickAccessButton(
+                  AppLocalizations.of(context)!.documents,
+                  Icons.folder_outlined,
+                  const Color(0xFF8B5CF6),
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/landlord/documents');
+                  },
+                  isFullWidth: false,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -712,7 +737,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   }
 
   Widget _buildQuickAccessButton(
-      String label, IconData icon, Color iconColor, VoidCallback onPressed) {
+      String label, 
+      IconData icon, 
+      Color iconColor, 
+      VoidCallback onPressed,
+      {bool isFullWidth = false}) {
     final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
       onTap: onPressed,
@@ -729,43 +758,84 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+        child: isFullWidth
+            ? Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 22,
+                      color: iconColor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
+                        letterSpacing: -0.2,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: colors.textSecondary,
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 22,
+                      color: iconColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
+                      letterSpacing: -0.2,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: iconColor,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.2,
-                  height: 1.2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildSubscriptionAwareButton(
-      String label, IconData icon, Color iconColor, VoidCallback onPressed) {
+      String label, 
+      IconData icon, 
+      Color iconColor, 
+      VoidCallback onPressed,
+      {bool isFullWidth = false}) {
     final colors = ref.watch(dynamicColorsProvider);
     final subscriptionAsync = ref.watch(userSubscriptionProvider);
 
@@ -791,45 +861,119 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: hasActiveSubscription 
-                        ? iconColor.withValues(alpha: 0.1)
-                        : colors.textTertiary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
+            child: isFullWidth
+                ? Row(
                     children: [
-                      Icon(
-                        icon,
-                        size: 22,
-                        color: hasActiveSubscription
-                            ? iconColor
-                            : colors.textTertiary,
-                      ),
-                      if (!hasActiveSubscription)
-                        Positioned(
-                          top: -2,
-                          right: -2,
-                          child: Icon(
-                            Icons.lock,
-                            size: 12,
-                            color: colors.warning,
-                          ),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: hasActiveSubscription 
+                              ? iconColor.withValues(alpha: 0.1)
+                              : colors.textTertiary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              icon,
+                              size: 22,
+                              color: hasActiveSubscription
+                                  ? iconColor
+                                  : colors.textTertiary,
+                            ),
+                            if (!hasActiveSubscription)
+                              Positioned(
+                                top: -2,
+                                right: -2,
+                                child: Icon(
+                                  Icons.lock,
+                                  size: 12,
+                                  color: colors.warning,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: hasActiveSubscription
+                                    ? colors.textPrimary
+                                    : colors.textTertiary,
+                                letterSpacing: -0.2,
+                                height: 1.2,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (!hasActiveSubscription) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                AppLocalizations.of(context)!.subscriptionRequired,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: colors.warning,
+                                  letterSpacing: -0.1,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: hasActiveSubscription ? colors.textSecondary : colors.textTertiary,
+                      ),
                     ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  )
+                : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: hasActiveSubscription 
+                              ? iconColor.withValues(alpha: 0.1)
+                              : colors.textTertiary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              icon,
+                              size: 22,
+                              color: hasActiveSubscription
+                                  ? iconColor
+                                  : colors.textTertiary,
+                            ),
+                            if (!hasActiveSubscription)
+                              Positioned(
+                                top: -2,
+                                right: -2,
+                                child: Icon(
+                                  Icons.lock,
+                                  size: 12,
+                                  color: colors.warning,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         label,
                         style: TextStyle(
@@ -841,6 +985,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                           letterSpacing: -0.2,
                           height: 1.2,
                         ),
+                        textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -849,20 +994,18 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                         Text(
                           AppLocalizations.of(context)!.subscriptionRequired,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w500,
                             color: colors.warning,
                             letterSpacing: -0.1,
                           ),
+                          textAlign: TextAlign.center,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
       },
@@ -874,7 +1017,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         ),
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, __) => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}),
+      error: (_, __) => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}, isFullWidth: isFullWidth),
     );
   }
 

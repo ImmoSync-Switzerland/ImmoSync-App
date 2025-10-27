@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -85,43 +86,134 @@ class _TenantServicesBookingPageState
     final tenantPropertiesAsync = ref.watch(tenantPropertiesProvider);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(l10n.services),
-        backgroundColor: colors.surfaceCards,
+        backgroundColor: colors.surfaceCards.withValues(alpha: 0.95),
         foregroundColor: colors.textPrimary,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
-      body: tenantPropertiesAsync.when(
-        data: (properties) {
-          if (properties.isEmpty) {
-            return _buildNoPropertiesState(l10n, colors);
-          }
-
-          // Get unique landlord IDs from properties
-          final landlordIds =
-              properties.map((p) => p.landlordId).toSet().toList();
-
-          return _buildServicesView(landlordIds, l10n, colors);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: colors.error),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading properties',
-                style: TextStyle(fontSize: 18, color: colors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: TextStyle(fontSize: 14, color: colors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colors.primaryBackground,
+              colors.surfaceSecondary,
             ],
+          ),
+        ),
+        child: SafeArea(
+          child: tenantPropertiesAsync.when(
+            data: (properties) {
+              if (properties.isEmpty) {
+                return _buildNoPropertiesState(l10n, colors);
+              }
+
+              // Get unique landlord IDs from properties
+              final landlordIds =
+                  properties.map((p) => p.landlordId).toSet().toList();
+
+              return _buildServicesView(landlordIds, l10n, colors);
+            },
+            loading: () => Center(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: colors.surfaceCards.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.shadowColor,
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                        strokeWidth: 3,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.loading,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        inherit: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            error: (error, stack) => Center(
+              child: Container(
+                margin: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colors.surfaceCards.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: colors.borderLight,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.shadowColor,
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child:
+                          Icon(Icons.error_outline, size: 48, color: colors.error),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading properties',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
+                        inherit: true,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        inherit: true,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -168,15 +260,11 @@ class _TenantServicesBookingPageState
     // For now, get services from the first landlord
     // In a real implementation, you might want to combine services from all landlords
     final firstLandlordId = landlordIds.first;
-    print(
-        'TenantServices: Looking for services from landlordId: $firstLandlordId');
-    print('TenantServices: All landlord IDs: $landlordIds');
     final servicesAsync =
         ref.watch(tenantAvailableServicesProvider(firstLandlordId));
 
     return servicesAsync.when(
       data: (services) {
-        print('TenantServices: Received ${services.length} services from API');
         final tenantServices =
             services.map((s) => TenantService.fromServiceModel(s)).toList();
 
@@ -223,49 +311,65 @@ class _TenantServicesBookingPageState
 
   Widget _buildHeader(DynamicAppColors colors) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.primaryAccent,
+            colors.primaryAccent.withValues(alpha: 0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colors.primaryAccent.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.primaryAccent.withValues(alpha: 0.2),
-                      colors.primaryAccent.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.business_center_outlined,
-                  color: colors.primaryAccent,
-                  size: 18,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   'Available Services',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.',
             style: TextStyle(
-              fontSize: 12,
-              color: colors.textSecondary,
-              height: 1.3,
+              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.9),
+              height: 1.4,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -275,49 +379,63 @@ class _TenantServicesBookingPageState
 
   Widget _buildSearchAndFilter(AppLocalizations l10n, DynamicAppColors colors) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
           // Search bar
           Container(
             decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(10),
+              color: colors.surfaceCards.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: colors.borderLight),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.shadowColor,
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               decoration: InputDecoration(
                 hintText: 'Search services...',
-                hintStyle: TextStyle(color: colors.textTertiary),
-                prefixIcon:
-                    Icon(Icons.search, color: colors.textTertiary, size: 20),
+                hintStyle: TextStyle(
+                  color: colors.textTertiary,
+                  fontWeight: FontWeight.w500,
+                ),
+                prefixIcon: Icon(Icons.search, color: colors.primaryAccent, size: 22),
                 border: InputBorder.none,
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               ),
-              style: TextStyle(color: colors.textPrimary, inherit: true),
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                inherit: true,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           // Category filters
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _buildCategoryChip('all', 'All', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 _buildCategoryChip('maintenance', 'Maintenance', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 _buildCategoryChip('cleaning', 'Cleaning', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 _buildCategoryChip('repair', 'Repair', colors),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 _buildCategoryChip('general', 'General', colors),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -327,22 +445,46 @@ class _TenantServicesBookingPageState
       String category, String label, DynamicAppColors colors) {
     final isSelected = _selectedCategory == category;
     return GestureDetector(
-      onTap: () => setState(() => _selectedCategory = category),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() => _selectedCategory = category);
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? colors.primaryAccent : colors.surfaceCards,
-          borderRadius: BorderRadius.circular(20),
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    colors.primaryAccent,
+                    colors.primaryAccent.withValues(alpha: 0.8),
+                  ],
+                )
+              : null,
+          color: isSelected ? null : colors.surfaceCards.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected ? colors.primaryAccent : colors.borderLight,
+            color: isSelected
+                ? colors.primaryAccent
+                : colors.borderLight,
+            width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colors.primaryAccent.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : colors.textSecondary,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : colors.textPrimary,
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            letterSpacing: -0.2,
           ),
         ),
       ),
@@ -367,11 +509,11 @@ class _TenantServicesBookingPageState
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       itemCount: filteredServices.length,
       itemBuilder: (context, index) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: 16),
           child: _buildServiceCard(filteredServices[index], l10n, colors),
         );
       },
@@ -382,48 +524,47 @@ class _TenantServicesBookingPageState
       TenantService service, AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        color: colors.surfaceCards.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: colors.primaryAccent.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: colors.shadowColor,
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                       colors: [
                         colors.primaryAccent.withValues(alpha: 0.2),
                         colors.primaryAccent.withValues(alpha: 0.1),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colors.primaryAccent.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Icon(
                     service.icon,
                     color: colors.primaryAccent,
-                    size: 18,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,117 +574,148 @@ class _TenantServicesBookingPageState
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
                           color: colors.textPrimary,
+                          letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         service.provider,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: colors.success.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: colors.success.withValues(alpha: 0.3)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primaryAccent.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colors.borderLight,
+                ),
+              ),
+              child: Text(
+                service.description,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colors.textSecondary,
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: colors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.check_circle_outline,
+                          size: 16,
+                          color: colors.success,
+                        ),
                       ),
-                      child: Text(
-                        'CHF ${service.price.toStringAsFixed(0)}',
+                      const SizedBox(width: 8),
+                      Text(
+                        'Available',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: colors.success,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              service.description,
-              style: TextStyle(
-                fontSize: 12,
-                color: colors.textSecondary,
-                height: 1.3,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
-                            color: colors.textTertiary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Available',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 32,
-                  child: ElevatedButton(
-                    onPressed: service.isAvailable
-                        ? () => _showBookingDialog(context, service, colors)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: const Size(0, 32),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colors.success,
+                        colors.success.withValues(alpha: 0.8),
+                      ],
                     ),
-                    child: Text(
-                      'Book',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.success.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
+                    ],
+                  ),
+                  child: Text(
+                    'CHF ${service.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
                     ),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: service.isAvailable
+                    ? () {
+                        HapticFeedback.mediumImpact();
+                        _showBookingDialog(context, service, colors);
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colors.primaryAccent,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: colors.textTertiary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shadowColor: colors.primaryAccent.withValues(alpha: 0.3),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.calendar_today, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      service.isAvailable ? 'Book Service' : 'Unavailable',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

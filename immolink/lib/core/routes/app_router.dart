@@ -281,6 +281,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/contact-support',
         builder: (context, state) => const ContactSupportPage(),
       ),
+      // Contact Support route (alternative path)
+      GoRoute(
+        path: '/settings/contact-support',
+        builder: (context, state) => const ContactSupportPage(),
+      ),
       // Debug Matrix Logs routes - always available
       GoRoute(
         path: '/debug/matrix-logs',

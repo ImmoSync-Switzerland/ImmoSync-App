@@ -997,6 +997,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               context.push('/tenant/maintenance');
             },
             colors,
+            isFullWidth: true,
           ),
           const SizedBox(height: 12),
           _buildActionCard(
@@ -1008,6 +1009,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               context.push('/conversations');
             },
             colors,
+            isFullWidth: true,
           ),
           const SizedBox(height: 12),
           Row(
@@ -1079,6 +1081,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               context.push('/support-requests');
             },
             colors,
+            isFullWidth: true,
           ),
         ],
       ),
@@ -1086,11 +1089,14 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   }
 
   Widget _buildActionCard(String title, IconData icon, Color iconColor,
-      VoidCallback onTap, DynamicAppColors colors) {
+      VoidCallback onTap, DynamicAppColors colors, {bool isFullWidth = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(
+          horizontal: 16, 
+          vertical: isFullWidth ? 16 : 16,
+        ),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(20),
@@ -1102,37 +1108,72 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+        child: isFullWidth
+            ? Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 28,
+                      color: iconColor,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 18,
+                    color: colors.textSecondary,
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 28,
+                      color: iconColor,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              child: Icon(
-                icon,
-                size: 24,
-                color: iconColor,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.2,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

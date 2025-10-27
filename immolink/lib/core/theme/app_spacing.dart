@@ -34,7 +34,7 @@ class AppBorderRadius {
 
 class AppSizes {
   // Component heights from design specifications
-  static const double topAppBarHeight = 56.0;
+  static const double topAppBarHeight = 64.0;
   static const double searchBarHeight = 40.0;
   static const double buttonHeight = 48.0;
   static const double propertyCardImageHeight = 120.0;

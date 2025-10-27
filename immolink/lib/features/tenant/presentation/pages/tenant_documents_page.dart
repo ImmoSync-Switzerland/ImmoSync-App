@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../../l10n/app_localizations.dart';
@@ -24,6 +25,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   Map<String, int> _categoryCounts = {};
+  String? _selectedCategory; // null = all categories
 
   @override
   void initState() {
@@ -74,34 +76,49 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     final documentStats = ref.watch(documentStatsProvider);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppBar(l10n, colors),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colors.primaryBackground,
+              colors.surfaceSecondary,
+            ],
+          ),
+        ),
         child: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              ref.read(tenantDocumentsProvider.notifier).refresh();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildWelcomeSection(
-                      currentUser?.fullName ?? '', l10n, colors),
-                  const SizedBox(height: 24),
-                  _buildDocumentStats(documentStats, colors),
-                  const SizedBox(height: 32),
-                  _buildDocumentCategories(l10n, colors),
-                  const SizedBox(height: 24),
-                  _buildQuickActions(l10n, colors),
-                  const SizedBox(height: 24),
-                  _buildRecentDocuments(recentDocuments, l10n, colors),
-                  const SizedBox(height: 24),
-                  _buildAllDocuments(documentsAsync, l10n, colors),
-                ],
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.read(tenantDocumentsProvider.notifier).refresh();
+              },
+              color: colors.primaryAccent,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWelcomeSection(
+                        currentUser?.fullName ?? '', l10n, colors),
+                    const SizedBox(height: 24),
+                    _buildDocumentStats(documentStats, colors),
+                    const SizedBox(height: 32),
+                    _buildDocumentCategories(l10n, colors),
+                    const SizedBox(height: 24),
+                    _buildQuickActions(l10n, colors),
+                    const SizedBox(height: 24),
+                    _buildRecentDocuments(recentDocuments, l10n, colors),
+                    const SizedBox(height: 24),
+                    _buildAllDocuments(documentsAsync, l10n, colors),
+                    const SizedBox(height: 100), // Space for bottom nav
+                  ],
+                ),
               ),
             ),
           ),
@@ -114,7 +131,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   PreferredSizeWidget _buildAppBar(
       AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       title: Text(
         l10n.myDocuments,
@@ -141,47 +158,69 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colors.primaryAccent.withValues(alpha: 0.1),
-            colors.primaryAccent.withValues(alpha: 0.05),
+            Color(0xFFE3F2FD), // Light blue
+            Color(0xFFBBDEFB), // Lighter blue
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.folder_special,
-                color: colors.primaryAccent,
-                size: 32,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  l10n.welcomeUser((userName).isEmpty ? 'User' : userName),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2196F3), // Blue
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.folder_special,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome,',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: colors.textSecondary,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.tenantDocumentsIntro,
-            style: TextStyle(
-              fontSize: 16,
-              color: colors.textSecondary,
-              height: 1.4,
+                const SizedBox(height: 4),
+                Text(
+                  (userName).isEmpty ? 'User' : userName,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.tenantDocumentsIntro,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colors.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -190,26 +229,22 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   }
 
   Widget _buildQuickActions(AppLocalizations l10n, DynamicAppColors colors) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildActionButton(
-            l10n.uploadProfileImage, // TODO: introduce dedicated uploadDocument key
-            Icons.cloud_upload,
-            colors.primaryAccent,
-            () => _uploadDocument(),
-            colors,
-          ),
+        _buildActionButton(
+          l10n.upload,
+          Icons.cloud_upload,
+          const Color(0xFF2196F3), // Blue
+          () => _uploadDocument(),
+          colors,
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildActionButton(
-            l10n.contactSupport,
-            Icons.support_agent,
-            Colors.orange,
-            () => context.push('/conversations'),
-            colors,
-          ),
+        const SizedBox(height: 12),
+        _buildActionButton(
+          l10n.contactSupport,
+          Icons.support_agent,
+          const Color(0xFFFF9800), // Orange
+          () => context.push('/contact-support'),
+          colors,
         ),
       ],
     );
@@ -275,13 +310,32 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.documentCategories,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: colors.textPrimary,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.documentCategories,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
+              ),
+            ),
+            if (_selectedCategory != null)
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _selectedCategory = null;
+                  });
+                },
+                icon: const Icon(Icons.clear, size: 18),
+                label: Text(l10n.viewAll),
+                style: TextButton.styleFrom(
+                  foregroundColor: colors.primaryAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         LayoutBuilder(
@@ -306,14 +360,29 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
+                final categoryKey = _getCategoryKey(index); // 'Mietvertrag', 'Nebenkosten', etc.
+                final isSelected = _selectedCategory == categoryKey;
+                
                 return GestureDetector(
-                  onTap: _showComingSoonDialog,
+                  onTap: () {
+                    setState(() {
+                      // Toggle selection: if already selected, deselect (show all)
+                      _selectedCategory = isSelected ? null : categoryKey;
+                    });
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: colors.surfaceSecondary,
+                      color: isSelected 
+                          ? (category['color'] as Color).withValues(alpha: 0.15)
+                          : colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: colors.borderLight),
+                      border: Border.all(
+                        color: isSelected 
+                            ? (category['color'] as Color)
+                            : colors.borderLight,
+                        width: isSelected ? 2 : 1,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: colors.shadowColor,
@@ -394,9 +463,12 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     DynamicAppColors colors,
   ) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: colors.surfaceCards,
           borderRadius: BorderRadius.circular(16),
@@ -409,7 +481,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
@@ -423,15 +495,21 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                 size: 28,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
+                ),
               ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: colors.textSecondary,
             ),
           ],
         ),
@@ -445,7 +523,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
@@ -517,6 +596,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
 
   Widget _buildRecentDocuments(List<DocumentModel> documents,
       AppLocalizations l10n, DynamicAppColors colors) {
+    final filteredDocuments = _filterDocumentsByCategory(documents);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -531,7 +612,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                 color: colors.textPrimary,
               ),
             ),
-            if (documents.isNotEmpty)
+            if (filteredDocuments.isNotEmpty)
               TextButton(
                 onPressed: () {
                   // Show all documents
@@ -544,7 +625,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           ],
         ),
         const SizedBox(height: 16),
-        if (documents.isEmpty)
+        if (filteredDocuments.isEmpty)
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -572,7 +653,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
             ),
           )
         else
-          ...documents.take(3).map((document) => Padding(
+          ...filteredDocuments.take(3).map((document) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: DocumentCard(
                   document: document,
@@ -602,7 +683,9 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         const SizedBox(height: 16),
         documentsAsync.when(
           data: (documents) {
-            if (documents.isEmpty) {
+            final filteredDocuments = _filterDocumentsByCategory(documents);
+            
+            if (filteredDocuments.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
@@ -642,7 +725,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
             }
 
             return Column(
-              children: documents
+              children: filteredDocuments
                   .map((document) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: DocumentCard(
@@ -762,6 +845,59 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   }
 
   // Removed unused _buildRecentActivity method
+
+  String _getCategoryKey(int index) {
+    // Maps category index to backend category key (English names as stored in DB)
+    switch (index) {
+      case 0:
+        return 'Lease Agreement'; // Mietvertrag
+      case 1:
+        return 'Operating Costs'; // Nebenkosten (could also be "utilities")
+      case 2:
+        return 'Inspection Reports'; // Protokolle (could also be "protocols")
+      case 3:
+        return 'Correspondence'; // Korrespondenz
+      default:
+        return '';
+    }
+  }
+
+  List<DocumentModel> _filterDocumentsByCategory(List<DocumentModel> documents) {
+    if (_selectedCategory == null) {
+      return documents; // Show all if no filter selected
+    }
+    
+    // Case-insensitive comparison and handle variations
+    final selectedLower = _selectedCategory!.toLowerCase();
+    final filtered = documents.where((doc) {
+      final docCategoryLower = doc.category.toLowerCase();
+      
+      // Direct match
+      if (docCategoryLower == selectedLower) return true;
+      
+      // Handle category variations
+      if (selectedLower == 'lease agreement' && 
+          (docCategoryLower == 'lease' || docCategoryLower == 'lease agreement')) {
+        return true;
+      }
+      if (selectedLower == 'operating costs' && 
+          (docCategoryLower == 'utilities' || docCategoryLower == 'operating costs' || docCategoryLower == 'nebenkosten')) {
+        return true;
+      }
+      if (selectedLower == 'inspection reports' && 
+          (docCategoryLower == 'protocols' || docCategoryLower == 'inspection reports' || docCategoryLower == 'protokolle')) {
+        return true;
+      }
+      if (selectedLower == 'correspondence' && 
+          (docCategoryLower == 'correspondence' || docCategoryLower == 'korrespondenz')) {
+        return true;
+      }
+      
+      return false;
+    }).toList();
+    
+    return filtered;
+  }
 
   Future<void> _uploadDocument() async {
     final colors = ref.read(dynamicColorsProvider);

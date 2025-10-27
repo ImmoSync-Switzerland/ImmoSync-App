@@ -79,31 +79,46 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppBar(l10n, colors),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colors.primaryBackground,
+              colors.surfaceSecondary,
+            ],
+          ),
+        ),
         child: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              ref.read(landlordDocumentsProvider.notifier).refresh();
-              ref.invalidate(landlordPropertiesProvider);
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildWelcomeSection(
-                      currentUser?.fullName ?? 'Landlord', colors),
-                  const SizedBox(height: 24),
-                  _buildUploadSection(colors),
-                  const SizedBox(height: 24),
-                  _buildFilterSection(colors, propertiesAsync),
-                  const SizedBox(height: 24),
-                  _buildDocumentsList(documentsAsync, colors),
-                ],
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.read(landlordDocumentsProvider.notifier).refresh();
+                ref.invalidate(landlordPropertiesProvider);
+              },
+              color: colors.primaryAccent,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWelcomeSection(
+                        currentUser?.fullName ?? 'Landlord', colors),
+                    const SizedBox(height: 24),
+                    _buildUploadSection(colors),
+                    const SizedBox(height: 24),
+                    _buildFilterSection(colors, propertiesAsync),
+                    const SizedBox(height: 24),
+                    _buildDocumentsList(documentsAsync, colors),
+                    const SizedBox(height: 100), // Space for bottom nav
+                  ],
+                ),
               ),
             ),
           ),
@@ -116,7 +131,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   PreferredSizeWidget _buildAppBar(
       AppLocalizations l10n, DynamicAppColors colors) {
     return AppBar(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       title: Text(
         l10n.documentManagement,
@@ -131,10 +146,10 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
           onPressed: () {
             // Add search functionality
           },
-          icon: Icon(Icons.search, color: colors.textSecondary),
+          icon: Icon(Icons.search, color: colors.textPrimary),
         ),
         PopupMenuButton<String>(
-          icon: Icon(Icons.more_vert, color: colors.textSecondary),
+          icon: Icon(Icons.more_vert, color: colors.textPrimary),
           onSelected: (value) {
             switch (value) {
               case 'bulk_upload':
@@ -162,57 +177,71 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
   Widget _buildWelcomeSection(String userName, DynamicAppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colors.primaryAccent.withValues(alpha: 0.1),
-            colors.primaryAccent.withValues(alpha: 0.05),
+            const Color(0xFFE3F2FD), // Light blue
+            const Color(0xFFBBDEFB), // Lighter blue
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.primaryAccent.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colors.primaryAccent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.folder_shared,
-                  color: colors.primaryAccent,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  l10n.welcomeBack(userName),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2196F3), // Blue
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.folder_shared,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome back,',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: colors.textSecondary,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            // Fallback: reuse existing description using existing keys combined
-            l10n.documentsSharedByLandlord,
-            style: TextStyle(
-              fontSize: 16,
-              color: colors.textSecondary,
-              height: 1.4,
+                const SizedBox(height: 4),
+                Text(
+                  userName,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.documentsSharedByLandlord,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colors.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -225,8 +254,15 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,38 +276,28 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickUploadButton(
-                  AppLocalizations.of(context)!.leaseAgreement,
-                  Icons.description,
-                  colors.primaryAccent,
-                  () => _uploadDocumentWithCategory(
-                      AppLocalizations.of(context)!.leaseAgreement),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickUploadButton(
-                  AppLocalizations.of(context)!.notice,
-                  Icons.announcement,
-                  colors.warning,
-                  () => _uploadDocumentWithCategory(
-                      AppLocalizations.of(context)!.correspondence),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickUploadButton(
-                  AppLocalizations.of(context)!.receipt,
-                  Icons.receipt,
-                  colors.success,
-                  () => _uploadDocumentWithCategory(
-                      AppLocalizations.of(context)!.operatingCosts),
-                ),
-              ),
-            ],
+          _buildQuickUploadButton(
+            AppLocalizations.of(context)!.leaseAgreement,
+            Icons.description,
+            const Color(0xFF2196F3), // Blue
+            () => _uploadDocumentWithCategory(
+                AppLocalizations.of(context)!.leaseAgreement),
+          ),
+          const SizedBox(height: 12),
+          _buildQuickUploadButton(
+            AppLocalizations.of(context)!.notice,
+            Icons.announcement,
+            const Color(0xFFFF9800), // Orange
+            () => _uploadDocumentWithCategory(
+                AppLocalizations.of(context)!.correspondence),
+          ),
+          const SizedBox(height: 12),
+          _buildQuickUploadButton(
+            AppLocalizations.of(context)!.receipt,
+            Icons.receipt,
+            const Color(0xFF4CAF50), // Green
+            () => _uploadDocumentWithCategory(
+                AppLocalizations.of(context)!.operatingCosts),
           ),
         ],
       ),
@@ -287,22 +313,44 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: Column(
+        child: Row(
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12),
               ),
-              textAlign: TextAlign.center,
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: colors.textSecondary,
             ),
           ],
         ),
@@ -316,8 +364,15 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,17 +403,49 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
               children: _categories
                   .map((category) => Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Text(category),
-                          selected: _selectedCategory == category,
-                          onSelected: (selected) {
+                        child: GestureDetector(
+                          onTap: () {
                             setState(() {
                               _selectedCategory = category;
                             });
                           },
-                          selectedColor:
-                              colors.primaryAccent.withValues(alpha: 0.2),
-                          checkmarkColor: colors.primaryAccent,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              gradient: _selectedCategory == category
+                                  ? LinearGradient(
+                                      colors: [
+                                        const Color(0xFF2E7D32),
+                                        const Color(0xFF66BB6A),
+                                      ],
+                                    )
+                                  : null,
+                              color: _selectedCategory == category
+                                  ? null
+                                  : colors.surfaceSecondary,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _selectedCategory == category
+                                    ? const Color(0xFF2E7D32)
+                                    : colors.borderLight,
+                                width: _selectedCategory == category ? 2 : 1,
+                              ),
+                            ),
+                            child: Text(
+                              category,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: _selectedCategory == category
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: _selectedCategory == category
+                                    ? Colors.white
+                                    : colors.textPrimary,
+                              ),
+                            ),
+                          ),
                         ),
                       ))
                   .toList(),
@@ -384,47 +471,96 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                   !properties.any((p) => p.id == _selectedPropertyId)) {
                 _selectedPropertyId = null;
               }
-              return DropdownButtonFormField<String>(
-                initialValue: _selectedPropertyId,
-                decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context)!.allProperties,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colors.borderLight),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedPropertyId,
+                    isExpanded: true,
+                    hint: Text(
+                      AppLocalizations.of(context)!.allProperties,
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
+                    icon: Icon(Icons.arrow_drop_down, color: colors.textPrimary),
+                    dropdownColor: colors.surfaceCards,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: null,
+                        child: Text(
+                          AppLocalizations.of(context)!.allProperties,
+                          style: TextStyle(color: colors.textPrimary),
+                        ),
+                      ),
+                      ...properties.map((property) => DropdownMenuItem<String>(
+                            value: property.id,
+                            child: Text(
+                              '${property.address.street}, ${property.address.city}',
+                              style: TextStyle(color: colors.textPrimary),
+                            ),
+                          )),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedPropertyId = value;
+                        _selectedTenantIds.clear();
+                      });
+                    },
                   ),
                 ),
-                items: [
-                  DropdownMenuItem<String>(
-                      value: null,
-                      child: Text(AppLocalizations.of(context)!.allProperties)),
-                  ...properties.map((property) => DropdownMenuItem<String>(
-                        value: property.id,
-                        child: Text(
-                            '${property.address.street}, ${property.address.city}'),
-                      )),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPropertyId = value;
-                    _selectedTenantIds.clear();
-                  });
-                },
               );
             },
             loading: () => Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
+                color: colors.surfaceSecondary,
                 border: Border.all(color: colors.borderLight),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(AppLocalizations.of(context)!.loadingProperties),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.loadingProperties,
+                    style: TextStyle(color: colors.textSecondary),
+                  ),
+                ],
+              ),
             ),
             error: (_, __) => Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
+                color: colors.error.withValues(alpha: 0.1),
                 border: Border.all(color: colors.error),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(AppLocalizations.of(context)!.errorLoadingProperties),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: colors.error, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppLocalizations.of(context)!.errorLoadingProperties,
+                    style: TextStyle(color: colors.error),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

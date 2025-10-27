@@ -144,14 +144,21 @@ class ConnectService {
   }
 
   // Create setup intent for recurring payments
-  Future<Map<String, dynamic>> createSetupIntent(
-      String paymentMethodType) async {
+  Future<Map<String, dynamic>> createSetupIntent({
+    required String paymentMethodType,
+    required String landlordId,
+    String? tenantId,
+    String? propertyId,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$_apiUrl/connect/create-setup-intent'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'payment_method_type': paymentMethodType,
+          'landlordId': landlordId,
+          'tenantId': tenantId,
+          'propertyId': propertyId,
         }),
       );
 
