@@ -15,14 +15,14 @@ jobs:
       actions: write
       contents: read
     steps:
-      - name: Delete old artifacts from previous runs
-        uses: GeekyEggo/delete-artifact@v5.1.0
+      - uses: actions/checkout@v4
+      
+      - name: Delete old artifacts
+        uses: jimschubert/delete-artifacts-action@v1
         with:
-          name: |
-            dependency-tree
-            r8-mapping
-            immosync-apk
-          failOnError: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          log_level: 'error'
+          min_bytes: '0'
         continue-on-error: true
 
   build-apk:
@@ -529,6 +529,26 @@ jobs:
         run: |
           echo "### Cross-Repo APK Publish" >> $GITHUB_STEP_SUMMARY
           echo "Pushed immosync-${VERSION}.apk + latest alias to site repo" >> $GITHUB_STEP_SUMMARY
+
+  # Cleanup artifacts after successful publish to free storage
+  final-cleanup:
+    name: Cleanup Artifacts After Publish
+    runs-on: ubuntu-latest
+    needs: [build-apk, publish-github-release, publish-to-site-repo]
+    if: always()  # Run even if some jobs fail
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Delete all build artifacts
+        uses: jimschubert/delete-artifacts-action@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          log_level: 'error'
+          min_bytes: '0'
+        continue-on-error: true
 
   # Optional job to create a draft release (commented out)
   # release:
