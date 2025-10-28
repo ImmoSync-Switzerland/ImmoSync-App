@@ -61,8 +61,8 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
-    // Rely on stripe_android plugin's managed dependency; if a specific version is
-    // required later for push provisioning, re-add with a verified compatible version.
+    // Stripe Android SDK - Required for CI dependency verification
+    implementation 'com.stripe:stripe-android:20.49.0'
     // (Optional) Uncomment if Push Provisioning / network tokenization requires Tap & Pay on some devices
     // implementation 'com.google.android.gms:play-services-tapandpay:18.3.0'
 }
