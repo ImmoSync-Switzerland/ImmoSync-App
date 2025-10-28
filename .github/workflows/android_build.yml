@@ -8,10 +8,30 @@ on:
   workflow_dispatch:
 
 jobs:
+  cleanup-artifacts:
+    name: Cleanup Old Artifacts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'  # Only cleanup on pushes, not manual runs
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete old artifacts
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: |
+            dependency-tree
+            r8-mapping
+            immosync-apk
+          failOnError: false
+        continue-on-error: true
+
   build-apk:
     name: Build Release APK
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    needs: cleanup-artifacts
+    if: always()  # Run even if cleanup fails
     outputs:
       app_version: ${{ steps.extract_version.outputs.app_version }}
 
@@ -128,7 +148,7 @@ jobs:
         with:
           name: dependency-tree
           path: immolink/dependency-tree.txt
-          retention-days: 7
+          retention-days: 3
 
       - name: Extract app version
         id: extract_version
@@ -226,7 +246,7 @@ jobs:
         with:
           name: r8-mapping
           path: r8-mapping
-          retention-days: 7
+          retention-days: 3
 
       - name: Collect APKs
         if: success()
@@ -321,7 +341,7 @@ jobs:
         with:
           name: immosync-apk
           path: artifacts
-          retention-days: 14
+          retention-days: 7
 
   publish-github-release:
     name: Publish GitHub Release
