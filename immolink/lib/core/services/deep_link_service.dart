@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +9,7 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 /// Service to handle deep links in the app
 class DeepLinkService {
   StreamSubscription? _sub;
+  final AppLinks _appLinks = AppLinks();
   
   /// Check if deep links are supported on this platform
   bool get isSupported {
@@ -27,7 +28,7 @@ class DeepLinkService {
     
     // Handle the initial link if the app was opened via deep link
     try {
-      final initialLink = await getInitialUri();
+      final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
         print('[DeepLink] App opened with initial link: $initialLink');
         _handleDeepLink(initialLink, ref);
@@ -37,12 +38,10 @@ class DeepLinkService {
     }
 
     // Listen for deep links while app is running
-    _sub = uriLinkStream.listen(
-      (Uri? uri) {
-        if (uri != null) {
-          print('[DeepLink] Received deep link: $uri');
-          _handleDeepLink(uri, ref);
-        }
+    _sub = _appLinks.uriLinkStream.listen(
+      (Uri uri) {
+        print('[DeepLink] Received deep link: $uri');
+        _handleDeepLink(uri, ref);
       },
       onError: (err) {
         print('[DeepLink][ERROR] Deep link error: $err');

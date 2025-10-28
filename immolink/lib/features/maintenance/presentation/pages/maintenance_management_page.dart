@@ -242,7 +242,7 @@ class _MaintenanceManagementPageState
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,
