@@ -11,19 +11,18 @@ jobs:
   cleanup-artifacts:
     name: Cleanup Old Artifacts
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'  # Only cleanup on pushes, not manual runs
     permissions:
       actions: write
       contents: read
     steps:
-      - name: Delete old artifacts
-        uses: geekyeggo/delete-artifact@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Delete old workflow artifacts
+        uses: c-hive/gha-remove-artifacts@v1
         with:
-          name: |
-            dependency-tree
-            r8-mapping
-            immosync-apk
-          failOnError: false
+          age: '1 day'  # Delete artifacts older than 1 day
+          skip-recent: 3  # Keep only the 3 most recent
         continue-on-error: true
 
   build-apk:
@@ -143,12 +142,13 @@ jobs:
           done
           echo 'Verified stripe-android minimum version 20.34.0 satisfied.'
 
-      - name: Upload dependency tree artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-tree
-          path: immolink/dependency-tree.txt
-          retention-days: 3
+      # Temporarily disabled until artifact storage is freed
+      # - name: Upload dependency tree artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: dependency-tree
+      #     path: immolink/dependency-tree.txt
+      #     retention-days: 3
 
       - name: Extract app version
         id: extract_version
@@ -240,13 +240,14 @@ jobs:
             echo 'No mapping directory produced.'
           fi
 
-      - name: Upload R8 diagnostics artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: r8-mapping
-          path: r8-mapping
-          retention-days: 3
+      # Temporarily disabled until artifact storage is freed
+      # - name: Upload R8 diagnostics artifact
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: r8-mapping
+      #     path: r8-mapping
+      #     retention-days: 3
 
       - name: Collect APKs
         if: success()
@@ -336,18 +337,20 @@ jobs:
             echo "files="; ls -1 artifacts | sed 's/^/  - /';
           } > artifacts/BUILD_METADATA.txt
 
-      - name: Upload artifact (constant name)
-        uses: actions/upload-artifact@v4
-        with:
-          name: immosync-apk
-          path: artifacts
-          retention-days: 7
+      # Temporarily disabled until artifact storage is freed
+      # - name: Upload artifact (constant name)
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: immosync-apk
+      #     path: artifacts
+      #     retention-days: 7
 
   publish-github-release:
     name: Publish GitHub Release
     needs: build-apk
     runs-on: ubuntu-latest
-    if: needs.build-apk.result == 'success'
+    # Temporarily disabled until artifact storage is freed
+    if: false && needs.build-apk.result == 'success'
     permissions:
       contents: write
     steps:
@@ -423,7 +426,8 @@ jobs:
     name: Push APKs to site repository (Option A)
     needs: build-apk
     runs-on: ubuntu-latest
-    if: needs.build-apk.result == 'success'
+    # Temporarily disabled until artifact storage is freed
+    if: false && needs.build-apk.result == 'success'
     steps:
       - name: Checkout site repo
         uses: actions/checkout@v4
