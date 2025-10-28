@@ -1,0 +1,29 @@
+name: Delete All Artifacts (Manual Cleanup)
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  cleanup:
+    name: Delete All Old Artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Delete all artifacts
+        uses: jimschubert/delete-artifacts-action@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          log_level: 'info'
+          min_bytes: '0'
+      
+      - name: Summary
+        run: |
+          echo "### Artifact Cleanup Complete" >> $GITHUB_STEP_SUMMARY
+          echo "All artifacts have been deleted." >> $GITHUB_STEP_SUMMARY
+          echo "GitHub will recalculate storage usage within 6-12 hours." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "After that, your main build workflow should work again!" >> $GITHUB_STEP_SUMMARY
