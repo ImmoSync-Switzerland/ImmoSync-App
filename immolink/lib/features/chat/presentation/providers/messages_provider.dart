@@ -101,11 +101,27 @@ class ChatMessagesNotifier
         state = AsyncValue.data(sorted);
       });
 
-      // CRITICAL: Load initial messages from backend HTTP API
-      // Matrix timeline only provides new messages, not history
-      debugPrint('[MessagesProvider] Loading initial messages from backend...');
-      await _loadMessages();
-      debugPrint('[MessagesProvider] Initial messages loaded, timeline will update on new messages');
+      // Proactively refresh history once Matrix is ready to recover from any
+      // early attempts that happened before login/sync (e.g., “no access token”).
+      // This ensures we load decrypted plaintext from Matrix as soon as possible
+      // and replace any "[encrypted]" placeholders.
+      try {
+        await timeline.refreshHistory(_roomId!);
+        debugPrint('[MessagesProvider] Triggered Matrix history refresh for roomId=$_roomId');
+      } catch (e) {
+        debugPrint('[MessagesProvider] History refresh failed: $e');
+      }
+
+      // Load initial messages from backend only if the timeline hasn't produced
+      // anything yet. If Matrix history/events already populated the state,
+      // avoid overriding plaintext with legacy encrypted placeholders.
+      if (!(state.hasValue && (state.value?.isNotEmpty ?? false))) {
+        debugPrint('[MessagesProvider] Loading initial messages from backend...');
+        await _loadMessages();
+        debugPrint('[MessagesProvider] Initial messages loaded, timeline will update on new messages');
+      } else {
+        debugPrint('[MessagesProvider] Skipping backend load (timeline already has messages)');
+      }
       
     } catch (e, st) {
       debugPrint('[MessagesProvider] Timeline init error: $e');

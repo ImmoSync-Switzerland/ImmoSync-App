@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immosync/bridge.dart' as frb;
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_timeline_service.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
 import 'mobile_matrix_client.dart';
 
 /// MatrixFrbEventsAdapter
@@ -40,10 +40,11 @@ class MatrixFrbEventsAdapter {
   }
 
   void _attachRustBridgeEvents() {
-    
-    // Subscribe to native events. The FRB function should yield maps with keys:
-    // room_id, event_id, sender, ts (ms or s), content (optional), is_encrypted
-    _sub = frb.subscribeEvents().listen((evt) {
+    // Signal that we're listening to the Rust bridge event stream
+    print('[MatrixAdapter] Attaching Rust bridge events subscription...');
+    // Subscribe to the MatrixChatService event bus (single native subscription upstream)
+    // The event exposes: room_id, event_id, sender, ts (secs), content (optional), is_encrypted
+    _sub = MatrixChatService.instance.eventStream.listen((evt) {
       try {
         final roomId = evt.roomId;
         if (roomId.isEmpty) return;
@@ -81,7 +82,9 @@ class MatrixFrbEventsAdapter {
           messageType: 'text',
           metadata: null,
           conversationId: roomId, // we will key timeline by roomId here
-          isEncrypted: true, // Matrix rooms use encryption, content is auto-decrypted by SDK
+          // In our app, Matrix DM rooms are always E2EE; show lock consistently
+          // Some SDKs may report decrypted timeline events as non-encrypted.
+          isEncrypted: true,
           e2ee: null,
         );
 
@@ -144,6 +147,7 @@ class MatrixFrbEventsAdapter {
           messageType: 'text',
           metadata: null,
           conversationId: roomId,
+          // For mobile client too, treat DM rooms as encrypted for UI lock
           isEncrypted: true,
           e2ee: null,
         );

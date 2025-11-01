@@ -20,6 +20,12 @@ class MatrixChatService {
   Future<void>? _initializationInProgress;
   StreamSubscription<frb.MatrixEvent>? _eventSub;
   Completer<void>? _firstEventCompleter;
+  // Broadcast bus for Matrix events so only ONE native subscription is used
+  final StreamController<frb.MatrixEvent> _eventBus =
+      StreamController<frb.MatrixEvent>.broadcast();
+
+  /// Public stream of Matrix events (ingested from the single native subscription)
+  Stream<frb.MatrixEvent> get eventStream => _eventBus.stream;
 
   /// Check if the current platform supports the Matrix Rust bridge
   bool get _isRustBridgeSupported {
@@ -126,9 +132,22 @@ class MatrixChatService {
         if (!(_firstEventCompleter?.isCompleted ?? true)) {
           _firstEventCompleter?.complete();
         }
-        // Do not ingest events here to avoid duplicate ingestion and race conditions.
+        // Forward to event bus for any listeners (e.g., FRB adapter)
+        if (!_eventBus.isClosed) {
+          _eventBus.add(event);
+        }
       }, onError: (e) {
         // Keep subscription alive despite errors
+        // (Optionally could log)
+      }, onDone: () {
+        // Attempt to resubscribe if stream closes unexpectedly
+        _eventSub = null;
+        if (!_eventBus.isClosed) {
+          // Best-effort reattach
+          try {
+            _ensureEventSubscription();
+          } catch (_) {}
+        }
       });
     } catch (_) {
       // If subscription fails, leave completer as is; callers will timeout

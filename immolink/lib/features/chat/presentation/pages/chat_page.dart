@@ -559,20 +559,15 @@ class _ChatPageState extends ConsumerState<ChatPage>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (message.isEncrypted) ...[
+                      // Matrix-only chat: DM rooms are E2EE by design. Show lock when
+                      // encryption is ready or the message explicitly marks encrypted.
+                      if (_encryptionReady && message.messageType == 'text' ||
+                          message.isEncrypted) ...[
                         Icon(Icons.lock,
                             size: 14,
                             color: isMe
                                 ? Colors.white.withValues(alpha: 0.75)
                                 : colors.textSecondary),
-                        const SizedBox(width: 4),
-                      ] else if (_encryptionReady &&
-                          message.messageType == 'text') ...[
-                        Icon(Icons.warning_amber_outlined,
-                            size: 14,
-                            color: isMe
-                                ? Colors.white.withValues(alpha: 0.75)
-                                : Colors.orangeAccent),
                         const SizedBox(width: 4),
                       ],
                       Expanded(
