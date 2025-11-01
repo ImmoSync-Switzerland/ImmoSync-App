@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -123,7 +124,10 @@ class DocumentService {
     await _initialize();
 
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/tenant/$tenantId'));
+      final response = await http.get(
+        Uri.parse('$_baseUrl/tenant/$tenantId'),
+        headers: await _authHeaders(),
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
@@ -213,8 +217,8 @@ class DocumentService {
   Future<List<DocumentModel>> _fetchLandlordDocumentsFromAPI(
       String landlordId) async {
     // Use debug=1 to potentially get {count, documents}
-    final uri = Uri.parse('$_baseUrl/landlord/$landlordId?debug=1');
-    final response = await http.get(uri);
+  final uri = Uri.parse('$_baseUrl/landlord/$landlordId?debug=1');
+  final response = await http.get(uri, headers: await _authHeaders());
     if (response.statusCode == 200) {
       dynamic decoded;
       try {
@@ -254,7 +258,10 @@ class DocumentService {
   /// Internal method to fetch tenant documents from API
   Future<List<DocumentModel>> _fetchTenantDocumentsFromAPI(
       String tenantId) async {
-    final response = await http.get(Uri.parse('$_baseUrl/tenant/$tenantId'));
+    final response = await http.get(
+      Uri.parse('$_baseUrl/tenant/$tenantId'),
+      headers: await _authHeaders(),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
@@ -272,8 +279,10 @@ class DocumentService {
     try {
       print(
           'DocumentService: Fetching landlord documents from API for landlord: $landlordId');
-      final response =
-          await http.get(Uri.parse('$_baseUrl/landlord/$landlordId?debug=1'));
+      final response = await http.get(
+        Uri.parse('$_baseUrl/landlord/$landlordId?debug=1'),
+        headers: await _authHeaders(),
+      );
 
       if (response.statusCode == 200) {
         dynamic decoded;
@@ -339,8 +348,10 @@ class DocumentService {
     print('DocumentService: Starting upload to ${_baseUrl}/upload');
 
     try {
-      final request =
-          http.MultipartRequest('POST', Uri.parse('$_baseUrl/upload'));
+    final request =
+      http.MultipartRequest('POST', Uri.parse('$_baseUrl/upload'));
+    // Add auth headers if available
+    request.headers.addAll(await _authHeaders());
 
       // Add file
       final bytes = file.bytes ?? await _getBytesFromPath(file.path!);
@@ -431,9 +442,9 @@ class DocumentService {
 
   /// Helper method to get bytes from file path
   Future<Uint8List> _getBytesFromPath(String path) async {
-    // This is a placeholder - in a real implementation, you'd read the file
-    // For web, file.bytes should be used directly
-    return Uint8List(0);
+    // For mobile/desktop, read the file from disk; on web, PlatformFile.bytes should be set
+    final file = File(path);
+    return await file.readAsBytes();
   }
 
   /// Add a new document (primarily for local/temporary documents)
@@ -475,7 +486,10 @@ class DocumentService {
   /// Get document counts by category for a tenant
   Future<Map<String, int>> getDocumentCountsByCategory(String tenantId) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/tenant/$tenantId'));
+      final response = await http.get(
+        Uri.parse('$_baseUrl/tenant/$tenantId'),
+        headers: await _authHeaders(),
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
@@ -633,7 +647,10 @@ class DocumentService {
       for (final url in urlCandidates) {
         try {
           print('DocumentService: Trying URL: $url');
-          final response = await http.get(Uri.parse(url));
+          final response = await http.get(
+            Uri.parse(url),
+            headers: await _authHeaders(),
+          );
           if (response.statusCode == 200) {
             print(
                 'DocumentService: Successfully loaded ${response.bodyBytes.length} bytes from $url');
@@ -792,6 +809,23 @@ class DocumentService {
 
       _documents.addAll(sampleDocs);
       print('Initialized ${sampleDocs.length} sample documents');
+    }
+  }
+}
+
+extension on DocumentService {
+  /// Build Authorization header from persisted session token (if any)
+  Future<Map<String, String>> _authHeaders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sessionToken');
+      if (token != null && token.isNotEmpty) {
+        return {'Authorization': 'Bearer $token'};
+      }
+      return const {};
+    } catch (e) {
+      print('DocumentService: Failed to read auth token: $e');
+      return const {};
     }
   }
 }

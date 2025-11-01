@@ -342,11 +342,14 @@ class InvitationCard extends ConsumerWidget {
 
   String _getDateText(AppLocalizations l10n) {
     if (invitation.acceptedAt != null) {
-      return '${l10n.acceptedOn} ${_formatDate(invitation.acceptedAt!, l10n)}';
+      // acceptedOn is a formatter function; call it with the formatted date text
+      return l10n.acceptedOn(_formatDate(invitation.acceptedAt!, l10n));
     } else if (invitation.declinedAt != null) {
-      return '${l10n.declinedOn} ${_formatDate(invitation.declinedAt!, l10n)}';
+      // declinedOn is a formatter function; call it with the formatted date text
+      return l10n.declinedOn(_formatDate(invitation.declinedAt!, l10n));
     } else {
-      return '${l10n.receivedOn} ${_formatDate(invitation.createdAt, l10n)}';
+      // receivedOn is a formatter function; call it with the formatted date text
+      return l10n.receivedOn(_formatDate(invitation.createdAt, l10n));
     }
   }
 
