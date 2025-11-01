@@ -203,13 +203,15 @@ class ChatMessagesNotifier
         isRead: false,
         messageType: 'text',
         conversationId: _conversationId,
-        isEncrypted: false,
+        // Optimistic assumptions: Matrix DM rooms are encrypted and server will deliver
+        isEncrypted: true,
+        deliveredAt: DateTime.now(),
       );
       
       addOptimisticMessage(tempMessage);
       debugPrint('[MessagesProvider] Added optimistic message to UI');
       
-      // 2. Send via Matrix + Backend
+      // 2. Send via Matrix
       final messageId = await _chatService.sendMessage(
         conversationId: _conversationId,
         senderId: senderId,
@@ -219,45 +221,9 @@ class ChatMessagesNotifier
       );
 
       debugPrint('[MessagesProvider] Message sent successfully with ID: $messageId');
-      
-      // 3. Poll for the message to appear in backend (with retries)
-      bool messageFound = false;
-      for (int i = 0; i < 6; i++) {
-        await Future.delayed(Duration(milliseconds: 500 * (i + 1))); // 500ms, 1s, 1.5s, 2s, 2.5s, 3s
-        
-        debugPrint('[MessagesProvider] Polling attempt ${i + 1}/6 for new message');
-        final messages = await _chatService.getMessages(_conversationId, ref: _ref);
-        
-        // Check if the message we just sent is in the response.
-        // Note: encrypted messages are stored with empty/placeholder content,
-        // so match by any of: returned message id, identical plaintext (fallback),
-        // or presence of e2ee/isEncrypted from the same sender within a recent window.
-        final foundMessage = messages.any((m) {
-          // Exact ID match (best)
-          if (m.id == messageId) return true;
-          // Plaintext fallback (older behavior)
-          if (m.content == content && m.senderId == senderId) {
-            if (DateTime.now().difference(m.timestamp).inSeconds < 10) return true;
-          }
-          // Encrypted message match: same sender and marked encrypted and recent
-          if (m.isEncrypted == true && m.senderId == senderId) {
-            if (DateTime.now().difference(m.timestamp).inSeconds < 10) return true;
-          }
-          return false;
-        });
-        
-        if (foundMessage) {
-          debugPrint('[MessagesProvider] Message found in backend on attempt ${i + 1}');
-          state = AsyncValue.data(messages);
-          messageFound = true;
-          break;
-        }
-      }
-      
-      if (!messageFound) {
-        debugPrint('[MessagesProvider] WARNING: Message not found in backend after 6 retries, keeping optimistic message');
-        // Keep the optimistic message if backend hasn't confirmed
-      }
+
+      // Matrix-only mode: Do not poll HTTP backend for confirmation.
+      // The live Matrix timeline already contains the event and UI is updated.
       
     } catch (error, _) {
       debugPrint('[MessagesProvider] Error sending message: $error');

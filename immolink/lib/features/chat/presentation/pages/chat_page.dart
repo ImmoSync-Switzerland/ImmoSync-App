@@ -13,6 +13,7 @@ import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
 import 'package:immosync/features/chat/presentation/providers/chat_provider.dart'
     as chat_providers;
+import 'package:immosync/features/chat/domain/services/chat_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -211,6 +212,55 @@ class _ChatPageState extends ConsumerState<ChatPage>
       appBar: _buildAppBar(),
       body: Column(
         children: [
+          // Matrix initialization status banner
+          ValueListenableBuilder<MatrixClientState>(
+            valueListenable: ChatService.clientState,
+            builder: (context, state, _) {
+              if (state == MatrixClientState.ready) return const SizedBox.shrink();
+              String text;
+              bool busy = true;
+              switch (state) {
+                case MatrixClientState.starting:
+                  text = 'Matrix wird initialisiert …';
+                  break;
+                case MatrixClientState.ensuringCrypto:
+                  text = 'Ende-zu-Ende-Verschlüsselung wird vorbereitet …';
+                  break;
+                case MatrixClientState.ensuringRoom:
+                  text = 'Chat-Verbindung wird erstellt …';
+                  break;
+                case MatrixClientState.error:
+                  text = 'Matrix-Fehler – bitte später erneut versuchen.';
+                  busy = false;
+                  break;
+                default:
+                  text = 'Matrix wird initialisiert …';
+              }
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                color: Colors.amber.withOpacity(0.15),
+                child: Row(
+                  children: [
+                    if (busy)
+                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                    if (busy) const SizedBox(width: 8),
+                    Expanded(child: Text(text)),
+                    if (state == MatrixClientState.error)
+                      TextButton(
+                        onPressed: () async {
+                          final me = ref.read(currentUserProvider)?.id ?? '';
+                          if (me.isNotEmpty) {
+                            await ref.read(chat_providers.chatServiceProvider).ensureMatrixReady(userId: me);
+                          }
+                        },
+                        child: const Text('Erneut verbinden'),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
           Expanded(
             child: messagesAsync.when(
               data: (messages) =>
@@ -665,7 +715,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
   Widget _buildMessageInput(String currentUserId) {
     final colors = ref.watch(dynamicColorsProvider);
 
-    return Container(
+    return ValueListenableBuilder<MatrixClientState>(
+      valueListenable: ChatService.clientState,
+      builder: (context, state, _) {
+        final matrixReady = state == MatrixClientState.ready;
+        return Container(
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       decoration: BoxDecoration(
         color: colors.primaryBackground,
@@ -749,6 +803,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     ),
                     child: TextField(
                       controller: _messageController,
+                      enabled: matrixReady,
                       style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: 14,
@@ -756,7 +811,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         inherit: true,
                       ),
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.typeAMessage,
+                        hintText: matrixReady
+                            ? AppLocalizations.of(context)!.typeAMessage
+                            : 'Warte auf Matrix …',
                         hintStyle: TextStyle(
                           color: colors.textTertiary,
                           fontSize: 14,
@@ -792,6 +849,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () {
+                    if (!matrixReady) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Matrix wird initialisiert …')),
+                      );
+                      return;
+                    }
                     if (_sendingAttachment) return; // busy
                     if (!_encryptionReady &&
                         widget.otherUserId != null &&
@@ -872,6 +935,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
         ),
       ),
     );
+      },
+    );
   }
 
   void _sendMessage(String senderId) async {
@@ -931,6 +996,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 
   void _scrollToBottom() {
+    if (!mounted) return;
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -966,6 +1032,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 
   Future<void> _emitReadReceipts() async {
+    if (!mounted) return;
     final convId = _currentConversationId ?? widget.conversationId;
     if (convId == 'new') return;
     final currentUserId = ref.read(currentUserProvider)?.id;

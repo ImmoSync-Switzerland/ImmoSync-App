@@ -402,7 +402,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                       currentUserId: me.id,
                       otherUserId: otherUserId);
                 }
-                final previews = ref.read(chatPreviewProvider);
+                final previews = ref.watch(chatPreviewProvider);
                 final override = previews[conversation.id];
                 if (override != null && override.isNotEmpty) return override;
                 // Treat empty content from aggregation as encrypted/no-preview

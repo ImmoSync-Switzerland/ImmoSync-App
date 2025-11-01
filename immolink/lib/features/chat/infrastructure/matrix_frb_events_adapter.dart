@@ -53,9 +53,10 @@ class MatrixFrbEventsAdapter {
 
         // Content should already be decrypted by the SDK if keys are available
         // If content is null/empty but marked encrypted, show placeholder
-        final displayContent = (evt.content != null && evt.content!.isNotEmpty)
-            ? evt.content!
-            : (evt.isEncrypted ? '[encrypted]' : '');
+    final hasPlain = (evt.content != null && evt.content!.isNotEmpty);
+    final displayContent = hasPlain
+      ? evt.content!
+      : (evt.isEncrypted ? '[encrypted]' : '');
 
         // Extract user ID from Matrix MXID format: @userid:homeserver -> userid
         // Example: @6838699baefe2c0213aba1c3:matrix.immosync.ch -> 6838699baefe2c0213aba1c3
@@ -88,6 +89,15 @@ class MatrixFrbEventsAdapter {
             '[MatrixAdapter] Ingesting event roomId=$roomId eventId=${evt.eventId} sender=${evt.sender} extracted=$senderId encrypted=${evt.isEncrypted} hasContent=${evt.content != null} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
 
         _timeline.ingestMatrixEvent(roomId, msg);
+
+        // If plaintext was not available yet, trigger a quick history refresh
+        // to backfill decrypted content and replace the placeholder.
+        if (!hasPlain && evt.isEncrypted) {
+          // Small delay allows crypto to catch up
+          Future.delayed(const Duration(milliseconds: 300), () {
+            _timeline.refreshHistory(roomId);
+          });
+        }
       } catch (e) {
         print('[MatrixAdapter] Error processing event: $e');
         // ignore malformed events

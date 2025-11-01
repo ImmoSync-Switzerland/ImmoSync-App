@@ -47,12 +47,16 @@ class MatrixTimelineService {
   }
   
   /// Load historical messages from Matrix room
-  Future<void> _loadHistoricalMessages(String roomId) async {
+  Future<void> _loadHistoricalMessages(String roomId, {bool immediate = false}) async {
     try {
       debugPrint('[MatrixTimeline] Loading history for room: $roomId');
       
-      // Wait a bit for sync to complete before querying
-      await Future.delayed(const Duration(seconds: 2));
+      // Wait a bit for sync to complete before querying (shorter/skip on manual refresh)
+      if (!immediate) {
+        await Future.delayed(const Duration(seconds: 2));
+      } else {
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
       
       debugPrint('[MatrixTimeline] Calling getRoomMessages...');
       
@@ -110,8 +114,16 @@ class MatrixTimelineService {
           
           debugPrint('[MatrixTimeline] Ingesting message from $senderMxid -> $senderId: ${message.content}');
           
-          // Use ingestMatrixEvent to avoid duplicates
-          ingestMatrixEvent(roomId, message);
+          // If message already exists (e.g., placeholder from live event), replace with full content
+          final list = _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);
+          final existingIdx = list.indexWhere((m) => m.id == message.id);
+          if (existingIdx >= 0) {
+            // Prefer non-empty/non-placeholder content, but replace regardless to normalize timestamps
+            list[existingIdx] = message;
+            _controllers[roomId]?.add(List.unmodifiable(list..sort((a,b)=>a.timestamp.compareTo(b.timestamp))));
+          } else {
+            ingestMatrixEvent(roomId, message);
+          }
         } catch (e) {
           debugPrint('[MatrixTimeline] Failed to parse message: $e');
         }
@@ -123,6 +135,9 @@ class MatrixTimelineService {
       // Continue gracefully - new messages will still work via event stream
     }
   }
+
+  /// Public method to force a quick history refresh (used when live events lack plaintext content)
+  Future<void> refreshHistory(String roomId) => _loadHistoricalMessages(roomId, immediate: true);
 
   void pushLocal(String roomId, ChatMessage msg) {
     final list = _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);

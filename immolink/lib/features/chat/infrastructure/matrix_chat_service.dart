@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'mobile_matrix_client.dart';
+// Timeline ingestion is handled by MatrixFrbEventsAdapter; avoid duplicating here.
 
 class MatrixChatService {
   static final MatrixChatService instance = MatrixChatService._();
@@ -17,6 +18,8 @@ class MatrixChatService {
   bool _loggedIn = false;
   bool _syncStarted = false;
   Future<void>? _initializationInProgress;
+  StreamSubscription<frb.MatrixEvent>? _eventSub;
+  Completer<void>? _firstEventCompleter;
 
   /// Check if the current platform supports the Matrix Rust bridge
   bool get _isRustBridgeSupported {
@@ -53,7 +56,17 @@ class MatrixChatService {
     
     if (_isRustBridgeSupported) {
       // Use Rust bridge on desktop platforms
-      await frb.init(homeserver: homeserver, dataDir: dir.path);
+      try {
+        await frb.init(homeserver: homeserver, dataDir: dir.path);
+      } catch (e) {
+        final msg = e.toString().toLowerCase();
+        if (msg.contains('already initialized') || msg.contains('client already initialized')) {
+          // Idempotent init: another call already created the client. Treat as success.
+          print('[MatrixChatService] init skipped (already initialized)');
+        } else {
+          rethrow;
+        }
+      }
     } else {
       // Use mobile client on mobile platforms
       print('[MatrixChatService] Using mobile Matrix client for ${defaultTargetPlatform.name}');
@@ -87,12 +100,50 @@ class MatrixChatService {
     if (_syncStarted) return;
     
     if (_isRustBridgeSupported) {
-      await frb.startSync();
+      try {
+        await frb.startSync();
+      } catch (e) {
+        final msg = e.toString().toLowerCase();
+        if (msg.contains('already running') || msg.contains('already started')) {
+          print('[MatrixChatService] startSync skipped (already running)');
+        } else {
+          rethrow;
+        }
+      }
     } else {
       // Mobile client handles sync automatically after login
       print('[MatrixChatService] Mobile client sync is automatic');
     }
     _syncStarted = true;
+  }
+
+  void _ensureEventSubscription() {
+    if (_eventSub != null) return;
+    _firstEventCompleter ??= Completer<void>();
+    try {
+      _eventSub = frb.subscribeEvents().listen((event) {
+        // Signal that at least one sync event has been received
+        if (!(_firstEventCompleter?.isCompleted ?? true)) {
+          _firstEventCompleter?.complete();
+        }
+        // Do not ingest events here to avoid duplicate ingestion and race conditions.
+      }, onError: (e) {
+        // Keep subscription alive despite errors
+      });
+    } catch (_) {
+      // If subscription fails, leave completer as is; callers will timeout
+    }
+  }
+
+  Future<void> waitForFirstSyncEvent({Duration timeout = const Duration(seconds: 5)}) async {
+    _ensureEventSubscription();
+    try {
+      if (!(_firstEventCompleter?.isCompleted ?? true)) {
+        await _firstEventCompleter!.future.timeout(timeout);
+      }
+    } catch (_) {
+      // Timeout is acceptable; we proceed best-effort
+    }
   }
 
   Future<void> stopSync() async {
@@ -344,6 +395,10 @@ class MatrixChatService {
     } else {
       print('[MatrixChatService] Sync already running');
     }
+
+    // Ensure we subscribed to events and wait for first sync tick to reduce crypto races
+    _ensureEventSubscription();
+    await waitForFirstSyncEvent(timeout: const Duration(seconds: 5));
     
       _readyUserId = userId;
       print('[MatrixChatService] Matrix ready for user $userId');

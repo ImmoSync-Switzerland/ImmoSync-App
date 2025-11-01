@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
@@ -11,11 +12,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:immosync/bridge.dart' as frb; // FRB generated helpers
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+
+/// Client-visible initialization states for the Matrix chat client.
+enum MatrixClientState { idle, starting, ensuringCrypto, ensuringRoom, ready, error }
+
+class MatrixNotReadyException implements Exception {
+  final String message;
+  MatrixNotReadyException([this.message = 'Matrix client is not ready']);
+  @override
+  String toString() => 'MatrixNotReadyException: $message';
+}
+
+class MatrixRoomMissingException implements Exception {
+  final String message;
+  MatrixRoomMissingException([this.message = 'Matrix room could not be ensured']);
+  @override
+  String toString() => 'MatrixRoomMissingException: $message';
+}
+
+class MatrixSendFailedException implements Exception {
+  final String message;
+  MatrixSendFailedException([this.message = 'Failed to send message via Matrix']);
+  @override
+  String toString() => 'MatrixSendFailedException: $message';
+}
 
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;
   final Map<String, List<int>> _attachmentCache = {};
+
+  /// Reactive Matrix client state for UI (Riverpod can watch ValueListenable).
+  static final ValueNotifier<MatrixClientState> clientState =
+      ValueNotifier<MatrixClientState>(MatrixClientState.idle);
   
   /// Get headers with authorization token if available
   Map<String, String> _getHeaders({Ref? ref}) {
@@ -109,7 +139,30 @@ class ChatService {
 
   /// Ensure Matrix client is initialized, logged in, and syncing for the given user
   Future<void> ensureMatrixReady({required String userId}) async {
-    await MatrixChatService.instance.ensureReadyForUser(userId);
+    if (clientState.value == MatrixClientState.ready) return;
+    clientState.value = MatrixClientState.starting;
+    try {
+      await MatrixChatService.instance.ensureReadyForUser(userId);
+      // Ensure we subscribed to events and saw at least one sync tick
+      await MatrixChatService.instance
+          .waitForFirstSyncEvent(timeout: const Duration(seconds: 5));
+      // Give Crypto/Olm a brief moment to start before allowing sends
+      clientState.value = MatrixClientState.ensuringCrypto;
+      await _waitForCryptoReady(timeout: const Duration(seconds: 3));
+      clientState.value = MatrixClientState.ready;
+    } catch (e) {
+      clientState.value = MatrixClientState.error;
+      rethrow;
+    }
+  }
+
+  /// Best-effort wait for the crypto (Olm) machine to start up.
+  /// FRB currently has no explicit readiness probe, so we wait a short grace period.
+  Future<void> _waitForCryptoReady({required Duration timeout}) async {
+    final sw = Stopwatch()..start();
+    while (sw.elapsed < timeout) {
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
   }
 
   Future<String> sendMessage({
@@ -120,91 +173,77 @@ class ChatService {
     Ref? ref,
     String? otherUserId,
   }) async {
-    // Try to ensure Matrix is ready (will gracefully skip if not configured)
-    try {
-      await MatrixChatService.instance.ensureReadyForUser(senderId);
-    } catch (matrixError) {
-      print('[ChatService] Matrix not available: $matrixError');
-      print('[ChatService] Falling back to HTTP-only mode');
-    }
-    
-    // DISABLED: Custom E2EE - Using Matrix native E2EE instead
-    // Matrix SDK handles encryption automatically for encrypted rooms
-    String contentToSend = content;
-    
-    print('[ChatService] Using Matrix native E2EE (custom E2EE disabled)');
-    
-    // Try Matrix first, but fall back to HTTP if it fails
-    String? matrixEventId;
-    String? roomId;
-    
-    try {
-      // Resolve Matrix roomId for this conversation (server must provide mapping)
-      roomId = await _fetchOrCreateMatrixRoomId(
-          conversationId: conversationId,
-          creatorUserId: senderId,
-          otherUserId: receiverId,
-          ref: ref);
-          
-      if (roomId == null || roomId.isEmpty) {
-        // Try to ensure/create the room immediately
-        roomId = await _ensureRoom(
-          conversationId: conversationId,
-          creatorUserId: senderId,
-          otherUserId: receiverId,
-          ref: ref,
-        );
+    // Enforce Matrix-only: ensure client is ready
+    if (clientState.value != MatrixClientState.ready) {
+      // Attempt to initialize and then wait a short grace period
+      try {
+        await ensureMatrixReady(userId: senderId);
+      } catch (_) {
+        throw MatrixNotReadyException('Matrix client initializing – bitte warten');
       }
-      
-      if (roomId != null && roomId.isNotEmpty) {
-        // Send via Matrix with actual content (Matrix SDK handles encryption)
-        print('[ChatService] Attempting Matrix send to room: $roomId');
-        matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
-        print('[ChatService] Matrix send successful: $matrixEventId');
+      int waited = 0;
+      while (clientState.value != MatrixClientState.ready && waited < 5000) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        waited += 100;
       }
-    } catch (matrixError) {
-      print('[ChatService] Matrix send failed: $matrixError');
-      print('[ChatService] Will use HTTP-only fallback');
+      if (clientState.value != MatrixClientState.ready) {
+        throw MatrixNotReadyException('Matrix client not ready');
+      }
     }
-    
-    // ALWAYS store in HTTP backend (whether Matrix worked or not)
-    try {
-      print('[ChatService] Storing message in backend via HTTP');
-      final requestBody = {
-        'conversationId': conversationId,
-        'senderId': senderId,
-        'receiverId': receiverId,
-        'content': contentToSend,
-        'messageType': 'text',
-        if (roomId != null) 'matrixRoomId': roomId,
-        if (matrixEventId != null) 'matrixEventId': matrixEventId,
-        // No custom e2ee bundle - Matrix handles encryption
-      };
-      
-      print('[ChatService] Request body: PLAINTEXT (Matrix handles encryption)');
-      
-      final response = await http.post(
-        Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-        headers: _getHeaders(ref: ref),
-        body: json.encode(requestBody),
-      );
 
-      print('[ChatService] Backend store response: ${response.statusCode}');
-      
-      if (response.statusCode != 201 && response.statusCode != 200) {
-        print('[ChatService] Backend store failed: ${response.body}');
-        throw Exception('Failed to store message in backend: ${response.statusCode}');
+    // Resolve or create room mapping (no HTTP chat fallback)
+    clientState.value = MatrixClientState.ensuringRoom;
+    String? roomId = await _fetchOrCreateMatrixRoomId(
+      conversationId: conversationId,
+      creatorUserId: senderId,
+      otherUserId: receiverId,
+      ref: ref,
+    );
+    if (roomId == null || roomId.isEmpty) {
+      roomId = await _ensureRoom(
+        conversationId: conversationId,
+        creatorUserId: senderId,
+        otherUserId: receiverId,
+        ref: ref,
+      );
+    }
+    if (roomId == null || roomId.isEmpty) {
+      clientState.value = MatrixClientState.ready; // revert state indicator
+      throw MatrixRoomMissingException('Could not ensure Matrix room for conversation');
+    }
+
+    // Send via Matrix (native E2EE handled by SDK)
+    try {
+      final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+      clientState.value = MatrixClientState.ready;
+      // Return event ID to the caller (no HTTP persistence here)
+      return matrixEventId.toString();
+    } catch (e) {
+      // Handle race where Olm machine isn't started yet; retry once
+      final msg = e.toString();
+      final isOlmNotStarted = msg.contains("Olm machine wasn't started") ||
+          msg.contains('PanicException');
+      if (isOlmNotStarted) {
+        debugPrint('[ChatService.sendMessage] Olm not started → retrying once');
+        await Future.delayed(const Duration(milliseconds: 400));
+        // Wait for a sync event to ensure crypto is initialized
+        try {
+          await MatrixChatService.instance
+              .waitForFirstSyncEvent(timeout: const Duration(seconds: 5));
+        } catch (_) {}
+        await _waitForCryptoReady(timeout: const Duration(seconds: 2));
+        try {
+          final matrixEventId =
+              await frb.sendMessage(roomId: roomId, body: content);
+          clientState.value = MatrixClientState.ready;
+          return matrixEventId.toString();
+        } catch (e2) {
+          clientState.value = MatrixClientState.ready;
+          throw MatrixSendFailedException(e2.toString());
+        }
       }
-      
-      final responseData = json.decode(response.body);
-      final messageId = responseData['messageId'] ?? matrixEventId ?? 'unknown';
-      print('[ChatService] Message stored successfully with ID: $messageId');
-      
-      return messageId.toString();
-      
-    } catch (backendError) {
-      print('[ChatService] ERROR: Failed to store message: $backendError');
-      rethrow;
+      clientState.value = MatrixClientState.ready;
+      throw MatrixSendFailedException(e.toString());
     }
   }
 
@@ -389,6 +428,7 @@ class ChatService {
   }
 
   /// Delete an old Matrix room mapping to force recreation
+  // Deprecated: legacy mapping maintenance (kept for reference - not used in Matrix-only mode)
   Future<void> _deleteRoomMapping(String conversationId, Ref? ref) async {
     try {
       final headers = <String, String>{'Content-Type': 'application/json'};
@@ -428,6 +468,7 @@ class ChatService {
 
   /// Store a Matrix message in the HTTP backend for persistence
   /// This ensures messages are searchable and survive Matrix sync issues
+  // Deprecated: legacy HTTP chat persistence (not used in Matrix-only mode)
   Future<void> _storeMessageInBackend({
     required String conversationId,
     required String senderId,
