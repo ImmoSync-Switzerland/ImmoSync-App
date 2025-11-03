@@ -1955,65 +1955,30 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         child: const Icon(Icons.home_outlined, color: Colors.grey, size: 24),
       );
     }
-    // Check if it's a MongoDB ObjectId (24 hex characters)
-    if (imageIdOrPath.length == 24 &&
-        RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-      return MongoImage(
-        imageId: resolved,
-        fit: BoxFit.cover,
-        width: 60,
-        height: 60,
-        loadingWidget: Container(
-          color: Colors.grey[300],
-          child: const Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+    // Always use MongoImage so Authorization headers and 401 retry apply
+    return MongoImage(
+      imageId: resolved,
+      fit: BoxFit.cover,
+      width: 60,
+      height: 60,
+      loadingWidget: Container(
+        color: Colors.grey[300],
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
-        errorWidget: Container(
-          color: Colors.grey[200],
-          child: const Icon(
-            Icons.home_outlined,
-            color: Colors.grey,
-            size: 24,
-          ),
+      ),
+      errorWidget: Container(
+        color: Colors.grey[200],
+        child: const Icon(
+          Icons.home_outlined,
+          color: Colors.grey,
+          size: 24,
         ),
-      );
-    } else {
-      // Regular network image
-      return Image.network(
-        resolved,
-        fit: BoxFit.cover,
-        width: 60,
-        height: 60,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            color: Colors.grey[300],
-            child: const Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          debugPrint('Dashboard image load failed for $resolved: $error');
-          return Container(
-            color: Colors.grey[200],
-            child: const Icon(
-              Icons.home_outlined,
-              color: Colors.grey,
-              size: 24,
-            ),
-          );
-        },
-      );
-    }
+      ),
+    );
   }
 }

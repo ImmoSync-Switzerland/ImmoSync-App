@@ -948,66 +948,30 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         ),
       );
     }
-    // Check if it's a MongoDB ObjectId (24 hex characters)
-    if (imageIdOrPath.length == 24 &&
-        RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-      // Pass resolved full URL (documents raw) to MongoImage so it doesn't prepend /images/
-      return MongoImage(
-        imageId: resolved,
-        fit: BoxFit.cover,
-        width: 80,
-        height: 80,
-        loadingWidget: Container(
-          color: Colors.grey[300],
-          child: const Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+    // Always load via MongoImage to attach auth headers and handle 401-retry
+    return MongoImage(
+      imageId: resolved,
+      fit: BoxFit.cover,
+      width: 80,
+      height: 80,
+      loadingWidget: Container(
+        color: Colors.grey[300],
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
-        errorWidget: Container(
-          color: Colors.grey[200],
-          child: const Icon(
-            Icons.home_outlined,
-            color: Colors.grey,
-            size: 32,
-          ),
+      ),
+      errorWidget: Container(
+        color: Colors.grey[200],
+        child: const Icon(
+          Icons.home_outlined,
+          color: Colors.grey,
+          size: 32,
         ),
-      );
-    } else {
-      // Regular network image
-      return Image.network(
-        resolved,
-        fit: BoxFit.cover,
-        width: 80,
-        height: 80,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            color: Colors.grey[300],
-            child: const Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          debugPrint('Property list image load failed for $resolved: $error');
-          return Container(
-            color: Colors.grey[200],
-            child: const Icon(
-              Icons.home_outlined,
-              color: Colors.grey,
-              size: 32,
-            ),
-          );
-        },
-      );
-    }
+      ),
+    );
   }
 }

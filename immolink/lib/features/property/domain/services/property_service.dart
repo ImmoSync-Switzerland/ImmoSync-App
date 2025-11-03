@@ -3,6 +3,8 @@ import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
+import 'package:crypto/crypto.dart';
 import '../models/property.dart';
 import 'package:immosync/core/config/db_config.dart';
 import '../../../chat/domain/services/chat_service.dart';
@@ -12,6 +14,119 @@ class PropertyService {
 
   PropertyService() {
     print('PropertyService initialized with API URL: $_apiUrl');
+  }
+
+  // ===== Shared auth helpers (mirrors MaintenanceService) =====
+  String? _buildUiJwt(String userId) {
+    try {
+      final secret = dotenv.dotenv.isInitialized
+          ? (dotenv.dotenv.env['JWT_SECRET'] ?? '')
+          : '';
+      if (secret.isEmpty) return null;
+      final header = {
+        'alg': 'HS256',
+        'typ': 'JWT',
+      };
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final payload = {
+        'sub': userId,
+        'iat': now,
+        'exp': now + 300,
+      };
+      String b64Url(Map obj) {
+        final jsonStr = json.encode(obj);
+        final b64 = base64Url.encode(utf8.encode(jsonStr));
+        return b64.replaceAll('=', '');
+      }
+      final h = b64Url(header);
+      final p = b64Url(payload);
+      final data = utf8.encode('$h.$p');
+      final key = utf8.encode(secret);
+      final sig = Hmac(sha256, key).convert(data);
+      final s = base64Url.encode(sig.bytes).replaceAll('=', '');
+      return '$h.$p.$s';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _tryLoginExchangeWithUiJwt() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+      if (userId == null || userId.isEmpty) return;
+      final assertion = _buildUiJwt(userId);
+      if (assertion == null) return;
+      final ex = await http.post(
+        Uri.parse('$_apiUrl/auth/login-exchange'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $assertion',
+        },
+      );
+      if (ex.statusCode == 200) {
+        final data = json.decode(ex.body) as Map<String, dynamic>;
+        final newToken = data['token'] as String?;
+        if (newToken != null && newToken.isNotEmpty) {
+          await prefs.setString('sessionToken', newToken);
+          final prefix = newToken.substring(0, newToken.length < 8 ? newToken.length : 8);
+          print('AUTH DEBUG [PropertyService]: obtained session token via UI-JWT exchange; prefix=$prefix');
+        }
+      } else {
+        print('AUTH DEBUG [PropertyService]: UI-JWT exchange failed status=${ex.statusCode} body=${ex.body}');
+      }
+    } catch (e) {
+      print('AUTH DEBUG [PropertyService]: UI-JWT exchange error: $e');
+    }
+  }
+
+  Future<Map<String, String>> _headers() async {
+    final base = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('sessionToken');
+      if (token != null && token.isNotEmpty) {
+        final looksJwt = token.contains('.') && token.split('.').length == 3;
+        final prefix = token.substring(0, token.length < 8 ? token.length : 8);
+        print('AUTH DEBUG [PropertyService]: token present; looksJwt=$looksJwt len=${token.length} prefix=$prefix');
+      } else {
+        print('AUTH DEBUG [PropertyService]: no token in SharedPreferences');
+      }
+      if (token != null && token.contains('.')) {
+        try {
+          final ex = await http.post(
+            Uri.parse('$_apiUrl/auth/login-exchange'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          );
+          if (ex.statusCode == 200) {
+            final data = json.decode(ex.body) as Map<String, dynamic>;
+            final newToken = data['token'] as String?;
+            if (newToken != null && newToken.isNotEmpty) {
+              await prefs.setString('sessionToken', newToken);
+              token = newToken;
+              final prefix = token.substring(0, token.length < 8 ? token.length : 8);
+              print('AUTH DEBUG [PropertyService]: exchanged JWT for session token; len=${token.length} prefix=$prefix');
+            }
+          } else {
+            print('AUTH DEBUG [PropertyService]: login-exchange failed status=${ex.statusCode} body=${ex.body}');
+          }
+        } catch (_) {}
+      }
+      if (token != null && token.isNotEmpty) {
+        base['Authorization'] = 'Bearer $token';
+        base['x-access-token'] = token;
+        base['x-session-token'] = token;
+      }
+    } catch (_) {}
+    return base;
   }
 
   Future<void> addProperty(Property property) async {
@@ -35,11 +150,19 @@ class PropertyService {
     print('Property data to send: ${json.encode(propertyData)}');
 
     // Continue with property creation...
-    final response = await http.post(
+    var response = await http.post(
       Uri.parse('$_apiUrl/properties'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
       body: json.encode(propertyData),
     );
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.post(
+        Uri.parse('$_apiUrl/properties'),
+        headers: await _headers(),
+        body: json.encode(propertyData),
+      );
+    }
 
     if (response.statusCode != 201) {
       print('Server response: ${response.body}');
@@ -84,13 +207,23 @@ class PropertyService {
     }
 
     try {
-      final response = await http.post(
+      var response = await http.post(
         Uri.parse('$_apiUrl/properties/$propertyId/remove-tenant'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
         body: json.encode({
           'tenantId': tenantId,
         }),
       );
+      if (response.statusCode == 401) {
+        await _tryLoginExchangeWithUiJwt();
+        response = await http.post(
+          Uri.parse('$_apiUrl/properties/$propertyId/remove-tenant'),
+          headers: await _headers(),
+          body: json.encode({
+            'tenantId': tenantId,
+          }),
+        );
+      }
 
       if (response.statusCode != 200) {
         throw Exception('Failed to remove tenant: ${response.statusCode}');
@@ -107,16 +240,26 @@ class PropertyService {
     final idString =
         landlordId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');
 
-    final response = await http.get(
+    var response = await http.get(
       Uri.parse('$_apiUrl/properties/landlord/$idString'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
     );
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.get(
+        Uri.parse('$_apiUrl/properties/landlord/$idString'),
+        headers: await _headers(),
+      );
+    }
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> properties = responseData['properties'];
       print('Found ${properties.length} properties');
       yield properties.map((json) => Property.fromMap(json)).toList();
+    } else {
+      // Throw on non-200 so StreamProvider surfaces error instead of hanging
+      throw Exception('Failed to load landlord properties: ${response.statusCode} ${response.body}');
     }
   }
 
@@ -124,40 +267,61 @@ class PropertyService {
     final idString =
         tenantId.toString().replaceAll('ObjectId("', '').replaceAll('")', '');
 
-    final response = await http.get(
+    var response = await http.get(
       Uri.parse('$_apiUrl/properties/tenant/$idString'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
     );
-
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.get(
+        Uri.parse('$_apiUrl/properties/tenant/$idString'),
+        headers: await _headers(),
+      );
+    }
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       final List<dynamic> properties = responseData['properties'];
       print('Found ${properties.length} properties for tenant');
       yield properties.map((json) => Property.fromMap(json)).toList();
+    } else {
+      throw Exception('Failed to load tenant properties: ${response.statusCode} ${response.body}');
     }
   }
 
   Stream<List<Property>> getAllProperties() async* {
-    final response = await http.get(
+    var response = await http.get(
       Uri.parse('$_apiUrl/properties'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
     );
-
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.get(
+        Uri.parse('$_apiUrl/properties'),
+        headers: await _headers(),
+      );
+    }
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       yield data.map((json) => Property.fromMap(json)).toList();
     } else {
-      throw Exception('Failed to load properties');
+      throw Exception('Failed to load properties: ${response.statusCode} ${response.body}');
     }
   }
 
   Stream<Property> getPropertyById(String propertyId) async* {
     print('Fetching property with ID: $propertyId');
 
-    final response = await http.get(
+    var response = await http.get(
       Uri.parse('$_apiUrl/properties/$propertyId'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
     );
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.get(
+        Uri.parse('$_apiUrl/properties/$propertyId'),
+        headers: await _headers(),
+      );
+    }
 
     print('API Response status: ${response.statusCode}');
     print('API Response body: ${response.body}');
@@ -173,10 +337,17 @@ class PropertyService {
 
   // Future-based method for tenant dashboard
   Future<List<Property>> getAllPropertiesFuture() async {
-    final response = await http.get(
+    var response = await http.get(
       Uri.parse('$_apiUrl/properties'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
     );
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.get(
+        Uri.parse('$_apiUrl/properties'),
+        headers: await _headers(),
+      );
+    }
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -199,11 +370,19 @@ class PropertyService {
     print('Updating property: ${property.id}');
     print('Property data to send: ${json.encode(propertyData)}');
 
-    final response = await http.put(
+    var response = await http.put(
       Uri.parse('$_apiUrl/properties/${property.id}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
       body: json.encode(propertyData),
     );
+    if (response.statusCode == 401) {
+      await _tryLoginExchangeWithUiJwt();
+      response = await http.put(
+        Uri.parse('$_apiUrl/properties/${property.id}'),
+        headers: await _headers(),
+        body: json.encode(propertyData),
+      );
+    }
 
     if (response.statusCode != 200) {
       print('Server response: ${response.body}');
@@ -221,6 +400,8 @@ class PropertyService {
         'POST',
         Uri.parse('$_apiUrl/images/upload'),
       );
+      // Attach auth headers
+      request.headers.addAll(await _headers());
       if (file.bytes != null) {
         // For web platform
         print('Uploading image from bytes (web)');
@@ -263,8 +444,35 @@ class PropertyService {
       }
 
       print('Sending upload request to: $_apiUrl/images/upload');
-      final response = await request.send();
-      final responseData = await response.stream.bytesToString();
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+
+      if (response.statusCode == 401) {
+        await _tryLoginExchangeWithUiJwt();
+        final retry = http.MultipartRequest(
+          'POST',
+          Uri.parse('$_apiUrl/images/upload'),
+        );
+        retry.headers.addAll(await _headers());
+        if (file.bytes != null) {
+          retry.files.add(
+            http.MultipartFile.fromBytes(
+              'image',
+              file.bytes!,
+              filename: file.name,
+              contentType: file.name.toLowerCase().endsWith('.png')
+                  ? MediaType.parse('image/png')
+                  : MediaType.parse('application/octet-stream'),
+            ),
+          );
+        } else if (file.path != null) {
+          retry.files.add(
+            await http.MultipartFile.fromPath('image', file.path!),
+          );
+        }
+        response = await retry.send();
+        responseData = await response.stream.bytesToString();
+      }
 
       print('Upload response status: ${response.statusCode}');
       print('Upload response data: $responseData');

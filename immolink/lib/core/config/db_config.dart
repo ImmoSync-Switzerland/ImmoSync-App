@@ -2,6 +2,29 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 
 class DbConfig {
+  // Whether to force using HTTP-based DB proxy even on desktop
+  static bool get forceHttpDb {
+    final env = (dotenv.dotenv.isInitialized
+        ? dotenv.dotenv.env['DB_FORCE_HTTP']
+        : null);
+    if (env != null && env.isNotEmpty) {
+      return env == '1' || env.toLowerCase() == 'true';
+    }
+    const dd = String.fromEnvironment('DB_FORCE_HTTP');
+    if (dd.isNotEmpty) {
+      return dd == '1' || dd.toLowerCase() == 'true';
+    }
+    return false;
+  }
+
+  // Whether a MongoDB URI is provided via env (to avoid localhost fallback on desktop)
+  static bool get hasMongoEnv {
+    final env = (dotenv.dotenv.isInitialized
+        ? dotenv.dotenv.env['MONGODB_URI']
+        : null);
+    return env != null && env.isNotEmpty;
+  }
+
   static String get connectionUri {
     final env =
         (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['MONGODB_URI'] : null);

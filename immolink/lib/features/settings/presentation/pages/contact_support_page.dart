@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../core/config/db_config.dart';
+// Removed direct API usage; rely on SupportRequestService
+import '../../../support/domain/services/support_request_service.dart';
 
 class ContactSupportPage extends ConsumerStatefulWidget {
   const ContactSupportPage({super.key});
@@ -20,6 +19,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   final _formKey = GlobalKey<FormState>();
   final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
+  final _subjectFocus = FocusNode();
+  final _messageFocus = FocusNode();
   String _selectedCategory = 'General';
   String _selectedPriority = 'Medium';
   bool _isSubmitting = false;
@@ -28,6 +29,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
   void dispose() {
     _subjectController.dispose();
     _messageController.dispose();
+    _subjectFocus.dispose();
+    _messageFocus.dispose();
     super.dispose();
   }
 
@@ -267,59 +270,40 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               ),
               const SizedBox(height: 20),
 
-              // Category dropdown
-              _buildStyledDropdown(
-                context: context,
-                colors: colors,
+              // Category chips
+              _buildChipGroup(
                 label: l10n.category,
-                value: _selectedCategory,
-                items: _getLocalizedCategories(l10n)
-                    .map((c) => DropdownMenuItem(
-                          value: c.key,
-                          child: Text(c.value, overflow: TextOverflow.ellipsis),
-                        ))
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedCategory = v!),
+                colors: colors,
+                entries: _getLocalizedCategories(l10n),
+                selectedKey: _selectedCategory,
+                onSelected: (key) => setState(() => _selectedCategory = key),
               ),
               const SizedBox(height: 16),
 
-              // Priority dropdown
-              _buildStyledDropdown(
-                context: context,
-                colors: colors,
+              // Priority chips
+              _buildChipGroup(
                 label: l10n.priority,
-                value: _selectedPriority,
-                items: _getLocalizedPriorities(l10n)
-                    .map((p) => DropdownMenuItem(
-                          value: p.key,
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: _getPriorityColor(p.key),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  p.value,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedPriority = v!),
+                colors: colors,
+                entries: _getLocalizedPriorities(l10n),
+                selectedKey: _selectedPriority,
+                leadingBuilder: (key) => Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: _getPriorityColor(key),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                onSelected: (key) => setState(() => _selectedPriority = key),
               ),
               const SizedBox(height: 16),
 
               // Subject field
               TextFormField(
                 controller: _subjectController,
+                focusNode: _subjectFocus,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => _messageFocus.requestFocus(),
                 decoration: InputDecoration(
                   labelText: l10n.subject,
                   hintText: l10n.subjectHint,
@@ -329,13 +313,25 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: colors.primaryAccent),
                   ),
+                  suffixIcon: _subjectController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: Icon(Icons.clear, color: colors.textSecondary),
+                          onPressed: () {
+                            _subjectController.clear();
+                            setState(() {});
+                          },
+                        ),
                 ),
+                maxLength: 120,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return l10n.pleaseEnterSubject;
                   }
                   return null;
                 },
+                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
 
@@ -343,6 +339,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
               TextFormField(
                 controller: _messageController,
                 maxLines: 6,
+                focusNode: _messageFocus,
                 decoration: InputDecoration(
                   labelText: l10n.describeYourIssue,
                   hintText: l10n.issueDescriptionHint,
@@ -353,7 +350,18 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                     borderSide: BorderSide(color: colors.primaryAccent),
                   ),
                   alignLabelWithHint: true,
+                  suffixIcon: _messageController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: Icon(Icons.clear, color: colors.textSecondary),
+                          onPressed: () {
+                            _messageController.clear();
+                            setState(() {});
+                          },
+                        ),
                 ),
+                maxLength: 1500,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return l10n.pleaseDescribeIssue;
@@ -363,6 +371,7 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   }
                   return null;
                 },
+                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 24),
 
@@ -514,6 +523,71 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
     ];
   }
 
+  Widget _buildChipGroup({
+    required String label,
+    required DynamicAppColors colors,
+    required List<MapEntry<String, String>> entries,
+    required String selectedKey,
+    required ValueChanged<String> onSelected,
+    Widget Function(String key)? leadingBuilder,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: entries.map((e) {
+              final isSelected = e.key == selectedKey;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ChoiceChip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (leadingBuilder != null) ...[
+                        leadingBuilder(e.key),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(e.value),
+                    ],
+                  ),
+                  selected: isSelected,
+                  onSelected: (_) => onSelected(e.key),
+                  selectedColor: colors.primaryAccent,
+                  backgroundColor:
+                      colors.primaryBackground.withValues(alpha: 0.6),
+                  labelStyle: TextStyle(
+                    color: isSelected ? colors.textOnAccent : colors.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                  shape: StadiumBorder(
+                    side: BorderSide(
+                      color: isSelected
+                          ? colors.primaryAccent
+                          : colors.primaryAccent.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _launchEmail(AppLocalizations l10n) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
@@ -556,29 +630,34 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
       _isSubmitting = true;
     });
 
-    // Simulate API call
     try {
-      final user = ref.read(currentUserProvider);
-      final apiBase = DbConfig.apiUrl;
-      final uri = Uri.parse('$apiBase/support-requests');
-      final body = {
-        'subject': _subjectController.text.trim(),
-        'message': _messageController.text.trim(),
-        'category': _selectedCategory,
-        'priority': _selectedPriority,
-        'userId': user?.id,
-        'meta': {
-          'appVersion': '1.0.0',
-          'platform': Theme.of(context).platform.name,
-        }
-      };
-      final resp = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+      // Use centralized service to handle auth headers, retries, and proxy fallback
+      final service = ref.read(supportRequestServiceProvider);
+      final subject = _subjectController.text.trim();
+      final message = _messageController.text.trim();
+      await service.create(
+        subject: subject,
+        message: message,
+        category: _selectedCategory,
+        priority: _selectedPriority,
       );
-      if (resp.statusCode < 200 || resp.statusCode >= 300) {
-        throw Exception('Failed (${resp.statusCode})');
+
+      if (mounted) {
+        // Clear form on success
+        _subjectController.clear();
+        _messageController.clear();
+        setState(() {
+          _selectedCategory = 'General';
+          _selectedPriority = 'Medium';
+        });
+
+        final colors = ref.read(dynamicColorsProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.supportRequestSubmitted),
+            backgroundColor: colors.success,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -590,65 +669,14 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
           ),
         );
       }
-    }
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
-
-      // Clear form
-      _subjectController.clear();
-      _messageController.clear();
-      setState(() {
-        _selectedCategory = 'General';
-        _selectedPriority = 'Medium';
-      });
-
-      // Show success message
-      final colors = ref.read(dynamicColorsProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.supportRequestSubmitted),
-          backgroundColor: colors.success,
-        ),
-      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
-  Widget _buildStyledDropdown({
-    required BuildContext context,
-    required DynamicAppColors colors,
-    required String label,
-    required String value,
-    required List<DropdownMenuItem<String>> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      // ignore: deprecated_member_use
-      value: value,
-      isExpanded: true,
-      dropdownColor: colors.surfaceCards,
-      iconEnabledColor: colors.textPrimary,
-      style: TextStyle(color: colors.textPrimary, fontSize: 14),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: colors.textSecondary),
-        filled: true,
-        fillColor: colors.primaryBackground.withValues(alpha: 0.6),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide:
-              BorderSide(color: colors.primaryAccent.withValues(alpha: 0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colors.primaryAccent),
-        ),
-      ),
-      items: items,
-      onChanged: onChanged,
-    );
-  }
+  // Old dropdown builder removed in favor of chip groups
 }

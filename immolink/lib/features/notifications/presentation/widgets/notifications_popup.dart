@@ -99,8 +99,13 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup>
                                   size: 32, color: Colors.redAccent),
                               const SizedBox(height: 8),
                               Text('Failed to load',
-                                  style: theme.textTheme.titleSmall),
-                              Text('$e', style: theme.textTheme.bodySmall),
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  )),
+                              Text('$e',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                  )),
                             ],
                           ),
                         ),
@@ -120,9 +125,13 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup>
                                       size: 40, color: theme.disabledColor),
                                   const SizedBox(height: 10),
                                   Text('You\'re all caught up',
-                                      style: theme.textTheme.titleSmall),
+                                      style: theme.textTheme.titleSmall?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      )),
                                   Text('No notifications yet',
-                                      style: theme.textTheme.bodySmall),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                      )),
                                 ],
                               ),
                             ),
@@ -261,8 +270,10 @@ class _HeaderBar extends StatelessWidget {
           Icon(Icons.notifications, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Text('Notifications',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
+              )),
           const Spacer(),
           if (isLoading)
             const SizedBox(
@@ -349,7 +360,10 @@ class _DaySection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
             child: Text(label,
                 style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary, letterSpacing: 0.5)),
+                  color: theme.colorScheme.primary,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.w600,
+                )),
           ),
           ...notifications
               .map((n) => _NotificationTile(notification: n, onTap: onTap)),
@@ -409,14 +423,16 @@ class _NotificationTile extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight:
-                                  n.read ? FontWeight.w500 : FontWeight.w600),
+                            fontWeight: n.read ? FontWeight.w500 : FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Text(_formatTime(n.timestamp),
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: theme.hintColor)),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          )),
                     ],
                   ),
                   if (n.body.isNotEmpty)
@@ -426,7 +442,10 @@ class _NotificationTile extends StatelessWidget {
                         n.body,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   if (!n.read)
@@ -510,8 +529,10 @@ class _ViewAllButton extends StatelessWidget {
         ),
         child: Center(
           child: Text('View all notifications',
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(color: theme.colorScheme.primary)),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              )),
         ),
       ),
     );

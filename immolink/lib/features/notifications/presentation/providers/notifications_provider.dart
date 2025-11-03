@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
+import 'package:crypto/crypto.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/core/config/api_config.dart';
 import '../../domain/models/app_notification.dart';
@@ -21,6 +24,94 @@ class NotificationsNotifier
 
   static String get _baseUrl => ApiConfig.baseUrl;
 
+  String? _buildUiJwt(String userId) {
+    try {
+      final secret = dotenv.dotenv.isInitialized
+          ? (dotenv.dotenv.env['JWT_SECRET'] ?? '')
+          : '';
+      if (secret.isEmpty) return null;
+      final header = {'alg': 'HS256', 'typ': 'JWT'};
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final payload = {'sub': userId, 'iat': now, 'exp': now + 300};
+      String b64Url(Map obj) {
+        final jsonStr = json.encode(obj);
+        final b64 = base64Url.encode(utf8.encode(jsonStr));
+        return b64.replaceAll('=', '');
+      }
+      final h = b64Url(header);
+      final p = b64Url(payload);
+      final data = utf8.encode('$h.$p');
+      final key = utf8.encode(secret);
+      final sig = Hmac(sha256, key).convert(data);
+      final s = base64Url.encode(sig.bytes).replaceAll('=', '');
+      return '$h.$p.$s';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _tryLoginExchangeWithUiJwt() async {
+    if (_userId == null || _userId!.isEmpty) return;
+    try {
+      final assertion = _buildUiJwt(_userId!);
+      if (assertion == null) return;
+      final ex = await http.post(
+        Uri.parse('$_baseUrl/auth/login-exchange'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $assertion',
+        },
+      );
+      if (ex.statusCode == 200) {
+        final data = json.decode(ex.body) as Map<String, dynamic>;
+        final newToken = data['token'] as String?;
+        if (newToken != null && newToken.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('sessionToken', newToken);
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<Map<String, String>> _headers() async {
+    final base = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('sessionToken');
+      // If token looks like a UI JWT, proactively exchange
+      if (token != null && token.contains('.')) {
+        try {
+          final ex = await http.post(
+            Uri.parse('$_baseUrl/auth/login-exchange'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          );
+          if (ex.statusCode == 200) {
+            final data = json.decode(ex.body) as Map<String, dynamic>;
+            final newToken = data['token'] as String?;
+            if (newToken != null && newToken.isNotEmpty) {
+              await prefs.setString('sessionToken', newToken);
+              token = newToken;
+            }
+          }
+        } catch (_) {}
+      }
+      if (token != null && token.isNotEmpty) {
+        base['Authorization'] = 'Bearer $token';
+        base['x-access-token'] = token;
+        base['x-session-token'] = token;
+      }
+    } catch (_) {}
+    return base;
+  }
+
   void updateUser(String? userId) {
     if (userId == _userId) return;
     _userId = userId;
@@ -39,8 +130,17 @@ class NotificationsNotifier
     if (_userId == null) return true; // nothing to load
     state = const AsyncLoading();
     try {
-      final resp = await http
-          .get(Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'));
+      var resp = await http.get(
+        Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'),
+        headers: await _headers(),
+      );
+      if (resp.statusCode == 401) {
+        await _tryLoginExchangeWithUiJwt();
+        resp = await http.get(
+          Uri.parse('$_baseUrl/notifications/list/$_userId?limit=100'),
+          headers: await _headers(),
+        );
+      }
       if (resp.statusCode == 200) {
         final jsonBody = jsonDecode(resp.body) as Map<String, dynamic>;
         final list = (jsonBody['notifications'] as List<dynamic>)
@@ -61,11 +161,19 @@ class NotificationsNotifier
   Future<int> markAllRead() async {
     if (_userId == null) return 0;
     try {
-      final resp = await http.post(
+      var resp = await http.post(
         Uri.parse('$_baseUrl/notifications/mark-read'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
         body: jsonEncode({'userId': _userId, 'all': true}),
       );
+      if (resp.statusCode == 401) {
+        await _tryLoginExchangeWithUiJwt();
+        resp = await http.post(
+          Uri.parse('$_baseUrl/notifications/mark-read'),
+          headers: await _headers(),
+          body: jsonEncode({'userId': _userId, 'all': true}),
+        );
+      }
       int updated = 0;
       try {
         final body = jsonDecode(resp.body);
@@ -113,14 +221,25 @@ class NotificationsNotifier
       state = AsyncData(updated);
     }
     try {
-      await http.post(
+      var resp = await http.post(
         Uri.parse('$_baseUrl/notifications/mark-read'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
         body: jsonEncode({
           'userId': _userId,
           'ids': [id]
         }),
       );
+      if (resp.statusCode == 401) {
+        await _tryLoginExchangeWithUiJwt();
+        await http.post(
+          Uri.parse('$_baseUrl/notifications/mark-read'),
+          headers: await _headers(),
+          body: jsonEncode({
+            'userId': _userId,
+            'ids': [id]
+          }),
+        );
+      }
     } catch (_) {
       // silently ignore
     }

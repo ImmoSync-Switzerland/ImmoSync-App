@@ -38,13 +38,9 @@ class UserAvatar extends ConsumerWidget {
     final tc = textColor ?? Colors.grey.shade700;
 
     Widget child;
-    bool looksLikeUrl(String v) =>
-        v.startsWith('http://') ||
-        v.startsWith('https://') ||
-        v.startsWith('data:');
+  // All image sources (including URLs) are loaded via MongoImage to attach auth headers
 
     if (effectiveRef != null && effectiveRef.isNotEmpty) {
-      final isUrl = looksLikeUrl(effectiveRef);
       child = Container(
         width: size,
         height: size,
@@ -55,23 +51,13 @@ class UserAvatar extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(size / 2),
-          child: isUrl
-              ? Image.network(
-                  effectiveRef,
-                  key: ValueKey(effectiveRef),
-                  width: size,
-                  height: size,
-                  fit: fit,
-                  errorBuilder: (_, __, ___) =>
-                      _initialsCircle(effectiveName, bg, tc),
-                )
-              : MongoImage(
-                  imageId: effectiveRef,
-                  width: size,
-                  height: size,
-                  fit: fit,
-                  errorWidget: _initialsCircle(effectiveName, bg, tc),
-                ),
+          child: MongoImage(
+            imageId: effectiveRef,
+            width: size,
+            height: size,
+            fit: fit,
+            errorWidget: _initialsCircle(effectiveName, bg, tc),
+          ),
         ),
       );
     } else {

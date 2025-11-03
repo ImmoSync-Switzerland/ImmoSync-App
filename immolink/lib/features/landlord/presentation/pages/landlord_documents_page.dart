@@ -772,105 +772,144 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.uploadDocument),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                    '${AppLocalizations.of(context)!.fileLabel}: ${file.name}'),
-                Text(
-                    '${AppLocalizations.of(context)!.sizeLabel}: ${(file.size / 1024 / 1024).toStringAsFixed(2)} MB'),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.documentName,
-                    border: OutlineInputBorder(),
+        builder: (context, setState) {
+          final theme = Theme.of(context);
+          return AlertDialog(
+            title: Text(
+              AppLocalizations.of(context)!.uploadDocument,
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${AppLocalizations.of(context)!.fileLabel}: ${file.name}',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  controller: TextEditingController(text: documentName),
-                  onChanged: (value) => documentName = value,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText:
-                        AppLocalizations.of(context)!.descriptionOptional,
-                    border: OutlineInputBorder(),
+                  Text(
+                    '${AppLocalizations.of(context)!.sizeLabel}: ${(file.size / 1024 / 1024).toStringAsFixed(2)} MB',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                   ),
-                  maxLines: 3,
-                  onChanged: (value) => description = value,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedCategory,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.category,
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _categories
-                      .skip(1)
-                      .map((category) => DropdownMenuItem(
-                          value: category, child: Text(category)))
-                      .toList(),
-                  onChanged: (value) =>
-                      setState(() => selectedCategory = value!),
-                ),
-                const SizedBox(height: 16),
-                propertiesAsync.when(
-                  data: (properties) => DropdownButtonFormField<String>(
-                    initialValue: selectedPropertyId,
+                  const SizedBox(height: 16),
+                  TextField(
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!
-                          .assignToPropertyOptional,
+                      labelText: AppLocalizations.of(context)!.documentName,
                       border: OutlineInputBorder(),
                     ),
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: null,
-                        child: Text(
-                            AppLocalizations.of(context)!.noSpecificProperty),
-                      ),
-                      ...properties.map((property) => DropdownMenuItem<String>(
-                            value: property.id,
-                            child: Text(
-                                '${property.address.street}, ${property.address.city}'),
-                          )),
-                    ],
-                    onChanged: (value) => setState(() {
-                      selectedPropertyId = value;
-                      selectedTenantIds.clear();
-                    }),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    controller: TextEditingController(text: documentName),
+                    onChanged: (value) => documentName = value,
                   ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => Text(
-                      AppLocalizations.of(context)!.errorLoadingProperties),
-                ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText:
+                          AppLocalizations.of(context)!.descriptionOptional,
+                      border: OutlineInputBorder(),
+                    ),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    maxLines: 3,
+                    onChanged: (value) => description = value,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedCategory,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.category,
+                      border: OutlineInputBorder(),
+                    ),
+                    dropdownColor: theme.colorScheme.surface,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 16,
+                    ),
+                    items: _categories
+                        .skip(1)
+                        .map((category) => DropdownMenuItem(
+                            value: category,
+                            child: Text(
+                              category,
+                              style: TextStyle(
+                                  color: theme.colorScheme.onSurface),
+                            )))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => selectedCategory = value!),
+                  ),
+                  const SizedBox(height: 16),
+                  propertiesAsync.when(
+                    data: (properties) => DropdownButtonFormField<String>(
+                      initialValue: selectedPropertyId,
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!
+                            .assignToPropertyOptional,
+                        border: OutlineInputBorder(),
+                      ),
+                      dropdownColor: theme.colorScheme.surface,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 16,
+                      ),
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: null,
+                          child: Text(
+                            AppLocalizations.of(context)!.noSpecificProperty,
+                            style: TextStyle(color: theme.colorScheme.onSurface),
+                          ),
+                        ),
+                        ...properties.map((property) => DropdownMenuItem<String>(
+                              value: property.id,
+                              child: Text(
+                                '${property.address.street}, ${property.address.city}',
+                                style: TextStyle(
+                                    color: theme.colorScheme.onSurface),
+                              ),
+                            )),
+                      ],
+                      onChanged: (value) => setState(() {
+                        selectedPropertyId = value;
+                        selectedTenantIds.clear();
+                      }),
+                    ),
+                    loading: () => const CircularProgressIndicator(),
+                    error: (_, __) => Text(
+                      AppLocalizations.of(context)!.errorLoadingProperties,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                  ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _processDocumentUpload(
-                  file,
-                  documentName,
-                  description,
-                  selectedCategory,
-                  selectedPropertyId,
-                  selectedTenantIds,
-                );
-              },
-              child: Text(AppLocalizations.of(context)!.upload),
-            ),
-          ],
-        ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(AppLocalizations.of(context)!.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _processDocumentUpload(
+                    file,
+                    documentName,
+                    description,
+                    selectedCategory,
+                    selectedPropertyId,
+                    selectedTenantIds,
+                  );
+                },
+                child: Text(AppLocalizations.of(context)!.upload),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

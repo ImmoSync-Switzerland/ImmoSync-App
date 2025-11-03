@@ -1143,9 +1143,25 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                   const SizedBox(height: 8),
                   Text(
                     _selectedFile?.name ?? 'Datei auswählen',
-                    style: TextStyle(color: widget.colors.textPrimary),
+                    style: TextStyle(
+                      color: widget.colors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                     textAlign: TextAlign.center,
                   ),
+                  if (_selectedFile != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Größe: ${(_selectedFile!.size / 1024 / 1024).toStringAsFixed(2)} MB',
+                        style: TextStyle(
+                          color: widget.colors.textSecondary,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: _pickFile,
@@ -1200,11 +1216,14 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                 ),
               ),
               dropdownColor: widget.colors.surfaceCards,
-              style: TextStyle(color: widget.colors.textPrimary),
+              style: TextStyle(color: widget.colors.textPrimary, fontSize: 16),
               items: _categories.map((category) {
                 return DropdownMenuItem(
                   value: category,
-                  child: Text(_categoryTranslations[category] ?? category),
+                  child: Text(
+                    _categoryTranslations[category] ?? category,
+                    style: TextStyle(color: widget.colors.textPrimary),
+                  ),
                 );
               }).toList(),
               onChanged: (value) {

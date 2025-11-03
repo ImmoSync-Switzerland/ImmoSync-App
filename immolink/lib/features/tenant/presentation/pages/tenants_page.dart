@@ -18,23 +18,16 @@ class TenantsPage extends ConsumerStatefulWidget {
   ConsumerState<TenantsPage> createState() => _TenantsPageState();
 }
 
-class _TenantsPageState extends ConsumerState<TenantsPage>
-    with TickerProviderStateMixin {
+class _TenantsPageState extends ConsumerState<TenantsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _tenantFilter = 'all';
-  late final AnimationController _anim = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 550))
-    ..forward();
-  late final Animation<double> _slide = Tween<double>(begin: 28, end: 0)
-      .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
-  late final Animation<double> _fade = Tween<double>(begin: 0, end: 1)
-      .animate(CurvedAnimation(parent: _anim, curve: Curves.easeIn));
+  String _sortKey = 'name'; // name | status
+
 
   @override
   void dispose() {
     _searchController.dispose();
-    _anim.dispose();
     super.dispose();
   }
 
@@ -48,38 +41,52 @@ class _TenantsPageState extends ConsumerState<TenantsPage>
       backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(colors, l10n),
       floatingActionButton: _buildFAB(colors, l10n),
-      body: AnimatedBuilder(
-        animation: _anim,
-        builder: (_, child) => Opacity(
-          opacity: _fade.value,
-          child: Transform.translate(
-              offset: Offset(0, _slide.value), child: child),
-        ),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(userContactsProvider);
-            ref.invalidate(landlordPropertiesProvider);
-          },
-          color: colors.primaryAccent,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeader(colors, l10n)),
-              SliverToBoxAdapter(child: _buildSearchBar(colors, l10n)),
-              SliverFillRemaining(
-                hasScrollBody: true,
-                child: contactsAsync.when(
-                  data: (contacts) => propertiesAsync.when(
-                    data: (properties) => _buildTenantsContent(
-                        _filterTenants(contacts), properties, l10n, colors),
-                    loading: () => _buildLoadingState(colors, l10n),
-                    error: (_, __) => _buildErrorState(colors, l10n),
-                  ),
-                  loading: () => _buildLoadingState(colors, l10n),
-                  error: (_, __) => _buildErrorState(colors, l10n),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(userContactsProvider);
+          ref.invalidate(landlordPropertiesProvider);
+        },
+        color: colors.primaryAccent,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _buildSearchBar(colors, l10n)),
+            SliverToBoxAdapter(child: _buildFilterChips(colors)),
+            SliverToBoxAdapter(
+              child: contactsAsync.when(
+                data: (contacts) => propertiesAsync.when(
+                  data: (properties) => _buildStatsSection(
+                      _sortTenants(_filterTenants(contacts)),
+                      properties,
+                      colors,
+                      l10n),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
               ),
-            ],
-          ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              sliver: contactsAsync.when(
+                data: (contacts) => propertiesAsync.when(
+                  data: (properties) => _buildTenantsList(
+                      _sortTenants(_filterTenants(contacts)),
+                      properties,
+                      l10n,
+                      colors),
+                  loading: () => SliverFillRemaining(
+                      child: _buildLoadingState(colors, l10n)),
+                  error: (_, __) =>
+                      SliverFillRemaining(child: _buildErrorState(colors, l10n)),
+                ),
+                loading: () =>
+                    SliverFillRemaining(child: _buildLoadingState(colors, l10n)),
+                error: (_, __) =>
+                    SliverFillRemaining(child: _buildErrorState(colors, l10n)),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -103,35 +110,68 @@ class _TenantsPageState extends ConsumerState<TenantsPage>
         ],
       );
 
-  Widget _buildHeader(DynamicAppColors colors, AppLocalizations l10n) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l10n.tenantManagement,
-              style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.5)),
-          const SizedBox(height: 6),
-          Text(l10n.manageTenantDescription,
-              style: TextStyle(fontSize: 14, color: colors.textSecondary)),
-        ]),
-      );
+  Widget _buildStatsSection(List<ContactUser> tenants, List<Property> properties,
+      DynamicAppColors colors, AppLocalizations l10n) {
+    final occupied = properties.where((p) => p.status == 'rented').length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      child: Column(
+        children: [
+          _buildLargeStatCard(
+            title: l10n.tenantManagement,
+            subtitle: l10n.manageTenantDescription,
+            icon: Icons.people,
+            gradient: [
+              const Color(0xFF4A90E2),
+              const Color(0xFF357ABD),
+            ],
+            colors: colors,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildSmallStatCard(
+                  label: l10n.totalTenants,
+                  value: tenants.length.toString(),
+                  icon: Icons.people_outline,
+                  gradient: [
+                    colors.primaryAccent,
+                    colors.primaryAccent.withValues(alpha: 0.7),
+                  ],
+                  colors: colors,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSmallStatCard(
+                  label: l10n.occupiedUnits,
+                  value: occupied.toString(),
+                  icon: Icons.home_outlined,
+                  gradient: [
+                    colors.success,
+                    colors.success.withValues(alpha: 0.7),
+                  ],
+                  colors: colors,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSearchBar(DynamicAppColors colors, AppLocalizations l10n) =>
       Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [colors.surfaceCards, colors.luxuryGradientStart]),
+          color: colors.surfaceCards,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.borderLight, width: 1),
+          border: Border.all(color: colors.borderLight.withValues(alpha: 0.5), width: 1),
           boxShadow: [
             BoxShadow(
-                color: colors.shadowColor,
+                color: colors.shadowColor.withValues(alpha: 0.06),
                 blurRadius: 12,
                 offset: const Offset(0, 4))
           ],
@@ -169,237 +209,438 @@ class _TenantsPageState extends ConsumerState<TenantsPage>
         ),
       );
 
-  Widget _buildTenantsContent(
+  Widget _buildFilterChips(DynamicAppColors colors) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+        child: Row(
+          children: [
+            _buildChoiceChip(
+                label: 'All',
+                selected: _tenantFilter == 'all',
+                onTap: () => setState(() => _tenantFilter = 'all'),
+                colors: colors),
+            const SizedBox(width: 8),
+            _buildChoiceChip(
+                label: 'Active',
+                selected: _tenantFilter == 'active',
+                onTap: () => setState(() => _tenantFilter = 'active'),
+                colors: colors),
+            const SizedBox(width: 8),
+            _buildChoiceChip(
+                label: 'Inactive',
+                selected: _tenantFilter == 'inactive',
+                onTap: () => setState(() => _tenantFilter = 'inactive'),
+                colors: colors),
+            const Spacer(),
+            PopupMenuButton<String>(
+              tooltip: 'Sort',
+              color: colors.surfaceCards,
+              onSelected: (v) => setState(() => _sortKey = v),
+              itemBuilder: (c) => [
+                PopupMenuItem(
+                  value: 'name',
+                  child: Row(children: [
+                    Icon(Icons.sort_by_alpha,
+                        size: 18,
+                        color: _sortKey == 'name'
+                            ? colors.primaryAccent
+                            : colors.textSecondary),
+                    const SizedBox(width: 8),
+                    Text('Name (A–Z)')
+                  ]),
+                ),
+                PopupMenuItem(
+                  value: 'status',
+                  child: Row(children: [
+                    Icon(Icons.compare_arrows,
+                        size: 18,
+                        color: _sortKey == 'status'
+                            ? colors.primaryAccent
+                            : colors.textSecondary),
+                    const SizedBox(width: 8),
+                    Text('Status')
+                  ]),
+                ),
+              ],
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: colors.primaryBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colors.borderLight.withValues(alpha: 0.5), width: 1),
+                ),
+                child: Row(children: [
+                  Icon(Icons.sort_rounded, size: 18, color: colors.textPrimary),
+                  const SizedBox(width: 6),
+                  Text(
+                    _sortKey == 'name' ? 'Name' : 'Status',
+                    style: TextStyle(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12),
+                  ),
+                ]),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _buildChoiceChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    required DynamicAppColors colors,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? colors.primaryAccent.withValues(alpha: 0.12)
+              : colors.primaryBackground,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: selected
+                ? colors.primaryAccent
+                : colors.borderLight,
+            width: 1,
+          ),
+        ),
+        child: Row(children: [
+          if (selected) ...[
+            Icon(Icons.check, size: 16, color: colors.primaryAccent),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: selected ? colors.primaryAccent : colors.textPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildLargeStatCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required List<Color> gradient,
+    required DynamicAppColors colors,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: gradient[0].withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallStatCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required List<Color> gradient,
+    required DynamicAppColors colors,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: gradient[0].withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverList _buildTenantsList(
       List<ContactUser> tenants,
       List<Property> properties,
       AppLocalizations l10n,
       DynamicAppColors colors) {
-    if (tenants.isEmpty) return _buildEmptyState(colors, l10n);
-    return Column(children: [
-      _buildStatsCards(tenants, properties, colors, l10n),
-      const SizedBox(height: 16),
-      Expanded(
-          child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: tenants.length,
-        itemBuilder: (_, i) {
+    if (tenants.isEmpty) {
+      return SliverList(
+        delegate: SliverChildListDelegate([
+          _buildEmptyState(colors, l10n),
+        ]),
+      );
+    }
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (_, i) {
           final t = tenants[i];
           final props = _getTenantProperties(t, properties);
           return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildTenantCard(t, props, l10n, colors));
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildTenantCard(t, props, l10n, colors),
+          );
         },
-      )),
-    ]);
+        childCount: tenants.length,
+      ),
+    );
   }
-
-  Widget _buildStatsCards(List<ContactUser> tenants, List<Property> properties,
-      DynamicAppColors colors, AppLocalizations l10n) {
-    final occupied = properties.where((p) => p.status == 'rented').length;
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(children: [
-          Expanded(
-              child: _buildStatCard(
-                  l10n.totalTenants,
-                  tenants.length.toString(),
-                  Icons.people_outline,
-                  colors.primaryAccent,
-                  colors)),
-          const SizedBox(width: 12),
-          Expanded(
-              child: _buildStatCard(l10n.occupiedUnits, occupied.toString(),
-                  Icons.home_outlined, colors.success, colors)),
-        ]));
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color,
-          DynamicAppColors colors) =>
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [colors.surfaceCards, color.withValues(alpha: 0.03)]),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.15), width: 1),
-          boxShadow: [
-            BoxShadow(
-                color: color.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: Column(children: [
-          Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8)),
-              child: Icon(icon, color: color, size: 20)),
-          const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary)),
-          const SizedBox(height: 4),
-          Text(title,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textTertiary,
-                  letterSpacing: 0.5),
-              textAlign: TextAlign.center),
-        ]),
-      );
 
   Widget _buildTenantCard(ContactUser tenant, List<Property> tenantProperties,
       AppLocalizations l10n, DynamicAppColors colors) {
     final hasProps = tenantProperties.isNotEmpty;
     final status = tenant.status ?? (hasProps ? 'active' : 'available');
-    final statusColor = status == 'active' ? colors.success : colors.warning;
+    final statusColor = status == 'active' ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         _showTenantDetails(tenant, tenantProperties);
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colors.surfaceCards,
-                statusColor.withValues(alpha: 0.02)
+                statusColor.withValues(alpha: 0.12),
+                statusColor.withValues(alpha: 0.05),
               ]),
-          borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: statusColor.withValues(alpha: 0.15), width: 1),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-                color: colors.shadowColor,
-                blurRadius: 16,
-                offset: const Offset(0, 8))
+                color: statusColor.withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 10))
           ],
         ),
         child: Column(children: [
-          Row(children: [
-            Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          statusColor,
-                          statusColor.withValues(alpha: 0.7)
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(children: [
+              Row(children: [
+                Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              statusColor,
+                              statusColor.withValues(alpha: 0.8)
+                            ]),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                              color: statusColor.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6))
                         ]),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: statusColor.withValues(alpha: 0.3), width: 2)),
-                child: Center(
-                    child: Text(
-                        (tenant.fullName.isNotEmpty ? tenant.fullName[0] : 'T')
-                            .toUpperCase(),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700)))),
-            const SizedBox(width: 16),
-            Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Text(tenant.fullName,
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                          letterSpacing: -0.3)),
-                  const SizedBox(height: 4),
-                  Text(tenant.email,
-                      style:
-                          TextStyle(fontSize: 14, color: colors.textSecondary)),
-                  if (tenant.phone.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(children: [
-                      Icon(Icons.phone_outlined,
-                          size: 14, color: colors.textTertiary),
-                      const SizedBox(width: 4),
-                      Text(tenant.phone,
+                    child: Center(
+                        child: Text(
+                            (tenant.fullName.isNotEmpty ? tenant.fullName[0] : 'T')
+                                .toUpperCase(),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700)))),
+                const SizedBox(width: 16),
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(tenant.fullName,
                           style: TextStyle(
-                              fontSize: 14, color: colors.textSecondary))
-                    ]),
-                  ],
-                ])),
-            Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: statusColor.withValues(alpha: 0.2), width: 1)),
-                child: Text(
-                    status == 'active'
-                        ? l10n.active.toUpperCase()
-                        : l10n.available.toUpperCase(),
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                        letterSpacing: 0.5))),
-          ]),
-          if (hasProps) ...[
-            const SizedBox(height: 16),
-            Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    color: colors.success.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: colors.success.withValues(alpha: 0.1),
-                        width: 1)),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Icon(Icons.home_outlined,
-                            size: 16, color: colors.success),
-                        const SizedBox(width: 8),
-                        Text(l10n.assignedProperties,
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: colors.success))
-                      ]),
-                      const SizedBox(height: 8),
-                      ...tenantProperties.map((p) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(children: [
-                            const SizedBox(width: 24),
-                            Expanded(
-                                child: Text(p.address.street,
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: colors.textSecondary))),
-                            Text(
-                                ref
-                                    .read(currencyProvider.notifier)
-                                    .formatAmount(p.rentAmount),
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: colors.success))
-                          ]))),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: colors.textPrimary,
+                              letterSpacing: -0.5)),
+                      const SizedBox(height: 6),
+                      Text(tenant.email,
+                          style:
+                              TextStyle(fontSize: 14, color: colors.textSecondary)),
                     ])),
+                Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                        color: statusColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                              color: statusColor.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4))
+                        ]),
+                    child: Text(
+                        status == 'active'
+                            ? l10n.active.toUpperCase()
+                            : l10n.available.toUpperCase(),
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 1))),
+              ]),
+            ]),
+          ),
+          if (hasProps) ...[
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Icon(Icons.home_outlined, size: 18, color: statusColor),
+                    const SizedBox(width: 8),
+                    Text(l10n.assignedProperties,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: colors.textPrimary,
+                            letterSpacing: 0.3))
+                  ]),
+                  const SizedBox(height: 16),
+                  ...tenantProperties.map((p) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                              child: Text(p.address.street,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: colors.textPrimary))),
+                          Text(
+                              ref
+                                  .read(currencyProvider.notifier)
+                                  .formatAmount(p.rentAmount),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: statusColor))
+                        ],
+                      ))),
+                ],
+              ),
+            ),
           ],
-          const SizedBox(height: 16),
-          Row(children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Row(children: [
             Expanded(
                 child: _buildActionButton(
                     l10n.message,
@@ -407,17 +648,18 @@ class _TenantsPageState extends ConsumerState<TenantsPage>
                     colors.primaryAccent,
                     () => _messageTenant(tenant))),
             const SizedBox(width: 12),
-            Expanded(
-                child: _buildActionButton(l10n.call, Icons.phone_outlined,
-                    colors.success, () => _callTenant(tenant))),
-            const SizedBox(width: 12),
-            Expanded(
-                child: _buildActionButton(
-                    l10n.details,
-                    Icons.info_outline,
-                    colors.textSecondary,
-                    () => _showTenantDetails(tenant, tenantProperties))),
-          ])
+              Expanded(
+                  child: _buildActionButton(l10n.call, Icons.phone_outlined,
+                      colors.success, () => _callTenant(tenant))),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _buildActionButton(
+                      l10n.details,
+                      Icons.info_outline,
+                      colors.textSecondary,
+                      () => _showTenantDetails(tenant, tenantProperties))),
+            ]),
+          ),
         ]),
       ),
     );
@@ -428,18 +670,27 @@ class _TenantsPageState extends ConsumerState<TenantsPage>
       GestureDetector(
         onTap: onPressed,
         child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
             decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border:
-                    Border.all(color: color.withValues(alpha: 0.2), width: 1)),
+                color: Colors.white.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: color.withValues(alpha: 0.3), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                      color: color.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4))
+                ]),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
+              Icon(icon, size: 18, color: color),
+              const SizedBox(width: 8),
               Text(label,
                   style: TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600, color: color))
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                      letterSpacing: 0.4))
             ])),
       );
 
@@ -579,6 +830,24 @@ class _TenantsPageState extends ConsumerState<TenantsPage>
       );
     }
     return filtered.toList();
+  }
+
+  List<ContactUser> _sortTenants(List<ContactUser> tenants) {
+    final list = [...tenants];
+    if (_sortKey == 'status') {
+      list.sort((a, b) {
+        final aActive = (a.status == 'active') || a.properties.isNotEmpty;
+        final bActive = (b.status == 'active') || b.properties.isNotEmpty;
+        if (aActive == bActive) {
+          return a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase());
+        }
+        return aActive ? -1 : 1; // active first
+      });
+    } else {
+      list.sort((a, b) =>
+          a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()));
+    }
+    return list;
   }
 
   List<Property> _getTenantProperties(ContactUser tenant, List<Property> all) =>

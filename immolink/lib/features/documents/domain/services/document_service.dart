@@ -348,10 +348,12 @@ class DocumentService {
     print('DocumentService: Starting upload to ${_baseUrl}/upload');
 
     try {
-    final request =
-      http.MultipartRequest('POST', Uri.parse('$_baseUrl/upload'));
-    // Add auth headers if available
-    request.headers.addAll(await _authHeaders());
+      final request =
+          http.MultipartRequest('POST', Uri.parse('$_baseUrl/upload'));
+      // Add auth headers if available
+      final authHeaders = await _authHeaders();
+      print('DocumentService: Auth headers: ${authHeaders.keys.join(", ")}');
+      request.headers.addAll(authHeaders);
 
       // Add file
       final bytes = file.bytes ?? await _getBytesFromPath(file.path!);
@@ -411,32 +413,7 @@ class DocumentService {
       }
     } catch (e) {
       print('DocumentService: Upload failed with error: $e');
-      print('DocumentService: Falling back to local storage only');
-
-      // Fallback to local storage only (this should be temporary until backend is fixed)
-      await _initialize();
-      await Future.delayed(const Duration(seconds: 1)); // Simulate upload time
-
-      final documentId = 'local_${DateTime.now().millisecondsSinceEpoch}';
-      final document = DocumentModel(
-        id: documentId,
-        name: name,
-        description: description,
-        category: category,
-        filePath: file.path ?? '',
-        fileSize: file.size,
-        mimeType: _getMimeType(file.extension ?? ''),
-        uploadDate: DateTime.now(),
-        assignedTenantIds: tenantIds,
-        propertyIds: propertyId != null ? [propertyId] : [],
-        uploadedBy: uploadedBy,
-        expiryDate: expiryDate,
-        status: 'active',
-      );
-
-      _documents.add(document);
-      await _saveDocuments(); // Save to local storage
-      return document;
+      rethrow; // No fallback - throw the error
     }
   }
 
@@ -532,9 +509,33 @@ class DocumentService {
   /// Delete a document
   Future<void> deleteDocument(String documentId) async {
     await _initialize();
-    await Future.delayed(const Duration(milliseconds: 500));
+    
+    print('DocumentService: Attempting to delete document: $documentId');
+    
+    // Try to delete from backend first
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/$documentId'),
+        headers: await _authHeaders(),
+      );
+      
+      print('DocumentService: Delete response - Status: ${response.statusCode}');
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('DocumentService: Successfully deleted from backend');
+      } else if (response.statusCode == 401) {
+        print('DocumentService: Auth failed (401), trying to delete locally only');
+      } else {
+        print('DocumentService: Backend delete failed with ${response.statusCode}, continuing with local delete');
+      }
+    } catch (e) {
+      print('DocumentService: Backend delete error: $e, continuing with local delete');
+    }
+    
+    // Always remove from local storage regardless of backend result
     _documents.removeWhere((doc) => doc.id == documentId);
-    await _saveDocuments(); // Save to local storage
+    await _saveDocuments();
+    print('DocumentService: Document removed from local storage');
   }
 
   /// Assign document to tenants
@@ -820,7 +821,11 @@ extension on DocumentService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('sessionToken');
       if (token != null && token.isNotEmpty) {
-        return {'Authorization': 'Bearer $token'};
+        return {
+          'Authorization': 'Bearer $token',
+          'x-access-token': token,
+          'x-session-token': token,
+        };
       }
       return const {};
     } catch (e) {
