@@ -449,7 +449,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           # TODO: Replace below with your real target repo, e.g. org/vercel-site-repo
-          repository: FabianBoni/immosync.ch
+          repository: ImmoSync-Switzerland/immosync.ch
           # TODO: Replace with: token: ${{ secrets.SITE_REPO_PAT }}  (create PAT secret first)
           token: ${{ secrets.SITE_REPO_PAT }}
           fetch-depth: 0
