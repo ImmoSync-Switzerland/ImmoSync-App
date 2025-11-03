@@ -52,6 +52,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Install Android SDK 36
+        run: |
+          echo "y" | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || {
+            echo "Failed to install Android SDK 36. Available platforms:"
+            ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --list | grep "platforms;android-"
+            exit 1
+          }
+
       - name: Set up Flutter
         id: flutter-setup
         uses: subosito/flutter-action@v2
