@@ -52,14 +52,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Android SDK 36
-        run: |
-          echo "y" | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || {
-            echo "Failed to install Android SDK 36. Available platforms:"
-            ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --list | grep "platforms;android-"
-            exit 1
-          }
-
       - name: Set up Flutter
         id: flutter-setup
         uses: subosito/flutter-action@v2
@@ -171,6 +163,27 @@ jobs:
         run: |
           flutter analyze || true
         working-directory: immolink
+
+      - name: Create .env file from secrets
+        working-directory: immolink
+        env:
+          API_URL: ${{ secrets.CLIENT_API_URL }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+          WS_URL: ${{ secrets.WS_URL }}
+        run: |
+          echo "Creating .env file for flutter_dotenv..."
+          cat > .env << EOF
+          API_URL=${API_URL}
+          STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+          GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+          MONGODB_URI=${MONGODB_URI:-}
+          MONGODB_DB_NAME=${MONGODB_DB_NAME:-}
+          WS_URL=${WS_URL:-}
+          EOF
+          echo ".env file created with $(wc -l < .env) lines"
 
       - name: Create google-services.json from secret
         working-directory: immolink/android/app
@@ -406,98 +419,6 @@ jobs:
             exit 1
           fi
           cp apk/immosync-${VERSION}.apk apk/immosync-latest.apk
-
-  deploy-to-downloads:
-    name: Deploy APKs to Server Downloads
-    needs: build-apk
-    runs-on: ubuntu-latest
-    if: needs.build-apk.result == 'success'
-    steps:
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: immosync-apk
-          path: apk
-
-      - name: List downloaded files
-        run: |
-          echo "Downloaded files:"; ls -lh apk || true
-
-      - name: Compute checksums and generate manifest
-        id: manifest
-        run: |
-          set -euo pipefail
-          VERSION="${{ needs.build-apk.outputs.app_version }}"
-          echo "Using version: $VERSION"
-          # Compute sha256 and sizes for all APKs
-          cd apk
-          shopt -s nullglob
-          files=(immosync-*.apk)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "No APKs found to deploy" >&2
-            exit 1
-          fi
-          echo "Found ${#files[@]} APK(s):"; printf '  %s\n' "${files[@]}"
-          # Build a small JSON manifest
-          echo '{' > manifest.json
-          echo "  \"version\": \"$VERSION\"," >> manifest.json
-          echo '  "files": [' >> manifest.json
-          first=1
-          for f in "${files[@]}"; do
-            sha=$(sha256sum "$f" | awk '{print $1}')
-            size=$(wc -c < "$f" | tr -d ' ')
-            [ $first -eq 0 ] && echo ',' >> manifest.json || first=0
-            printf '    {"name":"%s","sha256":"%s","size":%s}' "$f" "$sha" "$size" >> manifest.json
-          done
-          echo '' >> manifest.json
-          echo '  ]' >> manifest.json
-          echo '}' >> manifest.json
-          echo "Generated manifest.json:"; cat manifest.json
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.DEPLOY_SSH_KEY }}
-
-      - name: Add remote host to known_hosts
-        run: |
-          set -euo pipefail
-          HOST="${{ secrets.DEPLOY_HOST }}"
-          PORT="${{ secrets.DEPLOY_PORT }}"
-          if [ -z "$HOST" ]; then echo 'Missing secret DEPLOY_HOST' >&2; exit 1; fi
-          : "${PORT:=22}"
-          echo "Scanning SSH host key for $HOST:$PORT"
-          ssh-keyscan -p "$PORT" "$HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Validate required secrets
-        run: |
-          set -euo pipefail
-          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH_DOWNLOADS; do
-            if [ -z "${!v:-}" ]; then echo "Missing required secret: $v" >&2; exit 1; fi
-          done
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PATH_DOWNLOADS: ${{ secrets.DEPLOY_PATH_DOWNLOADS }}
-
-      - name: Upload APKs and manifest via SCP
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_PATH_DOWNLOADS: ${{ secrets.DEPLOY_PATH_DOWNLOADS }}
-        run: |
-          set -euo pipefail
-          : "${DEPLOY_PORT:=22}"
-          echo "Creating remote directory: ${DEPLOY_PATH_DOWNLOADS}"
-          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '${DEPLOY_PATH_DOWNLOADS}'"
-          echo "Copying files to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH_DOWNLOADS}"
-          scp -P "$DEPLOY_PORT" apk/immosync-*.apk "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH_DOWNLOADS}/"
-          scp -P "$DEPLOY_PORT" apk/manifest.json "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH_DOWNLOADS}/"
-          echo "Deployed files:"
-          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "ls -lh '${DEPLOY_PATH_DOWNLOADS}' | sed -n '1,200p'"
           ls -lh apk
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v1
