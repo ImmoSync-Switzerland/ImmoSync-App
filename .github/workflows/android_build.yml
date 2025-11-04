@@ -443,25 +443,37 @@ jobs:
     name: Push APKs to site repository (Option A)
     needs: build-apk
     runs-on: ubuntu-latest
-    if: needs.build-apk.result == 'success' && secrets.SITE_REPO_PAT != ''
+    if: needs.build-apk.result == 'success'
     steps:
+      - name: Check if SITE_REPO_PAT is configured
+        id: check_secret
+        run: |
+          if [ -z "${{ secrets.SITE_REPO_PAT }}" ]; then
+            echo "SITE_REPO_PAT secret is not configured. Skipping site repo publish."
+            echo "To enable this feature, add SITE_REPO_PAT to repository secrets."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Checkout site repo
+        if: steps.check_secret.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          # TODO: Replace below with your real target repo, e.g. org/vercel-site-repo
           repository: ImmoSync-Switzerland/immosync.ch
-          # TODO: Replace with: token: ${{ secrets.SITE_REPO_PAT }}  (create PAT secret first)
           token: ${{ secrets.SITE_REPO_PAT }}
           fetch-depth: 0
           path: site
 
       - name: Download APK artifact
+        if: steps.check_secret.outputs.skip != 'true'
         uses: actions/download-artifact@v4
         with:
           name: immosync-apk
           path: site/apk
 
       - name: Prepare downloads folder
+        if: steps.check_secret.outputs.skip != 'true'
         env:
           VERSION: ${{ needs.build-apk.outputs.app_version }}
         run: |
@@ -526,6 +538,7 @@ jobs:
           rm -rf apk
 
       - name: Commit & push
+        if: steps.check_secret.outputs.skip != 'true'
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
@@ -545,6 +558,7 @@ jobs:
           git push
 
       - name: Summary
+        if: steps.check_secret.outputs.skip != 'true'
         env:
           VERSION: ${{ needs.build-apk.outputs.app_version }}
         run: |
