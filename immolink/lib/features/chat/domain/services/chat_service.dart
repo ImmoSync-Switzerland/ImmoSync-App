@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:immosync/bridge.dart' as frb; // FRB generated helpers
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import 'package:immosync/features/chat/infrastructure/mobile_matrix_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/core/services/token_manager.dart';
@@ -228,7 +229,20 @@ class ChatService {
 
     // Send via Matrix (native E2EE handled by SDK)
     try {
-      final matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+      final String matrixEventId;
+      
+      // Use platform-specific SDK
+      if (defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS) {
+        // Desktop: Use Rust bridge
+        matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+      } else {
+        // Mobile: Use Dart Matrix SDK
+        final mobileClient = MobileMatrixClient.instance;
+        matrixEventId = await mobileClient.sendMessage(roomId, content);
+      }
+      
       clientState.value = MatrixClientState.ready;
       // Return event ID to the caller (no HTTP persistence here)
       return matrixEventId.toString();
@@ -247,8 +261,20 @@ class ChatService {
         } catch (_) {}
         await _waitForCryptoReady(timeout: const Duration(seconds: 2));
         try {
-          final matrixEventId =
-              await frb.sendMessage(roomId: roomId, body: content);
+          final String matrixEventId;
+          
+          // Use platform-specific SDK for retry
+          if (defaultTargetPlatform == TargetPlatform.windows ||
+              defaultTargetPlatform == TargetPlatform.linux ||
+              defaultTargetPlatform == TargetPlatform.macOS) {
+            // Desktop: Use Rust bridge
+            matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+          } else {
+            // Mobile: Use Dart Matrix SDK
+            final mobileClient = MobileMatrixClient.instance;
+            matrixEventId = await mobileClient.sendMessage(roomId, content);
+          }
+          
           clientState.value = MatrixClientState.ready;
           return matrixEventId.toString();
         } catch (e2) {
@@ -363,19 +389,31 @@ class ChatService {
       creatorMxid = null;
     }
 
-    // Create room using SDK (mobile app's session)
-    // SDK creation is more reliable for mobile because the room exists in the same session
+    // Create room using platform-specific SDK
     try {
+      final String roomId;
+      
+      // Check if we should use Rust bridge or mobile client
+      if (defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS) {
+        // Desktop: Use Rust bridge
+        // ignore: avoid_print
+        print('[MatrixRoom] Creating room with Rust bridge, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
+        roomId = await frb.createRoom(
+          otherMxid: otherMxid,
+          creatorMxid: creatorMxid, // Pass creator's MXID to invite their other sessions
+        );
+      } else {
+        // Mobile: Use Dart Matrix SDK
+        // ignore: avoid_print
+        print('[MatrixRoom] Creating room with MobileMatrixClient, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
+        final mobileClient = MobileMatrixClient.instance;
+        roomId = await mobileClient.createRoom(otherMxid, creatorMxid);
+      }
+      
       // ignore: avoid_print
-      print(
-          '[MatrixRoom] Creating room with SDK, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
-      final roomId = await frb.createRoom(
-        otherMxid: otherMxid,
-        creatorMxid:
-            creatorMxid, // Pass creator's MXID to invite their other sessions
-      );
-      // ignore: avoid_print
-      print('[MatrixRoom] Created room via SDK: $roomId');
+      print('[MatrixRoom] Created room: $roomId');
 
       // Important: Wait for room creation and invitation to propagate
       await Future.delayed(const Duration(seconds: 2));
