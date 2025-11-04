@@ -93,13 +93,15 @@ class AuthService {
         // ignore: avoid_print
         print('AuthService: userId extracted=${userIdStr}');
       } catch (_) {}
-      // Backend /auth/login returns { message, user: { id, email, role, fullName, sessionToken } }
+      // Backend /auth/login returns { message, user: { id, email, role, fullName, sessionToken, profileImage, profileImageUrl } }
       return {
         'userId': userIdStr,
         'sessionToken': user['sessionToken'],
         'email': user['email'],
         'role': user['role'],
-        'fullName': user['fullName']
+        'fullName': user['fullName'],
+        'profileImage': user['profileImage'],
+        'profileImageUrl': user['profileImageUrl'],
       };
     }
 

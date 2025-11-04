@@ -14,6 +14,7 @@ import 'package:immosync/bridge.dart' as frb; // FRB generated helpers
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/core/services/token_manager.dart';
 
 /// Client-visible initialization states for the Matrix chat client.
 enum MatrixClientState { idle, starting, ensuringCrypto, ensuringRoom, ready, error }
@@ -42,12 +43,21 @@ class MatrixSendFailedException implements Exception {
 class ChatService {
   final String _apiUrl = DbConfig.apiUrl;
   final Map<String, List<int>> _attachmentCache = {};
+  final TokenManager _tokenManager = TokenManager();
 
   /// Reactive Matrix client state for UI (Riverpod can watch ValueListenable).
   static final ValueNotifier<MatrixClientState> clientState =
       ValueNotifier<MatrixClientState>(MatrixClientState.idle);
   
-  /// Get headers with authorization token if available
+  /// Get headers with authorization token if available (async version using JWT)
+  Future<Map<String, String>> _getHeadersAsync() async {
+    // Use TokenManager to get JWT-based headers
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    return headers;
+  }
+  
+  /// Synchronous version for backward compatibility (falls back to sessionToken)
   Map<String, String> _getHeaders({Ref? ref}) {
     final headers = <String, String>{'Content-Type': 'application/json'};
     if (ref != null) {
@@ -120,9 +130,13 @@ class ChatService {
     print('[ChatService] Fetching messages for conversation: $conversationId');
     print('[ChatService] API URL: $_apiUrl/chat/$conversationId/messages');
     
+    // Use JWT-based authentication instead of session token
+    final headers = await _getHeadersAsync();
+    print('[ChatService] Using JWT authentication');
+    
     final response = await http.get(
       Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-      headers: _getHeaders(ref: ref),
+      headers: headers,
     );
 
     print('[ChatService] Response status: ${response.statusCode}');
@@ -253,27 +267,25 @@ class ChatService {
     required String otherUserId,
     Ref? ref,
   }) async {
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    // Attach Authorization if available
-    try {
-      if (ref != null) {
-        // lazy import to avoid circular
-        // ignore: avoid_dynamic_calls
-        final auth = ref.read(authProvider);
-        final token = auth.sessionToken;
-        if (token != null && token.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $token';
-        }
-      }
-    } catch (_) {}
+    // Use JWT authentication
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    print('[ChatService] Fetching Matrix roomId for conversation: $conversationId');
+    
     // Expect backend to expose mapping endpoint
     final res = await http.get(
       Uri.parse('$_apiUrl/conversations/$conversationId/matrix-room'),
       headers: headers,
     );
+    
+    print('[ChatService] Matrix room mapping response: ${res.statusCode}');
+    
     if (res.statusCode == 200) {
       final data = json.decode(res.body);
-      return data['matrixRoomId'] ?? data['roomId'] ?? data['matrix_room_id'];
+      final roomId = data['matrixRoomId'] ?? data['roomId'] ?? data['matrix_room_id'];
+      print('[ChatService] Found Matrix roomId: $roomId');
+      return roomId;
     }
     if (res.statusCode == 404) {
       if (otherUserId.isEmpty) {
@@ -298,16 +310,11 @@ class ChatService {
     required String otherUserId,
     Ref? ref,
   }) async {
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    try {
-      if (ref != null) {
-        final auth = ref.read(authProvider);
-        final token = auth.sessionToken;
-        if (token != null && token.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $token';
-        }
-      }
-    } catch (_) {}
+    // Use JWT authentication
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    print('[ChatService] Ensuring Matrix room for conversation: $conversationId');
 
     // First check if other user has Matrix account and get their MXID
     String? otherMxid = await _getMatrixMxid(otherUserId);
@@ -316,28 +323,33 @@ class ChatService {
       print(
           '[MatrixRoom] Other user has no Matrix account, need to provision first');
       // Call backend to provision the other user
-      final primaryHost = DbConfig.primaryHost;
-      final provisionUri = Uri.parse('$primaryHost/api/matrix/provision');
+      final provisionUri = Uri.parse('$_apiUrl/matrix/provision');
       // ignore: avoid_print
       print('[MatrixRoom] Provisioning user $otherUserId at $provisionUri');
-      final provResp = await http.post(
-        provisionUri,
-        headers: headers,
-        body: json.encode({'userId': otherUserId}),
-      );
-      // ignore: avoid_print
-      print(
-          '[MatrixRoom] Provision response: status=${provResp.statusCode} body=${provResp.body}');
-      if (provResp.statusCode < 200 || provResp.statusCode >= 300) {
+      try {
+        final provResp = await http.post(
+          provisionUri,
+          headers: headers,
+          body: json.encode({'userId': otherUserId}),
+        ).timeout(const Duration(seconds: 30));
         // ignore: avoid_print
-        print('[MatrixRoom] Failed to provision other user: ${provResp.body}');
-        return null;
-      }
-      // Retry getting MXID and update the variable
-      otherMxid = await _getMatrixMxid(otherUserId);
-      if (otherMxid == null || otherMxid.isEmpty) {
+        print(
+            '[MatrixRoom] Provision response: status=${provResp.statusCode} body=${provResp.body}');
+        if (provResp.statusCode < 200 || provResp.statusCode >= 300) {
+          // ignore: avoid_print
+          print('[MatrixRoom] Failed to provision other user: ${provResp.body}');
+          return null;
+        }
+        // Retry getting MXID and update the variable
+        otherMxid = await _getMatrixMxid(otherUserId);
+        if (otherMxid == null || otherMxid.isEmpty) {
+          // ignore: avoid_print
+          print('[MatrixRoom] Still no MXID after provisioning');
+          return null;
+        }
+      } catch (e) {
         // ignore: avoid_print
-        print('[MatrixRoom] Still no MXID after provisioning');
+        print('[MatrixRoom] Provision request failed or timed out: $e');
         return null;
       }
     }
@@ -369,8 +381,7 @@ class ChatService {
       await Future.delayed(const Duration(seconds: 2));
 
       // Persist mapping to backend so dashboard can discover it
-      final primaryHost = DbConfig.primaryHost;
-      final persistUrl = '$primaryHost/api/matrix/rooms/persist-mapping';
+      final persistUrl = '$_apiUrl/matrix/rooms/persist-mapping';
       // ignore: avoid_print
       print('[MatrixRoom] Persisting mapping to backend: $persistUrl');
 
@@ -404,12 +415,11 @@ class ChatService {
   /// Get the Matrix MXID for a user from backend
   Future<String?> _getMatrixMxid(String userId) async {
     try {
-      // Use primaryHost (localhost proxy) to match where provisioning happens
-      final primaryHost = DbConfig.primaryHost;
-      final url = '$primaryHost/api/matrix/accounts/$userId/mxid';
+      final url = '$_apiUrl/matrix/accounts/$userId/mxid';
       // ignore: avoid_print
       print('[MatrixRoom] Getting MXID from $url');
-      final resp = await http.get(Uri.parse(url));
+      final headers = await _tokenManager.getHeaders();
+      final resp = await http.get(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 10));
       // ignore: avoid_print
       print(
           '[MatrixRoom] MXID response: status=${resp.statusCode} body=${resp.body}');
@@ -508,18 +518,32 @@ class ChatService {
     required String currentUserId,
     required String otherUserId,
   }) async {
+    debugPrint('[ChatService][findOrCreate] Starting conversation creation');
+    debugPrint('[ChatService][findOrCreate] Current user: $currentUserId, Other user: $otherUserId');
+    
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    debugPrint('[ChatService][findOrCreate] Request URL: $_apiUrl/conversations/find-or-create');
+    debugPrint('[ChatService][findOrCreate] Has Authorization: ${headers.containsKey('Authorization')}');
+    
     final response = await http.post(
       Uri.parse('$_apiUrl/conversations/find-or-create'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode({
         'currentUserId': currentUserId,
         'otherUserId': otherUserId,
       }),
     );
 
+    debugPrint('[ChatService][findOrCreate] Response status: ${response.statusCode}');
+    debugPrint('[ChatService][findOrCreate] Response body: ${response.body}');
+
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['_id'];
+      final conversationId = data['_id'];
+      debugPrint('[ChatService][findOrCreate] Conversation created/found: $conversationId');
+      return conversationId;
     }
     throw Exception('Failed to find or create conversation: ${response.body}');
   }

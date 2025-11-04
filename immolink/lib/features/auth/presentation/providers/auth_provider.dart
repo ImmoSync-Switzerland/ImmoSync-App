@@ -74,7 +74,9 @@ class CurrentUserNotifier extends StateNotifier<User?> {
         birthDate: DateTime.now(),
         isAdmin: false,
         isValidated: true,
-        address: Address(street: '', city: '', postalCode: '', country: ''));
+        address: Address(street: '', city: '', postalCode: '', country: ''),
+        profileImageUrl: prefs.getString('immosync-profileImageUrl-$userId'),
+        profileImage: prefs.getString('immosync-profileImage-$userId'));
   }
 
   void clearUser() {
@@ -130,6 +132,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (data['profileImage'] != null)
           prefs.setString(
               'immosync-profileImage-${data['userId']}', data['profileImage']),
+        if (data['profileImageUrl'] != null)
+          prefs.setString(
+              'immosync-profileImageUrl-${data['userId']}', data['profileImageUrl']),
       ]);
       if (data['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(data['role']);
@@ -277,6 +282,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (userData['profileImage'] != null)
           prefs.setString('immosync-profileImage-$userId',
               userData['profileImage']),
+        if (userData['profileImageUrl'] != null)
+          prefs.setString('immosync-profileImageUrl-$userId',
+              userData['profileImageUrl']),
       ]);
 
       ref.read(userRoleProvider.notifier).setUserRole(userData['role']);

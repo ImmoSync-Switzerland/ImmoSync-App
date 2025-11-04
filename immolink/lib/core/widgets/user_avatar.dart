@@ -32,10 +32,25 @@ class UserAvatar extends ConsumerWidget {
     // Prefer canonical absolute URL if present on current user
     final currentUrl = current?.profileImageUrl;
     final currentRef = current?.profileImage;
-    final effectiveRef =
+    final rawRef =
         imageRef ?? (fallbackToCurrentUser ? (currentUrl ?? currentRef) : null);
+    
+    // Normalize HTTP to HTTPS for security and authentication
+    final effectiveRef = rawRef != null && rawRef.isNotEmpty
+        ? rawRef.replaceFirst('http://', 'https://')
+        : null;
+    
     final bg = bgColor ?? Colors.grey.shade200;
     final tc = textColor ?? Colors.grey.shade700;
+
+    // Only log when showing current user profile (not other users)
+    if (fallbackToCurrentUser && imageRef == null) {
+      debugPrint('[UserAvatar] CURRENT USER PROFILE:');
+      debugPrint('[UserAvatar] - fullName: ${current?.fullName}');
+      debugPrint('[UserAvatar] - profileImageUrl: ${current?.profileImageUrl}');
+      debugPrint('[UserAvatar] - profileImage: ${current?.profileImage}');
+      debugPrint('[UserAvatar] - effectiveRef: $effectiveRef');
+    }
 
     Widget child;
   // All image sources (including URLs) are loaded via MongoImage to attach auth headers

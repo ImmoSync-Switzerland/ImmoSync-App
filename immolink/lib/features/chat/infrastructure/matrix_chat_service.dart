@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'mobile_matrix_client.dart';
+import 'package:immosync/core/services/token_manager.dart';
 // Timeline ingestion is handled by MatrixFrbEventsAdapter; avoid duplicating here.
 
 class MatrixChatService {
@@ -20,6 +21,7 @@ class MatrixChatService {
   Future<void>? _initializationInProgress;
   StreamSubscription<frb.MatrixEvent>? _eventSub;
   Completer<void>? _firstEventCompleter;
+  final TokenManager _tokenManager = TokenManager();
   // Broadcast bus for Matrix events so only ONE native subscription is used
   final StreamController<frb.MatrixEvent> _eventBus =
       StreamController<frb.MatrixEvent>.broadcast();
@@ -218,14 +220,22 @@ class MatrixChatService {
     print('[MatrixChatService] Fetching Matrix account from $api/matrix/account/$userId');
     
     Future<Map<String, dynamic>?> fetchAccount() async {
-      final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
+      final headers = await _tokenManager.getHeaders();
+      print('[MatrixChatService] Using JWT authentication for Matrix API');
+      final r = await http.get(
+        Uri.parse('$api/matrix/account/$userId'),
+        headers: headers,
+      );
       print('[MatrixChatService] Fetch account response: ${r.statusCode}');
       if (r.statusCode == 503) {
         // Matrix service not configured on backend
         print('[MatrixChatService] Matrix service not configured on backend (503)');
         return {'configured': false};
       }
-      if (r.statusCode != 200) return null;
+      if (r.statusCode != 200) {
+        print('[MatrixChatService] Failed to fetch account: ${r.body}');
+        return null;
+      }
       return json.decode(r.body) as Map<String, dynamic>;
     }
 
@@ -245,9 +255,13 @@ class MatrixChatService {
       // Attempt to provision the account, then fetch again
       print('[MatrixChatService] Account not found, attempting to provision...');
       try {
-        final provisionResp = await http.post(Uri.parse('$api/matrix/provision'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'userId': userId}));
+        final headers = await _tokenManager.getHeaders();
+        headers['Content-Type'] = 'application/json';
+        final provisionResp = await http.post(
+          Uri.parse('$api/matrix/provision'),
+          headers: headers,
+          body: json.encode({'userId': userId}),
+        );
         
         if (provisionResp.statusCode == 503 || provisionResp.statusCode == 500) {
           print('[MatrixChatService] WARNING: Matrix provisioning failed (server not configured)');

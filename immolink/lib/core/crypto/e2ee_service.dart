@@ -6,10 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'e2ee_key_store.dart';
 import '../config/db_config.dart';
 import 'package:http/http.dart' as http;
+import '../services/token_manager.dart';
 
 class E2EEService {
   final E2EEKeyStore _keyStore;
   final Cipher _cipher = AesGcm.with256bits();
+  final TokenManager _tokenManager = TokenManager();
   E2EEService(this._keyStore);
 
   Future<void> ensureInitialized() async => _keyStore.init();
@@ -39,8 +41,11 @@ class E2EEService {
     }
     // Fetch other user's public key
     try {
-      final resp = await http
-          .get(Uri.parse('${DbConfig.apiUrl}/users/$otherUserId/public-key'));
+      final headers = await _tokenManager.getHeaders();
+      final resp = await http.get(
+        Uri.parse('${DbConfig.apiUrl}/users/$otherUserId/public-key'),
+        headers: headers,
+      );
       if (resp.statusCode != 200) {
         debugPrint(
             '[E2EE] remote public key fetch failed status=${resp.statusCode} otherUser=$otherUserId');

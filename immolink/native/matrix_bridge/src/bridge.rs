@@ -179,6 +179,11 @@ pub fn login(user: String, password: String) -> Result<LoginResult, String> {
                 eprintln!("[Bridge][login] Session is now persisted in SQLite store");
                 eprintln!("[Bridge][login] On next restart, session should be auto-restored");
                 
+                // Initialize encryption (Olm machine)
+                eprintln!("[Bridge][login] Initializing encryption...");
+                client.encryption().wait_for_e2ee_initialization_tasks().await;
+                eprintln!("[Bridge][login] Encryption initialized successfully");
+                
                 // Access token retrieval differs across SDK versions; keep empty for now.
                 Ok(LoginResult { user_id: uid, access_token: String::new() })
             }
@@ -224,12 +229,22 @@ pub fn create_room(other_mxid: String, creator_mxid: Option<String>) -> Result<S
         let mut invitees = vec![other_user_id];
         
         // If creator_mxid is provided, invite that too (for dashboard/other sessions)
+        // BUT: Only if it's different from the current user (who is creating the room)
         if let Some(creator_mxid_str) = creator_mxid {
             if !creator_mxid_str.is_empty() {
                 match UserId::parse(&creator_mxid_str) {
                     Ok(creator_user_id) => {
-                        eprintln!("[Bridge][create_room] Also inviting creator's other sessions: {}", creator_mxid_str);
-                        invitees.push(creator_user_id);
+                        // Check if creator_mxid is different from the current user
+                        // Compare UserId refs, not OwnedUserId
+                        if let Some(current_user_id) = client.user_id() {
+                            let creator_as_ref: &UserId = creator_user_id.as_ref();
+                            if current_user_id != creator_as_ref {
+                                eprintln!("[Bridge][create_room] Also inviting creator's other sessions: {}", creator_mxid_str);
+                                invitees.push(creator_user_id);
+                            } else {
+                                eprintln!("[Bridge][create_room] Creator is current user, skipping invite (already room creator)");
+                            }
+                        }
                     }
                     Err(e) => {
                         eprintln!("[Bridge][create_room] Invalid creator_mxid: {}", e);

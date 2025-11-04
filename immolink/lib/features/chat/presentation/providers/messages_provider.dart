@@ -68,19 +68,37 @@ class ChatMessagesNotifier
         }
       }
       
+      // Get conversation details to extract otherUserId
+      String otherUserId = '';
+      try {
+        final conversations = await _chatService.getConversationsForUser(currentUserId);
+        final conversation = conversations.firstWhere(
+          (c) => c.id == _conversationId,
+          orElse: () => conversations.first,
+        );
+        // otherParticipantId is the other user in the conversation
+        otherUserId = conversation.otherParticipantId ?? '';
+        debugPrint('[MessagesProvider] Found otherUserId: $otherUserId');
+      } catch (e) {
+        debugPrint('[MessagesProvider] Failed to get otherUserId: $e');
+      }
+      
       // Resolve Matrix roomId for this conversation via backend mapping
       String? roomId;
       try {
+        debugPrint('[MessagesProvider] Attempting to resolve Matrix roomId for conversation: $_conversationId');
         roomId = await _ref
             .read(chatServiceProvider)
             .getMatrixRoomIdForConversation(
                 conversationId: _conversationId,
                 currentUserId: currentUserId,
-                otherUserId: '');
-      } catch (_) {
+                otherUserId: otherUserId);
+        debugPrint('[MessagesProvider] Resolved roomId: $roomId');
+      } catch (e, stackTrace) {
         // Fallback: try to fetch via conversationId mapping
         debugPrint(
-            '[MessagesProvider] Failed to resolve roomId, will retry on send');
+            '[MessagesProvider] Failed to resolve roomId: $e');
+        debugPrint('[MessagesProvider] Stack trace: $stackTrace');
       }
 
       // Use roomId if found, otherwise use conversationId as key (will be updated on first send)

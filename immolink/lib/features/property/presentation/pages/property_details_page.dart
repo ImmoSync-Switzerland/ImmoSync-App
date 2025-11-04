@@ -774,7 +774,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                       ),
                     );
                   } else {
-                    // Fallback for old image paths
+                    // Fallback for old image paths - use MongoImage for authentication
                     final imageUrl = _getImageUrl(imageIdOrPath);
                     if (imageUrl.isEmpty) {
                       return Container(
@@ -785,61 +785,39 @@ class PropertyDetailsPage extends ConsumerWidget {
                         ),
                       );
                     }
-                    return Image.network(
-                      imageUrl,
+                    // Use MongoImage instead of Image.network to get auth headers
+                    return MongoImage(
+                      imageId: imageUrl,
                       fit: BoxFit.cover,
-                      headers: const {
-                        'Cache-Control': 'no-cache',
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
+                      loadingWidget: Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      errorWidget: Container(
+                        color: Colors.grey[300],
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 64,
+                              color: Colors.grey,
                             ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        debugPrint('Error loading image: $imageUrl - $error');
-                        return Container(
-                          color: Colors.grey[300],
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.broken_image,
-                                size: 64,
-                                color: Colors.grey,
+                            SizedBox(height: 8),
+                            Text(
+                              AppLocalizations.of(context)!.failedToLoadImage,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                AppLocalizations.of(context)!.failedToLoadImage,
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'URL: $imageUrl',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 10,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   }
                 },

@@ -69,11 +69,14 @@ class User {
     }();
 
     // Prefer canonical absolute URL if provided by the server
+    // Normalize HTTP to HTTPS for security
     final String? canonicalUrl = map['profileImageUrl'] != null
-        ? map['profileImageUrl'].toString()
+        ? map['profileImageUrl'].toString().replaceFirst('http://', 'https://')
         : null;
     final String? legacyRef =
-        map['profileImage'] != null ? map['profileImage'].toString() : null;
+        map['profileImage'] != null 
+        ? map['profileImage'].toString().replaceFirst('http://', 'https://')
+        : null;
 
     return User(
       id: userId,

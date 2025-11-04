@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../config/db_config.dart';
 
 /// Central token management service to prevent race conditions
 /// and duplicate token exchanges across multiple services
@@ -12,7 +14,9 @@ class TokenManager {
 
   static const String _tokenKey = 'sessionToken';
   static const String _userIdKey = 'userId';
-  static const String _jwtSecret = 'z1xT7c!k9@Qs8Lm3^Rp5&Wn2#Vf6*Hj4';
+  
+  // Load JWT secret from environment
+  String get _jwtSecret => dotenv.env['JWT_SECRET'] ?? 'jETT?599Ps4e?#&4';
 
   String? _cachedToken;
   DateTime? _lastRefresh;
@@ -123,6 +127,10 @@ class TokenManager {
   /// Build UI-JWT for token exchange
   String? _buildUiJwt(String userId) {
     try {
+      // Debug: Log the JWT secret being used (first 8 chars for security)
+      final secretPreview = _jwtSecret.length > 8 ? _jwtSecret.substring(0, 8) : _jwtSecret;
+      print('[TokenManager] Using JWT secret starting with: $secretPreview (length: ${_jwtSecret.length})');
+      
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final header = {'alg': 'HS256', 'typ': 'JWT'};
       final payload = {
@@ -161,8 +169,11 @@ class TokenManager {
     }
   }
 
-  /// Get headers with current token
+  /// Get headers with current token (auto-refreshes if expired)
   Future<Map<String, String>> getHeaders() async {
+    // Ensure token is valid before returning headers
+    await ensureTokenAvailable(DbConfig.apiUrl);
+    
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',

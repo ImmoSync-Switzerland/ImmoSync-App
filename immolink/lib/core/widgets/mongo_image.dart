@@ -121,7 +121,8 @@ class _MongoImageState extends State<MongoImage> {
     String url;
     if (widget.imageId.startsWith('http://') ||
         widget.imageId.startsWith('https://')) {
-      url = widget.imageId;
+      // Normalize HTTP to HTTPS for security
+      url = widget.imageId.replaceFirst('http://', 'https://');
     } else {
       // Ensure we don't double append /api when constructing base
       final api = DbConfig.apiUrl; // e.g. https://backend.immosync.ch/api

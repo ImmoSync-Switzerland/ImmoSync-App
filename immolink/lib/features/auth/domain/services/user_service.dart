@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import '../models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:immosync/core/services/token_manager.dart';
 
 class UserService {
   final String _apiUrl = DbConfig.apiUrl;
+  final TokenManager _tokenManager = TokenManager();
 
   Stream<List<User>> getAvailableTenants({String? propertyId}) async* {
     print('Fetching available tenants for property: $propertyId');
@@ -96,22 +98,31 @@ class UserService {
 
   Future<User?> fetchCurrentUser() async {
     try {
-      final headers = <String, String>{'Content-Type': 'application/json'};
-      String? token;
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        token = prefs.getString('sessionToken');
-      } catch (_) {}
-      if (token == null || token.isEmpty) return null;
-      headers['Authorization'] = token;
+      // Use JWT token instead of session token
+      final headers = await _tokenManager.getHeaders();
+      headers['Content-Type'] = 'application/json';
+      
+      print('[UserService] Fetching current user from $_apiUrl/users/me');
       final resp =
           await http.get(Uri.parse('$_apiUrl/users/me'), headers: headers);
+      print('[UserService] Response status: ${resp.statusCode}');
+      
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body) as Map<String, dynamic>;
-        return User.fromMap(data);
+        print('[UserService] User data keys: ${data.keys.toList()}');
+        print('[UserService] profileImageUrl in response: ${data['profileImageUrl']}');
+        print('[UserService] profileImage in response: ${data['profileImage']}');
+        
+        final user = User.fromMap(data);
+        print('[UserService] User.fromMap - profileImageUrl: ${user.profileImageUrl}');
+        print('[UserService] User.fromMap - profileImage: ${user.profileImage}');
+        return user;
       }
+      print('[UserService] Failed to fetch user: ${resp.body}');
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('[UserService] Error fetching current user: $e');
+      print('[UserService] Stack trace: $stackTrace');
       return null;
     }
   }
