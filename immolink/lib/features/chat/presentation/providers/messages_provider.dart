@@ -55,17 +55,14 @@ class ChatMessagesNotifier
       
       if (currentUserId.isEmpty || currentUserId == 'null') {
         debugPrint('[MessagesProvider] WARNING: User ID still empty/null after waiting, Matrix will not be initialized');
+        throw Exception('Benutzer nicht eingeloggt - bitte erneut anmelden');
       } else {
-        try {
-          debugPrint('[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
-          await _ref.read(chatServiceProvider).ensureMatrixReady(userId: currentUserId);
-          debugPrint('[MessagesProvider] Matrix ready, waiting for initial sync...');
-          // Give sync a moment to start and connect
-          await Future.delayed(const Duration(seconds: 3));
-          debugPrint('[MessagesProvider] Initial sync delay complete');
-        } catch (e) {
-          debugPrint('[MessagesProvider] Failed to ensure Matrix ready: $e');
-        }
+        debugPrint('[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
+        await _ref.read(chatServiceProvider).ensureMatrixReady(userId: currentUserId);
+        debugPrint('[MessagesProvider] Matrix ready, waiting for initial sync...');
+        // Give sync a moment to start and connect
+        await Future.delayed(const Duration(seconds: 3));
+        debugPrint('[MessagesProvider] Initial sync delay complete');
       }
       
       // Get conversation details to extract otherUserId

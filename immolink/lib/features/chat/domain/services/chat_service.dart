@@ -173,36 +173,53 @@ class ChatService {
         // Mobile: Use Dart Matrix SDK
         final mobileClient = MobileMatrixClient.instance;
         
-        // Get Matrix credentials from backend
+        // Get Matrix credentials via provision endpoint (creates account if needed)
         final headers = await _tokenManager.getHeaders();
-        final accountUrl = '$_apiUrl/matrix/accounts/$userId';
-        print('[ChatService.ensureMatrixReady] Fetching Matrix account for user: $userId');
+        final provisionUrl = '$_apiUrl/matrix/provision';
+        print('[ChatService.ensureMatrixReady] Provisioning Matrix account for user: $userId');
         
-        final accountResp = await http.get(Uri.parse(accountUrl), headers: headers);
-        if (accountResp.statusCode != 200) {
-          throw Exception('Failed to get Matrix account: ${accountResp.statusCode}');
+        try {
+          final provisionResp = await http.post(
+            Uri.parse(provisionUrl),
+            headers: headers,
+            body: json.encode({'userId': userId}),
+          ).timeout(const Duration(seconds: 30));
+          
+          print('[ChatService.ensureMatrixReady] Provision response: ${provisionResp.statusCode}');
+          
+          if (provisionResp.statusCode != 200 && provisionResp.statusCode != 201) {
+            final errorBody = provisionResp.body;
+            print('[ChatService.ensureMatrixReady] Provision failed: $errorBody');
+            throw Exception('Failed to provision Matrix account: ${provisionResp.statusCode} - $errorBody');
+          }
+          
+          final provisionData = json.decode(provisionResp.body);
+          final mxid = provisionData['mxid']?.toString();
+          final password = provisionData['password']?.toString();
+          
+          if (mxid == null || password == null) {
+            print('[ChatService.ensureMatrixReady] Missing credentials in response: $provisionData');
+            throw Exception('Matrix credentials not available in provision response');
+          }
+          
+          print('[ChatService.ensureMatrixReady] Got Matrix credentials - MXID: $mxid');
+          
+          // Initialize and login to mobile client
+          print('[ChatService.ensureMatrixReady] Initializing mobile Matrix client...');
+          // Note: dataDir parameter is not used directly by mobile client (it creates its own path)
+          await mobileClient.init('https://matrix.immosync.ch', '');
+          
+          print('[ChatService.ensureMatrixReady] Logging in to Matrix as: $mxid');
+          await mobileClient.login(mxid, password);
+          
+          print('[ChatService.ensureMatrixReady] Mobile Matrix client ready');
+          
+          // Give brief moment for sync to start
+          await Future.delayed(const Duration(seconds: 2));
+        } catch (e) {
+          print('[ChatService.ensureMatrixReady] Mobile Matrix initialization error: $e');
+          rethrow;
         }
-        
-        final accountData = json.decode(accountResp.body);
-        final mxid = accountData['mxid']?.toString();
-        final password = accountData['password']?.toString();
-        
-        if (mxid == null || password == null) {
-          throw Exception('Matrix credentials not available');
-        }
-        
-        // Initialize and login to mobile client
-        print('[ChatService.ensureMatrixReady] Initializing mobile Matrix client...');
-        // Note: dataDir parameter is not used directly by mobile client (it creates its own path)
-        await mobileClient.init('https://matrix.immosync.ch', '');
-        
-        print('[ChatService.ensureMatrixReady] Logging in to Matrix as: $mxid');
-        await mobileClient.login(mxid, password);
-        
-        print('[ChatService.ensureMatrixReady] Mobile Matrix client ready');
-        
-        // Give brief moment for sync to start
-        await Future.delayed(const Duration(seconds: 2));
       }
       
       clientState.value = MatrixClientState.ready;
