@@ -1553,41 +1553,4 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
       error: (error, stack) => const SizedBox.shrink(),
     );
   }
-
-  void _showFilterDialog() {
-    String selectedFilter = 'all';
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.filterOptions),
-          content: SegmentedButton<String>(
-            segments: [
-              ButtonSegment(
-                  value: 'all', label: Text(AppLocalizations.of(context)!.all)),
-              ButtonSegment(
-                  value: 'recent',
-                  label: Text(AppLocalizations.of(context)!.recentLabel)),
-              ButtonSegment(
-                  value: 'important',
-                  label: Text(AppLocalizations.of(context)!.importantLabel)),
-            ],
-            selected: {selectedFilter},
-            onSelectionChanged: (newSelection) {
-              setState(() {
-                selectedFilter = newSelection.first;
-              });
-              Navigator.of(context).pop();
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.close),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

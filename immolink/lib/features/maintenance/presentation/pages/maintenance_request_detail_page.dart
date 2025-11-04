@@ -855,21 +855,6 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  Color _getStatusColor(String status, DynamicAppColors colors) {
-    switch (status) {
-      case 'pending':
-        return colors.warning;
-      case 'in_progress':
-        return colors.info;
-      case 'completed':
-        return colors.success;
-      case 'cancelled':
-        return colors.error;
-      default:
-        return colors.textTertiary;
-    }
-  }
-
   IconData _getStatusIcon(String status) {
     switch (status) {
       case 'pending':

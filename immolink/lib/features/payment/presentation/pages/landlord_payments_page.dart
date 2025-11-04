@@ -125,8 +125,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    colors.primaryAccent.withOpacity(0.1),
-                    colors.primaryAccent.withOpacity(0.05),
+                    colors.primaryAccent.withValues(alpha: 0.1),
+                    colors.primaryAccent.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(24),
@@ -280,7 +280,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colors.primaryAccent.withOpacity(0.1),
+                  color: colors.primaryAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -392,7 +392,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
             color: (account.chargesEnabled && account.payoutsEnabled
                     ? Colors.green
                     : Colors.orange)
-                .withOpacity(0.3),
+                .withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -467,7 +467,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         border: Border.all(color: colors.borderLight),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -653,7 +653,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -703,7 +703,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -739,7 +739,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -787,7 +787,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -841,9 +841,9 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colors.error.withOpacity(0.1),
+        color: colors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.error.withOpacity(0.3)),
+        border: Border.all(color: colors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -1081,7 +1081,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colors.primaryAccent.withOpacity(0.1),
+              color: colors.primaryAccent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(

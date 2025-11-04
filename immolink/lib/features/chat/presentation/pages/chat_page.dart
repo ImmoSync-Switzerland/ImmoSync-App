@@ -239,7 +239,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
               return Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                color: Colors.amber.withOpacity(0.15),
+                color: Colors.amber.withValues(alpha: 0.15),
                 child: Row(
                   children: [
                     if (busy)

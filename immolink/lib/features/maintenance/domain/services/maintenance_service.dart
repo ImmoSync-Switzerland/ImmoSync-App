@@ -2,126 +2,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immosync/core/config/db_config.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
-import 'package:crypto/crypto.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:immosync/core/services/token_manager.dart';
 
 class MaintenanceService {
   final String _apiUrl = DbConfig.apiUrl;
+  final TokenManager _tokenManager = TokenManager();
 
-  // Create a short-lived UI JWT signed with backend secret for exchange flow
-  String? _buildUiJwt(String userId) {
-    try {
-      final secret = dotenv.dotenv.isInitialized
-          ? (dotenv.dotenv.env['JWT_SECRET'] ?? '')
-          : '';
-      if (secret.isEmpty) return null;
-      final header = {
-        'alg': 'HS256',
-        'typ': 'JWT',
-      };
-      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      final payload = {
-        'sub': userId,
-        'iat': now,
-        'exp': now + 300, // 5 minutes
-      };
-      String b64Url(Map obj) {
-        final jsonStr = json.encode(obj);
-        final b64 = base64Url.encode(utf8.encode(jsonStr));
-        return b64.replaceAll('=', '');
-      }
-      final h = b64Url(header);
-      final p = b64Url(payload);
-      final data = utf8.encode('$h.$p');
-      final key = utf8.encode(secret);
-      final sig = Hmac(sha256, key).convert(data);
-      final s = base64Url.encode(sig.bytes).replaceAll('=', '');
-      return '$h.$p.$s';
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> _tryLoginExchangeWithUiJwt() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('userId');
-      if (userId == null || userId.isEmpty) return;
-      final assertion = _buildUiJwt(userId);
-      if (assertion == null) return;
-      final ex = await http.post(
-        Uri.parse('$_apiUrl/auth/login-exchange'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $assertion',
-        },
-      );
-      if (ex.statusCode == 200) {
-        final data = json.decode(ex.body) as Map<String, dynamic>;
-        final newToken = data['token'] as String?;
-        if (newToken != null && newToken.isNotEmpty) {
-          await prefs.setString('sessionToken', newToken);
-          final prefix = newToken.substring(0, newToken.length < 8 ? newToken.length : 8);
-          print('AUTH DEBUG: obtained backend session token via UI-JWT exchange; prefix=$prefix');
-        }
-      } else {
-        print('AUTH DEBUG: UI-JWT exchange failed status=${ex.statusCode} body=${ex.body}');
-      }
-    } catch (e) {
-      print('AUTH DEBUG: UI-JWT exchange error: $e');
-    }
-  }
-
+  // Use centralized TokenManager for all authentication
   Future<Map<String, String>> _headers() async {
-    final base = <String, String>{
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('sessionToken');
-      if (token != null && token.isNotEmpty) {
-        final looksJwt = token.contains('.') && token.split('.').length == 3;
-        final prefix = token.substring(0, token.length < 8 ? token.length : 8);
-        print('AUTH DEBUG: token present; looksJwt=$looksJwt len=${token.length} prefix=$prefix');
-      } else {
-        print('AUTH DEBUG: no token in SharedPreferences');
-      }
-      // If token looks like a UI JWT (has dots), exchange it for backend session token
-      if (token != null && token.contains('.')) {
-        try {
-          final ex = await http.post(
-            Uri.parse('$_apiUrl/auth/login-exchange'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          );
-          if (ex.statusCode == 200) {
-            final data = json.decode(ex.body) as Map<String, dynamic>;
-            final newToken = data['token'] as String?;
-            if (newToken != null && newToken.isNotEmpty) {
-              await prefs.setString('sessionToken', newToken);
-              token = newToken;
-              final prefix = token.substring(0, token.length < 8 ? token.length : 8);
-              print('AUTH DEBUG: exchanged JWT for backend session token; len=${token.length} prefix=$prefix');
-            }
-          } else {
-            print('AUTH DEBUG: login-exchange failed status=${ex.statusCode} body=${ex.body}');
-            // keep original token; backend may still accept it on tolerant endpoints
-          }
-        } catch (_) {}
-      }
-      if (token != null && token.isNotEmpty) {
-        base['Authorization'] = 'Bearer $token';
-        base['x-access-token'] = token;
-        base['x-session-token'] = token;
-      }
-    } catch (_) {}
-    return base;
+    return await _tokenManager.getHeaders();
   }
 
   // Get recent maintenance requests for dashboard (last 5)
@@ -137,7 +26,7 @@ class MaintenanceService {
 
       if (response.statusCode == 401) {
         // Attempt to obtain/refresh backend session token and retry once
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.get(
           Uri.parse(url),
           headers: await _headers(),
@@ -173,7 +62,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.get(
           Uri.parse(url),
           headers: await _headers(),
@@ -207,7 +96,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.get(
           Uri.parse('$_apiUrl/maintenance/landlord/$landlordId'),
           headers: await _headers(),
@@ -238,7 +127,7 @@ class MaintenanceService {
 
       if (response.statusCode == 401) {
         print('AUTH DEBUG [MaintenanceService]: create received 401, attempting login-exchange and retry');
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.post(
           Uri.parse('$_apiUrl/maintenance'),
           headers: await _headers(),
@@ -276,7 +165,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.patch(
           Uri.parse('$_apiUrl/maintenance/$id/status'),
           headers: await _headers(),
@@ -313,7 +202,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.get(
           Uri.parse(url),
           headers: await _headers(),
@@ -346,7 +235,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.get(
           Uri.parse('$_apiUrl/maintenance/property/$propertyId'),
           headers: await _headers(),
@@ -376,7 +265,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.put(
           Uri.parse('$_apiUrl/maintenance/${request.id}'),
           headers: await _headers(),
@@ -410,7 +299,7 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        await _tryLoginExchangeWithUiJwt();
+        await _tokenManager.refreshToken(_apiUrl);
         response = await http.post(
           Uri.parse('$_apiUrl/maintenance/$requestId/notes'),
           headers: await _headers(),

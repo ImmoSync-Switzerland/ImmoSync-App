@@ -101,7 +101,7 @@ class MatrixTestHomePage extends StatelessWidget {
             const SizedBox(height: 20),
             
             Card(
-              color: Colors.amber.withOpacity(0.1),
+              color: Colors.amber.withValues(alpha: 0.1),
               child: const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Column(

@@ -16,7 +16,6 @@ import 'package:immosync/features/reports/services/pdf_exporter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:immosync/features/reports/presentation/utils/report_gradients.dart';
-import 'dart:ui' as ui; // For BackdropFilter
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
@@ -136,64 +135,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     } catch (_) {}
   }
 
-  // Reusable glass header icon (circular, blurred, subtle accent glow)
-  Widget _glassHeaderIcon(IconData icon, Color accent) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: accent.withValues(alpha: 0.55),
-            blurRadius: 28,
-            spreadRadius: 2,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  accent.withValues(alpha: 1.0),
-                  accent.withValues(alpha: 0.55),
-                  accent.withValues(alpha: 0.22),
-                ],
-              ),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.55),
-                width: 1.4,
-              ),
-            ),
-            child: Icon(icon, color: Colors.white, size: 26),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showCardDetail(String title) {
-    // Fallback simple dialog
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: const Text('No further data available.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'))
-        ],
-      ),
-    );
-  }
-
   Future<void> _showFinancialDetailDialog(
       AppLocalizations l10n,
       AsyncValue properties,
@@ -227,35 +168,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                 ],
               ),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.close))
-              ],
-            ));
-  }
-
-  Future<void> _showTenantPaymentDetailDialog(AppLocalizations l10n,
-      AsyncValue payments, DynamicAppColors colors) async {
-    final list = await payments.whenData((v) => v).valueOrNull ?? [];
-    final totalPaid = list
-        .where((p) => p.status == 'completed')
-        .fold<double>(0, (s, p) => s + p.amount);
-    final pending = list
-        .where((p) => p.status == 'pending')
-        .fold<double>(0, (s, p) => s + p.amount);
-    showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-              title: Text(l10n.paymentSummary),
-              content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _detailRow(l10n.totalPaid, _formatCurrency(totalPaid)),
-                    _detailRow(l10n.pending, _formatCurrency(pending)),
-                    _detailRow(l10n.totalPayments, list.length.toString()),
-                  ]),
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(context),
@@ -508,44 +420,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           const SizedBox(height: 24),
           _buildKpiStrip(isLandlord, l10n, colors),
         ],
-      ),
-    );
-  }
-
-  Widget _buildExportPill(AppLocalizations l10n, DynamicAppColors colors) {
-    return GestureDetector(
-      onTap: _showExportDialog,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          gradient: LinearGradient(
-            colors: [colors.info, colors.primaryAccent],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.info.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.picture_as_pdf_outlined, size: 18, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(
-              l10n.export,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1132,15 +1006,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _metricSizedBox({required Widget child, required double parentWidth}) {
-    final width = (parentWidth * 0.75).clamp(180.0, 420.0);
-    return FractionallySizedBox(
-      widthFactor: width / parentWidth,
-      alignment: Alignment.centerLeft,
-      child: child,
     );
   }
 
@@ -2673,29 +2538,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
     );
   }
 
-  // Safely compute a target width based on a fraction while ensuring
-  // we don't create non-normalized BoxConstraints (min > max).
-  double _safeTargetWidth(double parentWidth,
-      {required double minW,
-      required double maxW,
-      bool enforceMinOnlyIfFits = false}) {
-    // Desired is 75% of parent.
-    double desired = parentWidth * 0.75;
-    // Cap by max first.
-    double capped = desired.clamp(0, maxW);
-    // If parent is smaller than minW we just use parent width (avoid > parent).
-    if (parentWidth < minW) return parentWidth;
-    // Optionally only enforce the min when result still <= parent.
-    if (enforceMinOnlyIfFits) {
-      if (capped < minW && minW <= parentWidth) return minW;
-      return capped;
-    }
-    // Standard branch: clamp between minW and maxW but not exceeding parent.
-    double withMin = capped < minW ? minW : capped;
-    if (withMin > parentWidth) return parentWidth;
-    return withMin;
-  }
-
   Color _getMaintenanceStatusColor(String status, DynamicAppColors colors) {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -2749,22 +2591,21 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           return StatefulBuilder(
             builder: (context, setState) => AlertDialog(
               title: Text(l10n.analyticsAndReports),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RadioListTile<bool>(
-                    value: false,
-                    groupValue: planned,
-                    onChanged: (v) => setState(() => planned = v ?? false),
-                    title: Text(l10n.actual),
-                  ),
-                  RadioListTile<bool>(
-                    value: true,
-                    groupValue: planned,
-                    onChanged: (v) => setState(() => planned = v ?? false),
-                    title: Text(l10n.planned),
-                  ),
-                ],
+              content: RadioGroup<bool>(
+                onChanged: (v) => setState(() => planned = v ?? false),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<bool>(
+                      value: false,
+                      title: Text(l10n.actual),
+                    ),
+                    RadioListTile<bool>(
+                      value: true,
+                      title: Text(l10n.planned),
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(

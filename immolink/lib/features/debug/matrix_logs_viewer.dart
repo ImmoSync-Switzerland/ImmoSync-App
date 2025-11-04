@@ -99,7 +99,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -163,17 +163,17 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: isError 
-                              ? Colors.red.withOpacity(0.1)
+                              ? Colors.red.withValues(alpha: 0.1)
                               : isSuccess 
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.05),
+                                  ? Colors.green.withValues(alpha: 0.1)
+                                  : Colors.grey.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
                             color: isError 
-                                ? Colors.red.withOpacity(0.3)
+                                ? Colors.red.withValues(alpha: 0.3)
                                 : isSuccess 
-                                    ? Colors.green.withOpacity(0.3)
-                                    : Colors.grey.withOpacity(0.2),
+                                    ? Colors.green.withValues(alpha: 0.3)
+                                    : Colors.grey.withValues(alpha: 0.2),
                           ),
                         ),
                         child: SelectableText(
