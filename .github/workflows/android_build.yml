@@ -443,7 +443,7 @@ jobs:
     name: Push APKs to site repository (Option A)
     needs: build-apk
     runs-on: ubuntu-latest
-    # Disabled: immosync.ch repository not available or SITE_REPO_PAT not configured
+    # Disabled until SITE_REPO_PAT secret is configured
     if: false && needs.build-apk.result == 'success'
     steps:
       - name: Checkout site repo
