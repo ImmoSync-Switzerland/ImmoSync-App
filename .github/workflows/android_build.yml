@@ -443,8 +443,7 @@ jobs:
     name: Push APKs to site repository (Option A)
     needs: build-apk
     runs-on: ubuntu-latest
-    # Disabled until SITE_REPO_PAT secret is configured
-    if: false && needs.build-apk.result == 'success'
+    if: needs.build-apk.result == 'success' && secrets.SITE_REPO_PAT != ''
     steps:
       - name: Checkout site repo
         uses: actions/checkout@v4
