@@ -58,6 +58,9 @@ class _MongoImageState extends State<MongoImage> {
         _hasError = false;
       });
 
+      // Ensure token is available before loading image
+      await _tokenManager.ensureTokenAvailable(DbConfig.apiUrl);
+
       if (kIsWeb) {
         // For web, use the base64 endpoint
         await _loadImageAsBase64();
@@ -66,7 +69,7 @@ class _MongoImageState extends State<MongoImage> {
         await _loadImageAsBytes();
       }
     } catch (e) {
-      print('Error loading MongoDB image: $e');
+      print('[MongoImage] Error loading image ${widget.imageId}: $e');
       if (!mounted) return;
       setState(() {
         _hasError = true;

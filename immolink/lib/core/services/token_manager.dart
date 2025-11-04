@@ -150,6 +150,17 @@ class TokenManager {
     }
   }
 
+  /// Ensure a valid token is available, refreshing if necessary
+  Future<void> ensureTokenAvailable(String apiUrl) async {
+    final token = await getToken();
+    
+    // If no token or needs refresh, try to refresh
+    if (token == null || token.isEmpty || needsRefresh()) {
+      print('[TokenManager] Token unavailable or expired, refreshing...');
+      await refreshToken(apiUrl);
+    }
+  }
+
   /// Get headers with current token
   Future<Map<String, String>> getHeaders() async {
     final headers = <String, String>{

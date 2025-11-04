@@ -739,9 +739,9 @@ class PropertyDetailsPage extends ConsumerWidget {
                   // Check if it's a MongoDB ObjectId (24 hex characters)
                   if (imageIdOrPath.length == 24 &&
                       RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-                    final resolved = _getImageUrl(imageIdOrPath);
+                    // Pass the ObjectId directly to MongoImage, it will handle URL construction
                     return MongoImage(
-                      imageId: resolved,
+                      imageId: imageIdOrPath,
                       fit: BoxFit.cover,
                       loadingWidget: Container(
                         color: Colors.grey[300],
