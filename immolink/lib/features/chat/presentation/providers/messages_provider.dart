@@ -58,11 +58,20 @@ class ChatMessagesNotifier
         throw Exception('Benutzer nicht eingeloggt - bitte erneut anmelden');
       } else {
         debugPrint('[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
-        await _ref.read(chatServiceProvider).ensureMatrixReady(userId: currentUserId);
-        debugPrint('[MessagesProvider] Matrix ready, waiting for initial sync...');
-        // Give sync a moment to start and connect
-        await Future.delayed(const Duration(seconds: 3));
-        debugPrint('[MessagesProvider] Initial sync delay complete');
+        try {
+          // Matrix is optional - if it fails, chat continues without E2EE
+          await _ref.read(chatServiceProvider).ensureMatrixReady(
+            userId: currentUserId, 
+            required: false // Don't throw if Matrix unavailable
+          );
+          debugPrint('[MessagesProvider] Matrix ready, waiting for initial sync...');
+          // Give sync a moment to start and connect
+          await Future.delayed(const Duration(seconds: 3));
+          debugPrint('[MessagesProvider] Initial sync delay complete');
+        } catch (e) {
+          debugPrint('[MessagesProvider] Matrix initialization failed (will continue without E2EE): $e');
+          // Don't throw - let chat continue without Matrix
+        }
       }
       
       // Get conversation details to extract otherUserId
