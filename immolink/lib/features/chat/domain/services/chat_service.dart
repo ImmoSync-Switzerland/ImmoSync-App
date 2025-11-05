@@ -180,6 +180,8 @@ class ChatService {
         // First try to get existing account credentials (faster than provision)
         String? mxid;
         String? password;
+        String? accessToken;
+        String? fullMxid;
         
         try {
           print('[ChatService.ensureMatrixReady] Checking for existing Matrix account: $userId');
@@ -196,15 +198,17 @@ class ChatService {
           
           if (accountResp.statusCode == 200) {
             final accountData = json.decode(accountResp.body);
-            mxid = accountData['mxid']?.toString();
+            mxid = accountData['username']?.toString() ?? accountData['userId']?.toString();
             password = accountData['password']?.toString();
+            accessToken = accountData['accessToken']?.toString();
+            fullMxid = accountData['mxid']?.toString(); // Full Matrix ID like @user:server
             
-            print('[ChatService.ensureMatrixReady] Parsed - mxid: $mxid, has password: ${password != null}');
+            print('[ChatService.ensureMatrixReady] Parsed - username: $mxid, mxid: $fullMxid, has accessToken: ${accessToken != null}');
             
-            if (mxid != null && password != null) {
+            if (mxid != null && (password != null || accessToken != null)) {
               print('[ChatService.ensureMatrixReady] ✅ Found existing Matrix account with credentials: $mxid');
             } else {
-              print('[ChatService.ensureMatrixReady] ⚠️ Account exists but missing credentials (mxid: $mxid, password: ${password != null})');
+              print('[ChatService.ensureMatrixReady] ⚠️ Account exists but missing credentials (username: $mxid, accessToken: ${accessToken != null})');
             }
           } else {
             print('[ChatService.ensureMatrixReady] Account check failed with status: ${accountResp.statusCode}');
@@ -236,7 +240,7 @@ class ChatService {
             }
             
             final provisionData = json.decode(provisionResp.body);
-            mxid = provisionData['mxid']?.toString();
+            mxid = provisionData['username']?.toString() ?? provisionData['userId']?.toString();
             password = provisionData['password']?.toString();
             
             if (mxid == null || password == null) {
@@ -244,7 +248,7 @@ class ChatService {
               throw Exception('Matrix Credentials fehlen in der Antwort');
             }
             
-            print('[ChatService.ensureMatrixReady] Successfully provisioned Matrix account: $mxid');
+            print('[ChatService.ensureMatrixReady] Successfully provisioned Matrix account (username): $mxid');
           } on TimeoutException {
             print('[ChatService.ensureMatrixReady] ⏱️ Provision timeout after 20 seconds');
             print('[ChatService.ensureMatrixReady] ⚠️ Backend Matrix provision ist zu langsam oder hängt!');
@@ -269,14 +273,26 @@ class ChatService {
         
         // At this point we have credentials, try to init and login
         try {
-          print('[ChatService.ensureMatrixReady] Using Matrix credentials - MXID: $mxid');
+          print('[ChatService.ensureMatrixReady] Using Matrix credentials - username: $mxid, fullMxid: $fullMxid');
           
-          // Initialize and login to mobile client
+          // Initialize mobile client
           print('[ChatService.ensureMatrixReady] Initializing mobile Matrix client...');
           await mobileClient.init('https://matrix.immosync.ch', '');
           
-          print('[ChatService.ensureMatrixReady] Logging in to Matrix as: $mxid');
-          await mobileClient.login(mxid, password);
+          // Try login with access token first (if it's a real Matrix access token)
+          // Otherwise fall back to password login
+          print('[ChatService.ensureMatrixReady] Logging in to Matrix...');
+          
+          // Note: The backend currently returns the shared secret password as both
+          // 'password' and 'accessToken'. We need to use password login for now.
+          if (password != null && password.isNotEmpty && mxid != null) {
+            print('[ChatService.ensureMatrixReady] Using password login for: $mxid');
+            await mobileClient.login(mxid, password);
+          } else {
+            final hasToken = accessToken != null && accessToken.isNotEmpty;
+            final hasPassword = password != null && password.isNotEmpty;
+            throw Exception('No valid credentials available (accessToken: $hasToken, password: $hasPassword)');
+          }
           
           print('[ChatService.ensureMatrixReady] Mobile Matrix client ready');
           
@@ -734,6 +750,23 @@ class ChatService {
         }
       }
     } catch (_) {}
+
+    final resp = await http.delete(
+      Uri.parse('$_apiUrl/conversations/$conversationId'),
+      headers: headers,
+    );
+    if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      return;
+    }
+    throw Exception(
+        'Failed to delete conversation (${resp.statusCode}): ${resp.body}');
+  }
+
+  Future<void> deleteConversationWithToken(String conversationId, String? token) async {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
 
     final resp = await http.delete(
       Uri.parse('$_apiUrl/conversations/$conversationId'),

@@ -1595,13 +1595,15 @@ class _ChatPageState extends ConsumerState<ChatPage>
             onPressed: () async {
               Navigator.of(context).pop();
               final convId = _currentConversationId ?? widget.conversationId;
+              final messenger = ScaffoldMessenger.of(context); // Save messenger before async gap
+              final token = ref.read(authProvider).sessionToken;
               try {
                 await ref
                     .read(chat_providers.chatServiceProvider)
-                    .deleteConversation(convId);
+                    .deleteConversationWithToken(convId, token);
                 if (!mounted) return;
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(
                     content: Text('Conversation deleted successfully'),
                     backgroundColor: AppColors.primaryAccent,
@@ -1609,7 +1611,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 );
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                       content: Text('Failed to delete: $e'),
                       backgroundColor: AppColors.error),

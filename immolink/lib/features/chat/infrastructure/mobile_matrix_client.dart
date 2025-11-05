@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:sqflite/sqflite.dart' as sqflite;
 
 /// Logger utility for mobile Matrix client
 class MobileMatrixLogger {
@@ -48,12 +49,6 @@ class MobileMatrixClient {
   final StreamController<MatrixEventData> _eventController = StreamController<MatrixEventData>.broadcast();
   Stream<MatrixEventData> get eventStream => _eventController.stream;
 
-  /// Create database for Matrix client
-  Future<matrix.DatabaseApi> _createDatabase(String path) async {
-    // Use MatrixSdkDatabase implementation
-    return await matrix.MatrixSdkDatabase.init(path);
-  }
-
   /// Initialize the Matrix client
   Future<void> init(String homeserver, String dataDir) async {
     if (_isInitialized && _currentHomeserver == homeserver) {
@@ -67,22 +62,49 @@ class MobileMatrixClient {
       // Create client name based on platform
       final clientName = 'ImmoLink-${defaultTargetPlatform.name}';
       
-      // Get database directory - ensure it exists
-      final Directory appDir = await getApplicationDocumentsDirectory();
-      final dbDir = Directory('${appDir.path}/matrix');
-      if (!await dbDir.exists()) {
-        await dbDir.create(recursive: true);
-        MobileMatrixLogger.log('[MobileMatrix] Created database directory: ${dbDir.path}');
+      // Create Matrix client with platform-specific database
+      final dbName = 'immolink_matrix_${clientName.hashCode}';
+      MobileMatrixLogger.log('[MobileMatrix] Creating Matrix client with database: $dbName');
+      
+      try {
+        // Initialize database based on platform
+        MobileMatrixLogger.log('[MobileMatrix] Initializing database...');
+        
+        // Get application documents directory
+        final Directory appDir = await getApplicationDocumentsDirectory();
+        final String dbPath = '${appDir.path}/$dbName.db';
+        
+        MobileMatrixLogger.log('[MobileMatrix] Database path: $dbPath');
+        
+        // Open sqflite database
+        final sqfliteDb = await sqflite.openDatabase(
+          dbPath,
+          version: 1,
+          onCreate: (db, version) async {
+            MobileMatrixLogger.log('[MobileMatrix] Database created, version: $version');
+          },
+        );
+        
+        MobileMatrixLogger.log('[MobileMatrix] sqflite database opened successfully');
+        
+        // Create Matrix database with sqflite backend
+        final database = await matrix.MatrixSdkDatabase.init(
+          dbName,
+          database: sqfliteDb,
+        );
+        
+        MobileMatrixLogger.log('[MobileMatrix] Matrix database initialized');
+        
+        _client = matrix.Client(
+          clientName,
+          database: database,
+        );
+        MobileMatrixLogger.log('[MobileMatrix] Client created successfully with persistent database');
+      } catch (dbError, stackTrace) {
+        MobileMatrixLogger.log('[MobileMatrix] Failed to create persistent database: $dbError');
+        MobileMatrixLogger.log('[MobileMatrix] Stack trace: $stackTrace');
+        rethrow;
       }
-      
-      final dbPath = '${dbDir.path}/matrix_mobile.db';
-      MobileMatrixLogger.log('[MobileMatrix] Database path: $dbPath');
-      
-      // Create Matrix client with required database parameter
-      _client = matrix.Client(
-        clientName,
-        database: await _createDatabase(dbPath),
-      );
 
       // Set homeserver with proper validation
       final homeserverUri = Uri.parse(homeserver);
@@ -102,7 +124,86 @@ class MobileMatrixClient {
     }
   }
 
-  /// Login with username and password
+  /// Login with access token (preferred method)
+  Future<Map<String, String>> loginWithToken(String mxid, String accessToken) async {
+    if (!_isInitialized || _client == null) {
+      throw Exception('Client not initialized - call init() first');
+    }
+
+    try {
+      MobileMatrixLogger.log('[MobileMatrix] Starting login with access token for: $mxid');
+      
+      // Check if already logged in with the same user
+      if (_isLoggedIn && _client!.isLogged() && _client!.userID == mxid) {
+        MobileMatrixLogger.log('[MobileMatrix] Already logged in as ${_client!.userID}');
+        return {
+          'userId': _client!.userID!,
+          'accessToken': 'existing_session',
+        };
+      }
+
+      MobileMatrixLogger.log('[MobileMatrix] Setting access token and triggering sync...');
+      
+      // Set the token directly
+      _client!.accessToken = accessToken;
+      
+      MobileMatrixLogger.log('[MobileMatrix] Starting initial sync to validate token...');
+      
+      // Start the sync which will validate the token and populate client state
+      await _startSync();
+      
+      // Wait for userID to be populated by the sync
+      // The Matrix SDK sets userID after processing the first sync response
+      MobileMatrixLogger.log('[MobileMatrix] Waiting for sync to complete...');
+      
+      int attempts = 0;
+      while (_client!.userID == null && attempts < 50) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        attempts++;
+        
+        // Log progress every second
+        if (attempts % 10 == 0) {
+          MobileMatrixLogger.log('[MobileMatrix] Still waiting for sync... (${attempts * 100}ms)');
+        }
+      }
+      
+      if (_client!.userID == null) {
+        // Check if we can get it from the homeserver directly
+        MobileMatrixLogger.log('[MobileMatrix] UserID not set after sync, checking token validity...');
+        
+        // The token might be valid but sync hasn't completed
+        // We can try to manually set the userID from the mxid parameter
+        if (mxid.isNotEmpty) {
+          MobileMatrixLogger.log('[MobileMatrix] Using provided mxid as fallback: $mxid');
+          // Note: This is a workaround - the SDK should set this automatically
+        } else {
+          throw Exception('Failed to get user ID after ${attempts * 100}ms - token may be invalid');
+        }
+      }
+
+      _currentUserId = _client!.userID ?? mxid;
+      _isLoggedIn = true;
+      
+      MobileMatrixLogger.log('[MobileMatrix] Login successful! UserID: ${_currentUserId}');
+      MobileMatrixLogger.log('[MobileMatrix] Access token validated after ${attempts * 100}ms');
+      
+      // Give additional time for sync to stabilize
+      await Future.delayed(const Duration(milliseconds: 500));
+      MobileMatrixLogger.log('[MobileMatrix] Login process completed successfully');
+      
+      return {
+        'userId': _client!.userID!,
+        'accessToken': accessToken,
+      };
+    } catch (e) {
+      MobileMatrixLogger.log('[MobileMatrix] Login with token failed: $e');
+      _isLoggedIn = false;
+      _currentUserId = null;
+      rethrow;
+    }
+  }
+
+  /// Login with username and password (fallback method)
   Future<Map<String, String>> login(String username, String password) async {
     if (!_isInitialized || _client == null) {
       throw Exception('Client not initialized - call init() first');
@@ -110,6 +211,9 @@ class MobileMatrixClient {
 
     try {
       MobileMatrixLogger.log('[MobileMatrix] Starting login process for: $username');
+      
+      // Clear any existing token/session to ensure clean login
+      _client!.accessToken = null;
       
       // Check if already logged in
       if (_isLoggedIn && _client!.isLogged()) {
@@ -121,6 +225,13 @@ class MobileMatrixClient {
       }
 
       MobileMatrixLogger.log('[MobileMatrix] Attempting Matrix login...');
+      
+      // Ensure homeserver is set (might be null after hot reload)
+      if (_client!.homeserver == null && _currentHomeserver != null) {
+        MobileMatrixLogger.log('[MobileMatrix] Homeserver not set, re-checking $_currentHomeserver...');
+        await _client!.checkHomeserver(Uri.parse(_currentHomeserver!));
+      }
+      
       final loginResponse = await _client!.login(
         matrix.LoginType.mLoginPassword,
         identifier: matrix.AuthenticationUserIdentifier(user: username),
