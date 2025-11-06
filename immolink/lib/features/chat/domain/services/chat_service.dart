@@ -76,40 +76,20 @@ class ChatService {
   }
 
   Future<List<Conversation>> getConversationsForUser(String userId) async {
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
     final response = await http.get(
       Uri.parse('$_apiUrl/conversations/user/$userId'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      final all = data.map((json) => Conversation.fromMap(json)).toList();
-      // Matrix-only: keep only conversations that already have a Matrix room mapping
-      // Filter by existing mapping using new optimized by-users route when possible
-      final futures = all.map((c) async {
-        final other = c.otherParticipantId ?? '';
-        if (other.isEmpty) return null;
-        try {
-          final byUsers = await http.get(
-            Uri.parse('$_apiUrl/matrix/rooms/by-users/$userId/$other'),
-            headers: {'Content-Type': 'application/json'},
-          );
-          if (byUsers.statusCode == 200) return c;
-        } catch (_) {}
-        // Fallback to per-conversation mapping check
-        try {
-          final mr = await http.get(
-            Uri.parse('$_apiUrl/conversations/${c.id}/matrix-room'),
-            headers: {'Content-Type': 'application/json'},
-          );
-          if (mr.statusCode == 200) return c;
-        } catch (_) {}
-        return null;
-      }).toList();
-      final results = await Future.wait(futures);
-      return results.whereType<Conversation>().toList();
+      // Return ALL conversations - Matrix room will be created on first message send
+      return data.map((json) => Conversation.fromMap(json)).toList();
     }
-    throw Exception('Failed to load conversations');
+    throw Exception('Failed to load conversations: ${response.statusCode} - ${response.body}');
   }
 
   Future<List<Conversation>> getConversations() async {
