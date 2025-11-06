@@ -1345,37 +1345,50 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
           end: Alignment.bottomRight,
           colors: [
             colors.surfaceCards,
-            _getActivityColor(activity.type, colors).withValues(alpha: 0.02),
+            colors.luxuryGradientStart.withValues(alpha: 0.15),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color:
-              _getActivityColor(activity.type, colors).withValues(alpha: 0.1),
+          color: colors.borderLight.withValues(alpha: 0.5),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: colors.primaryAccent.withValues(alpha: 0.05),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+            spreadRadius: -5,
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: [
                   _getActivityColor(activity.type, colors)
-                      .withValues(alpha: 0.2),
+                      .withValues(alpha: 0.15),
                   _getActivityColor(activity.type, colors)
-                      .withValues(alpha: 0.1),
+                      .withValues(alpha: 0.08),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _getActivityColor(activity.type, colors)
+                    .withValues(alpha: 0.2),
+                width: 1,
+              ),
             ),
             child: Icon(
               _getActivityIcon(activity.type),

@@ -2,17 +2,22 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/activity.dart';
 import '../../../../core/config/db_config.dart';
+import '../../../../core/services/token_manager.dart';
 
 class ActivityService {
   static String get baseUrl => DbConfig.apiUrl;
+  final TokenManager _tokenManager = TokenManager();
 
   // Get recent activities for a user
   Future<List<Activity>> getRecentActivities(String userId,
       {int limit = 10}) async {
     try {
+      final headers = await _tokenManager.getHeaders();
+      headers['Content-Type'] = 'application/json';
+      
       final response = await http.get(
         Uri.parse('$baseUrl/activities/user/$userId?limit=$limit'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -38,9 +43,12 @@ class ActivityService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
+      final headers = await _tokenManager.getHeaders();
+      headers['Content-Type'] = 'application/json';
+      
       final response = await http.post(
         Uri.parse('$baseUrl/activities'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: json.encode({
           'userId': userId,
           'title': title,

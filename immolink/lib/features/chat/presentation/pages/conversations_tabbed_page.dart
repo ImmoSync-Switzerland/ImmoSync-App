@@ -14,6 +14,7 @@ import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../widgets/invitation_card.dart';
 import '../widgets/property_email_invite_dialog.dart';
 import '../../../../core/widgets/user_avatar.dart';
+import '../../../../core/widgets/app_top_bar.dart';
 
 class ConversationsTabbedPage extends ConsumerStatefulWidget {
   const ConversationsTabbedPage({super.key});
@@ -27,6 +28,9 @@ class _ConversationsTabbedPageState
     extends ConsumerState<ConversationsTabbedPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  AnimationController? _animationController;
+  Animation<double>? _fadeAnimation;
+  Animation<double>? _slideAnimation;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -44,12 +48,31 @@ class _ConversationsTabbedPageState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(routeAwareNavigationProvider.notifier).setIndex(2);
     });
+
+    _setupAnimations();
+  }
+
+  void _setupAnimations() {
+    _animationController?.dispose();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _animationController!, curve: Curves.easeOut));
+
+    _slideAnimation = Tween<double>(begin: 20.0, end: 0.0).animate(
+        CurvedAnimation(parent: _animationController!, curve: Curves.easeOut));
+
+    _animationController!.forward();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _tabController.dispose();
+    _animationController?.dispose();
     super.dispose();
   }
 
@@ -61,104 +84,190 @@ class _ConversationsTabbedPageState
     final isLandlord = currentUser?.role == 'landlord';
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: colors.primaryBackground,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        centerTitle: false,
-        title: Text(
-          l10n.messages,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.8,
-            inherit: true,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: colors.textSecondary),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-            decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.shadowColor,
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: Icon(Icons.contacts_outlined,
-                  color: colors.primaryAccent, size: 22),
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                context.push('/address-book');
-              },
-            ),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: colors.primaryAccent,
-          unselectedLabelColor: colors.textSecondary,
-          indicatorColor: colors.primaryAccent,
-          indicatorWeight: 3,
-          labelStyle: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.2,
-            inherit: true,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.2,
-            inherit: true,
-          ),
-          tabs: [
-            Tab(text: l10n.messages),
-            Tab(text: l10n.invitations),
-          ],
-        ),
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      appBar: AppTopBar(
+        title: l10n.messages,
+        showNotification: false,
+        onRefresh: () {
+          ref.invalidate(conversationsProvider);
+          ref.invalidate(userInvitationsProvider);
+        },
+        showRefresh: true,
       ),
       bottomNavigationBar: const CommonBottomNav(),
       floatingActionButton: isLandlord && _tabController.index == 1
-          ? FloatingActionButton.extended(
-              onPressed: () => _showInviteTenantDialog(),
-              backgroundColor: colors.primaryAccent,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.person_add),
-              label: Text(l10n.addTenant),
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.primaryAccent,
+                    colors.primaryAccent.withValues(alpha: 0.8),
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.primaryAccent.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: () => _showInviteTenantDialog(),
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                icon: const Icon(Icons.person_add),
+                label: Text(l10n.addTenant),
+              ),
             )
           : null,
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildMessagesTab(),
-                _buildInvitationsTab(),
-              ],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colors.primaryBackground,
+              colors.surfaceSecondary,
+            ],
           ),
-        ],
+        ),
+        child: SafeArea(
+          child: AnimatedBuilder(
+            animation: _animationController ?? const AlwaysStoppedAnimation(1.0),
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, _slideAnimation?.value ?? 0.0),
+                child: Opacity(
+                  opacity: _fadeAnimation?.value ?? 1.0,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: colors.surfaceCards,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: colors.primaryAccent
+                                      .withValues(alpha: 0.1),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: TabBar(
+                                controller: _tabController,
+                                labelColor: Colors.white,
+                                unselectedLabelColor: colors.textSecondary,
+                                indicator: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      colors.primaryAccent,
+                                      colors.primaryAccent
+                                          .withValues(alpha: 0.8),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: colors.primaryAccent
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                indicatorSize: TabBarIndicatorSize.tab,
+                                indicatorPadding: const EdgeInsets.all(4),
+                                dividerColor: Colors.transparent,
+                                labelStyle: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                  inherit: true,
+                                ),
+                                unselectedLabelStyle: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
+                                  inherit: true,
+                                ),
+                                tabs: [
+                                  Tab(text: l10n.messages),
+                                  Tab(text: l10n.invitations),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(right: 20, left: 8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  colors.surfaceCards,
+                                  colors.luxuryGradientStart
+                                      .withValues(alpha: 0.5),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colors.shadowColor,
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                  spreadRadius: 0,
+                                ),
+                                BoxShadow(
+                                  color: colors.primaryAccent
+                                      .withValues(alpha: 0.1),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                  spreadRadius: -4,
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.contacts_outlined,
+                                  color: colors.primaryAccent, size: 22),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                context.push('/address-book');
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSearchBar(),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildMessagesTab(),
+                            _buildInvitationsTab(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -167,22 +276,33 @@ class _ConversationsTabbedPageState
     final colors = ref.watch(dynamicColorsProvider);
 
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: colors.surfaceCards,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.surfaceCards,
+            colors.luxuryGradientStart.withValues(alpha: 0.3),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.borderLight.withValues(alpha: 0.5),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
+            color: colors.primaryAccent.withValues(alpha: 0.05),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+            spreadRadius: -5,
           ),
         ],
       ),
@@ -206,10 +326,25 @@ class _ConversationsTabbedPageState
             padding: const EdgeInsets.all(12),
             child: Icon(
               Icons.search_outlined,
-              color: colors.textSecondary,
+              color: colors.primaryAccent,
               size: 20,
             ),
           ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    color: colors.textSecondary,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                  },
+                )
+              : null,
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -345,24 +480,34 @@ class _ConversationsTabbedPageState
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: colors.surfaceCards,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surfaceCards,
+              colors.luxuryGradientStart.withValues(alpha: 0.2),
+            ],
+          ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: colors.shadowColor,
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: colors.shadowColorMedium,
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
+              color: colors.primaryAccent.withValues(alpha: 0.05),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+              spreadRadius: -5,
             ),
           ],
           border: Border.all(
-              color: isBlocked ? colors.warning : colors.borderLight, width: 1),
+              color: isBlocked
+                  ? colors.warning
+                  : colors.borderLight.withValues(alpha: 0.5),
+              width: 1),
         ),
         child: Row(
           children: [
@@ -472,32 +617,47 @@ class _ConversationsTabbedPageState
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: colors.primaryAccent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.primaryAccent.withValues(alpha: 0.15),
+                  colors.primaryAccent.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.primaryAccent.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Icon(
               Icons.chat_bubble_outline,
-              size: 48,
+              size: 56,
               color: colors.primaryAccent,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           Text(
             title,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               color: colors.textPrimary,
-              letterSpacing: -0.4,
+              letterSpacing: -0.5,
               inherit: true,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               color: colors.textSecondary,
+              fontWeight: FontWeight.w500,
               inherit: true,
             ),
             textAlign: TextAlign.center,

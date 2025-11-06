@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/crypto/e2ee_service.dart';
 import '../../../../core/presence/presence_ws_service.dart';
 import 'package:immosync/features/auth/domain/services/user_service.dart';
+import '../../../../core/services/token_manager.dart';
 
 class AuthState {
   final bool isAuthenticated;
@@ -136,6 +137,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           prefs.setString(
               'immosync-profileImageUrl-${data['userId']}', data['profileImageUrl']),
       ]);
+      
+      // CRITICAL: Update TokenManager cache with new session token
+      if (data['sessionToken'] != null) {
+        await TokenManager().setToken(data['sessionToken']);
+        debugPrint('[AuthProvider] TokenManager updated with new session token');
+      }
+      
       if (data['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(data['role']);
       }
@@ -165,9 +173,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       // Fetch full user profile (includes profileImage)
       try {
+        debugPrint('[AuthProvider] Fetching full user profile...');
         final us = UserService();
         final userModel = await us.fetchCurrentUser();
+        debugPrint('[AuthProvider] fetchCurrentUser returned: ${userModel != null ? "User(${userModel.id})" : "null"}');
         if (userModel != null) {
+          debugPrint('[AuthProvider] User profileImage: ${userModel.profileImage}');
+          debugPrint('[AuthProvider] User profileImageUrl: ${userModel.profileImageUrl}');
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
           // Cache profile image for offline/early hydration
           if (userModel.profileImage != null &&
@@ -175,10 +187,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
             try {
               prefs.setString('immosync-profileImage-${userModel.id}',
                   userModel.profileImage!);
+              debugPrint('[AuthProvider] Cached profileImage to SharedPreferences');
             } catch (_) {}
           }
+        } else {
+          debugPrint('[AuthProvider] fetchCurrentUser returned null - user profile not updated');
         }
-      } catch (_) {}
+      } catch (e, st) {
+        debugPrint('[AuthProvider] Error fetching user profile: $e');
+        debugPrint('[AuthProvider] Stack trace: $st');
+      }
       // Fire-and-forget identity key publish
       if (data['userId'] != null) {
         _publishIdentityKey(data['userId']);
@@ -286,6 +304,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
           prefs.setString('immosync-profileImageUrl-$userId',
               userData['profileImageUrl']),
       ]);
+      
+      // CRITICAL: Update TokenManager cache with new session token
+      if (userData['sessionToken'] != null) {
+        await TokenManager().setToken(userData['sessionToken']);
+        debugPrint('[AuthProvider] TokenManager updated in login()');
+      }
 
       ref.read(userRoleProvider.notifier).setUserRole(userData['role']);
       await ref.read(currentUserProvider.notifier).setUser(userId);
@@ -311,19 +335,29 @@ class AuthNotifier extends StateNotifier<AuthState> {
           sessionToken: userData['sessionToken']);
       // Fetch full user profile (includes profileImage) and update provider
       try {
+        debugPrint('[AuthProvider.login] Fetching full user profile...');
         final us = UserService();
         final userModel = await us.fetchCurrentUser();
+        debugPrint('[AuthProvider.login] fetchCurrentUser returned: ${userModel != null ? "User(${userModel.id})" : "null"}');
         if (userModel != null) {
+          debugPrint('[AuthProvider.login] User profileImage: ${userModel.profileImage}');
+          debugPrint('[AuthProvider.login] User profileImageUrl: ${userModel.profileImageUrl}');
           ref.read(currentUserProvider.notifier).setUserModel(userModel);
           if (userModel.profileImage != null &&
               userModel.profileImage!.isNotEmpty) {
             try {
               prefs.setString('immosync-profileImage-${userModel.id}',
                   userModel.profileImage!);
+              debugPrint('[AuthProvider.login] Cached profileImage to SharedPreferences');
             } catch (_) {}
           }
+        } else {
+          debugPrint('[AuthProvider.login] fetchCurrentUser returned null');
         }
-      } catch (_) {}
+      } catch (e, st) {
+        debugPrint('[AuthProvider.login] Error fetching user profile: $e');
+        debugPrint('[AuthProvider.login] Stack trace: $st');
+      }
       // E2EE: publish identity key (fire and forget)
       _publishIdentityKey(userData['userId']);
       print('AuthProvider: Login state updated - authenticated: true');
@@ -352,6 +386,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       try {
         ref.read(presenceWsServiceProvider).resetConnections();
       } catch (_) {}
+      
+      // CRITICAL: Clear TokenManager cache before clearing SharedPreferences
+      await TokenManager().clearToken();
+      debugPrint('[AuthProvider] TokenManager cleared on logout');
+      
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       // Ensure sessionToken removed (prefs.clear should handle but explicit for clarity)
@@ -389,6 +428,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           if (user['fullName'] != null)
             prefs.setString('fullName', user['fullName']),
         ]);
+        
+        // CRITICAL: Update TokenManager cache with new session token
+        if (user['sessionToken'] != null) {
+          await TokenManager().setToken(user['sessionToken']);
+          debugPrint('[AuthProvider] TokenManager updated in socialLogin');
+        }
+        
         if (user['role'] != null) {
           ref.read(userRoleProvider.notifier).setUserRole(user['role']);
         }
@@ -463,6 +509,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (user['fullName'] != null)
           prefs.setString('fullName', user['fullName']),
       ]);
+      
+      // CRITICAL: Update TokenManager cache with new session token
+      if (user['sessionToken'] != null) {
+        await TokenManager().setToken(user['sessionToken']);
+        debugPrint('[AuthProvider] TokenManager updated in completeSocialProfile');
+      }
+      
       if (user['role'] != null) {
         ref.read(userRoleProvider.notifier).setUserRole(user['role']);
       }

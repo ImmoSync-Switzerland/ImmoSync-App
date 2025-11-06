@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -5,6 +6,7 @@ import '../../domain/models/invitation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../property/presentation/providers/property_providers.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/token_manager.dart';
 
 // Service provider for invitation operations
 final invitationServiceProvider = Provider<InvitationService>((ref) {
@@ -13,24 +15,37 @@ final invitationServiceProvider = Provider<InvitationService>((ref) {
 
 class InvitationService {
   static String _apiUrl = ApiConstants.baseUrl;
+  final TokenManager _tokenManager = TokenManager();
 
   Future<List<Invitation>> getUserInvitations(String userId) async {
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    debugPrint('[InvitationService] Fetching invitations for user: $userId');
+    debugPrint('[InvitationService] Token present: true (from TokenManager)');
+    
     final response = await http.get(
       Uri.parse('$_apiUrl/invitations/user/$userId'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
+
+    debugPrint('[InvitationService] Response status: ${response.statusCode}');
+    debugPrint('[InvitationService] Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => Invitation.fromMap(json)).toList();
     }
-    throw Exception('Failed to fetch invitations');
+    throw Exception('Failed to fetch invitations: ${response.statusCode} - ${response.body}');
   }
 
   Future<dynamic> acceptInvitation(String invitationId) async {
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
     final httpResponse = await http.put(
       Uri.parse('$_apiUrl/invitations/$invitationId/accept'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
 
     if (httpResponse.statusCode != 200) {
@@ -46,9 +61,12 @@ class InvitationService {
   }
 
   Future<void> declineInvitation(String invitationId) async {
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
     final httpResponse = await http.put(
       Uri.parse('$_apiUrl/invitations/$invitationId/decline'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
     );
 
     if (httpResponse.statusCode != 200) {
@@ -72,9 +90,14 @@ class InvitationService {
     required String tenantId,
     String? message,
   }) async {
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    debugPrint('[InvitationService] Sending invitation - propertyId: $propertyId, landlordId: $landlordId, tenantId: $tenantId');
+    
     final response = await http.post(
       Uri.parse('$_apiUrl/invitations'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode({
         'propertyId': propertyId,
         'landlordId': landlordId,
@@ -83,21 +106,39 @@ class InvitationService {
       }),
     );
 
+    debugPrint('[InvitationService] Send invitation response status: ${response.statusCode}');
+    debugPrint('[InvitationService] Send invitation response body: ${response.body}');
+
     if (response.statusCode != 201) {
-      throw Exception('Failed to send invitation');
+      throw Exception('Failed to send invitation: ${response.statusCode} - ${response.body}');
     }
+    
+    debugPrint('[InvitationService] Invitation sent successfully');
   }
 }
 
 // Provider for current user's invitations
 final userInvitationsProvider = FutureProvider<List<Invitation>>((ref) async {
-  final currentUser = ref.watch(currentUserProvider);
-  if (currentUser == null) {
+  debugPrint('[userInvitationsProvider] Starting...');
+  final authState = ref.watch(authProvider);
+  debugPrint('[userInvitationsProvider] Auth state - isAuthenticated: ${authState.isAuthenticated}, userId: ${authState.userId}');
+  
+  if (!authState.isAuthenticated || authState.userId == null) {
+    debugPrint('[userInvitationsProvider] User not authenticated, returning empty list');
     return [];
   }
 
+  debugPrint('[userInvitationsProvider] Calling getUserInvitations with TokenManager...');
   final invitationService = ref.watch(invitationServiceProvider);
-  return invitationService.getUserInvitations(currentUser.id);
+  try {
+    final result = await invitationService.getUserInvitations(authState.userId!);
+    debugPrint('[userInvitationsProvider] Success! Got ${result.length} invitations');
+    return result;
+  } catch (e, stack) {
+    debugPrint('[userInvitationsProvider] ERROR: $e');
+    debugPrint('[userInvitationsProvider] Stack: $stack');
+    rethrow;
+  }
 });
 
 // Provider for pending invitations only
@@ -200,15 +241,19 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
 
     try {
+      debugPrint('[InvitationNotifier] Sending invitation...');
       await _invitationService.sendInvitation(
         propertyId: propertyId,
         landlordId: landlordId,
         tenantId: tenantId,
         message: message,
       );
+      debugPrint('[InvitationNotifier] Invitation sent successfully');
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
+      debugPrint('[InvitationNotifier] Error sending invitation: $error');
       state = AsyncValue.error(error, stackTrace);
+      rethrow; // CRITICAL: Rethrow so UI catch block can handle it
     }
   }
 }

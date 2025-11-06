@@ -101,8 +101,13 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
   }
 
   void _inviteTenant(User tenant) async {
+    print('[InviteTenantDialog] _inviteTenant called for tenant: ${tenant.fullName} (${tenant.id})');
+    
     final currentUser = ref.read(currentUserProvider);
+    print('[InviteTenantDialog] Current user: ${currentUser?.id}');
+    
     if (currentUser == null) {
+      print('[InviteTenantDialog] Current user is null, showing error');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not authenticated')),
       );
@@ -110,6 +115,7 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
     }
 
     try {
+      print('[InviteTenantDialog] Calling sendInvitation - propertyId: ${widget.propertyId}, landlordId: ${currentUser.id}, tenantId: ${tenant.id}');
       await ref.read(invitationNotifierProvider.notifier).sendInvitation(
             propertyId: widget.propertyId,
             landlordId: currentUser.id,
@@ -117,6 +123,7 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
             message:
                 'Hello! I would like to invite you to rent my property. Please let me know if you are interested.',
           );
+      print('[InviteTenantDialog] sendInvitation completed successfully');
 
       if (mounted) {
         Navigator.pop(context);
@@ -127,7 +134,10 @@ class _InviteTenantDialogState extends ConsumerState<InviteTenantDialog> {
           ),
         );
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      print('[InviteTenantDialog] Error sending invitation: $error');
+      print('[InviteTenantDialog] Stack trace: $stackTrace');
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

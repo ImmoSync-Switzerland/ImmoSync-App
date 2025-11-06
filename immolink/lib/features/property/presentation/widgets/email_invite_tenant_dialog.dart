@@ -7,6 +7,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../chat/presentation/providers/invitation_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/token_manager.dart';
 
 class EmailInviteTenantDialog extends ConsumerStatefulWidget {
   final String propertyId;
@@ -255,12 +256,21 @@ class _EmailInviteTenantDialogState
   }
 
   Future<void> _sendInvitation() async {
-    if (!_formKey.currentState!.validate()) return;
+    print('[EmailInviteTenantDialog] _sendInvitation called');
+    
+    if (!_formKey.currentState!.validate()) {
+      print('[EmailInviteTenantDialog] Form validation failed');
+      return;
+    }
+    
+    print('[EmailInviteTenantDialog] Form validation passed');
 
     setState(() => _isLoading = true);
 
     try {
       final currentUser = ref.read(currentUserProvider);
+      print('[EmailInviteTenantDialog] Current user: ${currentUser?.id}');
+      
       if (currentUser == null) {
         throw Exception('Benutzer nicht angemeldet');
       }
@@ -275,6 +285,8 @@ class _EmailInviteTenantDialogState
             : 'Sie wurden eingeladen, diese Immobilie zu mieten.',
         'invitationType': 'email', // Mark as email invitation
       };
+
+      print('[EmailInviteTenantDialog] Calling _sendEmailInvitation with data: $invitationData');
 
       // Send email invitation through backend
       final success = await _sendEmailInvitation(invitationData);
@@ -317,15 +329,29 @@ class _EmailInviteTenantDialogState
 
   Future<bool> _sendEmailInvitation(Map<String, dynamic> invitationData) async {
     try {
+      print('[EmailInviteTenantDialog] Sending email invitation: $invitationData');
+      
+      // CRITICAL: Get auth token from TokenManager
+      final tokenManager = TokenManager();
+      final headers = await tokenManager.getHeaders();
+      headers['Content-Type'] = 'application/json';
+      
+      print('[EmailInviteTenantDialog] Headers prepared with token');
+      
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/invitations/email-invite'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: json.encode(invitationData),
       );
 
+      print('[EmailInviteTenantDialog] Response status: ${response.statusCode}');
+      print('[EmailInviteTenantDialog] Response body: ${response.body}');
+
       if (response.statusCode == 201) {
+        print('[EmailInviteTenantDialog] Invitation sent successfully');
         return true;
       } else if (response.statusCode == 404) {
+        print('[EmailInviteTenantDialog] User not found (404)');
         // Handle the case where user doesn't exist
         final errorResponse = json.decode(response.body);
         throw Exception(errorResponse['message'] ??

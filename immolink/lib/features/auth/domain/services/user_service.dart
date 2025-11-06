@@ -129,7 +129,9 @@ class UserService {
 
   Future<User?> fetchUserById(String userId) async {
     try {
-      final headers = <String, String>{'Content-Type': 'application/json'};
+      final headers = await _tokenManager.getHeaders();
+      headers['Content-Type'] = 'application/json';
+      
       final resp = await http.get(Uri.parse('$_apiUrl/users/by-id/$userId'),
           headers: headers);
       if (resp.statusCode == 200) {
