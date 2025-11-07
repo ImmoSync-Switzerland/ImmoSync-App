@@ -89,11 +89,14 @@ class _ConversationsTabbedPageState
       appBar: AppTopBar(
         title: l10n.messages,
         showNotification: false,
-        onRefresh: () {
-          ref.invalidate(conversationsProvider);
-          ref.invalidate(userInvitationsProvider);
-        },
-        showRefresh: true,
+        leading: IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: l10n.refresh,
+          onPressed: () {
+            ref.invalidate(conversationsProvider);
+            ref.invalidate(userInvitationsProvider);
+          },
+        ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
       floatingActionButton: isLandlord && _tabController.index == 1

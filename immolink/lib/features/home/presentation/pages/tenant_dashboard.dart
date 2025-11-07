@@ -1016,12 +1016,34 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             children: [
               Expanded(
                 child: _buildActionCard(
-                  AppLocalizations.of(context)!.autoPayment,
+                  'Pay Rent',
                   Icons.payment_outlined,
                   colors.primaryAccent,
-                  () {
+                  () async {
                     HapticFeedback.mediumImpact();
-                    context.push('/payments/auto-setup');
+                    // Get tenant's property
+                    final tenantPropertiesAsync = ref.read(tenantPropertiesProvider);
+                    tenantPropertiesAsync.when(
+                      data: (properties) {
+                        if (properties.isNotEmpty) {
+                          context.push('/payments/tenant', extra: properties.first);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No property assigned')),
+                          );
+                        }
+                      },
+                      loading: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Loading...')),
+                        );
+                      },
+                      error: (err, _) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $err')),
+                        );
+                      },
+                    );
                   },
                   colors,
                 ),
@@ -1181,30 +1203,20 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   Widget _buildRecentActivity(DynamicAppColors colors) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart,
-          ],
-        ),
+        color: colors.surfaceCards,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: colors.overlayWhite,
-            blurRadius: 1,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -1219,8 +1231,9 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 l10n.recentActivity,
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
+                  letterSpacing: -0.6,
                   inherit: true,
                 ),
               );
@@ -1338,62 +1351,49 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
 
   Widget _buildActivityItem(Activity activity, DynamicAppColors colors) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart.withValues(alpha: 0.15),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.5),
-          width: 1,
-        ),
+        color: colors.surfaceCards,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: colors.primaryAccent.withValues(alpha: 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-            spreadRadius: -5,
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  _getActivityColor(activity.type, colors)
-                      .withValues(alpha: 0.15),
-                  _getActivityColor(activity.type, colors)
-                      .withValues(alpha: 0.08),
+                  _getActivityColor(activity.type, colors).withValues(alpha: 0.15),
+                  _getActivityColor(activity.type, colors).withValues(alpha: 0.05),
                 ],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _getActivityColor(activity.type, colors)
-                    .withValues(alpha: 0.2),
-                width: 1,
+                color: _getActivityColor(activity.type, colors).withValues(alpha: 0.1),
+                width: 1.5,
               ),
             ),
             child: Icon(
               _getActivityIcon(activity.type),
               color: _getActivityColor(activity.type, colors),
-              size: 20,
+              size: 24,
             ),
           ),
           const SizedBox(width: 16),
@@ -1404,20 +1404,23 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 Text(
                   activity.title,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: colors.textPrimary,
+                    letterSpacing: -0.2,
                     inherit: true,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   activity.description,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: colors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.1,
                     inherit: true,
                   ),
                   maxLines: 2,
@@ -1426,14 +1429,22 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            activity.timeAgo,
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.textSecondary,
-              fontWeight: FontWeight.w500,
-              inherit: true,
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: colors.textSecondary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              activity.timeAgo,
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.1,
+                inherit: true,
+              ),
             ),
           ),
         ],

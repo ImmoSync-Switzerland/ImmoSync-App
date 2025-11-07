@@ -69,7 +69,6 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
       appBar: AppTopBar(
         title: isLandlord ? 'Tenants' : 'Landlords',
         showNotification: false,
-        showRefresh: false,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
           onPressed: () {

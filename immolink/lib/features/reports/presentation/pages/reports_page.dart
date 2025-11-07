@@ -528,7 +528,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
         child: Container(
-          constraints: BoxConstraints(minWidth: minWidth, maxWidth: 260),
+          constraints: BoxConstraints(
+            minWidth: minWidth,
+            maxWidth: minWidth > 260 ? minWidth : 260,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),

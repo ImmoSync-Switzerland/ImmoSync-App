@@ -12,11 +12,9 @@ class AppTopBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
   final String? location;
   final VoidCallback? onLocationTap;
   final VoidCallback? onNotificationTap;
-  final VoidCallback? onRefresh;
   final Widget? leading;
   final bool showNotification;
   final bool showLocation;
-  final bool showRefresh;
 
   const AppTopBar({
     super.key,
@@ -24,11 +22,9 @@ class AppTopBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
     this.location,
     this.onLocationTap,
     this.onNotificationTap,
-    this.onRefresh,
     this.leading,
     this.showNotification = true,
     this.showLocation = false,
-    this.showRefresh = false,
   });
 
   @override
@@ -138,21 +134,9 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
                   horizontal: AppSpacing.horizontalPadding),
               child: Row(
                 children: [
-                  // Left: Hamburger or Back icon
+                  // Left: Leading widget or spacer
                   if (widget.leading != null) ...[
                     widget.leading!
-                  ] else if (widget.showRefresh) ...[
-                    IconButton(
-                      onPressed: widget.onRefresh,
-                      icon: Icon(
-                        Icons.refresh,
-                        size: AppSizes.iconMedium,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColorsDark.textPrimary
-                            : AppColors.textPrimary,
-                      ),
-                      tooltip: 'Refresh',
-                    ),
                   ] else ...[
                     const SizedBox(
                         width:

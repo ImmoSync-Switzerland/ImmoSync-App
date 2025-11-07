@@ -2,12 +2,27 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/service.dart';
 import '../../../../core/config/db_config.dart';
+import '../../../../core/services/token_manager.dart';
 
 class ServiceService {
   final String _baseUrl = DbConfig.apiUrl;
 
   ServiceService() {
     print('ServiceService initialized with base URL: $_baseUrl');
+  }
+
+  /// Get headers with authorization token
+  Future<Map<String, String>> _getHeaders() async {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    final tokenManager = TokenManager();
+    final token = await tokenManager.getToken();
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+      print('[ServiceService] Using auth token');
+    } else {
+      print('[ServiceService][WARN] No auth token available');
+    }
+    return headers;
   }
 
   // Get all services with optional filters
@@ -29,7 +44,7 @@ class ServiceService {
 
       final response = await http.get(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: await _getHeaders(),
       );
 
       print('ServiceService: Response status: ${response.statusCode}');
@@ -71,7 +86,7 @@ class ServiceService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/services'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _getHeaders(),
         body: json.encode({
           'name': service.name,
           'description': service.description,
@@ -103,7 +118,7 @@ class ServiceService {
     try {
       final response = await http.put(
         Uri.parse('$_baseUrl/services/${service.id}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _getHeaders(),
         body: json.encode({
           'name': service.name,
           'description': service.description,
@@ -134,7 +149,7 @@ class ServiceService {
     try {
       final response = await http.delete(
         Uri.parse('$_baseUrl/services/$serviceId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _getHeaders(),
       );
 
       print('ServiceService: Delete response status: ${response.statusCode}');

@@ -19,15 +19,19 @@ final recentActivitiesProvider = StreamProvider<List<Activity>>((ref) async* {
 
   final activityService = ref.watch(activityServiceProvider);
 
-  // For now, we'll simulate a stream by fetching data periodically
-  // In a real implementation, this could be a WebSocket or periodic polling
-  try {
-    final activities =
-        await activityService.getRecentActivities(currentUser.id);
-    yield activities;
-  } catch (e) {
-    print('Error loading activities: $e');
-    yield [];
+  // Simulate a stream by fetching data periodically
+  while (true) {
+    try {
+      final activities =
+          await activityService.getRecentActivities(currentUser.id);
+      yield activities;
+    } catch (e) {
+      print('[ActivityProvider] Error loading activities: $e');
+      // Don't yield empty list on error - keep showing previous data
+    }
+    
+    // Wait 30 seconds before next refresh
+    await Future.delayed(const Duration(seconds: 30));
   }
 });
 
@@ -52,47 +56,3 @@ final activitiesByTypeProvider =
     yield [];
   }
 });
-
-// Activity creation provider
-final activityCreationProvider =
-    StateNotifierProvider<ActivityCreationNotifier, AsyncValue<void>>((ref) {
-  return ActivityCreationNotifier(ref.watch(activityServiceProvider));
-});
-
-class ActivityCreationNotifier extends StateNotifier<AsyncValue<void>> {
-  final ActivityService _activityService;
-
-  ActivityCreationNotifier(this._activityService)
-      : super(const AsyncValue.data(null));
-
-  Future<void> createActivity({
-    required String userId,
-    required String title,
-    required String description,
-    required String type,
-    String? relatedId,
-    Map<String, dynamic>? metadata,
-  }) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final success = await _activityService.createActivity(
-        userId: userId,
-        title: title,
-        description: description,
-        type: type,
-        relatedId: relatedId,
-        metadata: metadata,
-      );
-
-      if (success) {
-        state = const AsyncValue.data(null);
-      } else {
-        state =
-            AsyncValue.error('Failed to create activity', StackTrace.current);
-      }
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
-}

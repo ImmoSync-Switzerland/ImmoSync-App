@@ -114,18 +114,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppTopBar(
+      appBar: const AppTopBar(
         title: null,
-        leading: IconButton(
-          tooltip: 'Refresh',
-          icon: Icon(Icons.refresh, color: colors.primaryAccent, size: 22),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            final t = ref.read(propertyRefreshTriggerProvider.notifier);
-            t.state = t.state + 1;
-            _loadDashboardData();
-          },
-        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -500,10 +490,20 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   Widget _buildFinancialCard(
       String title, String amount, IconData icon, Color color) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Determine navigation based on which card this is
+    final isRevenueCard = title == l10n.monthlyRevenue;
+    final isOutstandingCard = title == l10n.outstanding;
+    
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        _navigateToFinancialDetails(title, amount);
+        if (isRevenueCard) {
+          context.push('/landlord/revenue');
+        } else if (isOutstandingCard) {
+          context.push('/landlord/outstanding');
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(20.0),
@@ -725,6 +725,36 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                   () {
                     HapticFeedback.mediumImpact();
                     context.push('/landlord/documents');
+                  },
+                  isFullWidth: false,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickAccessButton(
+                  'Subscription',
+                  Icons.card_membership_outlined,
+                  const Color(0xFFEC4899),
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/subscription/management');
+                  },
+                  isFullWidth: false,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildQuickAccessButton(
+                  'Services',
+                  Icons.room_service_outlined,
+                  const Color(0xFF06B6D4),
+                  () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/landlord/services');
                   },
                   isFullWidth: false,
                 ),
@@ -1533,63 +1563,6 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _navigateToFinancialDetails(String title, String amount) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('$title Details'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Total Amount: $amount',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              const Text('Breakdown:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              if (title.contains('Revenue')) ...[
-                const Text('• Rent payments: \$8,500'),
-                const Text('• Late fees: \$200'),
-                const Text('• Service charges: \$300'),
-              ] else if (title.contains('Expenses')) ...[
-                const Text('• Maintenance: \$1,200'),
-                const Text('• Utilities: \$800'),
-                const Text('• Insurance: \$400'),
-                const Text('• Property management: \$600'),
-              ] else if (title.contains('Profit')) ...[
-                const Text('• Total Revenue: \$9,000'),
-                const Text('• Total Expenses: \$3,000'),
-                const Text('• Net Profit: \$6,000'),
-              ] else
-                const Text('Detailed breakdown coming soon...'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Here you would navigate to full financial reports page
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Full financial reports coming soon!')),
-              );
-            },
-            child: const Text('View Full Report'),
-          ),
-        ],
       ),
     );
   }

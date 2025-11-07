@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class SubscriptionPlan {
   final String id;
   final String name;
@@ -22,20 +24,75 @@ class SubscriptionPlan {
   });
 
   factory SubscriptionPlan.fromMap(Map<String, dynamic> map) {
+    // Helper to safely parse prices
+    double parsePrice(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is int) return value.toDouble() / 100; // Stripe uses cents
+      if (value is double) return value;
+      if (value is String) {
+        try {
+          return double.parse(value);
+        } catch (e) {
+          return 0.0;
+        }
+      }
+      return 0.0;
+    }
+
+    // Parse features list
+    List<String> parseFeatures(dynamic featuresValue) {
+      if (featuresValue == null) return <String>[];
+      if (featuresValue is List) {
+        return featuresValue.map((e) => e.toString()).toList();
+      }
+      if (featuresValue is String) {
+        // Try to parse as JSON array string
+        try {
+          final decoded = json.decode(featuresValue);
+          if (decoded is List) {
+            return decoded.map((e) => e.toString()).toList();
+          }
+        } catch (e) {
+          // Not JSON, treat as single feature
+          return [featuresValue];
+        }
+      }
+      return <String>[];
+    }
+
     return SubscriptionPlan(
-      id: map['id'],
-      name: map['name'],
-      description: map['description'] ?? '',
-      monthlyPrice: (map['monthlyPrice'] ?? 0).toDouble(),
-      yearlyPrice: (map['yearlyPrice'] ?? 0).toDouble(),
-      features: map['features'] != null
-          ? List<String>.from(map['features'])
-          : <String>[],
-      isPopular: map['isPopular'] ?? false,
-      stripePriceIdMonthly:
-          map['monthlyPriceId'] ?? map['stripePriceIdMonthly'] ?? '',
-      stripePriceIdYearly:
-          map['yearlyPriceId'] ?? map['stripePriceIdYearly'] ?? '',
+      id: map['id']?.toString() ?? map['_id']?.toString() ?? '',
+      name: map['name']?.toString() ?? map['nickname']?.toString() ?? '',
+      description: map['description']?.toString() ?? 
+                  map['product']?['description']?.toString() ?? '',
+      monthlyPrice: parsePrice(
+        map['monthlyPrice'] ?? 
+        map['monthly_price'] ?? 
+        map['prices']?['monthly'] ??
+        map['unit_amount']
+      ),
+      yearlyPrice: parsePrice(
+        map['yearlyPrice'] ?? 
+        map['yearly_price'] ?? 
+        map['prices']?['yearly'] ??
+        map['unit_amount']
+      ),
+      features: parseFeatures(
+        map['features'] ?? 
+        map['product']?['features'] ??
+        map['metadata']?['features']
+      ),
+      isPopular: map['isPopular'] == true || 
+                map['is_popular'] == true ||
+                map['metadata']?['popular'] == 'true',
+      stripePriceIdMonthly: map['monthlyPriceId']?.toString() ?? 
+                           map['monthly_price_id']?.toString() ??
+                           map['stripePriceIdMonthly']?.toString() ?? 
+                           (map['interval'] == 'month' ? map['id']?.toString() : '') ?? '',
+      stripePriceIdYearly: map['yearlyPriceId']?.toString() ?? 
+                          map['yearly_price_id']?.toString() ??
+                          map['stripePriceIdYearly']?.toString() ?? 
+                          (map['interval'] == 'year' ? map['id']?.toString() : '') ?? '',
     );
   }
 
@@ -82,29 +139,94 @@ class UserSubscription {
   });
 
   factory UserSubscription.fromMap(Map<String, dynamic> map) {
-    return UserSubscription(
+    // Helper function to parse dates with multiple fallbacks
+    DateTime? parseDateOptional(List<String> keys) {
+      for (var key in keys) {
+        final value = map[key];
+        if (value != null) {
+          try {
+            // Handle both string and int (Unix timestamp)
+            if (value is int) {
+              // Only parse if not 0 (Unix epoch)
+              if (value == 0) continue;
+              return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+            }
+            return DateTime.parse(value.toString());
+          } catch (e) {
+            print('[UserSubscription] Error parsing date from $key ($value): $e');
+          }
+        }
+      }
+      return null;
+    }
+
+    DateTime parseDate(List<String> keys, DateTime fallback) {
+      return parseDateOptional(keys) ?? fallback;
+    }
+
+    // Parse status - normalize Stripe statuses
+    String parseStatus(dynamic statusValue) {
+      final status = statusValue?.toString().toLowerCase() ?? 'unknown';
+      // Map Stripe statuses to our internal statuses
+      switch (status) {
+        case 'active':
+        case 'trialing':
+          return 'active';
+        case 'canceled':
+        case 'cancelled':
+          return 'canceled';
+        case 'past_due':
+          return 'past_due';
+        case 'incomplete':
+        case 'incomplete_expired':
+          return 'incomplete';
+        case 'unpaid':
+          return 'past_due';
+        default:
+          return status;
+      }
+    }
+
+    print('[UserSubscription.fromMap] Parsing subscription data: $map');
+
+    final subscription = UserSubscription(
       id: map['_id']?.toString() ?? map['id']?.toString() ?? '',
-      userId: map['userId']?.toString() ?? '',
-      planId: map['planId']?.toString() ?? '',
-      status: map['status']?.toString() ?? 'unknown',
-      startDate: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
-          : (map['startDate'] != null
-              ? DateTime.parse(map['startDate'])
-              : DateTime.now()),
-      endDate: map['currentPeriodEnd'] != null
-          ? DateTime.parse(map['currentPeriodEnd'])
-          : (map['endDate'] != null ? DateTime.parse(map['endDate']) : null),
-      billingInterval: map['billingInterval']?.toString() ?? 'month',
-      stripeSubscriptionId: map['stripeSubscriptionId']?.toString() ?? '',
-      stripeCustomerId: map['stripeCustomerId']?.toString(),
-      amount: (map['amount'] ?? 0).toDouble(),
-      nextBillingDate: map['currentPeriodEnd'] != null
-          ? DateTime.parse(map['currentPeriodEnd'])
-          : (map['nextBillingDate'] != null
-              ? DateTime.parse(map['nextBillingDate'])
-              : DateTime.now()),
+      userId: map['userId']?.toString() ?? map['user_id']?.toString() ?? '',
+      planId: map['planId']?.toString() ?? 
+              map['plan_id']?.toString() ?? 
+              map['plan']?.toString() ?? '',
+      status: parseStatus(map['status']),
+      startDate: parseDate(
+        ['createdAt', 'created_at', 'startDate', 'start_date', 'created'],
+        DateTime.now(),
+      ),
+      endDate: parseDateOptional(
+        ['cancelAt', 'cancel_at', 'endDate', 'end_date', 'ended_at'],
+      ),
+      billingInterval: map['billingInterval']?.toString() ?? 
+                      map['billing_interval']?.toString() ??
+                      map['interval']?.toString() ?? 
+                      'month',
+      stripeSubscriptionId: map['stripeSubscriptionId']?.toString() ?? 
+                          map['stripe_subscription_id']?.toString() ??
+                          map['subscriptionId']?.toString() ??
+                          map['subscription_id']?.toString() ?? '',
+      stripeCustomerId: map['stripeCustomerId']?.toString() ??
+                       map['stripe_customer_id']?.toString() ??
+                       map['customerId']?.toString() ??
+                       map['customer']?.toString(),
+      amount: (map['amount'] ?? map['plan']?['amount'] ?? 0).toDouble(),
+      nextBillingDate: parseDate(
+        ['currentPeriodEnd', 'current_period_end', 'nextBillingDate', 
+         'next_billing_date', 'billing_cycle_anchor'],
+        DateTime.now().add(const Duration(days: 30)),
+      ),
     );
+
+    print('[UserSubscription.fromMap] Parsed nextBillingDate: ${subscription.nextBillingDate}');
+    print('[UserSubscription.fromMap] Parsed endDate: ${subscription.endDate}');
+
+    return subscription;
   }
 
   Map<String, dynamic> toMap() {

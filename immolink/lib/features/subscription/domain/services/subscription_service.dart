@@ -16,6 +16,7 @@ class SubscriptionService {
 
   Future<List<SubscriptionPlan>> getAvailablePlans() async {
     try {
+      print('[SubscriptionService] Fetching subscription plans from: $_apiUrl/subscriptions/plans');
       var response = await http.get(
         Uri.parse('$_apiUrl/subscriptions/plans'),
         headers: await _headers(),
@@ -28,24 +29,46 @@ class SubscriptionService {
         );
       }
 
+      print('[SubscriptionService] Plans response status: ${response.statusCode}');
+      
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => SubscriptionPlan.fromMap(json)).toList();
+        print('[SubscriptionService] Received ${data.length} plans from API');
+        print('[SubscriptionService] Raw plans data: ${json.encode(data)}');
+        
+        final plans = data.map((json) {
+          try {
+            return SubscriptionPlan.fromMap(json);
+          } catch (e) {
+            print('[SubscriptionService][ERROR] Error parsing plan: $e');
+            print('[SubscriptionService][ERROR] Plan data: ${json}');
+            rethrow;
+          }
+        }).toList();
+        
+        print('[SubscriptionService] Successfully parsed ${plans.length} plans');
+        for (var plan in plans) {
+          print('  - ${plan.name}: Monthly: ${plan.monthlyPrice}, Yearly: ${plan.yearlyPrice}');
+        }
+        
+        return plans;
       } else {
-        print('Failed to load plans from Stripe: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        throw Exception('Failed to load subscription plans from Stripe');
+        print('[SubscriptionService][ERROR] Failed to load plans from Stripe: ${response.statusCode}');
+        print('[SubscriptionService][ERROR] Response body: ${response.body}');
+        print('[SubscriptionService] Falling back to default plans...');
+        return _getDefaultPlans();
       }
-    } catch (e) {
-      print('Error getting subscription plans from Stripe: $e');
-      // Return default plans as fallback
-      print('Falling back to default plans...');
+    } catch (e, stackTrace) {
+      print('[SubscriptionService][ERROR] Error getting subscription plans from Stripe: $e');
+      print('[SubscriptionService][ERROR] Stack trace: $stackTrace');
+      print('[SubscriptionService] Falling back to default plans...');
       return _getDefaultPlans();
     }
   }
 
   Future<UserSubscription?> getUserSubscription(String userId) async {
     try {
+      print('[SubscriptionService] Fetching subscription for user: $userId');
       var response = await http.get(
         Uri.parse('$_apiUrl/subscriptions/user/$userId'),
         headers: await _headers(),
@@ -58,27 +81,43 @@ class SubscriptionService {
         );
       }
 
+      print('[SubscriptionService] Response status: ${response.statusCode}');
+      
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('[SubscriptionService] Raw subscription data: ${json.encode(data)}');
+        
         if (data != null) {
           try {
-            return UserSubscription.fromMap(data);
-          } catch (e) {
-            print('Error parsing subscription data: $e');
-            print('Raw subscription data: $data');
+            final subscription = UserSubscription.fromMap(data);
+            print('[SubscriptionService] Successfully parsed subscription:');
+            print('  - ID: ${subscription.id}');
+            print('  - Status: ${subscription.status}');
+            print('  - Plan ID: ${subscription.planId}');
+            print('  - Stripe Sub ID: ${subscription.stripeSubscriptionId}');
+            print('  - Billing Interval: ${subscription.billingInterval}');
+            print('  - Amount: ${subscription.amount}');
+            print('  - Next Billing: ${subscription.nextBillingDate}');
+            return subscription;
+          } catch (e, stackTrace) {
+            print('[SubscriptionService][ERROR] Error parsing subscription data: $e');
+            print('[SubscriptionService][ERROR] Stack trace: $stackTrace');
+            print('[SubscriptionService][ERROR] Raw data was: ${json.encode(data)}');
             return null;
           }
         }
         return null;
       } else if (response.statusCode == 404) {
+        print('[SubscriptionService] No subscription found for user $userId');
         return null; // No subscription found
       } else {
-        print('Failed to get user subscription: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        print('[SubscriptionService][ERROR] Failed to get user subscription: ${response.statusCode}');
+        print('[SubscriptionService][ERROR] Response body: ${response.body}');
         throw Exception('Failed to load user subscription');
       }
-    } catch (e) {
-      print('Error getting user subscription: $e');
+    } catch (e, stackTrace) {
+      print('[SubscriptionService][ERROR] Error getting user subscription: $e');
+      print('[SubscriptionService][ERROR] Stack trace: $stackTrace');
       return null;
     }
   }
@@ -182,6 +221,53 @@ class SubscriptionService {
     } catch (e) {
       print('Error canceling subscription: $e');
       throw Exception('Failed to cancel subscription: $e');
+    }
+  }
+
+  /// Create a Stripe Customer Portal session for managing subscription
+  /// Returns the URL to the Stripe Customer Portal
+  Future<String> createCustomerPortalSession({
+    required String customerId,
+    String? returnUrl,
+  }) async {
+    try {
+      print('[SubscriptionService] Creating customer portal session for: $customerId');
+      
+      var response = await http.post(
+        Uri.parse('$_apiUrl/subscriptions/create-portal-session'),
+        headers: await _headers(),
+        body: json.encode({
+          'customerId': customerId,
+          'returnUrl': returnUrl ?? 'immosync://subscription',
+        }),
+      );
+      
+      if (response.statusCode == 401) {
+        await _tokenManager.refreshToken(_apiUrl);
+        response = await http.post(
+          Uri.parse('$_apiUrl/subscriptions/create-portal-session'),
+          headers: await _headers(),
+          body: json.encode({
+            'customerId': customerId,
+            'returnUrl': returnUrl ?? 'immosync://subscription',
+          }),
+        );
+      }
+
+      print('[SubscriptionService] Portal session response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final url = data['url'] as String;
+        print('[SubscriptionService] Portal URL created: $url');
+        return url;
+      } else {
+        print('[SubscriptionService][ERROR] Failed to create portal session: ${response.body}');
+        throw Exception('Failed to create portal session: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('[SubscriptionService][ERROR] Error creating portal session: $e');
+      throw Exception('Failed to create portal session: $e');
     }
   }
 

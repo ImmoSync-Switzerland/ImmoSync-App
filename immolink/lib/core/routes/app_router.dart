@@ -38,9 +38,12 @@ import 'package:immosync/features/search/presentation/pages/universal_search_pag
 import 'package:immosync/features/tenant/presentation/pages/tenant_services_booking_page.dart';
 import 'package:immosync/features/landlord/presentation/pages/landlord_services_booking_page.dart';
 import 'package:immosync/features/landlord/presentation/pages/landlord_documents_page.dart';
+import 'package:immosync/features/landlord/presentation/pages/revenue_details_page.dart';
+import 'package:immosync/features/landlord/presentation/pages/outstanding_payments_page.dart';
 import 'package:immosync/features/payment/presentation/pages/landlord_payments_page.dart';
 import 'package:immosync/features/subscription/presentation/pages/landlord_subscription_page.dart';
 import 'package:immosync/features/subscription/presentation/pages/subscription_payment_page.dart';
+import 'package:immosync/features/subscription/presentation/pages/subscription_management_page.dart';
 import 'package:immosync/features/subscription/domain/models/subscription.dart';
 import 'package:immosync/features/payment/presentation/pages/tenant_payment_page.dart';
 import 'package:immosync/features/payment/presentation/pages/landlord_connect_setup_page.dart';
@@ -171,6 +174,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/landlord/documents',
         builder: (context, state) => const LandlordDocumentsPage(),
       ),
+      // Landlord revenue details page
+      GoRoute(
+        path: '/landlord/revenue',
+        builder: (context, state) => const RevenueDetailsPage(),
+      ),
+      // Landlord outstanding payments page
+      GoRoute(
+        path: '/landlord/outstanding',
+        builder: (context, state) => const OutstandingPaymentsPage(),
+      ),
       // Landlord payments page (Stripe Connect)
       GoRoute(
         path: '/landlord/payments',
@@ -180,6 +193,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/subscription/landlord',
         builder: (context, state) => const LandlordSubscriptionPage(),
+      ),
+      GoRoute(
+        path: '/subscription/management',
+        builder: (context, state) => const SubscriptionManagementPage(),
       ),
       GoRoute(
         path: '/subscription/payment',

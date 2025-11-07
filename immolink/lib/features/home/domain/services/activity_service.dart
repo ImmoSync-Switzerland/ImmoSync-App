@@ -1,144 +1,123 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../models/activity.dart';
 import '../../../../core/config/db_config.dart';
-import '../../../../core/services/token_manager.dart';
+import '../../../maintenance/domain/models/maintenance_request.dart';
+import '../../../maintenance/domain/services/maintenance_service.dart';
+import '../../../payment/domain/models/payment.dart';
+import '../../../payment/domain/services/payment_service.dart';
 
 class ActivityService {
   static String get baseUrl => DbConfig.apiUrl;
-  final TokenManager _tokenManager = TokenManager();
+  final MaintenanceService _maintenanceService = MaintenanceService();
+  final PaymentService _paymentService = PaymentService();
 
-  // Get recent activities for a user
+  // Get recent activities for a user by aggregating real data
   Future<List<Activity>> getRecentActivities(String userId,
       {int limit = 10}) async {
     try {
-      final headers = await _tokenManager.getHeaders();
-      headers['Content-Type'] = 'application/json';
-      
-      final response = await http.get(
-        Uri.parse('$baseUrl/activities/user/$userId?limit=$limit'),
-        headers: headers,
-      );
+      final List<Activity> activities = [];
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Activity.fromJson(item)).toList();
-      } else {
-        print('Failed to fetch activities: ${response.statusCode}');
-        return _getMockActivities(); // Fallback to mock data
+      // Fetch maintenance requests
+      try {
+        final maintenanceRequests = await _maintenanceService.getMaintenanceRequestsByTenant(userId);
+        for (var request in maintenanceRequests) {
+          activities.add(_maintenanceRequestToActivity(request));
+        }
+      } catch (e) {
+        print('[ActivityService] Error loading maintenance requests: $e');
       }
+
+      // Fetch payments
+      try {
+        final payments = await _paymentService.getPaymentsByTenant(userId);
+        for (var payment in payments) {
+          activities.add(_paymentToActivity(payment));
+        }
+      } catch (e) {
+        print('[ActivityService] Error loading payments: $e');
+      }
+
+      // Sort by timestamp (newest first)
+      activities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      // Return limited number of activities
+      return activities.take(limit).toList();
     } catch (e) {
-      print('Error fetching activities: $e');
-      return _getMockActivities(); // Fallback to mock data
+      print('[ActivityService] Error fetching activities: $e');
+      return [];
     }
   }
 
-  // Create a new activity
-  Future<bool> createActivity({
-    required String userId,
-    required String title,
-    required String description,
-    required String type,
-    String? relatedId,
-    Map<String, dynamic>? metadata,
-  }) async {
-    try {
-      final headers = await _tokenManager.getHeaders();
-      headers['Content-Type'] = 'application/json';
-      
-      final response = await http.post(
-        Uri.parse('$baseUrl/activities'),
-        headers: headers,
-        body: json.encode({
-          'userId': userId,
-          'title': title,
-          'description': description,
-          'type': type,
-          'relatedId': relatedId,
-          'metadata': metadata,
-          'timestamp': DateTime.now().toIso8601String(),
-        }),
-      );
+  // Convert maintenance request to activity
+  Activity _maintenanceRequestToActivity(MaintenanceRequest request) {
+    final statusText = _getMaintenanceStatusText(request.status);
+    return Activity(
+      id: 'maint_${request.id}',
+      title: 'Maintenance: ${request.title}',
+      description: '$statusText - ${request.category}',
+      type: 'maintenance',
+      timestamp: request.requestedDate,
+      relatedId: request.id,
+      metadata: {
+        'category': request.category,
+        'priority': request.priority,
+        'status': request.status,
+        'location': request.location,
+      },
+    );
+  }
 
-      return response.statusCode == 201;
-    } catch (e) {
-      print('Error creating activity: $e');
-      return false;
+  String _getMaintenanceStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Request submitted';
+      case 'in_progress':
+        return 'In progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return 'Request submitted';
     }
   }
 
-  // Mock data for when the API is not available
-  List<Activity> _getMockActivities() {
-    final now = DateTime.now();
-    return [
-      Activity(
-        id: '1',
-        title: 'Rent Payment Processed',
-        description:
-            'Monthly rent payment of \$1,200 was successfully processed',
-        type: 'payment',
-        timestamp: now.subtract(Duration(hours: 2)),
-        relatedId: 'payment_123',
-        metadata: {'amount': 1200, 'method': 'auto'},
-      ),
-      Activity(
-        id: '2',
-        title: 'Maintenance Request Submitted',
-        description: 'Submitted a request for kitchen sink repair',
-        type: 'maintenance',
-        timestamp: now.subtract(Duration(days: 1)),
-        relatedId: 'maintenance_456',
-        metadata: {'category': 'plumbing', 'priority': 'medium'},
-      ),
-      Activity(
-        id: '3',
-        title: 'New Message from Landlord',
-        description: 'Received a message about upcoming property inspection',
-        type: 'message',
-        timestamp: now.subtract(Duration(days: 2)),
-        relatedId: 'message_789',
-        metadata: {'from': 'John Smith'},
-      ),
-      Activity(
-        id: '4',
-        title: 'Lease Agreement Updated',
-        description: 'Lease agreement has been updated with new terms',
-        type: 'property',
-        timestamp: now.subtract(Duration(days: 5)),
-        relatedId: 'property_101',
-        metadata: {'documentType': 'lease'},
-      ),
-      Activity(
-        id: '5',
-        title: 'Service Booking Confirmed',
-        description:
-            'Trash collection service booking confirmed for weekly pickup',
-        type: 'service',
-        timestamp: now.subtract(Duration(days: 7)),
-        relatedId: 'service_202',
-        metadata: {'service': 'trash_collection', 'frequency': 'weekly'},
-      ),
-    ];
+  // Convert payment to activity
+  Activity _paymentToActivity(Payment payment) {
+    final statusText = _getPaymentStatusText(payment.status);
+    return Activity(
+      id: 'payment_${payment.id}',
+      title: 'Payment: ${payment.type}',
+      description: '$statusText - \$${payment.amount.toStringAsFixed(2)}',
+      type: 'payment',
+      timestamp: payment.date,
+      relatedId: payment.id,
+      metadata: {
+        'amount': payment.amount,
+        'type': payment.type,
+        'status': payment.status,
+        'method': payment.paymentMethod,
+      },
+    );
+  }
+
+  String _getPaymentStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return 'Payment completed';
+      case 'pending':
+        return 'Payment pending';
+      case 'failed':
+        return 'Payment failed';
+      case 'refunded':
+        return 'Payment refunded';
+      default:
+        return 'Payment processed';
+    }
   }
 
   // Get activities by type
   Future<List<Activity>> getActivitiesByType(String userId, String type) async {
     final activities = await getRecentActivities(userId, limit: 50);
     return activities.where((activity) => activity.type == type).toList();
-  }
-
-  // Delete an activity
-  Future<bool> deleteActivity(String activityId) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/activities/$activityId'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error deleting activity: $e');
-      return false;
-    }
   }
 }
