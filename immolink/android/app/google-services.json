@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:26290219883:android:aca60013c55ceed02efa2e",
+        "android_client_info": {
+          "package_name": "ch.immosync.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy3ENvdGGtH7ZzNmGy46Ddkbvr9q_ipHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:26290219883:android:7da05a9075643b402efa2e",
         "android_client_info": {
           "package_name": "com.example.immolink"

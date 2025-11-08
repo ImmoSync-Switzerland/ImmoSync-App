@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace "com.example.immolink"
+    namespace "ch.immosync.app"
     // Raised to 36 to satisfy plugin requirements (several plugins demand 36). If the local SDK
     // platform 36 is not installed, install it via Android SDK Manager.
     compileSdkVersion 36
@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.immolink"
+        applicationId "ch.immosync.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
