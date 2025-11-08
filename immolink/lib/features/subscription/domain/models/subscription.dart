@@ -151,7 +151,13 @@ class UserSubscription {
               if (value == 0) continue;
               return DateTime.fromMillisecondsSinceEpoch(value * 1000);
             }
-            return DateTime.parse(value.toString());
+            final parsed = DateTime.parse(value.toString());
+            // Check if parsed date is Unix epoch (1970-01-01) which indicates invalid data
+            if (parsed.year == 1970 && parsed.month == 1 && parsed.day == 1) {
+              print('[UserSubscription] Skipping Unix epoch date from $key ($value)');
+              continue;
+            }
+            return parsed;
           } catch (e) {
             print('[UserSubscription] Error parsing date from $key ($value): $e');
           }
@@ -189,6 +195,22 @@ class UserSubscription {
 
     print('[UserSubscription.fromMap] Parsing subscription data: $map');
 
+    // Parse dates first to use in fallback calculation
+    final startDate = parseDate(
+      ['createdAt', 'created_at', 'startDate', 'start_date', 'created'],
+      DateTime.now(),
+    );
+    
+    final billingInterval = map['billingInterval']?.toString() ?? 
+                           map['billing_interval']?.toString() ??
+                           map['interval']?.toString() ?? 
+                           'month';
+    
+    // Calculate fallback next billing date based on start date and interval
+    final fallbackNextBilling = billingInterval == 'year' 
+        ? DateTime(startDate.year + 1, startDate.month, startDate.day)
+        : DateTime(startDate.year, startDate.month + 1, startDate.day);
+
     final subscription = UserSubscription(
       id: map['_id']?.toString() ?? map['id']?.toString() ?? '',
       userId: map['userId']?.toString() ?? map['user_id']?.toString() ?? '',
@@ -196,17 +218,11 @@ class UserSubscription {
               map['plan_id']?.toString() ?? 
               map['plan']?.toString() ?? '',
       status: parseStatus(map['status']),
-      startDate: parseDate(
-        ['createdAt', 'created_at', 'startDate', 'start_date', 'created'],
-        DateTime.now(),
-      ),
+      startDate: startDate,
       endDate: parseDateOptional(
         ['cancelAt', 'cancel_at', 'endDate', 'end_date', 'ended_at'],
       ),
-      billingInterval: map['billingInterval']?.toString() ?? 
-                      map['billing_interval']?.toString() ??
-                      map['interval']?.toString() ?? 
-                      'month',
+      billingInterval: billingInterval,
       stripeSubscriptionId: map['stripeSubscriptionId']?.toString() ?? 
                           map['stripe_subscription_id']?.toString() ??
                           map['subscriptionId']?.toString() ??
@@ -219,7 +235,7 @@ class UserSubscription {
       nextBillingDate: parseDate(
         ['currentPeriodEnd', 'current_period_end', 'nextBillingDate', 
          'next_billing_date', 'billing_cycle_anchor'],
-        DateTime.now().add(const Duration(days: 30)),
+        fallbackNextBilling,
       ),
     );
 

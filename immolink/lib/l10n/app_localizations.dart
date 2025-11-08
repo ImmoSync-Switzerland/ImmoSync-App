@@ -4731,7 +4731,7 @@ abstract class AppLocalizations {
   /// No description provided for @overduePayments.
   ///
   /// In en, this message translates to:
-  /// **'Overdue (>30 days)'**
+  /// **'Overdue Payments'**
   String get overduePayments;
 
   /// No description provided for @noTenantsYetMessage.
@@ -5009,6 +5009,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh'**
   String get refresh;
+
+  /// No description provided for @revenueDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Details'**
+  String get revenueDetails;
+
+  /// No description provided for @outstandingPaymentsDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding Payments Details'**
+  String get outstandingPaymentsDetails;
+
+  /// No description provided for @totalRevenuePerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Revenue per Month'**
+  String get totalRevenuePerMonth;
+
+  /// No description provided for @averagePerProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per Property'**
+  String get averagePerProperty;
+
+  /// No description provided for @numberOfProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of Properties'**
+  String get numberOfProperties;
+
+  /// No description provided for @revenueByProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue by Property'**
+  String get revenueByProperty;
+
+  /// No description provided for @revenueDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Distribution'**
+  String get revenueDistribution;
+
+  /// No description provided for @rentIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent Income'**
+  String get rentIncome;
+
+  /// No description provided for @utilityCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Utility Costs'**
+  String get utilityCosts;
+
+  /// No description provided for @otherIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Income'**
+  String get otherIncome;
+
+  /// No description provided for @unknownAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Address'**
+  String get unknownAddress;
+
+  /// No description provided for @openPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Payments'**
+  String get openPayments;
+
+  /// No description provided for @totalAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Amount'**
+  String get totalAmount;
+
+  /// No description provided for @noOutstandingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'No Outstanding Payments'**
+  String get noOutstandingPayments;
+
+  /// No description provided for @allRentPaymentsCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'All rent payments are current.'**
+  String get allRentPaymentsCurrent;
 }
 
 class _AppLocalizationsDelegate

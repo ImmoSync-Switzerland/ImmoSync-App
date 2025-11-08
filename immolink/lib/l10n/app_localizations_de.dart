@@ -2525,7 +2525,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pendingPayments => 'Ausstehende Zahlungen';
 
   @override
-  String get overduePayments => 'Überfällige Zahlungen (>30 Tage)';
+  String get overduePayments => 'Überfällige Zahlungen';
 
   @override
   String get noTenantsYetMessage =>
@@ -2681,4 +2681,49 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get refresh => 'Aktualisieren';
+
+  @override
+  String get revenueDetails => 'Einnahmen Details';
+
+  @override
+  String get outstandingPaymentsDetails => 'Ausstehende Zahlungen Details';
+
+  @override
+  String get totalRevenuePerMonth => 'Gesamteinnahmen pro Monat';
+
+  @override
+  String get averagePerProperty => 'Durchschnitt pro Immobilie';
+
+  @override
+  String get numberOfProperties => 'Anzahl Immobilien';
+
+  @override
+  String get revenueByProperty => 'Einnahmen nach Immobilie';
+
+  @override
+  String get revenueDistribution => 'Einnahmenverteilung';
+
+  @override
+  String get rentIncome => 'Mieteinnahmen';
+
+  @override
+  String get utilityCosts => 'Nebenkosten';
+
+  @override
+  String get otherIncome => 'Sonstige Einnahmen';
+
+  @override
+  String get unknownAddress => 'Unbekannte Adresse';
+
+  @override
+  String get openPayments => 'Offene Zahlungen';
+
+  @override
+  String get totalAmount => 'Gesamtbetrag';
+
+  @override
+  String get noOutstandingPayments => 'Keine ausstehenden Zahlungen';
+
+  @override
+  String get allRentPaymentsCurrent => 'Alle Mietzahlungen sind aktuell.';
 }

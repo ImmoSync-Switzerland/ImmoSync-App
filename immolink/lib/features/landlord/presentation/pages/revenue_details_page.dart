@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/core/widgets/app_top_bar.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/core/providers/currency_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class RevenueDetailsPage extends ConsumerWidget {
   const RevenueDetailsPage({super.key});
@@ -15,8 +17,13 @@ class RevenueDetailsPage extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: const AppTopBar(
+      appBar: AppTopBar(
         title: '',
+        showNotification: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -63,10 +70,13 @@ class RevenueDetailsPage extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, DynamicAppColors colors, AsyncValue propertiesAsync) {
     final totalRevenue = propertiesAsync.maybeWhen(
-      data: (properties) => properties.fold<double>(
-        0.0,
-        (sum, property) => sum + (property.monthlyRent ?? 0.0),
-      ),
+      data: (properties) {
+        final propertyList = properties as List;
+        return propertyList.fold<double>(
+          0.0,
+          (sum, property) => sum + (property.rentAmount ?? 0.0),
+        );
+      },
       orElse: () => 0.0,
     );
 
@@ -95,7 +105,7 @@ class RevenueDetailsPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Monatliche Einnahmen',
+                      AppLocalizations.of(context)!.monthlyRevenue,
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white.withValues(alpha: 0.9),
@@ -126,19 +136,19 @@ class RevenueDetailsPage extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(24.0),
       children: [
-        _buildRevenueOverview(ref, colors, properties),
+        _buildRevenueOverview(context, ref, colors, properties),
         const SizedBox(height: 24),
-        _buildRevenueByProperty(ref, colors, properties),
+        _buildRevenueByProperty(context, ref, colors, properties),
         const SizedBox(height: 24),
-        _buildRevenueBreakdown(ref, colors, properties),
+        _buildRevenueBreakdown(context, ref, colors, properties),
       ],
     );
   }
 
-  Widget _buildRevenueOverview(WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildRevenueOverview(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
     final totalRevenue = properties.fold<double>(
       0.0,
-      (sum, property) => sum + (property.monthlyRent ?? 0.0),
+      (sum, property) => sum + (property.rentAmount ?? 0.0),
     );
     final avgRevenuePerProperty = properties.isEmpty ? 0.0 : totalRevenue / properties.length;
 
@@ -159,7 +169,7 @@ class RevenueDetailsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Übersicht',
+            AppLocalizations.of(context)!.overview,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -170,7 +180,7 @@ class RevenueDetailsPage extends ConsumerWidget {
           _buildOverviewItem(
             ref,
             colors,
-            'Gesamteinnahmen pro Monat',
+            AppLocalizations.of(context)!.totalRevenuePerMonth,
             ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
             Icons.account_balance_wallet_outlined,
             colors.success,
@@ -179,7 +189,7 @@ class RevenueDetailsPage extends ConsumerWidget {
           _buildOverviewItem(
             ref,
             colors,
-            'Durchschnitt pro Immobilie',
+            AppLocalizations.of(context)!.averagePerProperty,
             ref.read(currencyProvider.notifier).formatAmount(avgRevenuePerProperty),
             Icons.home_outlined,
             colors.info,
@@ -188,7 +198,7 @@ class RevenueDetailsPage extends ConsumerWidget {
           _buildOverviewItem(
             ref,
             colors,
-            'Anzahl Immobilien',
+            AppLocalizations.of(context)!.numberOfProperties,
             '${properties.length}',
             Icons.apartment_outlined,
             colors.primaryAccent,
@@ -240,7 +250,7 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRevenueByProperty(WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildRevenueByProperty(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
@@ -258,7 +268,7 @@ class RevenueDetailsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Einnahmen nach Immobilie',
+            AppLocalizations.of(context)!.revenueByProperty,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -268,15 +278,15 @@ class RevenueDetailsPage extends ConsumerWidget {
           const SizedBox(height: 20),
           ...properties.map((property) => Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
-            child: _buildPropertyRevenueItem(ref, colors, property),
+            child: _buildPropertyRevenueItem(context, ref, colors, property),
           )),
         ],
       ),
     );
   }
 
-  Widget _buildPropertyRevenueItem(WidgetRef ref, DynamicAppColors colors, dynamic property) {
-    final rent = property.monthlyRent ?? 0.0;
+  Widget _buildPropertyRevenueItem(BuildContext context, WidgetRef ref, DynamicAppColors colors, dynamic property) {
+    final rent = property.rentAmount ?? 0.0;
     
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -308,7 +318,7 @@ class RevenueDetailsPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  property.address ?? 'Unbekannte Adresse',
+                  property.address?.street ?? AppLocalizations.of(context)!.unknownAddress,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -319,7 +329,7 @@ class RevenueDetailsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${property.city ?? ''} ${property.zipCode ?? ''}'.trim(),
+                  '${property.address?.city ?? ''} ${property.address?.postalCode ?? ''}'.trim(),
                   style: TextStyle(
                     fontSize: 14,
                     color: colors.textSecondary,
@@ -342,10 +352,10 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRevenueBreakdown(WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildRevenueBreakdown(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
     final totalRevenue = properties.fold<double>(
       0.0,
-      (sum, property) => sum + (property.monthlyRent ?? 0.0),
+      (sum, property) => sum + (property.rentAmount ?? 0.0),
     );
 
     return Container(
@@ -365,7 +375,7 @@ class RevenueDetailsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Einnahmenverteilung',
+            AppLocalizations.of(context)!.revenueDistribution,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -376,7 +386,7 @@ class RevenueDetailsPage extends ConsumerWidget {
           _buildBreakdownItem(
             ref,
             colors,
-            'Mieteinnahmen',
+            AppLocalizations.of(context)!.rentIncome,
             ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
             totalRevenue > 0 ? 100.0 : 0.0,
             colors.success,
@@ -385,7 +395,7 @@ class RevenueDetailsPage extends ConsumerWidget {
           _buildBreakdownItem(
             ref,
             colors,
-            'Nebenkosten',
+            AppLocalizations.of(context)!.utilityCosts,
             ref.read(currencyProvider.notifier).formatAmount(0.0),
             0.0,
             colors.info,
@@ -394,7 +404,7 @@ class RevenueDetailsPage extends ConsumerWidget {
           _buildBreakdownItem(
             ref,
             colors,
-            'Sonstige Einnahmen',
+            AppLocalizations.of(context)!.otherIncome,
             ref.read(currencyProvider.notifier).formatAmount(0.0),
             0.0,
             colors.warning,

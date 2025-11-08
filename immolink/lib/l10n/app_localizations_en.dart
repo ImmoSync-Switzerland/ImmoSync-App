@@ -2484,7 +2484,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pendingPayments => 'Pending Payments';
 
   @override
-  String get overduePayments => 'Overdue (>30 days)';
+  String get overduePayments => 'Overdue Payments';
 
   @override
   String get noTenantsYetMessage =>
@@ -2639,4 +2639,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get refresh => 'Refresh';
+
+  @override
+  String get revenueDetails => 'Revenue Details';
+
+  @override
+  String get outstandingPaymentsDetails => 'Outstanding Payments Details';
+
+  @override
+  String get totalRevenuePerMonth => 'Total Revenue per Month';
+
+  @override
+  String get averagePerProperty => 'Average per Property';
+
+  @override
+  String get numberOfProperties => 'Number of Properties';
+
+  @override
+  String get revenueByProperty => 'Revenue by Property';
+
+  @override
+  String get revenueDistribution => 'Revenue Distribution';
+
+  @override
+  String get rentIncome => 'Rent Income';
+
+  @override
+  String get utilityCosts => 'Utility Costs';
+
+  @override
+  String get otherIncome => 'Other Income';
+
+  @override
+  String get unknownAddress => 'Unknown Address';
+
+  @override
+  String get openPayments => 'Open Payments';
+
+  @override
+  String get totalAmount => 'Total Amount';
+
+  @override
+  String get noOutstandingPayments => 'No Outstanding Payments';
+
+  @override
+  String get allRentPaymentsCurrent => 'All rent payments are current.';
 }

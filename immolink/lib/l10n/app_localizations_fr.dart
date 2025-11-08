@@ -2530,7 +2530,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pendingPayments => 'Paiements en attente';
 
   @override
-  String get overduePayments => 'En retard (>30 jours)';
+  String get overduePayments => 'Paiements en retard';
 
   @override
   String get noTenantsYetMessage =>
@@ -2687,4 +2687,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get refresh => 'Actualiser';
+
+  @override
+  String get revenueDetails => 'Détails des revenus';
+
+  @override
+  String get outstandingPaymentsDetails => 'Détails des paiements en attente';
+
+  @override
+  String get totalRevenuePerMonth => 'Revenu total par mois';
+
+  @override
+  String get averagePerProperty => 'Moyenne par propriété';
+
+  @override
+  String get numberOfProperties => 'Nombre de propriétés';
+
+  @override
+  String get revenueByProperty => 'Revenu par propriété';
+
+  @override
+  String get revenueDistribution => 'Répartition des revenus';
+
+  @override
+  String get rentIncome => 'Revenus locatifs';
+
+  @override
+  String get utilityCosts => 'Charges';
+
+  @override
+  String get otherIncome => 'Autres revenus';
+
+  @override
+  String get unknownAddress => 'Adresse inconnue';
+
+  @override
+  String get openPayments => 'Paiements ouverts';
+
+  @override
+  String get totalAmount => 'Montant total';
+
+  @override
+  String get noOutstandingPayments => 'Aucun paiement en attente';
+
+  @override
+  String get allRentPaymentsCurrent =>
+      'Tous les paiements de loyer sont à jour.';
 }

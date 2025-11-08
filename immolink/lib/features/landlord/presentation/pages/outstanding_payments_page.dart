@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/core/widgets/app_top_bar.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/core/providers/currency_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class OutstandingPaymentsPage extends ConsumerWidget {
   const OutstandingPaymentsPage({super.key});
@@ -15,8 +17,13 @@ class OutstandingPaymentsPage extends ConsumerWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: const AppTopBar(
+      appBar: AppTopBar(
         title: '',
+        showNotification: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -90,7 +97,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Ausstehende Zahlungen',
+                      AppLocalizations.of(context)!.outstanding,
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white.withValues(alpha: 0.9),
@@ -123,14 +130,14 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(24.0),
       children: [
-        _buildOverview(ref, colors),
+        _buildOverview(context, ref, colors),
         const SizedBox(height: 24),
-        _buildEmptyState(ref, colors),
+        _buildEmptyState(context, ref, colors),
       ],
     );
   }
 
-  Widget _buildOverview(WidgetRef ref, DynamicAppColors colors) {
+  Widget _buildOverview(BuildContext context, WidgetRef ref, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
@@ -148,7 +155,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Übersicht',
+            AppLocalizations.of(context)!.overview,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -159,7 +166,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
           _buildOverviewItem(
             ref,
             colors,
-            'Offene Zahlungen',
+            AppLocalizations.of(context)!.openPayments,
             '0',
             Icons.receipt_long_outlined,
             colors.warning,
@@ -168,7 +175,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
           _buildOverviewItem(
             ref,
             colors,
-            'Überfällige Zahlungen',
+            AppLocalizations.of(context)!.overduePayments,
             '0',
             Icons.error_outline,
             colors.error,
@@ -177,7 +184,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
           _buildOverviewItem(
             ref,
             colors,
-            'Gesamtbetrag',
+            AppLocalizations.of(context)!.totalAmount,
             ref.read(currencyProvider.notifier).formatAmount(0.0),
             Icons.account_balance_wallet_outlined,
             colors.info,
@@ -229,7 +236,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(WidgetRef ref, DynamicAppColors colors) {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(40.0),
       decoration: BoxDecoration(
@@ -264,7 +271,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Keine ausstehenden Zahlungen',
+            AppLocalizations.of(context)!.noOutstandingPayments,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -274,7 +281,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Alle Mietzahlungen sind aktuell.',
+            AppLocalizations.of(context)!.allRentPaymentsCurrent,
             style: TextStyle(
               fontSize: 15,
               color: colors.textSecondary,
