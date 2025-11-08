@@ -1,4 +1,4 @@
-ImmoSync
+# ImmoSync
 
 A modern multi-platform (Android / Windows desktop WIP) property management application built with Flutter and a Node.js backend. It connects landlords and tenants with real‑time chat, maintenance workflows, documents and payments.
 
