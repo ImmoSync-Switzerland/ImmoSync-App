@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/config/db_config.dart';
 import '../../../../core/widgets/mongo_image.dart';
+import '../../../../core/widgets/authenticated_network_image.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/domain/services/user_service.dart';
@@ -844,8 +845,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         v.startsWith('data:');
     if (refStr != null && refStr.isNotEmpty) {
       return looksLikeUrl(refStr)
-          ? Image.network(
-              refStr,
+          ? Image(
+              image: AuthenticatedNetworkImageProvider(refStr),
               key: ValueKey(refStr), // force refresh when URL changes
               width: 80,
               height: 80,
@@ -943,7 +944,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           v != null && (v.startsWith('http://') || v.startsWith('https://'));
       try {
         if (_isHttp(oldUrl)) {
-          final provider = NetworkImage(oldUrl!);
+          final provider = AuthenticatedNetworkImageProvider(oldUrl!);
           await provider.evict(
             cache: PaintingBinding.instance.imageCache,
             configuration: ImageConfiguration.empty,

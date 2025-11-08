@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/config/db_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -581,32 +582,56 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   Future<void> _handleGoogle() async {
     // Request an ID token by providing the OAuth2 Web Client ID from env
-    const clientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
+    final clientId = DbConfig.googleClientId;
+    debugPrint('[Google Sign-In] Using Client ID: ${clientId.isNotEmpty ? "${clientId.substring(0, 20)}..." : "(empty)"}');
+    
+    if (clientId.isEmpty) {
+      setState(() {
+        _currentError = 'Google Sign-In fehlgeschlagen: GOOGLE_CLIENT_ID nicht in .env oder --dart-define gesetzt';
+      });
+      return;
+    }
+    
     final googleSignIn = GoogleSignIn(
       scopes: const ['email', 'profile'],
-      serverClientId: clientId.isNotEmpty ? clientId : null,
+      serverClientId: clientId,
     );
+    
     try {
+      debugPrint('[Google Sign-In] Starting sign-in flow...');
       final account = await googleSignIn.signIn();
-      if (account == null) return; // canceled
+      if (account == null) {
+        debugPrint('[Google Sign-In] User cancelled sign-in');
+        return; // canceled
+      }
+      
+      debugPrint('[Google Sign-In] Getting authentication token...');
       final auth = await account.authentication;
       final idToken = auth.idToken;
+      
       if (idToken == null) {
+        debugPrint('[Google Sign-In] ERROR: No ID token returned');
         setState(() {
-          _currentError = clientId.isEmpty
-              ? 'Google Sign-In fehlgeschlagen: GOOGLE_CLIENT_ID nicht gesetzt (--dart-define)'
-              : 'Google Sign-In fehlgeschlagen (kein Token)';
+          _currentError = 'Google Sign-In fehlgeschlagen (kein Token erhalten)';
         });
         return;
       }
+      
+      debugPrint('[Google Sign-In] Token received, logging in to backend...');
       await ref
           .read(authProvider.notifier)
           .socialLogin(provider: 'google', idToken: idToken);
+      
       final st = ref.read(authProvider);
       if (st.needsProfileCompletion && mounted) {
+        debugPrint('[Google Sign-In] Profile completion needed');
         context.push('/complete-profile');
+      } else {
+        debugPrint('[Google Sign-In] Login successful');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[Google Sign-In] ERROR: $e');
+      debugPrint('[Google Sign-In] Stack trace: $stackTrace');
       setState(() {
         _currentError = 'Google Sign-In Fehler: $e';
       });

@@ -88,6 +88,16 @@ class DbConfig {
     return dd;
   }
 
+  // Google OAuth Client ID (Web Client ID from Firebase Console)
+  static String get googleClientId {
+    final env = (dotenv.dotenv.isInitialized
+        ? dotenv.dotenv.env['GOOGLE_CLIENT_ID']
+        : null);
+    if (env != null && env.isNotEmpty) return env;
+    const dd = String.fromEnvironment('GOOGLE_CLIENT_ID', defaultValue: '');
+    return dd;
+  }
+
   static void printConfig() {
     print('DbConfig loaded:');
     print('  connectionUri: $connectionUri');
@@ -95,6 +105,7 @@ class DbConfig {
     print('  apiUrl: $apiUrl');
     print('  wsUrl: $wsUrl');
     print('  primaryHost: $primaryHost');
+    print('  googleClientId: ${googleClientId.isNotEmpty ? "${googleClientId.substring(0, 20)}..." : "(not set)"}');
     print('  (dart-define) API_URL: ${String.fromEnvironment('API_URL')}');
 
     // Verify services will use correct URL
