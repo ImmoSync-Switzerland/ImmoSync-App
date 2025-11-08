@@ -151,6 +151,9 @@ class AuthService {
     required String email,
   }) async {
     try {
+      print('[AuthService] Sending password reset request to: $_apiUrl/auth/forgot-password');
+      print('[AuthService] Email: $email');
+      
       final response = await http.post(
         Uri.parse('$_apiUrl/auth/forgot-password'),
         headers: {'Content-Type': 'application/json'},
@@ -159,15 +162,20 @@ class AuthService {
         }),
       );
 
+      print('[AuthService] Response status: ${response.statusCode}');
+      print('[AuthService] Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         return;
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Password reset request failed');
+        final errorMessage = error['message'] ?? 'Password reset request failed';
+        print('[AuthService] Error from backend: $errorMessage');
+        throw Exception(errorMessage);
       }
     } catch (e) {
-      print('AuthService: Forgot password error: $e');
-      throw Exception('Failed to send password reset email');
+      print('[AuthService] Forgot password error: $e');
+      rethrow; // Re-throw the original exception to preserve the error message
     }
   }
 

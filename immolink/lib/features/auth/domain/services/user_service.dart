@@ -44,32 +44,25 @@ class UserService {
     try {
       // Include session token if available for backend-side identification
       final headers = <String, String>{'Content-Type': 'application/json'};
-      try {
-        // Lazy import to avoid tight coupling
-        // ignore: avoid_dynamic_calls
-      } catch (_) {}
+      
       // Read token from SharedPreferences
-      try {
-        // Using dynamic import pattern to avoid hard dependency at top
-        // ignore: import_of_legacy_library_into_null_safe
-      } catch (_) {}
-      // Actually obtain token
       String? token;
       try {
-        // Deferred import
-        // ignore: avoid_print
-      } catch (_) {}
-      try {
-        // SharedPreferences access
-        // We inline to keep service self-contained
-        // ignore: depend_on_referenced_packages
         final prefs = await SharedPreferences.getInstance();
         token = prefs.getString('sessionToken');
-      } catch (_) {}
-      if (token != null && token.isNotEmpty) {
-        headers['Authorization'] =
-            token; // plain token (backend accepts plain or query)
+      } catch (e) {
+        print('[UserService] Failed to get token from SharedPreferences: $e');
       }
+      
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token'; // Backend expects Bearer prefix
+        print('[UserService] Authorization header set with token');
+      } else {
+        print('[UserService] No token available for update profile request');
+      }
+
+      print('[UserService] Updating profile for user $userId');
+      print('[UserService] Request URL: $_apiUrl/users/$userId');
 
       final response = await http.patch(
         Uri.parse('$_apiUrl/users/$userId'),
@@ -83,16 +76,21 @@ class UserService {
         }),
       );
 
+      print('[UserService] Response status: ${response.statusCode}');
+      print('[UserService] Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return User.fromMap(data);
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Profile update failed');
+        final errorMessage = error['message'] ?? 'Profile update failed';
+        print('[UserService] Error from backend: $errorMessage');
+        throw Exception(errorMessage);
       }
     } catch (e) {
-      print('UserService: Update profile error: $e');
-      throw Exception('Failed to update profile');
+      print('[UserService] Update profile error: $e');
+      rethrow; // Re-throw to preserve error message
     }
   }
 
