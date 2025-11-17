@@ -31,7 +31,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
   final _taxIdController = TextEditingController();
 
   DateTime? _selectedBirthDate;
-  String _selectedRole = 'landlord';
+  final String _selectedRole = 'landlord';
   bool _isCompany = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -463,7 +463,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
   Widget _buildBirthDateField(DynamicAppColors colors) {
     return TextFormField(
       readOnly: true,
-      onTap: () => _selectBirthDate(),
+      onTap: _selectBirthDate,
       style: TextStyle(color: colors.textPrimary),
       decoration: InputDecoration(
         labelText: 'Geburtsdatum',
@@ -541,7 +541,7 @@ class _EnhancedRegisterPageState extends ConsumerState<EnhancedRegisterPage>
         ),
         child: registerState.isLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : Text(
+            : const Text(
                 'Registrieren',
                 style: TextStyle(
                   fontSize: 18,

@@ -96,7 +96,7 @@ class RevenueDetailsPage extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.trending_up,
                   size: 32,
                   color: Colors.white,

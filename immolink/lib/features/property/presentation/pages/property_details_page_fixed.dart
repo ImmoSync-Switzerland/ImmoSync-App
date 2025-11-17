@@ -264,7 +264,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                     const SizedBox(width: 6),
                     Text(
                       amenity,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.primaryAccent,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -374,7 +374,7 @@ class PropertyDetailsPage extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.directions,
                     color: AppColors.primaryAccent,
                     size: 20,
@@ -386,7 +386,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                       children: [
                         Text(
                           AppLocalizations.of(context)!.getDirections,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.primaryAccent,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -402,7 +402,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.open_in_new,
                     color: AppColors.primaryAccent,
                     size: 16,

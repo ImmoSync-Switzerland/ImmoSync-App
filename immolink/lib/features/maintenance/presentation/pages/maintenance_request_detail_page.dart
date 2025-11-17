@@ -81,7 +81,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
   Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request,
       AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
-    IconData statusIcon = _getStatusIcon(request.status);
+    final IconData statusIcon = _getStatusIcon(request.status);
 
     return CustomScrollView(
       slivers: [
@@ -750,7 +750,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Text(
                     l10n.markAsInProgress,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -801,7 +801,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Text(
                     l10n.markAsCompleted,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -1032,7 +1032,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               ),
               child: Text(
                 l10n.addNote,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),

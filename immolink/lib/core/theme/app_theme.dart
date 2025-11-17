@@ -33,7 +33,7 @@ class AppTheme {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         toolbarHeight: AppSizes.topAppBarHeight,
         titleTextStyle: AppTypography.subhead,
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: AppColors.textPrimary,
           size: AppSizes.iconMedium,
         ),
@@ -197,7 +197,7 @@ class AppTheme {
             AppTypography.caption.copyWith(color: AppColors.textSecondary),
         selectedShadowColor: Colors.transparent,
         disabledColor: AppColors.dividerSeparator,
-        side: BorderSide(color: AppColors.borderLight),
+        side: const BorderSide(color: AppColors.borderLight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -252,7 +252,7 @@ class AppTheme {
         titleTextStyle: AppTypography.subhead.copyWith(
           color: AppColorsDark.textPrimary,
         ),
-        iconTheme: IconThemeData(
+        iconTheme: const IconThemeData(
           color: AppColorsDark.textPrimary,
           size: AppSizes.iconMedium,
         ),
@@ -336,16 +336,16 @@ class AppTheme {
         fillColor: AppColorsDark.inputBackground,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.searchBar),
-          borderSide: BorderSide(color: AppColorsDark.inputBorder),
+          borderSide: const BorderSide(color: AppColorsDark.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.searchBar),
-          borderSide: BorderSide(color: AppColorsDark.inputBorder),
+          borderSide: const BorderSide(color: AppColorsDark.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.searchBar),
-          borderSide:
-              BorderSide(color: AppColorsDark.inputFocusedBorder, width: 1),
+          borderSide: const BorderSide(
+              color: AppColorsDark.inputFocusedBorder, width: 1),
         ),
         hintStyle: AppTypography.body.copyWith(
           color: AppColorsDark.textPlaceholder,
@@ -360,7 +360,7 @@ class AppTheme {
       ),
 
       // Bottom Navigation Bar Theme
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColorsDark.navigationBackground,
         selectedItemColor: AppColorsDark.navigationSelected,
         unselectedItemColor: AppColorsDark.navigationUnselected,
@@ -369,14 +369,14 @@ class AppTheme {
       ),
 
       // Divider Theme
-      dividerTheme: DividerThemeData(
+      dividerTheme: const DividerThemeData(
         color: AppColorsDark.dividerSeparator,
         thickness: 1,
         space: 1,
       ),
 
       // Icon Theme
-      iconTheme: IconThemeData(
+      iconTheme: const IconThemeData(
         color: AppColorsDark.textSecondary,
         size: AppSizes.iconMedium,
       ),
@@ -414,11 +414,11 @@ class AppTheme {
       ),
 
       // Bottom Sheet Theme
-      bottomSheetTheme: BottomSheetThemeData(
+      bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColorsDark.bottomSheetBackground,
         elevation: 8,
         shadowColor: AppColorsDark.shadowColorStrong,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppBorderRadius.cardsButtons),
           ),
@@ -450,11 +450,11 @@ class AppTheme {
           return Colors.transparent;
         }),
         checkColor: WidgetStateProperty.all(AppColorsDark.textOnAccent),
-        side: BorderSide(color: AppColorsDark.borderMedium),
+        side: const BorderSide(color: AppColorsDark.borderMedium),
       ),
 
       // Progress Indicator Theme
-      progressIndicatorTheme: ProgressIndicatorThemeData(
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColorsDark.primaryAccent,
         linearTrackColor: AppColorsDark.borderLight,
         circularTrackColor: AppColorsDark.borderLight,
@@ -489,7 +489,7 @@ class AppTheme {
             AppTypography.caption.copyWith(color: AppColorsDark.textSecondary),
         selectedShadowColor: Colors.transparent,
         disabledColor: AppColorsDark.dividerSeparator,
-        side: BorderSide(color: AppColorsDark.borderLight),
+        side: const BorderSide(color: AppColorsDark.borderLight),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),

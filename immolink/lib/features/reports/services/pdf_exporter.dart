@@ -120,7 +120,7 @@ class PdfExporter {
 
     final headerStyle =
         pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold);
-    final labelStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey700);
+    const labelStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey700);
     final valueStyle =
         pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold);
 
@@ -165,7 +165,7 @@ class PdfExporter {
                           pw.Border.all(color: PdfColors.grey400, width: 0.5),
                     ),
                     child: pw.Text(reportModeLabel,
-                        style: pw.TextStyle(
+                        style: const pw.TextStyle(
                             fontSize: 10, color: PdfColors.grey700)),
                   ),
                 ],

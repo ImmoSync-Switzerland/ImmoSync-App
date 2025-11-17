@@ -151,7 +151,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
@@ -162,7 +162,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+            color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -183,7 +183,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                     width: 1,
                   ),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.payment_rounded,
                   color: Colors.white,
                   size: 28,
@@ -194,7 +194,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Automatic Payments',
                       style: TextStyle(
                         fontSize: 22,
@@ -310,8 +310,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             end: Alignment.bottomRight,
             colors: isSelected
                 ? [
-                    Color(0xFF2E7D32), // Dunkleres Grün
-                    Color(0xFF66BB6A), // Helleres Grün
+                    const Color(0xFF2E7D32), // Dunkleres Grün
+                    const Color(0xFF66BB6A), // Helleres Grün
                   ]
                 : [
                     colors.surfaceCards,
@@ -320,13 +320,13 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? Color(0xFF2E7D32) : colors.borderLight,
+            color: isSelected ? const Color(0xFF2E7D32) : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? Color(0xFF2E7D32).withValues(alpha: 0.4)
+                  ? const Color(0xFF2E7D32).withValues(alpha: 0.4)
                   : colors.shadowColor.withValues(alpha: 0.1),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
@@ -407,7 +407,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             decoration: InputDecoration(
               labelText: 'Account Number',
               hintText: 'Enter your bank account number',
-              prefixIcon: Icon(Icons.account_balance_outlined),
+              prefixIcon: const Icon(Icons.account_balance_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -424,7 +424,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             decoration: InputDecoration(
               labelText: 'Routing Number',
               hintText: 'Enter your bank routing number',
-              prefixIcon: Icon(Icons.numbers_outlined),
+              prefixIcon: const Icon(Icons.numbers_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -465,7 +465,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             decoration: InputDecoration(
               labelText: 'Cardholder Name',
               hintText: 'Enter name on card',
-              prefixIcon: Icon(Icons.person_outline),
+              prefixIcon: const Icon(Icons.person_outline),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -481,7 +481,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             decoration: InputDecoration(
               labelText: 'Card Number',
               hintText: '1234 5678 9012 3456',
-              prefixIcon: Icon(Icons.credit_card_outlined),
+              prefixIcon: const Icon(Icons.credit_card_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -501,15 +501,16 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   decoration: InputDecoration(
                     labelText: 'Expiry Date',
                     hintText: 'MM/YY',
-                    prefixIcon: Icon(Icons.calendar_today_outlined),
+                    prefixIcon: const Icon(Icons.calendar_today_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (value?.isEmpty ?? true)
+                    if (value?.isEmpty ?? true) {
                       return 'Expiry date is required';
+                    }
                     return null;
                   },
                 ),
@@ -521,7 +522,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   decoration: InputDecoration(
                     labelText: 'CVV',
                     hintText: '123',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -545,7 +546,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
             Color(0xFF2E7D32), // Dunkleres Grün
             Color(0xFF66BB6A), // Helleres Grün
@@ -554,7 +555,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+            color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -580,11 +581,11 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   strokeWidth: 2.5,
                 ),
               )
-            : Row(
+            : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.check_circle_outline_rounded, size: 22),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Text(
                     'Set Up Auto Payment',
                     style: TextStyle(
@@ -652,7 +653,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           children: [
             Icon(Icons.check_circle_outline, color: colors.success),
             const SizedBox(width: 8),
-            Text('Setup Complete'),
+            const Text('Setup Complete'),
           ],
         ),
         content: Text(
@@ -762,7 +763,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           children: [
             Icon(Icons.error_outline, color: colors.error),
             const SizedBox(width: 8),
-            Text('Setup Failed'),
+            const Text('Setup Failed'),
           ],
         ),
         content: Text(

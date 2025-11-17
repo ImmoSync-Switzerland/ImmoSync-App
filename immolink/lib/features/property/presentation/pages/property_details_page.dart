@@ -558,16 +558,16 @@ class PropertyDetailsPage extends ConsumerWidget {
   LatLng? _getSwissCityCoordinates(String city) {
     final coordinates = {
       'Therwil':
-          LatLng(47.4976342, 7.5536007), // Updated with exact coordinates
-      'Hinterkirchweg 78, Therwil':
-          LatLng(47.4976342, 7.5536007), // Exact coordinates from Google API
-      'Basel': LatLng(47.5596, 7.5886),
-      'Zürich': LatLng(47.3769, 8.5417),
-      'Bern': LatLng(46.9481, 7.4474),
-      'Geneva': LatLng(46.2044, 6.1432),
-      'Lausanne': LatLng(46.5197, 6.6323),
-      'Winterthur': LatLng(47.4979, 8.7240),
-      'Lucerne': LatLng(47.0502, 8.3093),
+          const LatLng(47.4976342, 7.5536007), // Updated with exact coordinates
+      'Hinterkirchweg 78, Therwil': const LatLng(
+          47.4976342, 7.5536007), // Exact coordinates from Google API
+      'Basel': const LatLng(47.5596, 7.5886),
+      'Zürich': const LatLng(47.3769, 8.5417),
+      'Bern': const LatLng(46.9481, 7.4474),
+      'Geneva': const LatLng(46.2044, 6.1432),
+      'Lausanne': const LatLng(46.5197, 6.6323),
+      'Winterthur': const LatLng(47.4979, 8.7240),
+      'Lucerne': const LatLng(47.0502, 8.3093),
       // Add more cities as needed
     };
 
@@ -800,12 +800,12 @@ class PropertyDetailsPage extends ConsumerWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.broken_image,
                               size: 64,
                               color: Colors.grey,
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               AppLocalizations.of(context)!.failedToLoadImage,
                               style: TextStyle(

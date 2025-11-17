@@ -46,7 +46,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           title: Text(l10n.payments),
           backgroundColor: colors.primaryBackground,
         ),
-        body: Center(child: Text('Please log in')),
+        body: const Center(child: Text('Please log in')),
       );
     }
 
@@ -358,7 +358,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
             _buildAccountStatusCard(account),
             const SizedBox(height: 20),
             balanceAsync.when(
-              data: (balance) => _buildBalanceCard(balance),
+              data: _buildBalanceCard,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => _buildErrorCard('Failed to load balance'),
             ),
@@ -378,9 +378,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
                   return _buildEmptyState('No payments yet');
                 }
                 return Column(
-                  children: payments.take(5).map((payment) {
-                    return _buildPaymentCard(payment);
-                  }).toList(),
+                  children: payments.take(5).map(_buildPaymentCard).toList(),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -509,9 +507,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               ),
               IconButton(
                 icon: Icon(Icons.info_outline, color: colors.textSecondary),
-                onPressed: () {
-                  _showBalanceInfoDialog();
-                },
+                onPressed: _showBalanceInfoDialog,
               ),
             ],
           ),
@@ -969,7 +965,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
       );
 
       // First, create or get the Connect account
-      var account = await notifier.createConnectAccount(
+      final account = await notifier.createConnectAccount(
         landlordId: user.id,
         email: user.email,
       );
@@ -1013,9 +1009,10 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           if (mounted) _showErrorSnackBar('Could not open browser');
         }
       } else {
-        if (mounted)
+        if (mounted) {
           _showErrorSnackBar(
               'Failed to create onboarding link. Please try again.');
+        }
       }
     } catch (e) {
       print('[LandlordPayments] Error in _startOnboarding: $e');
@@ -1105,7 +1102,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Transfer your available balance to your bank account?'),
+          const Text('Transfer your available balance to your bank account?'),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),

@@ -43,7 +43,7 @@ class SubscriptionService {
             return SubscriptionPlan.fromMap(json);
           } catch (e) {
             print('[SubscriptionService][ERROR] Error parsing plan: $e');
-            print('[SubscriptionService][ERROR] Plan data: ${json}');
+            print('[SubscriptionService][ERROR] Plan data: $json');
             rethrow;
           }
         }).toList();

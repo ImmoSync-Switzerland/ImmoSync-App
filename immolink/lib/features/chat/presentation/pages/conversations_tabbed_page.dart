@@ -121,7 +121,7 @@ class _ConversationsTabbedPageState
                 ],
               ),
               child: FloatingActionButton.extended(
-                onPressed: () => _showInviteTenantDialog(),
+                onPressed: _showInviteTenantDialog,
                 backgroundColor: Colors.transparent,
                 foregroundColor: Colors.white,
                 elevation: 0,
@@ -195,13 +195,13 @@ class _ConversationsTabbedPageState
                                 indicatorSize: TabBarIndicatorSize.tab,
                                 indicatorPadding: const EdgeInsets.all(4),
                                 dividerColor: Colors.transparent,
-                                labelStyle: TextStyle(
+                                labelStyle: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -0.2,
                                   inherit: true,
                                 ),
-                                unselectedLabelStyle: TextStyle(
+                                unselectedLabelStyle: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: -0.2,
@@ -586,10 +586,12 @@ class _ConversationsTabbedPageState
                       (() {
                         final previews = ref.read(chatPreviewProvider);
                         final override = previews[conversation.id];
-                        if (override != null && override.isNotEmpty)
+                        if (override != null && override.isNotEmpty) {
                           return override;
-                        if (conversation.lastMessage == '[encrypted]')
+                        }
+                        if (conversation.lastMessage == '[encrypted]') {
                           return 'Encrypted message';
+                        }
                         return conversation.lastMessage;
                       })(),
                       style: TextStyle(

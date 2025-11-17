@@ -309,17 +309,19 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 controller: _amountController,
                 decoration: InputDecoration(
                   labelText: 'Amount (\$)',
-                  prefixIcon: Icon(Icons.attach_money),
+                  prefixIcon: const Icon(Icons.attach_money),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value?.isEmpty ?? true) return 'Amount is required';
                   final amount = double.tryParse(value!);
-                  if (amount == null || amount <= 0)
+                  if (amount == null || amount <= 0) {
                     return 'Please enter a valid amount';
+                  }
                   return null;
                 },
               ),
@@ -628,7 +630,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                     )
                   : Text(
                       _useStripe ? 'Pay Now' : 'Record Payment',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),

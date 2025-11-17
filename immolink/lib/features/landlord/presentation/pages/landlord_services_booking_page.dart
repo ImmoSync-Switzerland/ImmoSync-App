@@ -115,9 +115,8 @@ class _LandlordServicesBookingPageState
         child: SafeArea(
           child: servicesAsync.when(
             data: (services) {
-              final bookableServices = services
-                  .map((s) => BookableService.fromServiceModel(s))
-                  .toList();
+              final bookableServices =
+                  services.map(BookableService.fromServiceModel).toList();
 
               return Column(
                 children: [
@@ -205,10 +204,10 @@ class _LandlordServicesBookingPageState
                 ),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Verfügbare Services',
                       style: TextStyle(
@@ -634,14 +633,14 @@ class _LandlordServicesBookingPageState
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Service buchen'),
+        title: const Text('Service buchen'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Sie möchten "${service.name}" buchen?',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Container(
@@ -661,7 +660,7 @@ class _LandlordServicesBookingPageState
                       Expanded(
                         child: Text(
                           service.name,
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
@@ -678,7 +677,7 @@ class _LandlordServicesBookingPageState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Preis:',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
@@ -707,7 +706,7 @@ class _LandlordServicesBookingPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Abbrechen'),
+            child: const Text('Abbrechen'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -718,7 +717,7 @@ class _LandlordServicesBookingPageState
               backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
             ),
-            child: Text('Buchen'),
+            child: const Text('Buchen'),
           ),
         ],
       ),
@@ -734,12 +733,12 @@ class _LandlordServicesBookingPageState
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
+            const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Buchungsanfrage für "${service.name}" wurde gesendet!',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],

@@ -14,7 +14,7 @@ void main() async {
     final healthResponse = await http.get(
       Uri.parse('$apiUrl/health'),
       headers: {'Content-Type': 'application/json'},
-    ).timeout(Duration(seconds: 10));
+    ).timeout(const Duration(seconds: 10));
 
     print('   ✓ Health check status: ${healthResponse.statusCode}');
     print('   Response: ${healthResponse.body}\n');
@@ -28,7 +28,7 @@ void main() async {
     final paymentMethodsResponse = await http.get(
       Uri.parse('$apiUrl/connect/payment-methods/CH'),
       headers: {'Content-Type': 'application/json'},
-    ).timeout(Duration(seconds: 10));
+    ).timeout(const Duration(seconds: 10));
 
     print('   ✓ Payment methods status: ${paymentMethodsResponse.statusCode}');
     if (paymentMethodsResponse.statusCode == 200) {
@@ -48,7 +48,7 @@ void main() async {
     final accountResponse = await http.get(
       Uri.parse('$apiUrl/connect/account/test-landlord-id'),
       headers: {'Content-Type': 'application/json'},
-    ).timeout(Duration(seconds: 10));
+    ).timeout(const Duration(seconds: 10));
 
     print('   Status: ${accountResponse.statusCode}');
     if (accountResponse.statusCode == 404) {

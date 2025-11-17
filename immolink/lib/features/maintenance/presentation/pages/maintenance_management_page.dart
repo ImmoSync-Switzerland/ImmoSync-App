@@ -24,9 +24,9 @@ class _MaintenanceManagementPageState
 
   List<MaintenanceRequest> _filterRequests(List<MaintenanceRequest> requests) {
     return requests.where((request) {
-      bool statusMatch =
+      final bool statusMatch =
           _selectedStatus == 'All' || request.status == _selectedStatus;
-      bool priorityMatch =
+      final bool priorityMatch =
           _selectedPriority == 'All' || request.priority == _selectedPriority;
       return statusMatch && priorityMatch;
     }).toList();

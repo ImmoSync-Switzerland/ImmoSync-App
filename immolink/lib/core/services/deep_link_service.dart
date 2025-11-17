@@ -14,8 +14,9 @@ class DeepLinkService {
   /// Check if deep links are supported on this platform
   bool get isSupported {
     if (kIsWeb) return false;
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       return false;
+    }
     return true; // Android and iOS
   }
 
@@ -118,6 +119,6 @@ class DeepLinkService {
 /// Provider for the deep link service
 final deepLinkServiceProvider = Provider<DeepLinkService>((ref) {
   final service = DeepLinkService();
-  ref.onDispose(() => service.dispose());
+  ref.onDispose(service.dispose);
   return service;
 });

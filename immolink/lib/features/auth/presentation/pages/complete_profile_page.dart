@@ -55,7 +55,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Bitte füllen Sie die fehlenden Pflichtfelder aus.',
                       style: TextStyle(
                         fontSize: 16,
@@ -190,8 +190,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
       child: TextFormField(
         controller: c,
         decoration: InputDecoration(
-            labelText: label + ' (optional)',
-            border: const OutlineInputBorder()),
+            labelText: '$label (optional)', border: const OutlineInputBorder()),
       ),
     );
   }
@@ -268,26 +267,35 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage> {
     if (!_formKey.currentState!.validate()) return;
     final auth = ref.read(authProvider);
     final fields = <String, dynamic>{};
-    if (auth.missingFields.contains('fullName'))
+    if (auth.missingFields.contains('fullName')) {
       fields['fullName'] = _fullNameController.text.trim();
-    if (auth.missingFields.contains('phone'))
+    }
+    if (auth.missingFields.contains('phone')) {
       fields['phone'] = _phoneController.text.trim();
-    if (auth.missingFields.contains('role'))
+    }
+    if (auth.missingFields.contains('role')) {
       fields['role'] = _roleController.value;
-    if (auth.missingFields.contains('isCompany'))
+    }
+    if (auth.missingFields.contains('isCompany')) {
       fields['isCompany'] = _isCompanyController.value;
+    }
     if (_isCompanyController.value) {
-      if (auth.missingFields.contains('companyName'))
+      if (auth.missingFields.contains('companyName')) {
         fields['companyName'] = _companyNameController.text.trim();
-      if (auth.missingFields.contains('companyAddress'))
+      }
+      if (auth.missingFields.contains('companyAddress')) {
         fields['companyAddress'] = _companyAddressController.text.trim();
-      if (_taxIdController.text.isNotEmpty)
+      }
+      if (_taxIdController.text.isNotEmpty) {
         fields['taxId'] = _taxIdController.text.trim();
+      }
     } else {
-      if (auth.missingFields.contains('address'))
+      if (auth.missingFields.contains('address')) {
         fields['address'] = _addressController.text.trim();
-      if (auth.missingFields.contains('birthDate') && _birthDate != null)
+      }
+      if (auth.missingFields.contains('birthDate') && _birthDate != null) {
         fields['birthDate'] = _birthDate;
+      }
     }
     await ref.read(authProvider.notifier).completeSocialProfile(fields: fields);
     final newState = ref.read(authProvider);

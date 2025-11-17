@@ -43,7 +43,7 @@ class DashboardService {
       );
     } catch (e) {
       print('Error fetching dashboard data: $e');
-      return DashboardData(
+      return const DashboardData(
         recentMessages: [],
         recentMaintenanceRequests: [],
       );

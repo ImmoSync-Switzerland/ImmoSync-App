@@ -637,7 +637,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white, width: 2),
+              borderSide: const BorderSide(color: Colors.white, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -687,7 +687,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
     final colors = ref.read(dynamicColorsProvider);
     try {
       HapticFeedback.lightImpact();
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: true,
         withData: true, // Important for web
@@ -929,7 +929,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
         }
 
         // Upload images to MongoDB if any are selected
-        List<String> uploadedImageIds = [];
+        final List<String> uploadedImageIds = [];
         if (_pickerResult != null && _pickerResult!.files.isNotEmpty) {
           print('Found ${_pickerResult!.files.length} files to upload');
           final propertyService = ref.read(propertyServiceProvider);

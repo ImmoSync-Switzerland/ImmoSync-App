@@ -136,7 +136,7 @@ class NotificationsNotifier
       state = AsyncData(updated);
     }
     try {
-      var resp = await http.post(
+      final resp = await http.post(
         Uri.parse('$_baseUrl/notifications/mark-read'),
         headers: await _headers(),
         body: jsonEncode({

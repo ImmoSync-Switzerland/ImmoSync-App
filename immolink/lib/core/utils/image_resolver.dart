@@ -31,7 +31,7 @@ String resolvePropertyImage(String ref) {
     String path = ref.startsWith('/') ? ref : '/$ref';
     // Ensure it has /api prefix once
     if (!path.startsWith('/api/')) {
-      path = '/api' + path;
+      path = '/api$path';
     }
     // Documents raw should use public host to avoid mixed host issues
     return publicHost + path;
@@ -41,7 +41,7 @@ String resolvePropertyImage(String ref) {
   if (ref.contains('uploads/')) {
     // Normalize to starting at /uploads
     final idx = ref.indexOf('uploads/');
-    final normalized = '/' + ref.substring(idx);
+    final normalized = '/${ref.substring(idx)}';
     return publicHost + normalized; // prefer public host
   }
 

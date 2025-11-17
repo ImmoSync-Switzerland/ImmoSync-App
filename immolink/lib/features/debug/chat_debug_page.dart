@@ -287,7 +287,7 @@ class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
                 label: const Text('Test Timeline'),
               ),
               ElevatedButton.icon(
-                onPressed: () => setState(() => _logs.clear()),
+                onPressed: () => setState(_logs.clear),
                 icon: const Icon(Icons.clear),
                 label: const Text('Clear Logs'),
                 style: ElevatedButton.styleFrom(

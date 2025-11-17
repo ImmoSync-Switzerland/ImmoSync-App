@@ -17,7 +17,8 @@ class PushNotificationService {
 
   static Future<void> initialize() async {
     // Request permission for notifications
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
+    final NotificationSettings settings =
+        await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -40,7 +41,7 @@ class PushNotificationService {
     await _initializeLocalNotifications();
 
     // Get the token each time the application loads
-    String? token = await _firebaseMessaging.getToken();
+    final String? token = await _firebaseMessaging.getToken();
     print('FCM Token: $token');
 
     // Listen for token refresh
@@ -84,9 +85,7 @@ class PushNotificationService {
 
     await _localNotifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        _handleLocalNotificationTap(response);
-      },
+      onDidReceiveNotificationResponse: _handleLocalNotificationTap,
     );
 
     // Create notification channel for Android
@@ -151,8 +150,8 @@ class PushNotificationService {
   static void _navigateBasedOnNotification(Map<String, dynamic> data) {
     // Implementation would depend on your navigation setup
     // Example:
-    String? type = data['type'];
-    String? id = data['id'];
+    final String? type = data['type'];
+    final String? id = data['id'];
 
     switch (type) {
       case 'payment_reminder':

@@ -152,9 +152,9 @@ class _RevenueDetailPageState extends ConsumerState<RevenueDetailPage> {
   Widget _buildAggregateChart(
       List payments, DynamicAppColors colors, AppLocalizations l10n) {
     if (payments.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 40),
-        child: const Text('No data'),
+      return const Padding(
+        padding: EdgeInsets.only(top: 40),
+        child: Text('No data'),
       );
     }
     final now = DateTime.now();

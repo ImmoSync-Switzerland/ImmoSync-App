@@ -68,10 +68,10 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
               ),
             ),
             // Anchor popup below the app bar, aligned to right
-            Positioned(
+            const Positioned(
               top: AppSizes.topAppBarHeight + 4,
               right: 8,
-              child: const NotificationsPopup(),
+              child: NotificationsPopup(),
             ),
           ],
         );

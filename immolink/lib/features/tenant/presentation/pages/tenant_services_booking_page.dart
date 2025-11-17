@@ -266,7 +266,7 @@ class _TenantServicesBookingPageState
     return servicesAsync.when(
       data: (services) {
         final tenantServices =
-            services.map((s) => TenantService.fromServiceModel(s)).toList();
+            services.map(TenantService.fromServiceModel).toList();
 
         return Column(
           children: [
@@ -301,7 +301,7 @@ class _TenantServicesBookingPageState
             ElevatedButton(
               onPressed: () => ref
                   .invalidate(tenantAvailableServicesProvider(firstLandlordId)),
-              child: Text('Retry'),
+              child: const Text('Retry'),
             ),
           ],
         ),
@@ -349,10 +349,10 @@ class _TenantServicesBookingPageState
                 ),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Text(
                   'Available Services',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -769,7 +769,7 @@ class _TenantServicesBookingPageState
           children: [
             Text(
               'Service: ${service.name}',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
@@ -782,7 +782,7 @@ class _TenantServicesBookingPageState
               style: TextStyle(color: colors.textSecondary),
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Contact Information:',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
@@ -798,7 +798,7 @@ class _TenantServicesBookingPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -809,7 +809,7 @@ class _TenantServicesBookingPageState
               backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
             ),
-            child: Text('Contact Provider'),
+            child: const Text('Contact Provider'),
           ),
         ],
       ),

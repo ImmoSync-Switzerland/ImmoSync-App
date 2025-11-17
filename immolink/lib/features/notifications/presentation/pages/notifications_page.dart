@@ -32,7 +32,7 @@ class NotificationsPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (list) => list.isEmpty
-            ? Center(child: Text('No notifications'))
+            ? const Center(child: Text('No notifications'))
             : ListView.separated(
                 itemCount: list.length,
                 separatorBuilder: (_, __) => const Divider(height: 0),

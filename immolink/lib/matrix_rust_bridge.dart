@@ -50,6 +50,6 @@ class MatrixRustBridge {
   // you can implement an event callback in Rust that pushes events into Dart
   // using a StreamController here.
   Stream<Map<String, dynamic>> get events async* {
-    yield* Stream.empty();
+    yield* const Stream.empty();
   }
 }

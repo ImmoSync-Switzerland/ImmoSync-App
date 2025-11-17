@@ -18,11 +18,11 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
 
   // Test IDs (replace with actual values)
   final String _conversationId =
-      "67558b2368e19654c0e2b2b1"; // Replace with real conversation ID
+      '67558b2368e19654c0e2b2b1'; // Replace with real conversation ID
   final String _senderId =
-      "675225e1e7ce2c8141900399"; // Replace with real sender ID
+      '675225e1e7ce2c8141900399'; // Replace with real sender ID
   final String _receiverId =
-      "675447c4592a86ba6e6e5971"; // Replace with real receiver ID
+      '675447c4592a86ba6e6e5971'; // Replace with real receiver ID
 
   void _addLog(String message) {
     setState(() {
@@ -190,9 +190,7 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
             // Clear Logs Button
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  _logs.clear();
-                });
+                setState(_logs.clear);
               },
               child: const Text('Clear Logs'),
             ),

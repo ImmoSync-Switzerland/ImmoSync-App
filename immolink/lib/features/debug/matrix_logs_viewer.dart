@@ -85,9 +85,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              setState(() {
-                _loadLogs();
-              });
+              setState(_loadLogs);
             },
             tooltip: 'Refresh logs',
           ),

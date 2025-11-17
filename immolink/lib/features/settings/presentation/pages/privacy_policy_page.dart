@@ -43,7 +43,7 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
     ];
     final tocTitleIndex =
         _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
-    List<String> enumerationHeadings = [];
+    final List<String> enumerationHeadings = [];
     if (tocTitleIndex != -1) {
       _skipIndices.add(tocTitleIndex); // hide the TOC title line inside content
       final seen = <String>{};
@@ -52,8 +52,9 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
         final trimmed = raw.trim();
         if (trimmed.isEmpty) break; // blank line ends enumeration
         final isHeadingCandidate = _headingRegex.hasMatch(trimmed);
-        if (!isHeadingCandidate)
+        if (!isHeadingCandidate) {
           break; // enumeration block ends when a non-heading encountered
+        }
         if (seen.contains(trimmed)) {
           // We encountered a heading we've already listed -> this is the start of real content
           break;
@@ -65,7 +66,7 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
       }
     }
 
-    List<String> allHeadings = _lines
+    final List<String> allHeadings = _lines
         .asMap()
         .entries
         .where((e) => _headingRegex.hasMatch(e.value.trim()))
@@ -120,12 +121,13 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
         title: Text(l.privacyPolicy,
-            style: TextStyle(
+            style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w600)),
         leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+            icon:
+                const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
             onPressed: () => context.pop()),
         actions: [
           IconButton(
@@ -156,13 +158,13 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l.privacyPolicy,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary)),
                   const SizedBox(height: 6),
                   Text(l.privacyPolicyLastUpdated,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 14, color: AppColors.textSecondary)),
                   const SizedBox(height: 20),
                   if (_headings.isNotEmpty)

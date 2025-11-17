@@ -30,7 +30,7 @@ class MatrixTimelineService {
   Stream<List<ChatMessage>> watchRoom(String roomId) {
     final ctrl = _controllers.putIfAbsent(
       roomId,
-      () => StreamController<List<ChatMessage>>.broadcast(),
+      StreamController<List<ChatMessage>>.broadcast,
     );
     _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);
 

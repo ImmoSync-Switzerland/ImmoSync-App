@@ -55,7 +55,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Make Payment',
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -67,7 +67,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -76,7 +76,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: userProperties.when(
           data: (properties) {
             if (properties.isEmpty) {
-              return Center(
+              return const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -85,7 +85,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                       size: 64,
                       color: AppColors.textTertiary,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       'No Properties Available',
                       style: TextStyle(
@@ -94,7 +94,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       'You have no properties to make payments for.',
                       style: TextStyle(
@@ -138,7 +138,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               ),
             );
           },
-          loading: () => Center(
+          loading: () => const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -151,7 +151,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                     strokeWidth: 2.5,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'Loading properties...',
                   style: TextStyle(
@@ -166,9 +166,10 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                const Icon(Icons.error_outline,
+                    size: 48, color: AppColors.error),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Error loading properties',
                   style: TextStyle(
                     fontSize: 18,
@@ -179,7 +180,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 const SizedBox(height: 8),
                 Text(
                   error.toString(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -216,7 +217,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Property',
               style: TextStyle(
                 fontSize: 16,
@@ -236,14 +237,14 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               ),
               child: DropdownButtonFormField<String>(
                 initialValue: _selectedPropertyId,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
+                  contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
                 ),
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 14,
                 ),
@@ -278,7 +279,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
                     color: AppColors.primaryAccent,
                     size: 20,
@@ -287,7 +288,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   Expanded(
                     child: Text(
                       'Outstanding payments: CHF ${selectedProperty.outstandingPayments}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.primaryAccent,
                         fontWeight: FontWeight.w500,
@@ -334,7 +335,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Payment Details',
               style: TextStyle(
                 fontSize: 16,
@@ -349,7 +350,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Payment Type',
                         style: TextStyle(
                           fontSize: 14,
@@ -369,14 +370,14 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                         ),
                         child: DropdownButtonFormField<String>(
                           initialValue: _selectedPaymentType,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
+                            contentPadding: EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 12,
                             ),
                           ),
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 14,
                           ),
@@ -402,7 +403,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Payment Method',
                         style: TextStyle(
                           fontSize: 14,
@@ -422,14 +423,14 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                         ),
                         child: DropdownButtonFormField<String>(
                           initialValue: _selectedPaymentMethod,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
+                            contentPadding: EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 12,
                             ),
                           ),
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 14,
                           ),
@@ -453,7 +454,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               ],
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Amount (CHF)',
               style: TextStyle(
                 fontSize: 14,
@@ -474,13 +475,13 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               child: TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Enter amount',
                   hintStyle: TextStyle(
                     color: AppColors.textTertiary,
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
+                  contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
@@ -491,7 +492,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 14,
                 ),
@@ -537,7 +538,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Notes (Optional)',
               style: TextStyle(
                 fontSize: 16,
@@ -558,15 +559,15 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               child: TextFormField(
                 controller: _notesController,
                 maxLines: 3,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Add any additional notes...',
                   hintStyle: TextStyle(
                     color: AppColors.textTertiary,
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
+                  contentPadding: EdgeInsets.all(16),
                 ),
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 14,
                 ),
@@ -592,14 +593,14 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
           ),
           elevation: 0,
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.payment,
               size: 18,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               'Submit Payment',
               style: TextStyle(
@@ -620,8 +621,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 
     if (_selectedPropertyId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select a property'),
+        const SnackBar(
+          content: Text('Please select a property'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -632,8 +633,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('User not authenticated'),
+        const SnackBar(
+          content: Text('User not authenticated'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -652,14 +653,14 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               color: AppColors.surfaceCards,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
+            child: const Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(
                   valueColor:
                       AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'Processing payment...',
                   style: TextStyle(
@@ -691,8 +692,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         Navigator.of(context).pop(); // Close loading dialog
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Payment submitted successfully'),
+          const SnackBar(
+            content: Text('Payment submitted successfully'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),

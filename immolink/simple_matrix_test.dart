@@ -91,7 +91,7 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
-                      onPressed: () => setState(() => _logs.clear()),
+                      onPressed: () => setState(_logs.clear),
                       child: const Text('Clear'),
                     ),
                   ],

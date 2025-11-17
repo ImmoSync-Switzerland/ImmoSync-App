@@ -235,7 +235,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           l10n.upload,
           Icons.cloud_upload,
           const Color(0xFF2196F3), // Blue
-          () => _uploadDocument(),
+          _uploadDocument,
           colors,
         ),
         const SizedBox(height: 12),
@@ -343,8 +343,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           builder: (context, constraints) {
             final screenWidth = constraints.maxWidth;
             final crossAxisCount = screenWidth > 600 ? 3 : 2;
-            final crossAxisSpacing = 12.0;
-            final mainAxisSpacing = 12.0;
+            const crossAxisSpacing = 12.0;
+            const mainAxisSpacing = 12.0;
             final itemWidth =
                 (screenWidth - (crossAxisSpacing * (crossAxisCount - 1))) /
                     crossAxisCount;
@@ -1047,7 +1047,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
 
   Future<void> _pickFile() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'txt', 'png', 'jpg', 'jpeg'],
         allowMultiple: false,

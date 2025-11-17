@@ -386,7 +386,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   clipBehavior: Clip.antiAlias,
                   child: property.imageUrls.isNotEmpty
                       ? _buildPropertyImage(property.imageUrls.first)
-                      : Icon(
+                      : const Icon(
                           Icons.home_outlined,
                           color: Colors.white,
                           size: 32,
@@ -639,7 +639,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (!hasActiveSubscription) ...[
-                            Icon(Icons.lock, size: 16),
+                            const Icon(Icons.lock, size: 16),
                             const SizedBox(width: 8),
                           ],
                           Text(hasActiveSubscription

@@ -14,7 +14,7 @@ final invitationServiceProvider = Provider<InvitationService>((ref) {
 });
 
 class InvitationService {
-  static String _apiUrl = ApiConstants.baseUrl;
+  static final String _apiUrl = ApiConstants.baseUrl;
   final TokenManager _tokenManager = TokenManager();
 
   Future<List<Invitation>> getUserInvitations(String userId) async {
@@ -161,7 +161,7 @@ final pendingInvitationsProvider =
       invitations.where((invitation) => invitation.isPending).toList(),
     ),
     loading: () => const AsyncValue.loading(),
-    error: (error, stack) => AsyncValue.error(error, stack),
+    error: AsyncValue.error,
   );
 });
 

@@ -407,7 +407,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.picture_as_pdf_rounded,
                     color: Colors.white,
                     size: 20,
@@ -456,10 +456,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       } else {
         columns = isLandlord ? 4 : 3; // tenant has fewer KPIs
       }
-      final spacing = 14.0;
+      const spacing = 14.0;
       final cardWidth = (width - spacing * (columns - 1)) / columns;
 
-      List<Widget> cards = [
+      final List<Widget> cards = [
         _asyncKpiCard(
           label: l10n.collected,
           asyncValue: payments,
@@ -661,7 +661,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             child: Text('—',
                 style: TextStyle(
                     fontSize: 18, fontWeight: FontWeight.bold, color: color))),
-        Text(label.toUpperCase(), style: TextStyle(fontSize: 10)),
+        Text(label.toUpperCase(), style: const TextStyle(fontSize: 10)),
       ],
     );
   }
@@ -687,7 +687,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   Widget _buildRevenueRangeSelector(
       DynamicAppColors colors, AppLocalizations l10n) {
     final range = ref.watch(revenueRangeProvider);
-    final options = const [3, 6, 12];
+    const options = [3, 6, 12];
     return Wrap(
       spacing: 12,
       children: options.map((m) {
@@ -2026,7 +2026,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.build_rounded,
               color: Colors.white,
               size: 32,
@@ -2223,7 +2223,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.receipt_long_rounded,
               color: Colors.white,
               size: 32,
@@ -2421,7 +2421,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.account_balance_wallet_rounded,
               color: Colors.white,
               size: 32,
@@ -2465,7 +2465,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     ),
                     child: Column(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.check_circle_rounded,
                           color: Colors.white,
                           size: 40,
@@ -2506,7 +2506,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     ),
                     child: Column(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.schedule_rounded,
                           color: Colors.white,
                           size: 40,
@@ -2547,7 +2547,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     ),
                     child: Column(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.receipt_long_rounded,
                           color: Colors.white,
                           size: 40,

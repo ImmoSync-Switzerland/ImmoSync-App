@@ -37,7 +37,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   List<Conversation> _recentMessages = [];
   List<MaintenanceRequest> _recentMaintenanceRequests = [];
   bool _isLoadingDashboardData = false;
-  String _propertyFilter = 'all'; // all, available, occupied, maintenance
+  final String _propertyFilter = 'all'; // all, available, occupied, maintenance
 
   // Helper method for responsive font sizes
   double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
@@ -379,17 +379,17 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         },
         decoration: InputDecoration(
           hintText: l10n.searchPropertiesTenantsMessages,
-          hintStyle: TextStyle(
-            color: const Color(0xFF64748B),
+          hintStyle: const TextStyle(
+            color: Color(0xFF64748B),
             fontSize: 15,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.1,
           ),
           prefixIcon: Container(
             padding: const EdgeInsets.all(12),
-            child: Icon(
+            child: const Icon(
               Icons.search_outlined,
-              color: const Color(0xFF64748B),
+              color: Color(0xFF64748B),
               size: 20,
             ),
           ),
@@ -397,8 +397,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         ),
-        style: TextStyle(
-          color: const Color(0xFF0F172A),
+        style: const TextStyle(
+          color: Color(0xFF0F172A),
           fontSize: 15,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.1,
@@ -449,7 +449,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.account_balance_wallet_outlined,
               color: Colors.white,
               size: 32,
@@ -612,7 +612,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.flash_on_outlined,
               color: Colors.white,
               size: 32,
@@ -871,7 +871,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         return GestureDetector(
           onTap: hasActiveSubscription
               ? onPressed
-              : () => _showSubscriptionRequiredDialog(),
+              : _showSubscriptionRequiredDialog,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
@@ -1042,7 +1042,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
           color: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Center(child: CircularProgressIndicator()),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => _buildQuickAccessButton(
           label, icon, colors.textTertiary, () {},
@@ -1206,7 +1206,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.home_work_outlined,
                   color: Colors.white,
                   size: 32,
@@ -1442,7 +1442,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.chat_bubble_outline,
                   color: Colors.white,
                   size: 32,
@@ -1580,7 +1580,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
       print('Error navigating to chat: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
+          content: const Text(
               'Chat kann nicht geöffnet werden. Bitte versuchen Sie es erneut.'),
           backgroundColor: colors.error,
         ),
@@ -1622,7 +1622,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.build_circle_outlined,
                   color: Colors.white,
                   size: 32,
@@ -1681,8 +1681,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   Widget _buildMaintenanceCard(
       MaintenanceRequest request, BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
-    Color priorityColor = _getPriorityColor(request.priority);
-    IconData icon = CategoryUtils.getCategoryIcon(request.category);
+    final Color priorityColor = _getPriorityColor(request.priority);
+    final IconData icon = CategoryUtils.getCategoryIcon(request.category);
 
     return GestureDetector(
       onTap: () {
@@ -1801,7 +1801,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         },
         backgroundColor: Colors.transparent,
         elevation: 0,
-        child: Icon(
+        child: const Icon(
           Icons.add_rounded,
           color: Colors.white,
           size: 28,

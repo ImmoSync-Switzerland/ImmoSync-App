@@ -73,7 +73,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, WidgetRef ref,
       DynamicAppColors colors, AsyncValue propertiesAsync) {
     // For demo purposes, using 0 outstanding - will be replaced with actual data
-    final totalOutstanding = 0.0;
+    const totalOutstanding = 0.0;
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -88,7 +88,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.warning,
                   size: 32,
                   color: Colors.white,

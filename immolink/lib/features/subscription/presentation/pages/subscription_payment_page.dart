@@ -325,7 +325,7 @@ class _SubscriptionPaymentPageState
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _openWebVersion(),
+                  onPressed: _openWebVersion,
                   icon: const Icon(Icons.web, size: 18),
                   label: Text(l10n.openWebVersion),
                   style: ElevatedButton.styleFrom(
@@ -395,7 +395,7 @@ class _SubscriptionPaymentPageState
               SnackBar(
                 content: Text(l10n.redirectingToSecurePaymentPage),
                 backgroundColor: Colors.blue,
-                duration: Duration(seconds: 3),
+                duration: const Duration(seconds: 3),
               ),
             );
           }
@@ -523,7 +523,7 @@ class _SubscriptionPaymentPageState
                       _isPlatformSupported()
                           ? l10n.subscribeNow
                           : l10n.continueOnWeb,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -609,7 +609,7 @@ class _SubscriptionPaymentPageState
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
+            const Icon(Icons.check_circle, color: Colors.green),
             const SizedBox(width: 8),
             Text(l10n.welcome),
           ],

@@ -50,10 +50,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   bool _isTyping = false; // local user typing
-  bool _otherTyping = false; // remote user typing
+  final bool _otherTyping = false; // remote user typing
   // Removed polling timer
   Timer? _presenceTimer; // Fallback heartbeat only
-  bool _otherOnline = false;
+  final bool _otherOnline = false;
   DateTime? _otherLastSeen;
   ProviderSubscription<Map<String, PresenceInfo>>? _presenceCacheRemove;
   ProviderSubscription<dynamic>? _authConnSub;
@@ -151,10 +151,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
             },
           );
         } catch (_) {
-          if (mounted)
+          if (mounted) {
             setState(() {
               _encryptionReady = false;
             });
+          }
         }
       });
     }
@@ -216,8 +217,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
           ValueListenableBuilder<MatrixClientState>(
             valueListenable: ChatService.clientState,
             builder: (context, state, _) {
-              if (state == MatrixClientState.ready)
+              if (state == MatrixClientState.ready) {
                 return const SizedBox.shrink();
+              }
               String text;
               bool busy = true;
               switch (state) {
@@ -432,7 +434,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
               final showDate = index == 0 ||
                   !_isSameDay(message.timestamp, messages[index - 1].timestamp);
               // Ensure a GlobalKey for visibility tracking
-              _messageKeys.putIfAbsent(message.id, () => GlobalKey());
+              _messageKeys.putIfAbsent(message.id, GlobalKey.new);
 
               return Column(
                 children: [
@@ -468,14 +470,14 @@ class _ChatPageState extends ConsumerState<ChatPage>
               ),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.chat_bubble_outline,
               size: 48,
               color: AppColors.primaryAccent,
             ),
           ),
           const SizedBox(height: 24),
-          Text(
+          const Text(
             'No messages yet',
             style: TextStyle(
               fontSize: 18,
@@ -486,7 +488,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
           const SizedBox(height: 8),
           Text(
             'Start the conversation with ${widget.otherUserName}',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -614,7 +616,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
           ),
           if (isMe) ...[
             const SizedBox(width: 8),
-            UserAvatar(size: 32),
+            const UserAvatar(size: 32),
           ],
         ],
       ),
@@ -760,7 +762,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                           color: colors.textSecondary,
                           size: 22,
                         ),
-                        onPressed: () => _showAttachmentOptions(),
+                        onPressed: _showAttachmentOptions,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -783,7 +785,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                           color: colors.textSecondary,
                           size: 22,
                         ),
-                        onPressed: () => _showEmojiPicker(),
+                        onPressed: _showEmojiPicker,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1114,7 +1116,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
       final top = offset.dy;
       final bottom = top + size.height;
       final screenHeight = MediaQuery.of(ctx).size.height;
-      final vpTop = 0.0;
+      const vpTop = 0.0;
       final vpBottom = screenHeight;
       final overlap = bottom > vpTop && top < vpBottom;
       if (!overlap) continue;
@@ -1150,9 +1152,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.surfaceCards,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1186,7 +1188,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         me.blockedUsers.contains(oid);
                     if (isBlocked) {
                       return ListTile(
-                        leading: Icon(Icons.lock_open,
+                        leading: const Icon(Icons.lock_open,
                             color: AppColors.primaryAccent),
                         title: Text(AppLocalizations.of(context)!.unblockUser),
                         onTap: () {
@@ -1196,7 +1198,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                       );
                     }
                     return ListTile(
-                      leading: Icon(Icons.block, color: AppColors.error),
+                      leading: const Icon(Icons.block, color: AppColors.error),
                       title: Text(AppLocalizations.of(context)!.blockUser),
                       onTap: () {
                         Navigator.pop(context);
@@ -1205,7 +1207,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     );
                   }),
                   ListTile(
-                    leading: Icon(Icons.report, color: AppColors.warning),
+                    leading: const Icon(Icons.report, color: AppColors.warning),
                     title:
                         Text(AppLocalizations.of(context)!.reportConversation),
                     onTap: () {
@@ -1214,7 +1216,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     },
                   ),
                   ListTile(
-                    leading: Icon(Icons.delete, color: AppColors.error),
+                    leading: const Icon(Icons.delete, color: AppColors.error),
                     title:
                         Text(AppLocalizations.of(context)!.deleteConversation),
                     onTap: () {
@@ -1236,9 +1238,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.surfaceCards,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1349,9 +1351,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
       isScrollControlled: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.4,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.surfaceCards,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
@@ -1376,7 +1378,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: AppColors.textSecondary),
+                    icon:
+                        const Icon(Icons.close, color: AppColors.textSecondary),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -1682,13 +1685,13 @@ class _ChatPageState extends ConsumerState<ChatPage>
 
   void _pickDocument() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'txt', 'jpg', 'png'],
       );
 
       if (result != null) {
-        PlatformFile file = result.files.first;
+        final PlatformFile file = result.files.first;
         setState(() {
           _pendingFile = file;
           _pendingImage = null; // clear image if any
@@ -1785,8 +1788,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 ? null
                 : () {
                     final currentUser = ref.read(currentUserProvider);
-                    if (currentUser != null)
+                    if (currentUser != null) {
                       _sendPendingAttachment(currentUser.id);
+                    }
                   },
           ),
         ],
@@ -1829,10 +1833,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
           otherUserId: widget.otherUserId,
           ref: ref,
           onProgress: (p) {
-            if (mounted)
+            if (mounted) {
               setState(() {
                 _uploadProgress = p;
               });
+            }
           },
         );
       } else if (_pendingFile != null) {
@@ -1847,10 +1852,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
           otherUserId: widget.otherUserId,
           ref: ref,
           onProgress: (p) {
-            if (mounted)
+            if (mounted) {
               setState(() {
                 _uploadProgress = p;
               });
+            }
           },
         );
       }

@@ -248,7 +248,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                             ? colors.primaryAccent
                             : colors.textSecondary),
                     const SizedBox(width: 8),
-                    Text('Name (A–Z)')
+                    const Text('Name (A–Z)')
                   ]),
                 ),
                 PopupMenuItem(
@@ -260,7 +260,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                             ? colors.primaryAccent
                             : colors.textSecondary),
                     const SizedBox(width: 8),
-                    Text('Status')
+                    const Text('Status')
                   ]),
                 ),
               ],

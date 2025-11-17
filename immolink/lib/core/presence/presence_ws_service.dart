@@ -30,7 +30,7 @@ class PresenceWsService {
   final _chatController = StreamController<Map<String, dynamic>>.broadcast();
   final _conversationController =
       StreamController<Map<String, dynamic>>.broadcast();
-  List<Map<String, dynamic>> _pendingMessages = [];
+  final List<Map<String, dynamic>> _pendingMessages = [];
   // Track inflight emits to allow lightweight retries if no ack is observed
   final Map<String, Map<String, dynamic>> _inflightByClientId = {};
   // Pending read receipts keyed by conversationId (values are messageId sets)
@@ -197,12 +197,14 @@ class PresenceWsService {
         }
       })
       ..on('chat:conversation:new', (data) {
-        if (data is Map)
+        if (data is Map) {
           _conversationController.add({...data, 'type': 'newConversation'});
+        }
       })
       ..on('chat:create:ack', (data) {
-        if (data is Map)
+        if (data is Map) {
           _conversationController.add({...data, 'type': 'createAck'});
+        }
       })
       ..on('chat:typing', (data) {
         if (data is Map) _chatController.add({...data, 'type': 'typing'});
@@ -333,7 +335,7 @@ class PresenceWsService {
       required String content,
       String? receiverId,
       WidgetRef? ref}) async {
-    Map<String, dynamic> payload = {
+    final Map<String, dynamic> payload = {
       'conversationId': conversationId,
       if (_userId != null)
         'senderId': _userId, // explicit sender id for server attribution
@@ -505,6 +507,6 @@ final presenceWsServiceProvider = Provider<PresenceWsService>((ref) {
   // Bind ref for decryption callbacks
   PresenceWsService.bindRef(ref);
   PresenceWsServiceRefHolder.bind(ref);
-  ref.onDispose(() => service.dispose());
+  ref.onDispose(service.dispose);
   return service;
 });

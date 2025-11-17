@@ -243,7 +243,7 @@ class _EmailInviteTenantDialogState
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : Text(
+                : const Text(
                     'Einladung senden',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,

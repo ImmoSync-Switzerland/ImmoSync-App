@@ -204,7 +204,7 @@ class MobileMatrixClient {
       _isLoggedIn = true;
 
       MobileMatrixLogger.log(
-          '[MobileMatrix] Login successful! UserID: ${_currentUserId}');
+          '[MobileMatrix] Login successful! UserID: $_currentUserId');
       MobileMatrixLogger.log(
           '[MobileMatrix] Access token validated after ${attempts * 100}ms');
 

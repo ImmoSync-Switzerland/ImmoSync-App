@@ -344,7 +344,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                             ),
                             child: Text(
                               AppLocalizations.of(context)!.retry,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -573,20 +573,20 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(
                   Icons.home_outlined,
-                  color: const Color(0xFF3B82F6),
+                  color: Color(0xFF3B82F6),
                   size: 20,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Your rental space awaits',
                     style: TextStyle(
                       fontSize: 15,
-                      color: const Color(0xFF3B82F6),
+                      color: Color(0xFF3B82F6),
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.2,
                     ),
@@ -698,7 +698,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.home_outlined,
                 color: Colors.white,
                 size: 32,
@@ -970,7 +970,7 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.flash_on_outlined,
               color: Colors.white,
               size: 32,

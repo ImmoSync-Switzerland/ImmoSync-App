@@ -271,7 +271,7 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
   List<SearchResult> _filterResults(List<Property> properties,
       List<Conversation> conversations, bool isLandlord) {
     final searchLower = _searchQuery.toLowerCase();
-    List<SearchResult> results = [];
+    final List<SearchResult> results = [];
 
     // Filter properties
     if (_selectedFilter == 'all' || _selectedFilter == 'properties') {
@@ -317,7 +317,7 @@ class _TenantSearchPageState extends ConsumerState<TenantSearchPage> {
         }
 
         // Search in recent messages
-        bool matchesMessage =
+        final bool matchesMessage =
             conversation.lastMessage.toLowerCase().contains(searchLower);
 
         if (matchesParticipant || matchesMessage) {

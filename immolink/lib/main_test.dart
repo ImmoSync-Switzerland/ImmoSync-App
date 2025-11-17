@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 void main() {
   print('=== ULTRA SIMPLE APP START ===');
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     print('=== MyApp.build called ===');
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Test',
       home: MyHomePage(),
     );
@@ -17,6 +19,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     print('=== MyHomePage.build called ===');
@@ -25,7 +29,7 @@ class MyHomePage extends StatelessWidget {
         color: Colors.white,
         width: double.infinity,
         height: double.infinity,
-        child: Column(
+        child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(

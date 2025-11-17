@@ -26,7 +26,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
 
   String _selectedCategory = 'All'; // Will map to localized 'All'
   String? _selectedPropertyId;
-  Set<String> _selectedTenantIds = {};
+  final Set<String> _selectedTenantIds = {};
 
   late List<String> _categories; // Populated in didChangeDependencies
 
@@ -179,12 +179,12 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFFE3F2FD), // Light blue
-            const Color(0xFFBBDEFB), // Lighter blue
+            Color(0xFFE3F2FD), // Light blue
+            Color(0xFFBBDEFB), // Lighter blue
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -415,10 +415,10 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                                 horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
                               gradient: _selectedCategory == category
-                                  ? LinearGradient(
+                                  ? const LinearGradient(
                                       colors: [
-                                        const Color(0xFF2E7D32),
-                                        const Color(0xFF66BB6A),
+                                        Color(0xFF2E7D32),
+                                        Color(0xFF66BB6A),
                                       ],
                                     )
                                   : null,
@@ -748,7 +748,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
 
   void _uploadDocumentWithCategory(String category) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
         allowMultiple: false,
@@ -768,7 +768,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
 
     String selectedCategory = category;
     String? selectedPropertyId;
-    Set<String> selectedTenantIds = {};
+    final Set<String> selectedTenantIds = {};
     String documentName = file.name;
     String description = '';
 
@@ -804,7 +804,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                   TextField(
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.documentName,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     controller: TextEditingController(text: documentName),
@@ -815,7 +815,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                     decoration: InputDecoration(
                       labelText:
                           AppLocalizations.of(context)!.descriptionOptional,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     maxLines: 3,
@@ -826,7 +826,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                     initialValue: selectedCategory,
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.category,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     dropdownColor: theme.colorScheme.surface,
                     style: TextStyle(
@@ -853,7 +853,7 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                       decoration: InputDecoration(
                         labelText: AppLocalizations.of(context)!
                             .assignToPropertyOptional,
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                       dropdownColor: theme.colorScheme.surface,
                       style: TextStyle(

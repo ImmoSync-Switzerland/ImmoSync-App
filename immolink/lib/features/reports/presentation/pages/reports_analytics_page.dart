@@ -23,7 +23,7 @@ class ReportsAnalyticsPage extends StatelessWidget {
         List.generate(6, (i) => DateTime(now.year, now.month - (5 - i)));
     final revenue = List.generate(6, (i) => 3000 + (i * 450));
     final expenses = List.generate(6, (i) => 1200 + (i * 220));
-    final occupancyRate = 0.92;
+    const occupancyRate = 0.92;
 
     final totalRevenue = revenue.fold<int>(0, (sum, v) => sum + v);
     final totalExpenses = expenses.fold<int>(0, (sum, v) => sum + v);
@@ -294,15 +294,15 @@ class _BarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxValue = math
         .max(
-          revenue.fold<int>(0, (s, v) => math.max(s, v)),
-          expenses.fold<int>(0, (s, v) => math.max(s, v)),
+          revenue.fold<int>(0, math.max),
+          expenses.fold<int>(0, math.max),
         )
         .toDouble();
     return LayoutBuilder(
       builder: (context, constraints) {
-        final barWidth = 14.0;
-        final groupSpacing = 28.0;
-        final chartHeight = 180.0;
+        const barWidth = 14.0;
+        const groupSpacing = 28.0;
+        const chartHeight = 180.0;
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(

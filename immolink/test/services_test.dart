@@ -9,23 +9,23 @@ import 'package:immosync/core/services/database_service.dart';
 void main() {
   group('Service Instantiation Tests', () {
     test('AuthService can be instantiated', () {
-      expect(() => AuthService(), returnsNormally);
+      expect(AuthService.new, returnsNormally);
     });
 
     test('PropertyService can be instantiated', () {
-      expect(() => PropertyService(), returnsNormally);
+      expect(PropertyService.new, returnsNormally);
     });
 
     test('PaymentService can be instantiated', () {
-      expect(() => PaymentService(), returnsNormally);
+      expect(PaymentService.new, returnsNormally);
     });
 
     test('MaintenanceService can be instantiated', () {
-      expect(() => MaintenanceService(), returnsNormally);
+      expect(MaintenanceService.new, returnsNormally);
     });
 
     test('ChatService can be instantiated', () {
-      expect(() => ChatService(), returnsNormally);
+      expect(ChatService.new, returnsNormally);
     });
 
     test('DatabaseService can be instantiated', () {

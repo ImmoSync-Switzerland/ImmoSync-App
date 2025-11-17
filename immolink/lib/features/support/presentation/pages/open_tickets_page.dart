@@ -67,8 +67,9 @@ class OpenTicketsPage extends ConsumerWidget {
                         m.status == 'pending' || m.status == 'in_progress')
                     .toList()
                   ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-                if (filtered.isEmpty)
+                if (filtered.isEmpty) {
                   return _empty(loc.noPendingMaintenanceRequests, colors);
+                }
                 return Column(
                     children: filtered
                         .map((m) => _maintenanceCard(context, m, colors, loc))

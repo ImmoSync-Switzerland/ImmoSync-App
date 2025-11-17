@@ -106,7 +106,8 @@ class DbConfig {
     print('  primaryHost: $primaryHost');
     print(
         '  googleClientId: ${googleClientId.isNotEmpty ? "${googleClientId.substring(0, 20)}..." : "(not set)"}');
-    print('  (dart-define) API_URL: ${String.fromEnvironment('API_URL')}');
+    print(
+        '  (dart-define) API_URL: ${const String.fromEnvironment('API_URL')}');
 
     // Verify services will use correct URL
     print('Services will use API URL: $apiUrl');

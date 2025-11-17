@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../lib/features/documents/domain/services/document_service.dart';
-import '../lib/features/documents/domain/models/document_model.dart';
+import 'package:immosync/features/documents/domain/services/document_service.dart';
+import 'package:immosync/features/documents/domain/models/document_model.dart';
 
 void main() {
   group('Document Persistence Debug Tests', () {

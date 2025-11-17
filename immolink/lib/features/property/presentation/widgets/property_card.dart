@@ -28,11 +28,11 @@ class PropertyCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.primaryBackground,
           borderRadius: BorderRadius.circular(AppBorderRadius.cardsButtons),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: AppColors.shadowColor,
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -67,7 +67,7 @@ class PropertyCard extends StatelessWidget {
                       child: Container(
                         width: AppSizes.iconLarge,
                         height: AppSizes.iconLarge,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.overlayWhite,
                           shape: BoxShape.circle,
                         ),

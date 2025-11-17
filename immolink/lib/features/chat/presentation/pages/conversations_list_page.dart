@@ -408,8 +408,9 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 if (override != null && override.isNotEmpty) return override;
                 // Treat empty content from aggregation as encrypted/no-preview
                 final lm = (conversation.lastMessage).toString().trim();
-                if (lm.isEmpty || lm == '[encrypted]')
+                if (lm.isEmpty || lm == '[encrypted]') {
                   return 'Encrypted message';
+                }
                 return lm;
               })(),
               style: TextStyle(

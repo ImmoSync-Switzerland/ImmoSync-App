@@ -77,7 +77,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -92,7 +92,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 const SizedBox(height: 40),
                 Text(
                   l10n?.forgotPasswordTitle ?? 'Forgot Password?',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -103,7 +103,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 Text(
                   l10n?.forgotPasswordDescription ??
                       'Enter your email address and we\'ll send you a link to reset your password.',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
                   ),
@@ -115,20 +115,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: l10n?.email ?? 'Email',
-                    prefixIcon: Icon(Icons.email_outlined,
+                    prefixIcon: const Icon(Icons.email_outlined,
                         color: AppColors.textSecondary),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.borderLight),
+                      borderSide:
+                          const BorderSide(color: AppColors.borderLight),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.borderLight),
+                      borderSide:
+                          const BorderSide(color: AppColors.borderLight),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: AppColors.primaryAccent, width: 2),
+                      borderSide: const BorderSide(
+                          color: AppColors.primaryAccent, width: 2),
                     ),
                     filled: true,
                     fillColor: AppColors.surfaceSecondary,
@@ -183,7 +185,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   onPressed: () => context.pop(),
                   child: Text(
                     l10n?.backToLogin ?? 'Back to Login',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.primaryAccent,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,

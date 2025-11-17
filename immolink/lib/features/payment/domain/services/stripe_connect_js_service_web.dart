@@ -135,7 +135,7 @@ class StripeConnectJSService {
     const maxAttempts = 50; // 5 seconds max wait
 
     while (stripeConnect == null && attempts < maxAttempts) {
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
 

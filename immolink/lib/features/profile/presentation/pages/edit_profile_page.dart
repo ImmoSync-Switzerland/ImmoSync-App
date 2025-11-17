@@ -278,7 +278,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                         ),
                       ],
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.camera_alt,
                       color: Colors.white,
                       size: 16,
@@ -592,7 +592,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               ),
             ),
             child: _isLoading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -600,7 +600,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                       strokeWidth: 2,
                     ),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
@@ -608,7 +608,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                         color: Colors.white,
                         size: 20,
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Text(
                         'Save Changes',
                         style: TextStyle(
@@ -691,14 +691,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
                 Icon(
                   Icons.check_circle_outline,
                   color: Colors.white,
                   size: 20,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Text(
                   'Profile updated successfully',
                   style: TextStyle(
@@ -724,14 +724,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
                 Icon(
                   Icons.error_outline,
                   color: Colors.white,
                   size: 20,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Text(
                   'Failed to update profile',
                   style: TextStyle(
@@ -887,8 +887,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         final lower = path.toLowerCase();
         if (lower.endsWith('.png')) return 'image/png';
         if (lower.endsWith('.webp')) return 'image/webp';
-        if (lower.endsWith('.heic') || lower.endsWith('.heif'))
+        if (lower.endsWith('.heic') || lower.endsWith('.heif')) {
           return 'image/heic';
+        }
         if (lower.endsWith('.gif')) return 'image/gif';
         return 'image/jpeg';
       }
@@ -902,8 +903,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('sessionToken');
       final headers = <String, String>{'Content-Type': 'application/json'};
-      if (token != null && token.isNotEmpty)
+      if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
+      }
 
       // Current user id (optional)
       final current = ref.read(currentUserProvider);
@@ -957,8 +959,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
         _uploadedImageIdOrUrl = bustedUrl;
       });
       try {
-        if (userId != null && userId.isNotEmpty)
+        if (userId != null && userId.isNotEmpty) {
           await prefs.setString('immosync-profileImage-$userId', bustedUrl);
+        }
       } catch (_) {}
       // Update current user model in provider with the busted URL
       if (current != null) {

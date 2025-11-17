@@ -25,9 +25,10 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
 
   List<Payment> _filterPayments(List<Payment> payments) {
     return payments.where((payment) {
-      bool statusMatch =
+      final bool statusMatch =
           _selectedStatus == null || payment.status == _selectedStatus;
-      bool typeMatch = _selectedType == null || payment.type == _selectedType;
+      final bool typeMatch =
+          _selectedType == null || payment.type == _selectedType;
       return statusMatch && typeMatch;
     }).toList();
   }
@@ -329,7 +330,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
@@ -340,7 +341,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+            color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -358,7 +359,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                 width: 1,
               ),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.history_rounded,
               color: Colors.white,
               size: 28,
@@ -369,7 +370,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Payment History',
                   style: TextStyle(
                     fontSize: 22,
@@ -508,7 +509,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           gradient: isSelected
-              ? LinearGradient(
+              ? const LinearGradient(
                   colors: [
                     Color(0xFF2E7D32), // Dunkleres Grün
                     Color(0xFF66BB6A), // Helleres Grün
@@ -518,13 +519,13 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           color: isSelected ? null : colors.surfaceCards,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Color(0xFF2E7D32) : colors.borderLight,
+            color: isSelected ? const Color(0xFF2E7D32) : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Color(0xFF2E7D32).withValues(alpha: 0.4),
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -761,9 +762,9 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'Payment Details',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),

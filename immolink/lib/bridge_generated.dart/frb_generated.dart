@@ -131,8 +131,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeCreateRoomConstMeta => const TaskConstMeta(
-        debugName: "create_room",
-        argNames: ["otherMxid", "creatorMxid"],
+        debugName: 'create_room',
+        argNames: ['otherMxid', 'creatorMxid'],
       );
 
   @override
@@ -157,8 +157,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeInitConstMeta => const TaskConstMeta(
-        debugName: "init",
-        argNames: ["homeserver", "dataDir"],
+        debugName: 'init',
+        argNames: ['homeserver', 'dataDir'],
       );
 
   @override
@@ -183,8 +183,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeLoginConstMeta => const TaskConstMeta(
-        debugName: "login",
-        argNames: ["user", "password"],
+        debugName: 'login',
+        argNames: ['user', 'password'],
       );
 
   @override
@@ -209,8 +209,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeMarkReadConstMeta => const TaskConstMeta(
-        debugName: "mark_read",
-        argNames: ["roomId", "eventId"],
+        debugName: 'mark_read',
+        argNames: ['roomId', 'eventId'],
       );
 
   @override
@@ -235,8 +235,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeSendMessageConstMeta => const TaskConstMeta(
-        debugName: "send_message",
-        argNames: ["roomId", "body"],
+        debugName: 'send_message',
+        argNames: ['roomId', 'body'],
       );
 
   @override
@@ -258,7 +258,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeStartSyncConstMeta => const TaskConstMeta(
-        debugName: "start_sync",
+        debugName: 'start_sync',
         argNames: [],
       );
 
@@ -281,7 +281,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeStopSyncConstMeta => const TaskConstMeta(
-        debugName: "stop_sync",
+        debugName: 'stop_sync',
         argNames: [],
       );
 
@@ -307,8 +307,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta get kCrateBridgeSubscribeEventsConstMeta => const TaskConstMeta(
-        debugName: "subscribe_events",
-        argNames: ["sink"],
+        debugName: 'subscribe_events',
+        argNames: ['sink'],
       );
 
   @protected
@@ -397,7 +397,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_String(deserializer);
+    final inner = sse_decode_String(deserializer);
     return AnyhowException(inner);
   }
 
@@ -411,7 +411,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   String sse_decode_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_list_prim_u_8_strict(deserializer);
+    final inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
   }
 
@@ -430,27 +430,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var len_ = sse_decode_i_32(deserializer);
+    final len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
   }
 
   @protected
   LoginResult sse_decode_login_result(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_userId = sse_decode_String(deserializer);
-    var var_accessToken = sse_decode_String(deserializer);
+    final var_userId = sse_decode_String(deserializer);
+    final var_accessToken = sse_decode_String(deserializer);
     return LoginResult(userId: var_userId, accessToken: var_accessToken);
   }
 
   @protected
   MatrixEvent sse_decode_matrix_event(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_roomId = sse_decode_String(deserializer);
-    var var_eventId = sse_decode_String(deserializer);
-    var var_sender = sse_decode_String(deserializer);
-    var var_ts = sse_decode_i_64(deserializer);
-    var var_content = sse_decode_opt_String(deserializer);
-    var var_isEncrypted = sse_decode_bool(deserializer);
+    final var_roomId = sse_decode_String(deserializer);
+    final var_eventId = sse_decode_String(deserializer);
+    final var_sender = sse_decode_String(deserializer);
+    final var_ts = sse_decode_i_64(deserializer);
+    final var_content = sse_decode_opt_String(deserializer);
+    final var_isEncrypted = sse_decode_bool(deserializer);
     return MatrixEvent(
         roomId: var_roomId,
         eventId: var_eventId,

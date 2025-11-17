@@ -10,7 +10,7 @@ void main() {
         List.generate(6, (i) => DateTime(now.year, now.month - (5 - i)));
     final revenue = [3000, 3450, 3900, 4350, 4800, 5250];
     final expenses = [1200, 1420, 1640, 1860, 2080, 2300];
-    final occupancy = 0.92;
+    const occupancy = 0.92;
     final currency = NumberFormat.simpleCurrency(locale: 'en_US');
 
     final bytes = await PdfExporter.buildFinancialReport(

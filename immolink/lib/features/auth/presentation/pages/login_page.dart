@@ -238,7 +238,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Willkommen zurück',
               style: TextStyle(
                 color: AppColors.textPrimary,
@@ -248,7 +248,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Melden Sie sich bei Ihrem Konto an',
               style: TextStyle(
                 color: AppColors.textSecondary,
@@ -329,7 +329,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             _buildForgotPassword(),
             const SizedBox(height: 32),
             if (authState.isLoading)
-              Center(
+              const Center(
                 child: CircularProgressIndicator(
                   color: AppColors.primaryAccent,
                   strokeWidth: 3,
@@ -358,7 +358,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return TextFormField(
       controller: controller,
       obscureText: isPassword && !_isPasswordVisible,
-      style: TextStyle(
+      style: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
@@ -389,12 +389,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
               )
             : null,
         labelText: label,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           color: AppColors.textSecondary,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
           color: AppColors.textPlaceholder,
           fontSize: 14,
         ),
@@ -404,21 +404,23 @@ class _LoginPageState extends ConsumerState<LoginPage>
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.borderLight, width: 1.5),
+          borderSide:
+              const BorderSide(color: AppColors.borderLight, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.primaryAccent, width: 2),
+          borderSide:
+              const BorderSide(color: AppColors.primaryAccent, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.error, width: 2),
+          borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        errorStyle: TextStyle(
+        errorStyle: const TextStyle(
           color: AppColors.error,
           fontSize: 12,
           fontWeight: FontWeight.w500,
@@ -504,7 +506,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        child: Text(
+        child: const Text(
           'Passwort vergessen?',
           style: TextStyle(
             color: AppColors.primaryAccent,
@@ -517,11 +519,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
   }
 
   Widget _buildDivider() {
-    return Row(
+    return const Row(
       children: [
         Expanded(child: Divider(color: AppColors.borderLight, thickness: 1)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'Oder fortfahren mit',
             style: TextStyle(
@@ -646,7 +648,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
+        const Text(
           'Noch kein Konto?',
           style: TextStyle(
             color: AppColors.textSecondary,
@@ -661,7 +663,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: Text(
+          child: const Text(
             'Registrieren',
             style: TextStyle(
               color: AppColors.primaryAccent,
@@ -783,7 +785,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   String _formatErrorMessage(String error) {
     // Remove "Exception: " prefix if present
-    String cleanError = error.replaceFirst('Exception: ', '');
+    final String cleanError = error.replaceFirst('Exception: ', '');
 
     // Clean up common error messages to be more user-friendly
     if (cleanError.contains('Invalid credentials') ||

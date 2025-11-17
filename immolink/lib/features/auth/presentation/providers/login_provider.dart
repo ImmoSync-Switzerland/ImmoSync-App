@@ -57,7 +57,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
       print(
           'LoginProvider: received sessionToken? ${userData['sessionToken'] != null}');
       // ignore: avoid_print
-      print('LoginProvider: raw userData map = ' + userData.toString());
+      print('LoginProvider: raw userData map = $userData');
       // Sync into primary auth provider so rest of app (including WS) gets token
       if (userData['sessionToken'] != null) {
         try {

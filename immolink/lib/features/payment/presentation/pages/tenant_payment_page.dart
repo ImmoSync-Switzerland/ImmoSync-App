@@ -366,7 +366,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
                             color: colors.success,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(
+                          child: const Text(
                             'Instant',
                             style: TextStyle(
                               fontSize: 10,
@@ -444,11 +444,11 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.payment, size: 20),
+                  const Icon(Icons.payment, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Pay CHF ${_amount.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -490,7 +490,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         allowsDelayedPaymentMethods: _selectedPaymentMethod != 'card',
       );
       debugPrint(
-          '[Stripe] Init sheet with method=${_selectedPaymentMethod} delayed=${_selectedPaymentMethod != 'card'}');
+          '[Stripe] Init sheet with method=$_selectedPaymentMethod delayed=${_selectedPaymentMethod != 'card'}');
 
       // Initialize payment sheet
       await Stripe.instance.initPaymentSheet(

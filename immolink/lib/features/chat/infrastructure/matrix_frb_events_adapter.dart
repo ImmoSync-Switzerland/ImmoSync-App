@@ -173,6 +173,6 @@ class MatrixFrbEventsAdapter {
 final matrixFrbEventsAdapterProvider = Provider<MatrixFrbEventsAdapter>((ref) {
   final timeline = ref.read(matrixTimelineServiceProvider);
   final adapter = MatrixFrbEventsAdapter(timeline);
-  ref.onDispose(() => adapter.dispose());
+  ref.onDispose(adapter.dispose);
   return adapter;
 });

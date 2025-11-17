@@ -565,11 +565,11 @@ class _MaintenanceRequestPageState
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
-                                    color: const Color(0x4DEA580C),
+                                    color: Color(0x4DEA580C),
                                     blurRadius: 20,
-                                    offset: const Offset(0, 8),
+                                    offset: Offset(0, 8),
                                   ),
                                 ],
                               ),

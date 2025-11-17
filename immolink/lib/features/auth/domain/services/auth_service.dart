@@ -75,7 +75,7 @@ class AuthService {
       final user = data['user'];
       // Normalize userId returned from backend (string or {"$oid": "..."})
       // Backend returns 'id' not 'userId'
-      dynamic rawId = user['id'] ?? user['userId'];
+      final dynamic rawId = user['id'] ?? user['userId'];
       String userIdStr;
       if (rawId is String) {
         userIdStr = rawId;
@@ -91,7 +91,7 @@ class AuthService {
         // ignore: avoid_print
         print('AuthService: sessionToken raw=${user['sessionToken']}');
         // ignore: avoid_print
-        print('AuthService: userId extracted=${userIdStr}');
+        print('AuthService: userId extracted=$userIdStr');
       } catch (_) {}
       // Backend /auth/login returns { message, user: { id, email, role, fullName, sessionToken, profileImage, profileImageUrl } }
       return {

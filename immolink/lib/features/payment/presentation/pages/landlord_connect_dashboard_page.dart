@@ -87,7 +87,7 @@ class _LandlordConnectDashboardPageState
     final user = ref.watch(currentUserProvider);
 
     if (user == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -122,7 +122,7 @@ class _LandlordConnectDashboardPageState
             : null,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _buildBody(colors, l10n, user),
     );
   }
@@ -234,7 +234,7 @@ class _LandlordConnectDashboardPageState
     String description =
         'Complete your account setup to access the payment dashboard';
     IconData icon = Icons.account_balance;
-    Color iconColor = colors.warning;
+    final Color iconColor = colors.warning;
 
     if (hasAccount && status == 'pending') {
       title = 'Complete Account Setup';
@@ -298,11 +298,11 @@ class _LandlordConnectDashboardPageState
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.arrow_forward, size: 20),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Text(
                     'Get Started',
                     style: TextStyle(

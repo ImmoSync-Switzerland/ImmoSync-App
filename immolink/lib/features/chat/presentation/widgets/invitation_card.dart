@@ -268,17 +268,17 @@ class InvitationCard extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.warning_outlined,
-                      color: const Color(0xFFF59E0B),
+                      color: Color(0xFFF59E0B),
                       size: 16,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       l10n.invitationExpired,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: const Color(0xFFF59E0B),
+                        color: Color(0xFFF59E0B),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

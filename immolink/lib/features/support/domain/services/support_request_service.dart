@@ -6,8 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/db_config.dart';
 import '../../../../core/services/token_manager.dart';
 
-final supportRequestServiceProvider =
-    Provider((ref) => SupportRequestService(ref));
+final supportRequestServiceProvider = Provider(SupportRequestService.new);
 
 class SupportRequestService {
   final Ref ref;

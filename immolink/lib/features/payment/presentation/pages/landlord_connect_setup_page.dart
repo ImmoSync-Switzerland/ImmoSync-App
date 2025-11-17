@@ -53,7 +53,7 @@ class _LandlordConnectSetupPageState
     final user = ref.watch(currentUserProvider);
 
     if (user == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -74,7 +74,7 @@ class _LandlordConnectSetupPageState
         elevation: 0,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -119,7 +119,7 @@ class _LandlordConnectSetupPageState
                   color: colors.primaryAccent,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.account_balance,
                   color: Colors.white,
                   size: 24,
@@ -156,7 +156,7 @@ class _LandlordConnectSetupPageState
   }
 
   Widget _buildStatusCard(DynamicAppColors colors, AppLocalizations l10n) {
-    if (_accountStatus == null) return SizedBox();
+    if (_accountStatus == null) return const SizedBox();
 
     final hasAccount = _accountStatus!['hasAccount'] ?? false;
     final status = _accountStatus!['status'] ?? 'not_created';
@@ -338,7 +338,7 @@ class _LandlordConnectSetupPageState
 
   Widget _buildActionButton(
       DynamicAppColors colors, AppLocalizations l10n, user) {
-    if (_accountStatus == null) return SizedBox();
+    if (_accountStatus == null) return const SizedBox();
 
     final hasAccount = _accountStatus!['hasAccount'] ?? false;
     final status = _accountStatus!['status'] ?? 'not_created';
@@ -378,11 +378,11 @@ class _LandlordConnectSetupPageState
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : Row(
+            : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.account_balance, size: 20),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Text(
                     'Set Up Payment Account',
                     style: TextStyle(
@@ -405,11 +405,11 @@ class _LandlordConnectSetupPageState
           color: colors.success,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.check_circle, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               'Account Ready ✓',
               style: TextStyle(
@@ -466,11 +466,11 @@ class _LandlordConnectSetupPageState
             ),
             elevation: 0,
           ),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.launch, size: 20),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 'Complete Setup',
                 style: TextStyle(
@@ -531,9 +531,7 @@ class _LandlordConnectSetupPageState
 
         // Refresh status when user returns
         if (mounted) {
-          Future.delayed(Duration(seconds: 2), () {
-            _checkAccountStatus();
-          });
+          Future.delayed(const Duration(seconds: 2), _checkAccountStatus);
         }
       }
     } catch (e) {

@@ -21,7 +21,7 @@ class WebDatabaseService implements IDatabaseService {
           'Accept': 'application/json',
           'User-Agent': 'ImmoLink-Flutter-App/1.0.0',
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       print('Health check response status: ${response.statusCode}');
       print('Response body: ${response.body}');

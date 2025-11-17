@@ -369,7 +369,7 @@ class MatrixChatService {
                   print(
                       '[MatrixChatService] Stopping sync to release file handles...');
                   await stopSync();
-                  await Future.delayed(Duration(
+                  await Future.delayed(const Duration(
                       milliseconds: 500)); // Give time for handles to close
                 } catch (stopError) {
                   print('[MatrixChatService] Error stopping sync: $stopError');
@@ -385,7 +385,7 @@ class MatrixChatService {
               final storeDir = Directory(dir.path);
 
               // Try to delete with retries
-              int retries = 3;
+              const int retries = 3;
               bool deleted = false;
               for (int i = 0; i < retries && !deleted; i++) {
                 if (i > 0) {

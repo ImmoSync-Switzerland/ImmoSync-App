@@ -1023,7 +1023,7 @@ class ChatService {
       final parts = mimeType.split('/');
       request.files.add(http.MultipartFile.fromBytes(
           'file', base64.decode(encMeta['ciphertext']),
-          filename: fileName + '.enc',
+          filename: '$fileName.enc',
           contentType: MediaType(parts[0], parts[1])));
       final resp =
           await _sendMultipartWithProgress(request, onProgress: onProgress);
@@ -1077,7 +1077,7 @@ class ChatService {
       final parts = mimeType.split('/');
       request.files.add(http.MultipartFile.fromBytes(
           'file', base64.decode(encMeta['ciphertext']),
-          filename: fileName + '.enc',
+          filename: '$fileName.enc',
           contentType: MediaType(parts[0], parts[1])));
       final resp =
           await _sendMultipartWithProgress(request, onProgress: onProgress);

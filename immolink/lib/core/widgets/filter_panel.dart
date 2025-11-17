@@ -158,9 +158,7 @@ class _FilterPanelState extends State<FilterPanel> {
         Wrap(
           spacing: AppSpacing.md,
           runSpacing: AppSpacing.md,
-          children: _propertyTypes
-              .map((type) => _buildPropertyTypeChip(type))
-              .toList(),
+          children: _propertyTypes.map(_buildPropertyTypeChip).toList(),
         ),
       ],
     );

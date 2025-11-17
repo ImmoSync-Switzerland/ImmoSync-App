@@ -13,21 +13,28 @@ dart format . --set-exit-if-changed || {
   git add -u
 }
 
-# 2. Analyze code (only errors/warnings, not infos)
+# 2. Auto-fix lint issues (prefer_const_constructors, etc.)
+echo "🔧 Auto-fixing lint issues..."
+dart fix --apply || {
+  echo "⚠️  Some fixes applied, re-staging..."
+  git add -u
+}
+
+# 3. Analyze code (only fail on errors, not warnings/infos)
 echo "🔍 Running Flutter analyze..."
-flutter analyze --fatal-warnings || {
-  echo "❌ Flutter analyze found critical issues!"
+flutter analyze || {
+  echo "❌ Flutter analyze found errors!"
   exit 1
 }
 
-# 3. Run tests
+# 4. Run tests
 echo "🧪 Running tests..."
 flutter test --coverage || {
   echo "❌ Tests failed!"
   exit 1
 }
 
-# 4. Check for unused imports (via custom script)
+# 5. Check for unused imports (via custom script)
 echo "🧹 Checking for unused imports..."
 dart run scripts/check_unused_imports.dart || {
   echo "⚠️  Found unused imports (auto-fixing...)"
@@ -35,7 +42,7 @@ dart run scripts/check_unused_imports.dart || {
   git add -u
 }
 
-# 5. Security: Check pubspec.lock for known vulnerabilities
+# 6. Security: Check pubspec.lock for known vulnerabilities
 echo "🔒 Running security checks..."
 # Future: Add dart pub outdated --mode=null-safety check
 

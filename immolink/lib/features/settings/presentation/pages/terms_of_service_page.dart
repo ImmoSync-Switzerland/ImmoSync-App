@@ -36,7 +36,7 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
     ];
     final tocTitleIndex =
         _lines.indexWhere((l) => tocMarkers.contains(l.trim()));
-    List<String> enumerationHeadings = [];
+    final List<String> enumerationHeadings = [];
     if (tocTitleIndex != -1) {
       _skipIndices.add(tocTitleIndex);
       final seenLocal = <String>{};
@@ -104,12 +104,13 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
         backgroundColor: AppColors.primaryBackground,
         elevation: 0,
         title: Text(l.termsOfService,
-            style: TextStyle(
+            style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w600)),
         leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+            icon:
+                const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
             onPressed: () => context.pop()),
         actions: [
           IconButton(
@@ -140,13 +141,13 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l.termsOfService,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary)),
                   const SizedBox(height: 6),
                   Text(l.termsOfServiceLastUpdated,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 14, color: AppColors.textSecondary)),
                   const SizedBox(height: 20),
                   if (_headings.isNotEmpty)

@@ -162,8 +162,9 @@ class FcmService {
 
   void _showForegroundNotification(RemoteMessage message) {
     final notification = message.notification;
-    if (notification == null)
+    if (notification == null) {
       return; // Only show if normal notification payload
+    }
     _local.show(
       notification.hashCode,
       notification.title,

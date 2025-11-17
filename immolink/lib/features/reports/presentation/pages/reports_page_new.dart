@@ -32,14 +32,14 @@ class ReportsPage extends ConsumerWidget {
         elevation: 0,
         title: Text(
           l10n.analyticsAndReports,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
           onPressed: () {
             // Navigate back to dashboard instead of popping
             context.go('/home');
@@ -48,7 +48,7 @@ class ReportsPage extends ConsumerWidget {
       ),
       bottomNavigationBar: const CommonBottomNav(),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -90,11 +90,11 @@ class ReportsPage extends ConsumerWidget {
           color: AppColors.borderLight,
           width: 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -103,7 +103,7 @@ class ReportsPage extends ConsumerWidget {
         children: [
           Text(
             AppLocalizations.of(context)!.reportPeriod,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -119,7 +119,7 @@ class ReportsPage extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.calendar_today,
                   color: AppColors.primaryAccent,
                   size: 20,
@@ -127,14 +127,14 @@ class ReportsPage extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Text(
                   AppLocalizations.of(context)!.thisMonth,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const Spacer(),
-                Icon(
+                const Icon(
                   Icons.keyboard_arrow_down,
                   color: AppColors.textTertiary,
                 ),
@@ -191,11 +191,11 @@ class ReportsPage extends ConsumerWidget {
           color: AppColors.borderLight,
           width: 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -204,7 +204,7 @@ class ReportsPage extends ConsumerWidget {
         children: [
           Text(
             AppLocalizations.of(context)!.financialSummary,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -272,7 +272,7 @@ class ReportsPage extends ConsumerWidget {
         Expanded(
           child: Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -308,11 +308,11 @@ class ReportsPage extends ConsumerWidget {
           color: AppColors.borderLight,
           width: 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -321,14 +321,14 @@ class ReportsPage extends ConsumerWidget {
         children: [
           Text(
             AppLocalizations.of(context)!.occupancyRate,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 32),
-          Center(
+          const Center(
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -387,11 +387,11 @@ class ReportsPage extends ConsumerWidget {
           color: AppColors.borderLight,
           width: 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -400,7 +400,7 @@ class ReportsPage extends ConsumerWidget {
         children: [
           Text(
             AppLocalizations.of(context)!.paymentSummary,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -459,7 +459,7 @@ class ReportsPage extends ConsumerWidget {
                 ],
               );
             },
-            loading: () => Center(
+            loading: () => const Center(
               child: CircularProgressIndicator(
                 valueColor:
                     AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
@@ -468,7 +468,7 @@ class ReportsPage extends ConsumerWidget {
             error: (error, stack) => Center(
               child: Text(
                 'Error loading payments: $error',
-                style: TextStyle(color: AppColors.textTertiary),
+                style: const TextStyle(color: AppColors.textTertiary),
               ),
             ),
           ),
@@ -495,18 +495,18 @@ class ReportsPage extends ConsumerWidget {
           color: AppColors.borderLight,
           width: 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Payment History',
             style: TextStyle(
               color: AppColors.textPrimary,
@@ -518,9 +518,9 @@ class ReportsPage extends ConsumerWidget {
           payments.when(
             data: (paymentsList) {
               if (paymentsList.isEmpty) {
-                return Center(
+                return const Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(20),
                     child: Text(
                       'No payment history found',
                       style: TextStyle(
@@ -539,7 +539,7 @@ class ReportsPage extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: paymentsList.length > 5 ? 5 : paymentsList.length,
-                separatorBuilder: (context, index) => Divider(
+                separatorBuilder: (context, index) => const Divider(
                   color: AppColors.borderLight,
                   height: 1,
                 ),
@@ -590,7 +590,7 @@ class ReportsPage extends ConsumerWidget {
                                 ref
                                     .read(currencyProvider.notifier)
                                     .formatAmount(payment.amount),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -599,7 +599,7 @@ class ReportsPage extends ConsumerWidget {
                               const SizedBox(height: 4),
                               Text(
                                 '${payment.type.toUpperCase()} - ${DateFormat('MMM d, yyyy').format(payment.date)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 14,
                                 ),
@@ -631,7 +631,7 @@ class ReportsPage extends ConsumerWidget {
                 },
               );
             },
-            loading: () => Center(
+            loading: () => const Center(
               child: CircularProgressIndicator(
                 valueColor:
                     AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
@@ -640,7 +640,7 @@ class ReportsPage extends ConsumerWidget {
             error: (error, stack) => Center(
               child: Text(
                 'Error loading payments: $error',
-                style: TextStyle(color: AppColors.textTertiary),
+                style: const TextStyle(color: AppColors.textTertiary),
               ),
             ),
           ),

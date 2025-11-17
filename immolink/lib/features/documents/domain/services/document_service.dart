@@ -345,7 +345,7 @@ class DocumentService {
     List<String> tenantIds = const [],
     DateTime? expiryDate,
   }) async {
-    print('DocumentService: Starting upload to ${_baseUrl}/upload');
+    print('DocumentService: Starting upload to $_baseUrl/upload');
 
     try {
       final request =
