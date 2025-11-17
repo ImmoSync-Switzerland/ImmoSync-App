@@ -583,20 +583,22 @@ class _LoginPageState extends ConsumerState<LoginPage>
   Future<void> _handleGoogle() async {
     // Request an ID token by providing the OAuth2 Web Client ID from env
     final clientId = DbConfig.googleClientId;
-    debugPrint('[Google Sign-In] Using Client ID: ${clientId.isNotEmpty ? "${clientId.substring(0, 20)}..." : "(empty)"}');
-    
+    debugPrint(
+        '[Google Sign-In] Using Client ID: ${clientId.isNotEmpty ? "${clientId.substring(0, 20)}..." : "(empty)"}');
+
     if (clientId.isEmpty) {
       setState(() {
-        _currentError = 'Google Sign-In fehlgeschlagen: GOOGLE_CLIENT_ID nicht in .env oder --dart-define gesetzt';
+        _currentError =
+            'Google Sign-In fehlgeschlagen: GOOGLE_CLIENT_ID nicht in .env oder --dart-define gesetzt';
       });
       return;
     }
-    
+
     final googleSignIn = GoogleSignIn(
       scopes: const ['email', 'profile'],
       serverClientId: clientId,
     );
-    
+
     try {
       debugPrint('[Google Sign-In] Starting sign-in flow...');
       final account = await googleSignIn.signIn();
@@ -604,11 +606,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
         debugPrint('[Google Sign-In] User cancelled sign-in');
         return; // canceled
       }
-      
+
       debugPrint('[Google Sign-In] Getting authentication token...');
       final auth = await account.authentication;
       final idToken = auth.idToken;
-      
+
       if (idToken == null) {
         debugPrint('[Google Sign-In] ERROR: No ID token returned');
         setState(() {
@@ -616,12 +618,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
         });
         return;
       }
-      
+
       debugPrint('[Google Sign-In] Token received, logging in to backend...');
       await ref
           .read(authProvider.notifier)
           .socialLogin(provider: 'google', idToken: idToken);
-      
+
       final st = ref.read(authProvider);
       if (st.needsProfileCompletion && mounted) {
         debugPrint('[Google Sign-In] Profile completion needed');

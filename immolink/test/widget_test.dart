@@ -17,7 +17,9 @@ void main() {
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 
-  testWidgets('ConversationsListPage has only contact book button, no start new chat', (WidgetTester tester) async {
+  testWidgets(
+      'ConversationsListPage has only contact book button, no start new chat',
+      (WidgetTester tester) async {
     // Create a test widget with the conversations page
     await tester.pumpWidget(
       const ProviderScope(
@@ -32,10 +34,10 @@ void main() {
 
     // Look for contacts icon (should exist)
     expect(find.byIcon(Icons.contacts_outlined), findsOneWidget);
-    
+
     // Look for add_comment icon (should NOT exist - this was the "start new chat" button)
     expect(find.byIcon(Icons.add_comment_outlined), findsNothing);
-    
+
     // Verify we still have the app bar
     expect(find.byType(AppBar), findsOneWidget);
   });

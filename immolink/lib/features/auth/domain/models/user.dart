@@ -73,8 +73,7 @@ class User {
     final String? canonicalUrl = map['profileImageUrl'] != null
         ? map['profileImageUrl'].toString().replaceFirst('http://', 'https://')
         : null;
-    final String? legacyRef =
-        map['profileImage'] != null 
+    final String? legacyRef = map['profileImage'] != null
         ? map['profileImage'].toString().replaceFirst('http://', 'https://')
         : null;
 

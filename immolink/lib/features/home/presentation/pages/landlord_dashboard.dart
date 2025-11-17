@@ -491,11 +491,11 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
       String title, String amount, IconData icon, Color color) {
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Determine navigation based on which card this is
     final isRevenueCard = title == l10n.monthlyRevenue;
     final isOutstandingCard = title == l10n.outstanding;
-    
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -767,10 +767,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   }
 
   Widget _buildQuickAccessButton(
-      String label, 
-      IconData icon, 
-      Color iconColor, 
-      VoidCallback onPressed,
+      String label, IconData icon, Color iconColor, VoidCallback onPressed,
       {bool isFullWidth = false}) {
     final colors = ref.watch(dynamicColorsProvider);
     return GestureDetector(
@@ -861,10 +858,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
   }
 
   Widget _buildSubscriptionAwareButton(
-      String label, 
-      IconData icon, 
-      Color iconColor, 
-      VoidCallback onPressed,
+      String label, IconData icon, Color iconColor, VoidCallback onPressed,
       {bool isFullWidth = false}) {
     final colors = ref.watch(dynamicColorsProvider);
     final subscriptionAsync = ref.watch(userSubscriptionProvider);
@@ -897,7 +891,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: hasActiveSubscription 
+                          color: hasActiveSubscription
                               ? iconColor.withValues(alpha: 0.1)
                               : colors.textTertiary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -948,7 +942,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                             if (!hasActiveSubscription) ...[
                               const SizedBox(height: 4),
                               Text(
-                                AppLocalizations.of(context)!.subscriptionRequired,
+                                AppLocalizations.of(context)!
+                                    .subscriptionRequired,
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
@@ -965,7 +960,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: hasActiveSubscription ? colors.textSecondary : colors.textTertiary,
+                        color: hasActiveSubscription
+                            ? colors.textSecondary
+                            : colors.textTertiary,
                       ),
                     ],
                   )
@@ -975,7 +972,7 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: hasActiveSubscription 
+                          color: hasActiveSubscription
                               ? iconColor.withValues(alpha: 0.1)
                               : colors.textTertiary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -1047,7 +1044,9 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
         ),
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, __) => _buildQuickAccessButton(label, icon, colors.textTertiary, () {}, isFullWidth: isFullWidth),
+      error: (_, __) => _buildQuickAccessButton(
+          label, icon, colors.textTertiary, () {},
+          isFullWidth: isFullWidth),
     );
   }
 
@@ -1228,7 +1227,8 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard>
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),

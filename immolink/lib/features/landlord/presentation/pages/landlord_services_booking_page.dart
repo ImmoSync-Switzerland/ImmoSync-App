@@ -115,8 +115,9 @@ class _LandlordServicesBookingPageState
         child: SafeArea(
           child: servicesAsync.when(
             data: (services) {
-              final bookableServices =
-                  services.map((s) => BookableService.fromServiceModel(s)).toList();
+              final bookableServices = services
+                  .map((s) => BookableService.fromServiceModel(s))
+                  .toList();
 
               return Column(
                 children: [
@@ -149,7 +150,8 @@ class _LandlordServicesBookingPageState
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => ref.invalidate(allAvailableServicesProvider),
+                    onPressed: () =>
+                        ref.invalidate(allAvailableServicesProvider),
                     child: const Text('Erneut versuchen'),
                   ),
                 ],

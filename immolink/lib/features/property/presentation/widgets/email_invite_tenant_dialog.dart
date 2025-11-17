@@ -257,12 +257,12 @@ class _EmailInviteTenantDialogState
 
   Future<void> _sendInvitation() async {
     print('[EmailInviteTenantDialog] _sendInvitation called');
-    
+
     if (!_formKey.currentState!.validate()) {
       print('[EmailInviteTenantDialog] Form validation failed');
       return;
     }
-    
+
     print('[EmailInviteTenantDialog] Form validation passed');
 
     setState(() => _isLoading = true);
@@ -270,7 +270,7 @@ class _EmailInviteTenantDialogState
     try {
       final currentUser = ref.read(currentUserProvider);
       print('[EmailInviteTenantDialog] Current user: ${currentUser?.id}');
-      
+
       if (currentUser == null) {
         throw Exception('Benutzer nicht angemeldet');
       }
@@ -286,7 +286,8 @@ class _EmailInviteTenantDialogState
         'invitationType': 'email', // Mark as email invitation
       };
 
-      print('[EmailInviteTenantDialog] Calling _sendEmailInvitation with data: $invitationData');
+      print(
+          '[EmailInviteTenantDialog] Calling _sendEmailInvitation with data: $invitationData');
 
       // Send email invitation through backend
       final success = await _sendEmailInvitation(invitationData);
@@ -329,22 +330,24 @@ class _EmailInviteTenantDialogState
 
   Future<bool> _sendEmailInvitation(Map<String, dynamic> invitationData) async {
     try {
-      print('[EmailInviteTenantDialog] Sending email invitation: $invitationData');
-      
+      print(
+          '[EmailInviteTenantDialog] Sending email invitation: $invitationData');
+
       // CRITICAL: Get auth token from TokenManager
       final tokenManager = TokenManager();
       final headers = await tokenManager.getHeaders();
       headers['Content-Type'] = 'application/json';
-      
+
       print('[EmailInviteTenantDialog] Headers prepared with token');
-      
+
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/invitations/email-invite'),
         headers: headers,
         body: json.encode(invitationData),
       );
 
-      print('[EmailInviteTenantDialog] Response status: ${response.statusCode}');
+      print(
+          '[EmailInviteTenantDialog] Response status: ${response.statusCode}');
       print('[EmailInviteTenantDialog] Response body: ${response.body}');
 
       if (response.statusCode == 201) {

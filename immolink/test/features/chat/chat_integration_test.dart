@@ -3,23 +3,23 @@ import 'package:immosync/features/chat/domain/services/chat_service.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 
 /// Chat Service Integration Tests
-/// 
+///
 /// These tests verify:
-/// 1. ChatService methods have correct signatures  
+/// 1. ChatService methods have correct signatures
 /// 2. Backend storage integration is present (_storeMessageInBackend)
 /// 3. Core functionality is accessible
 /// 4. Data models work correctly
-/// 
+///
 /// Note: Full end-to-end tests require:
 /// - Matrix server connection
 /// - Backend API server (Node.js)
 /// - Authenticated user session
 /// - Real device or emulator for platform-specific Matrix clients
-/// 
+///
 /// For full testing, use the chat_debug_page.dart in the app UI
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   group('Chat Service Tests', () {
     late ChatService chatService;
 
@@ -124,7 +124,7 @@ void main() {
 
     test('ChatMessage should support different message types', () {
       final types = ['text', 'image', 'document', 'audio', 'video'];
-      
+
       for (final type in types) {
         final message = ChatMessage(
           id: 'test-$type',
@@ -137,7 +137,7 @@ void main() {
           messageType: type,
           isEncrypted: false,
         );
-        
+
         expect(message.messageType, type);
       }
     });

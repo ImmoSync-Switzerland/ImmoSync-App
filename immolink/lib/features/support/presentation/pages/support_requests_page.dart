@@ -7,13 +7,13 @@ import 'package:go_router/go_router.dart';
 
 class SupportRequestsPage extends ConsumerWidget {
   const SupportRequestsPage({super.key});
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = ref.watch(dynamicColorsProvider);
     final asyncData = ref.watch(supportRequestsProvider);
     final loc = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -76,7 +76,8 @@ class SupportRequestsPage extends ConsumerWidget {
         icon: Icon(Icons.add, color: colors.textOnAccent),
         label: Text(
           loc.contactSupport,
-          style: TextStyle(color: colors.textOnAccent, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: colors.textOnAccent, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -114,7 +115,8 @@ class SupportRequestsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(Object error, DynamicAppColors colors, AppLocalizations loc) {
+  Widget _buildErrorState(
+      Object error, DynamicAppColors colors, AppLocalizations loc) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -134,7 +136,8 @@ class SupportRequestsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRequestCard(BuildContext context, dynamic request, DynamicAppColors colors, AppLocalizations loc) {
+  Widget _buildRequestCard(BuildContext context, dynamic request,
+      DynamicAppColors colors, AppLocalizations loc) {
     return Card(
       elevation: 2,
       color: colors.surfaceCards,
@@ -191,7 +194,8 @@ class SupportRequestsPage extends ConsumerWidget {
                 // Category
                 Row(
                   children: [
-                    Icon(Icons.category_outlined, size: 14, color: colors.textSecondary),
+                    Icon(Icons.category_outlined,
+                        size: 14, color: colors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       request.category,
@@ -206,7 +210,8 @@ class SupportRequestsPage extends ConsumerWidget {
                 // Footer with date
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 14, color: colors.textSecondary),
+                    Icon(Icons.access_time,
+                        size: 14, color: colors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(request.createdAt),
@@ -217,7 +222,8 @@ class SupportRequestsPage extends ConsumerWidget {
                     ),
                     if (request.notes != null && request.notes.isNotEmpty) ...[
                       const SizedBox(width: 16),
-                      Icon(Icons.comment_outlined, size: 14, color: colors.textSecondary),
+                      Icon(Icons.comment_outlined,
+                          size: 14, color: colors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         '${request.notes.length}',
@@ -237,7 +243,8 @@ class SupportRequestsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBadge(String status, DynamicAppColors colors, AppLocalizations loc) {
+  Widget _buildStatusBadge(
+      String status, DynamicAppColors colors, AppLocalizations loc) {
     final statusColor = _statusColor(colors, status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -293,7 +300,7 @@ class SupportRequestsPage extends ConsumerWidget {
   String _formatDate(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    
+
     if (diff.inDays == 0) {
       if (diff.inHours == 0) {
         return '${diff.inMinutes}m ago';
@@ -304,7 +311,7 @@ class SupportRequestsPage extends ConsumerWidget {
     } else if (diff.inDays < 7) {
       return '${diff.inDays}d ago';
     }
-    
+
     return '${dt.day}.${dt.month}.${dt.year}';
   }
 

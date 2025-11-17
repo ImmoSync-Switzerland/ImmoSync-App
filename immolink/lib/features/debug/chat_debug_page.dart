@@ -4,7 +4,7 @@ import 'package:immosync/features/chat/presentation/providers/messages_provider.
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 
 /// Debug page for testing chat functionality
-/// 
+///
 /// This page allows developers to:
 /// - Test Matrix initialization
 /// - Send test messages
@@ -19,10 +19,12 @@ class ChatDebugPage extends ConsumerStatefulWidget {
 }
 
 class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
-  final _conversationIdController = TextEditingController(text: 'test-conversation');
-  final _messageController = TextEditingController(text: 'Test message from debug tool');
+  final _conversationIdController =
+      TextEditingController(text: 'test-conversation');
+  final _messageController =
+      TextEditingController(text: 'Test message from debug tool');
   final _receiverIdController = TextEditingController(text: 'receiver-test-id');
-  
+
   final List<String> _logs = [];
   bool _isLoading = false;
 
@@ -57,10 +59,10 @@ class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
       }
 
       _log('Current user ID: ${currentUser.id}');
-      
+
       final chatService = ref.read(chatServiceProvider);
       _log('Calling ensureMatrixReady...');
-      
+
       await chatService.ensureMatrixReady(userId: currentUser.id);
       _log('✅ Matrix initialization successful');
     } catch (e, stack) {
@@ -95,7 +97,7 @@ class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
       _log('Content: $content');
 
       final chatService = ref.read(chatServiceProvider);
-      
+
       _log('Sending via Matrix...');
       final matrixEventId = await chatService.sendMessage(
         conversationId: conversationId,
@@ -130,7 +132,8 @@ class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
       _log('✅ Fetched ${messages.length} messages');
       for (var i = 0; i < messages.length && i < 5; i++) {
         final msg = messages[i];
-        _log('  Message ${i + 1}: ${msg.content.substring(0, msg.content.length.clamp(0, 50))}...');
+        _log(
+            '  Message ${i + 1}: ${msg.content.substring(0, msg.content.length.clamp(0, 50))}...');
       }
     } catch (e, stack) {
       _log('❌ Message fetch failed: $e');
@@ -188,8 +191,9 @@ class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
       final conversationId = _conversationIdController.text;
       _log('Subscribing to timeline for: $conversationId');
 
-      final messagesAsync = ref.read(conversationMessagesProvider(conversationId));
-      
+      final messagesAsync =
+          ref.read(conversationMessagesProvider(conversationId));
+
       messagesAsync.when(
         data: (messages) {
           _log('✅ Timeline active with ${messages.length} messages');

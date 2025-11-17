@@ -62,7 +62,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
                 if (subscription == null) {
                   return _buildNoSubscription(context, colors, l10n);
                 }
-                return _buildSubscriptionDetails(context, colors, l10n, subscription, ref);
+                return _buildSubscriptionDetails(
+                    context, colors, l10n, subscription, ref);
               },
               loading: () => const Center(
                 child: Padding(
@@ -70,7 +71,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 ),
               ),
-              error: (error, _) => _buildErrorState(context, colors, error.toString()),
+              error: (error, _) =>
+                  _buildErrorState(context, colors, error.toString()),
             ),
           ),
         ),
@@ -78,7 +80,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildNoSubscription(BuildContext context, dynamic colors, AppLocalizations l10n) {
+  Widget _buildNoSubscription(
+      BuildContext context, dynamic colors, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -160,8 +163,14 @@ class SubscriptionManagementPage extends ConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: subscription.isActive
-                  ? [colors.success.withValues(alpha: 0.9), colors.success.withValues(alpha: 0.7)]
-                  : [colors.error.withValues(alpha: 0.9), colors.error.withValues(alpha: 0.7)],
+                  ? [
+                      colors.success.withValues(alpha: 0.9),
+                      colors.success.withValues(alpha: 0.7)
+                    ]
+                  : [
+                      colors.error.withValues(alpha: 0.9),
+                      colors.error.withValues(alpha: 0.7)
+                    ],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -187,7 +196,9 @@ class SubscriptionManagementPage extends ConsumerWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
-                      subscription.isActive ? 'Subscription Active' : 'Subscription ${subscription.status}',
+                      subscription.isActive
+                          ? 'Subscription Active'
+                          : 'Subscription ${subscription.status}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -498,7 +509,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
     }
   }
 
-  void _showCancelDialog(BuildContext context, dynamic colors, WidgetRef ref, String subscriptionId) {
+  void _showCancelDialog(BuildContext context, dynamic colors, WidgetRef ref,
+      String subscriptionId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

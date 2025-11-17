@@ -32,7 +32,7 @@ void main() {
 
       expect(property.id, equals('test-id'));
       expect(property.rentAmount, equals(1500.0));
-      
+
       final map = property.toMap();
       expect(map['rentAmount'], equals(1500.0));
       expect(map['status'], equals('available'));
@@ -59,7 +59,7 @@ void main() {
 
       expect(user.email, equals('test@example.com'));
       expect(user.role, equals('tenant'));
-      
+
       final map = user.toMap();
       expect(map['email'], equals('test@example.com'));
       expect(map['role'], equals('tenant'));

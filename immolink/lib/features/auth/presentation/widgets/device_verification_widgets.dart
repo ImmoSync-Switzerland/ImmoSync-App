@@ -4,11 +4,13 @@ import '../../../../core/services/device_verification_service.dart';
 import '../providers/auth_provider.dart';
 
 /// Provider for device verification status
-final deviceVerificationProvider = StateNotifierProvider<DeviceVerificationNotifier, AsyncValue<DeviceVerificationResult?>>((ref) {
+final deviceVerificationProvider = StateNotifierProvider<
+    DeviceVerificationNotifier, AsyncValue<DeviceVerificationResult?>>((ref) {
   return DeviceVerificationNotifier(ref);
 });
 
-class DeviceVerificationNotifier extends StateNotifier<AsyncValue<DeviceVerificationResult?>> {
+class DeviceVerificationNotifier
+    extends StateNotifier<AsyncValue<DeviceVerificationResult?>> {
   final Ref _ref;
   final DeviceVerificationService _service = DeviceVerificationService.instance;
 
@@ -166,7 +168,9 @@ class DeviceVerificationBanner extends ConsumerWidget {
           const SizedBox(width: 8),
           TextButton(
             onPressed: () {
-              ref.read(deviceVerificationProvider.notifier).resendVerificationEmail();
+              ref
+                  .read(deviceVerificationProvider.notifier)
+                  .resendVerificationEmail();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('E-Mail wurde erneut gesendet')),
               );
@@ -208,7 +212,9 @@ class DeviceVerificationBanner extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(deviceVerificationProvider.notifier).resendVerificationEmail();
+              ref
+                  .read(deviceVerificationProvider.notifier)
+                  .resendVerificationEmail();
             },
             child: const Text(
               'Erneut versuchen',
@@ -226,10 +232,12 @@ class DeviceVerificationDialog extends ConsumerStatefulWidget {
   const DeviceVerificationDialog({super.key});
 
   @override
-  ConsumerState<DeviceVerificationDialog> createState() => _DeviceVerificationDialogState();
+  ConsumerState<DeviceVerificationDialog> createState() =>
+      _DeviceVerificationDialogState();
 }
 
-class _DeviceVerificationDialogState extends ConsumerState<DeviceVerificationDialog> {
+class _DeviceVerificationDialogState
+    extends ConsumerState<DeviceVerificationDialog> {
   bool _isResending = false;
 
   @override
@@ -280,14 +288,17 @@ class _DeviceVerificationDialogState extends ConsumerState<DeviceVerificationDia
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     Navigator.of(context).pop();
                   });
-                  return const Icon(Icons.check_circle, color: Colors.green, size: 48);
+                  return const Icon(Icons.check_circle,
+                      color: Colors.green, size: 48);
                 }
 
                 return Column(
                   children: [
                     ElevatedButton.icon(
                       onPressed: () {
-                        ref.read(deviceVerificationProvider.notifier).checkStatus();
+                        ref
+                            .read(deviceVerificationProvider.notifier)
+                            .checkStatus();
                       },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Status aktualisieren'),
@@ -298,11 +309,15 @@ class _DeviceVerificationDialogState extends ConsumerState<DeviceVerificationDia
                           ? null
                           : () async {
                               setState(() => _isResending = true);
-                              await ref.read(deviceVerificationProvider.notifier).resendVerificationEmail();
+                              await ref
+                                  .read(deviceVerificationProvider.notifier)
+                                  .resendVerificationEmail();
                               if (mounted) {
                                 setState(() => _isResending = false);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('E-Mail wurde erneut gesendet')),
+                                  const SnackBar(
+                                      content:
+                                          Text('E-Mail wurde erneut gesendet')),
                                 );
                               }
                             },

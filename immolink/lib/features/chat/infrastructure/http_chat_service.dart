@@ -21,7 +21,7 @@ class HttpChatService {
       print('[HttpChat] Sending message to conversation $conversationId');
       print('[HttpChat] From: $senderId, To: $receiverId');
       print('[HttpChat] Content: $content');
-      
+
       final response = await http.post(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),
         headers: {
@@ -44,7 +44,8 @@ class HttpChatService {
         print('[HttpChat] Message sent successfully with ID: $messageId');
         return messageId.toString();
       } else {
-        print('[HttpChat] Failed to send message: ${response.statusCode} - ${response.body}');
+        print(
+            '[HttpChat] Failed to send message: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to send message: ${response.statusCode}');
       }
     } catch (e) {
@@ -57,7 +58,7 @@ class HttpChatService {
   Future<List<Conversation>> getConversationsForUser(String userId) async {
     try {
       print('[HttpChat] Getting conversations for user: $userId');
-      
+
       final response = await http.get(
         Uri.parse('$_apiUrl/conversations/user/$userId'),
         headers: {'Content-Type': 'application/json'},
@@ -67,7 +68,8 @@ class HttpChatService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        final conversations = data.map((json) => Conversation.fromMap(json)).toList();
+        final conversations =
+            data.map((json) => Conversation.fromMap(json)).toList();
         print('[HttpChat] Found ${conversations.length} conversations');
         return conversations;
       } else {
@@ -81,10 +83,11 @@ class HttpChatService {
   }
 
   /// Get messages for a conversation
-  Future<List<ChatMessage>> getMessagesForConversation(String conversationId) async {
+  Future<List<ChatMessage>> getMessagesForConversation(
+      String conversationId) async {
     try {
       print('[HttpChat] Getting messages for conversation: $conversationId');
-      
+
       final response = await http.get(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),
         headers: {'Content-Type': 'application/json'},
@@ -114,8 +117,9 @@ class HttpChatService {
     String? initialMessage,
   }) async {
     try {
-      print('[HttpChat] Creating conversation between $senderId and $receiverId');
-      
+      print(
+          '[HttpChat] Creating conversation between $senderId and $receiverId');
+
       final response = await http.post(
         Uri.parse('$_apiUrl/conversations'),
         headers: {'Content-Type': 'application/json'},
@@ -129,9 +133,10 @@ class HttpChatService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        final conversationId = responseData['conversationId'] ?? responseData['id'];
+        final conversationId =
+            responseData['conversationId'] ?? responseData['id'];
         print('[HttpChat] Conversation created with ID: $conversationId');
-        
+
         // Send initial message if provided
         if (initialMessage != null && initialMessage.isNotEmpty) {
           await sendMessage(
@@ -141,10 +146,11 @@ class HttpChatService {
             content: initialMessage,
           );
         }
-        
+
         return conversationId.toString();
       } else {
-        print('[HttpChat] Failed to create conversation: ${response.statusCode} - ${response.body}');
+        print(
+            '[HttpChat] Failed to create conversation: ${response.statusCode} - ${response.body}');
         throw Exception('Failed to create conversation');
       }
     } catch (e) {
@@ -157,7 +163,7 @@ class HttpChatService {
   Future<void> markMessageAsRead(String messageId) async {
     try {
       print('[HttpChat] Marking message as read: $messageId');
-      
+
       final response = await http.patch(
         Uri.parse('$_apiUrl/messages/$messageId/read'),
         headers: {'Content-Type': 'application/json'},
@@ -166,7 +172,8 @@ class HttpChatService {
       print('[HttpChat] Mark read response: ${response.statusCode}');
 
       if (response.statusCode != 200) {
-        print('[HttpChat] Failed to mark message as read: ${response.statusCode}');
+        print(
+            '[HttpChat] Failed to mark message as read: ${response.statusCode}');
         throw Exception('Failed to mark message as read');
       }
     } catch (e) {
@@ -182,18 +189,21 @@ class HttpChatService {
     String? initialMessage,
   }) async {
     try {
-      print('[HttpChat] Finding or creating conversation between $senderId and $receiverId');
-      
+      print(
+          '[HttpChat] Finding or creating conversation between $senderId and $receiverId');
+
       // First try to find existing conversation
       final conversations = await getConversationsForUser(senderId);
       for (final conversation in conversations) {
         final participants = conversation.participants;
-        if (participants != null && participants.contains(senderId) && participants.contains(receiverId)) {
+        if (participants != null &&
+            participants.contains(senderId) &&
+            participants.contains(receiverId)) {
           print('[HttpChat] Found existing conversation: ${conversation.id}');
           return conversation.id;
         }
       }
-      
+
       // Create new conversation if none exists
       return await createConversation(
         senderId: senderId,

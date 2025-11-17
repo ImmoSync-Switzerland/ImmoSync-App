@@ -114,7 +114,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   // Track visibility for staggered section animations
   // Expanded to 7 sections to accommodate subscription analytics
   // Set first section visible by default to avoid blank page on load
-  final List<bool> _sectionVisible = [true, false, false, false, false, false, false];
+  final List<bool> _sectionVisible = [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
   bool _visibilityInitialized = false;
   final revenueRangeProvider = StateProvider<int>((ref) => 6);
 
@@ -312,7 +320,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               _buildHeroHeader(l10n, isLandlord, colors),
               const SizedBox(height: 28),
               _buildModernReport(isLandlord, l10n, colors),
-              const SizedBox(height: 24), // Bottom padding for better scroll experience
+              const SizedBox(
+                  height: 24), // Bottom padding for better scroll experience
             ],
           ),
         ),
@@ -522,7 +531,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
   }) {
     // Remove _HoverScale and onTap to make cards non-clickable
     return FocusableActionDetector(
-      mouseCursor: SystemMouseCursors.basic, // Changed from click to basic cursor
+      mouseCursor:
+          SystemMouseCursors.basic, // Changed from click to basic cursor
       onShowFocusHighlight: (_) => setState(() {}),
       child: AnimatedSize(
         duration: const Duration(milliseconds: 300),
@@ -553,8 +563,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
             ],
           ),
           child: asyncValue.when(
-            data: (data) =>
-                _kpiContent(label, valueBuilder(data), icon, color),
+            data: (data) => _kpiContent(label, valueBuilder(data), icon, color),
             loading: () => _kpiShimmer(label, icon, color),
             error: (_, __) => _kpiError(label, icon, color),
           ),
@@ -575,7 +584,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white.withValues(alpha: 0.22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.5),
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35), width: 1.5),
           ),
           child: Icon(icon, size: 24, color: Colors.white),
         ),
@@ -729,8 +739,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         if (!_visibilityInitialized && info.visibleFraction > 0.1) {
           _visibilityInitialized = true;
         }
-        if (info.visibleFraction > 0.1 && 
-            index < _sectionVisible.length && 
+        if (info.visibleFraction > 0.1 &&
+            index < _sectionVisible.length &&
             !_sectionVisible[index]) {
           setState(() => _sectionVisible[index] = true);
         }
@@ -794,7 +804,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         _animatedSection(
             4, _buildMaintenanceOverview(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-        _animatedSection(5, _buildSubscriptionOverviewLandlord(ref, l10n, colors)),
+        _animatedSection(
+            5, _buildSubscriptionOverviewLandlord(ref, l10n, colors)),
         const SizedBox(height: 24),
         _animatedSection(
             6, _buildRevenueChart(properties, payments, ref, l10n, colors)),
@@ -817,7 +828,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         _animatedSection(3,
             _buildTenantMaintenanceHistory(maintenanceRequests, l10n, colors)),
         const SizedBox(height: 24),
-        _animatedSection(4, _buildSubscriptionOverviewTenant(ref, l10n, colors)),
+        _animatedSection(
+            4, _buildSubscriptionOverviewTenant(ref, l10n, colors)),
         const SizedBox(height: 24),
         _animatedSection(5, _buildPaymentHistory(payments, ref, l10n, colors)),
       ],
@@ -1215,7 +1227,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         final isActive = subscription.status == 'active';
         final isPastDue = subscription.status == 'past_due';
         final isCanceled = subscription.status == 'canceled';
-        
+
         return Column(
           children: [
             // Landlord's own subscription
@@ -1273,9 +1285,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                     children: [
                       _buildFinancialMetric(
                           l10n.subscriptionStatus,
-                          isActive ? l10n.subscriptionActive : (isPastDue ? l10n.subscriptionPastDue : isCanceled ? l10n.subscriptionCanceled : subscription.status.toUpperCase()),
-                          isActive ? Icons.check_circle : (isPastDue ? Icons.warning : Icons.cancel),
-                          isActive ? colors.success : (isPastDue ? colors.warning : colors.error),
+                          isActive
+                              ? l10n.subscriptionActive
+                              : (isPastDue
+                                  ? l10n.subscriptionPastDue
+                                  : isCanceled
+                                      ? l10n.subscriptionCanceled
+                                      : subscription.status.toUpperCase()),
+                          isActive
+                              ? Icons.check_circle
+                              : (isPastDue ? Icons.warning : Icons.cancel),
+                          isActive
+                              ? colors.success
+                              : (isPastDue ? colors.warning : colors.error),
                           colors),
                       const SizedBox(height: 22),
                       _buildFinancialMetric(
@@ -1287,14 +1309,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       const SizedBox(height: 22),
                       _buildFinancialMetric(
                           l10n.subscriptionNextBilling,
-                          DateFormat('dd.MM.yyyy').format(subscription.nextBillingDate),
+                          DateFormat('dd.MM.yyyy')
+                              .format(subscription.nextBillingDate),
                           Icons.calendar_today,
                           const Color(0xFF3B82F6),
                           colors),
                       const SizedBox(height: 22),
                       _buildFinancialMetric(
                           l10n.subscriptionBillingInterval,
-                          subscription.billingInterval == 'month' ? l10n.subscriptionMonthly : l10n.subscriptionYearly,
+                          subscription.billingInterval == 'month'
+                              ? l10n.subscriptionMonthly
+                              : l10n.subscriptionYearly,
                           Icons.repeat,
                           colors.textSecondary,
                           colors),
@@ -1312,7 +1337,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 for (final property in propertyList) {
                   allTenantIds.addAll(property.tenantIds);
                 }
-                
+
                 if (allTenantIds.isEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(26),
@@ -1364,7 +1389,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                   );
                 }
 
-                return _buildTenantPaymentsCard(allTenantIds, colors, ref, l10n);
+                return _buildTenantPaymentsCard(
+                    allTenantIds, colors, ref, l10n);
               },
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
@@ -1391,25 +1417,32 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           ),
         ),
       ),
-      error: (_, __) => _buildNoSubscriptionCard(l10n, colors, isLandlord: true),
+      error: (_, __) =>
+          _buildNoSubscriptionCard(l10n, colors, isLandlord: true),
     );
   }
 
-  Widget _buildTenantPaymentsCard(Set<String> tenantIds, DynamicAppColors colors, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildTenantPaymentsCard(Set<String> tenantIds,
+      DynamicAppColors colors, WidgetRef ref, AppLocalizations l10n) {
     // Note: This would require a backend endpoint to fetch tenant subscriptions
     // For now, we'll show a simplified version with property payment data
     final payments = ref.watch(landlordPaymentsProvider);
-    
+
     return payments.when(
       data: (paymentsList) {
-        final tenantPayments = paymentsList.where((p) => tenantIds.contains(p.tenantId)).toList();
-        final overduePayments = tenantPayments.where((p) => 
-          p.status == 'pending' && 
-          p.date.isBefore(DateTime.now().subtract(const Duration(days: 30)))
-        ).toList();
-        final pendingPayments = tenantPayments.where((p) => p.status == 'pending').toList();
-        final totalOutstanding = pendingPayments.fold<double>(0, (sum, p) => sum + p.amount);
-        
+        final tenantPayments =
+            paymentsList.where((p) => tenantIds.contains(p.tenantId)).toList();
+        final overduePayments = tenantPayments
+            .where((p) =>
+                p.status == 'pending' &&
+                p.date.isBefore(
+                    DateTime.now().subtract(const Duration(days: 30))))
+            .toList();
+        final pendingPayments =
+            tenantPayments.where((p) => p.status == 'pending').toList();
+        final totalOutstanding =
+            pendingPayments.fold<double>(0, (sum, p) => sum + p.amount);
+
         return Container(
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
@@ -1443,8 +1476,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(Icons.people,
-                        color: Colors.white, size: 32),
+                    child:
+                        const Icon(Icons.people, color: Colors.white, size: 32),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -1466,7 +1499,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       l10n.totalOutstanding,
                       _formatCurrency(totalOutstanding),
                       Icons.account_balance_wallet,
-                      totalOutstanding > 0 ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                      totalOutstanding > 0
+                          ? const Color(0xFFF59E0B)
+                          : const Color(0xFF10B981),
                       colors),
                   const SizedBox(height: 22),
                   _buildFinancialMetric(
@@ -1480,7 +1515,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       l10n.overduePayments,
                       overduePayments.length.toString(),
                       Icons.warning,
-                      overduePayments.isNotEmpty ? const Color(0xFFDC2626) : const Color(0xFF10B981),
+                      overduePayments.isNotEmpty
+                          ? const Color(0xFFDC2626)
+                          : const Color(0xFF10B981),
                       colors),
                   const SizedBox(height: 22),
                   _buildFinancialMetric(
@@ -1516,7 +1553,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
       ),
       error: (_, __) => const SizedBox.shrink(),
     );
-  }  // Subscription Overview for Tenant
+  } // Subscription Overview for Tenant
+
   Widget _buildSubscriptionOverviewTenant(
       WidgetRef ref, AppLocalizations l10n, DynamicAppColors colors) {
     final userSubscription = ref.watch(userSubscriptionProvider);
@@ -1530,8 +1568,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
         final isActive = subscription.status == 'active';
         final isPastDue = subscription.status == 'past_due';
         final isCanceled = subscription.status == 'canceled';
-        final daysUntilBilling = subscription.nextBillingDate.difference(DateTime.now()).inDays;
-        
+        final daysUntilBilling =
+            subscription.nextBillingDate.difference(DateTime.now()).inDays;
+
         return Container(
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
@@ -1586,13 +1625,25 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                 children: [
                   _buildFinancialMetric(
                       l10n.subscriptionStatus,
-                      isActive ? l10n.subscriptionActive : (isPastDue ? l10n.subscriptionPaymentDue : isCanceled ? l10n.subscriptionCanceled : subscription.status.toUpperCase()),
-                      isActive ? Icons.check_circle : (isPastDue ? Icons.warning : Icons.cancel),
-                      isActive ? colors.success : (isPastDue ? colors.error : colors.textSecondary),
+                      isActive
+                          ? l10n.subscriptionActive
+                          : (isPastDue
+                              ? l10n.subscriptionPaymentDue
+                              : isCanceled
+                                  ? l10n.subscriptionCanceled
+                                  : subscription.status.toUpperCase()),
+                      isActive
+                          ? Icons.check_circle
+                          : (isPastDue ? Icons.warning : Icons.cancel),
+                      isActive
+                          ? colors.success
+                          : (isPastDue ? colors.error : colors.textSecondary),
                       colors),
                   const SizedBox(height: 22),
                   _buildFinancialMetric(
-                      subscription.billingInterval == 'month' ? l10n.subscriptionMonthlyCost : l10n.subscriptionYearlyCost,
+                      subscription.billingInterval == 'month'
+                          ? l10n.subscriptionMonthlyCost
+                          : l10n.subscriptionYearlyCost,
                       _formatCurrency(subscription.amount),
                       Icons.payments,
                       const Color(0xFFEA580C),
@@ -1602,9 +1653,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       l10n.subscriptionNextPayment,
                       daysUntilBilling > 0
                           ? l10n.subscriptionInDays(daysUntilBilling.toString())
-                          : (daysUntilBilling == 0 ? l10n.subscriptionToday : l10n.subscriptionOverdue),
+                          : (daysUntilBilling == 0
+                              ? l10n.subscriptionToday
+                              : l10n.subscriptionOverdue),
                       Icons.calendar_today,
-                      daysUntilBilling >= 7 ? colors.success : (daysUntilBilling >= 0 ? colors.warning : colors.error),
+                      daysUntilBilling >= 7
+                          ? colors.success
+                          : (daysUntilBilling >= 0
+                              ? colors.warning
+                              : colors.error),
                       colors),
                   const SizedBox(height: 22),
                   _buildFinancialMetric(
@@ -1638,12 +1695,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           ),
         ),
       ),
-      error: (_, __) => _buildNoSubscriptionCard(l10n, colors, isLandlord: false),
+      error: (_, __) =>
+          _buildNoSubscriptionCard(l10n, colors, isLandlord: false),
     );
   }
 
   Widget _buildNoSubscriptionCard(
-      AppLocalizations l10n, DynamicAppColors colors, {required bool isLandlord}) {
+      AppLocalizations l10n, DynamicAppColors colors,
+      {required bool isLandlord}) {
     return Container(
       padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
@@ -2019,10 +2078,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
 
               return Column(
                 children: requestList.take(5).map<Widget>((request) {
-                  final statusColor = _getMaintenanceStatusColor(
-                      request.status, colors);
+                  final statusColor =
+                      _getMaintenanceStatusColor(request.status, colors);
                   final statusText = _formatStatusText(request.status);
-                  
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
@@ -2075,7 +2134,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
                                 ],
@@ -2239,7 +2299,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
                       statusColor = const Color(0xFF3B82F6);
                       icon = Icons.payments_rounded;
                   }
-                  
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),

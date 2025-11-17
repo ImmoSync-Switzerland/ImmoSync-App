@@ -20,7 +20,8 @@ class StripeConnectPaymentService {
         final token = auth.sessionToken;
         if (token != null && token.isNotEmpty) {
           headers['Authorization'] = 'Bearer $token';
-          print('[StripeConnect] Using auth token: ${token.substring(0, 20)}...');
+          print(
+              '[StripeConnect] Using auth token: ${token.substring(0, 20)}...');
         } else {
           print('[StripeConnect][WARN] No auth token available');
         }
@@ -43,8 +44,9 @@ class StripeConnectPaymentService {
     try {
       final url = '$_apiUrl/connect/create-account';
       print('[StripeConnect] Creating account at: $url');
-      print('[StripeConnect] Payload: landlordId=$landlordId, email=$email, businessType=${businessType ?? 'individual'}');
-      
+      print(
+          '[StripeConnect] Payload: landlordId=$landlordId, email=$email, businessType=${businessType ?? 'individual'}');
+
       final response = await http.post(
         Uri.parse(url),
         headers: _getHeaders(),
@@ -64,7 +66,9 @@ class StripeConnectPaymentService {
         return StripeConnectAccount.fromJson(data);
       } else {
         final error = json.decode(response.body);
-        final errorMessage = error['message'] ?? error['error'] ?? 'Failed to create Connect account';
+        final errorMessage = error['message'] ??
+            error['error'] ??
+            'Failed to create Connect account';
         print('[StripeConnect][ERROR] API Error: $errorMessage');
         throw Exception(errorMessage);
       }
@@ -79,13 +83,14 @@ class StripeConnectPaymentService {
     try {
       final url = '$_apiUrl/connect/account/$landlordId';
       print('[StripeConnect] Getting account from: $url');
-      
+
       final response = await http.get(
         Uri.parse(url),
         headers: _getHeaders(),
       );
 
-      print('[StripeConnect] Get account response status: ${response.statusCode}');
+      print(
+          '[StripeConnect] Get account response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -113,7 +118,7 @@ class StripeConnectPaymentService {
       final url = '$_apiUrl/connect/create-onboarding-link';
       print('[StripeConnect] Creating onboarding link at: $url');
       print('[StripeConnect] AccountId: $accountId');
-      
+
       final response = await http.post(
         Uri.parse(url),
         headers: _getHeaders(),
@@ -124,14 +129,16 @@ class StripeConnectPaymentService {
         }),
       );
 
-      print('[StripeConnect] Onboarding link response status: ${response.statusCode}');
+      print(
+          '[StripeConnect] Onboarding link response status: ${response.statusCode}');
       print('[StripeConnect] Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['url'];
       } else {
-        print('[StripeConnect][ERROR] Failed to create onboarding link: ${response.body}');
+        print(
+            '[StripeConnect][ERROR] Failed to create onboarding link: ${response.body}');
         throw Exception('Failed to create onboarding link');
       }
     } catch (e) {
@@ -236,14 +243,15 @@ class StripeConnectPaymentService {
       final response = await http.get(uri, headers: headers);
 
       print('[StripeConnect] Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body) as List;
         print('[StripeConnect] Received ${data.length} payments');
         return data.map((p) => ConnectPayment.fromJson(p)).toList();
       } else {
         print('[StripeConnect][ERROR] Failed response: ${response.body}');
-        throw Exception('Failed to get landlord payments: ${response.statusCode}');
+        throw Exception(
+            'Failed to get landlord payments: ${response.statusCode}');
       }
     } catch (e, stackTrace) {
       print('[StripeConnect][ERROR] Error getting landlord payments: $e');
@@ -268,15 +276,17 @@ class StripeConnectPaymentService {
       final headers = _getHeaders();
       final response = await http.get(uri, headers: headers);
 
-      print('[StripeConnect] Tenant payments response status: ${response.statusCode}');
-      
+      print(
+          '[StripeConnect] Tenant payments response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body) as List;
         print('[StripeConnect] Received ${data.length} tenant payments');
         return data.map((p) => ConnectPayment.fromJson(p)).toList();
       } else {
         print('[StripeConnect][ERROR] Failed response: ${response.body}');
-        throw Exception('Failed to get tenant payments: ${response.statusCode}');
+        throw Exception(
+            'Failed to get tenant payments: ${response.statusCode}');
       }
     } catch (e, stackTrace) {
       print('[StripeConnect][ERROR] Error getting tenant payments: $e');
@@ -296,14 +306,16 @@ class StripeConnectPaymentService {
       );
 
       print('[StripeConnect] Balance response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('[StripeConnect] Balance data: $data');
         return AccountBalance.fromJson(data);
       } else {
-        print('[StripeConnect][ERROR] Failed balance response: ${response.body}');
-        throw Exception('Failed to get account balance: ${response.statusCode}');
+        print(
+            '[StripeConnect][ERROR] Failed balance response: ${response.body}');
+        throw Exception(
+            'Failed to get account balance: ${response.statusCode}');
       }
     } catch (e, stackTrace) {
       print('[StripeConnect][ERROR] Error getting account balance: $e');
@@ -362,13 +374,15 @@ class StripeConnectPaymentService {
         headers: _getHeaders(),
       );
 
-      print('[StripeConnectService.getPayouts] Response status: ${response.statusCode}');
+      print(
+          '[StripeConnectService.getPayouts] Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body) as List;
         return data.map((p) => Payout.fromJson(p)).toList();
       } else {
-        print('[StripeConnectService.getPayouts] Failed with status ${response.statusCode}: ${response.body}');
+        print(
+            '[StripeConnectService.getPayouts] Failed with status ${response.statusCode}: ${response.body}');
         throw Exception('Failed to get payouts');
       }
     } catch (e) {

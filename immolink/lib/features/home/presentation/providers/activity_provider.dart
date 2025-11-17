@@ -29,7 +29,7 @@ final recentActivitiesProvider = StreamProvider<List<Activity>>((ref) async* {
       print('[ActivityProvider] Error loading activities: $e');
       // Don't yield empty list on error - keep showing previous data
     }
-    
+
     // Wait 30 seconds before next refresh
     await Future.delayed(const Duration(seconds: 30));
   }

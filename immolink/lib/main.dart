@@ -62,7 +62,8 @@ void main() async {
     try {
       // Skip Firebase initialization on Windows as it's not fully supported
       if (defaultTargetPlatform == TargetPlatform.windows) {
-        debugPrint('[Startup][INFO] Firebase initialization skipped on Windows platform');
+        debugPrint(
+            '[Startup][INFO] Firebase initialization skipped on Windows platform');
       } else {
         await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform,
@@ -121,13 +122,14 @@ void main() async {
     try {
       // Only initialize Rust bridge on platforms where it's available
       // For now, skip on mobile platforms where the native library might not be built
-      if (defaultTargetPlatform == TargetPlatform.windows || 
+      if (defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.macOS) {
         await RustLib.init();
         debugPrint('[Startup] flutter_rust_bridge initialized');
       } else {
-        debugPrint('[Startup][INFO] flutter_rust_bridge initialization skipped on ${defaultTargetPlatform.name}');
+        debugPrint(
+            '[Startup][INFO] flutter_rust_bridge initialization skipped on ${defaultTargetPlatform.name}');
       }
     } catch (e, st) {
       debugPrint('[Startup][WARN] flutter_rust_bridge init failed: $e');
@@ -185,7 +187,7 @@ class ImmoSync extends ConsumerWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       deepLinkService.initialize(ref);
     });
-    
+
     // Start FCM service side effects and keep instance (skip on Windows)
     if (defaultTargetPlatform != TargetPlatform.windows) {
       final fcm = ref.watch(fcmServiceProvider);
@@ -196,15 +198,15 @@ class ImmoSync extends ConsumerWidget {
         }
       });
     }
-    
+
     // Receive chat messages from native Matrix FRB stream only (no WS message ingestion)
     // Only on platforms where Rust bridge is available
-    if (defaultTargetPlatform == TargetPlatform.windows || 
+    if (defaultTargetPlatform == TargetPlatform.windows ||
         defaultTargetPlatform == TargetPlatform.linux ||
         defaultTargetPlatform == TargetPlatform.macOS) {
       ref.watch(matrixFrbEventsAdapterProvider);
     }
-    
+
     // Listen for auth userId changes (avoid triggering on every rebuild)
     ref.listen<AuthState>(authProvider, (prev, next) {
       if (prev?.userId != next.userId) {

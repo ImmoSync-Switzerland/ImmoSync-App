@@ -17,9 +17,12 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
   bool _isLoading = false;
 
   // Test IDs (replace with actual values)
-  final String _conversationId = "67558b2368e19654c0e2b2b1"; // Replace with real conversation ID
-  final String _senderId = "675225e1e7ce2c8141900399"; // Replace with real sender ID
-  final String _receiverId = "675447c4592a86ba6e6e5971"; // Replace with real receiver ID
+  final String _conversationId =
+      "67558b2368e19654c0e2b2b1"; // Replace with real conversation ID
+  final String _senderId =
+      "675225e1e7ce2c8141900399"; // Replace with real sender ID
+  final String _receiverId =
+      "675447c4592a86ba6e6e5971"; // Replace with real receiver ID
 
   void _addLog(String message) {
     setState(() {
@@ -65,9 +68,10 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
 
     try {
       _addLog('📥 Getting messages...');
-      final messages = await _chatService.getMessagesForConversation(_conversationId);
+      final messages =
+          await _chatService.getMessagesForConversation(_conversationId);
       _addLog('✅ Found ${messages.length} messages');
-      
+
       for (final message in messages.take(3)) {
         _addLog('📜 ${message.senderId}: ${message.content}');
       }
@@ -87,9 +91,10 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
 
     try {
       _addLog('📋 Getting conversations...');
-      final conversations = await _chatService.getConversationsForUser(_senderId);
+      final conversations =
+          await _chatService.getConversationsForUser(_senderId);
       _addLog('✅ Found ${conversations.length} conversations');
-      
+
       for (final conv in conversations.take(3)) {
         _addLog('💬 ${conv.id}: ${conv.lastMessage}');
       }
@@ -121,7 +126,8 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Test Configuration:', style: Theme.of(context).textTheme.titleMedium),
+                    Text('Test Configuration:',
+                        style: Theme.of(context).textTheme.titleMedium),
                     Text('Conversation ID: $_conversationId'),
                     Text('Sender ID: $_senderId'),
                     Text('Receiver ID: $_receiverId'),
@@ -129,9 +135,9 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Test Buttons
             Row(
               children: [
@@ -150,9 +156,9 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Send Message
             Row(
               children: [
@@ -168,19 +174,19 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _testSendMessage,
-                  child: _isLoading 
-                    ? const SizedBox(
-                        width: 16, 
-                        height: 16, 
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Send'),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Send'),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Clear Logs Button
             ElevatedButton(
               onPressed: () {
@@ -190,9 +196,9 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
               },
               child: const Text('Clear Logs'),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Logs
             Expanded(
               child: Container(
@@ -205,8 +211,11 @@ class _HttpChatTestPageState extends ConsumerState<HttpChatTestPage> {
                 ),
                 child: SingleChildScrollView(
                   child: Text(
-                    _logs.isEmpty ? 'No logs yet. Try the buttons above!' : _logs.join('\n'),
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    _logs.isEmpty
+                        ? 'No logs yet. Try the buttons above!'
+                        : _logs.join('\n'),
+                    style:
+                        const TextStyle(fontFamily: 'monospace', fontSize: 12),
                   ),
                 ),
               ),

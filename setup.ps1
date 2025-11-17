@@ -22,12 +22,12 @@ Write-Host $dartVersion
 Write-Host ""
 
 # Install Node.js dependencies for Husky
-Write-Host "📦 Installing Git hooks (Husky)..." -ForegroundColor Yellow
+Write-Host "📦 Installing Git hooks..." -ForegroundColor Yellow
 if (Get-Command npm -ErrorAction SilentlyContinue) {
     npm install
-    Write-Host "✅ Husky installed" -ForegroundColor Green
+    Write-Host "✅ Git hooks installed" -ForegroundColor Green
 } else {
-    Write-Host "⚠️  npm not found - skipping Husky setup" -ForegroundColor Yellow
+    Write-Host "⚠️  npm not found - skipping git hooks setup" -ForegroundColor Yellow
     Write-Host "   Git hooks will not work without Node.js/npm" -ForegroundColor Yellow
 }
 Write-Host ""
@@ -76,7 +76,7 @@ Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Copy .env.example to .env and configure"
 Write-Host "  2. Add google-services.json for Firebase"
-Write-Host "  3. Run: flutter run (from immolink/ directory)"
+Write-Host "  3. Run: flutter run in immolink/ directory"
 Write-Host ""
 Write-Host "Useful commands:" -ForegroundColor Yellow
 Write-Host "  flutter test              # Run tests"

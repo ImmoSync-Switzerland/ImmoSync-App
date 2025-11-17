@@ -22,14 +22,14 @@ class MatrixFrbEventsAdapter {
 
   /// Check if the current platform supports the Matrix Rust bridge
   bool get _isRustBridgeSupported {
-    return defaultTargetPlatform == TargetPlatform.windows || 
-           defaultTargetPlatform == TargetPlatform.linux ||
-           defaultTargetPlatform == TargetPlatform.macOS;
+    return defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS;
   }
 
   void _attach() {
     _sub?.cancel();
-    
+
     if (_isRustBridgeSupported) {
       // Subscribe to Rust bridge events on desktop platforms
       _attachRustBridgeEvents();
@@ -50,14 +50,14 @@ class MatrixFrbEventsAdapter {
         if (roomId.isEmpty) return;
         // Timestamp is in seconds from Rust, convert to milliseconds
         final tsSecs = evt.ts.toInt();
-        final ts = DateTime.fromMillisecondsSinceEpoch(tsSecs * 1000, isUtc: true);
+        final ts =
+            DateTime.fromMillisecondsSinceEpoch(tsSecs * 1000, isUtc: true);
 
         // Content should already be decrypted by the SDK if keys are available
         // If content is null/empty but marked encrypted, show placeholder
-    final hasPlain = (evt.content != null && evt.content!.isNotEmpty);
-    final displayContent = hasPlain
-      ? evt.content!
-      : (evt.isEncrypted ? '[encrypted]' : '');
+        final hasPlain = (evt.content != null && evt.content!.isNotEmpty);
+        final displayContent =
+            hasPlain ? evt.content! : (evt.isEncrypted ? '[encrypted]' : '');
 
         // Extract user ID from Matrix MXID format: @userid:homeserver -> userid
         // Example: @6838699baefe2c0213aba1c3:matrix.immosync.ch -> 6838699baefe2c0213aba1c3
@@ -67,7 +67,7 @@ class MatrixFrbEventsAdapter {
           }
           return mxid; // fallback if format is unexpected
         }
-        
+
         final senderId = extractUserId(evt.sender);
 
         final msg = ChatMessage(
@@ -77,7 +77,8 @@ class MatrixFrbEventsAdapter {
           content: displayContent,
           timestamp: ts,
           isRead: false,
-          deliveredAt: ts, // Message is delivered since we received it from server
+          deliveredAt:
+              ts, // Message is delivered since we received it from server
           readAt: null,
           messageType: 'text',
           metadata: null,
@@ -109,14 +110,15 @@ class MatrixFrbEventsAdapter {
   }
 
   void _attachMobileClientEvents() {
-    print('[MatrixFrbEventsAdapter] Subscribing to mobile client events for ${defaultTargetPlatform.name}');
-    
+    print(
+        '[MatrixFrbEventsAdapter] Subscribing to mobile client events for ${defaultTargetPlatform.name}');
+
     final mobileClient = MobileMatrixClient.instance;
     _sub = mobileClient.eventStream.listen((evt) {
       try {
         final roomId = evt.roomId;
         if (roomId.isEmpty) return;
-        
+
         // Timestamp is already in milliseconds from mobile client
         final ts = DateTime.fromMillisecondsSinceEpoch(evt.ts, isUtc: true);
 
@@ -132,7 +134,7 @@ class MatrixFrbEventsAdapter {
           }
           return mxid; // fallback if format is unexpected
         }
-        
+
         final senderId = extractUserId(evt.sender);
 
         final msg = ChatMessage(
@@ -152,7 +154,8 @@ class MatrixFrbEventsAdapter {
           e2ee: null,
         );
 
-        print('[MatrixAdapter] Mobile event ingested: roomId=$roomId eventId=${evt.eventId} sender=${evt.sender} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
+        print(
+            '[MatrixAdapter] Mobile event ingested: roomId=$roomId eventId=${evt.eventId} sender=${evt.sender} content=${displayContent.substring(0, displayContent.length > 50 ? 50 : displayContent.length)}');
 
         _timeline.ingestMatrixEvent(roomId, msg);
       } catch (e) {

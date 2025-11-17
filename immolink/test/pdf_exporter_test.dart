@@ -6,7 +6,8 @@ import 'package:immosync/features/reports/services/pdf_exporter.dart';
 void main() {
   test('buildFinancialReport returns non-empty pdf bytes', () async {
     final now = DateTime(2025, 9, 1);
-    final months = List.generate(6, (i) => DateTime(now.year, now.month - (5 - i)));
+    final months =
+        List.generate(6, (i) => DateTime(now.year, now.month - (5 - i)));
     final revenue = [3000, 3450, 3900, 4350, 4800, 5250];
     final expenses = [1200, 1420, 1640, 1860, 2080, 2300];
     final occupancy = 0.92;

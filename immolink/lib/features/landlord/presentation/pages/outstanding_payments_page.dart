@@ -53,8 +53,10 @@ class OutstandingPaymentsPage extends ConsumerWidget {
                     ),
                   ),
                   child: propertiesAsync.when(
-                    data: (properties) => _buildContent(context, ref, colors, properties),
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    data: (properties) =>
+                        _buildContent(context, ref, colors, properties),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (error, stack) => Center(
                       child: Text('Fehler: $error'),
                     ),
@@ -68,7 +70,8 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, DynamicAppColors colors, AsyncValue propertiesAsync) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, AsyncValue propertiesAsync) {
     // For demo purposes, using 0 outstanding - will be replaced with actual data
     final totalOutstanding = 0.0;
 
@@ -106,7 +109,9 @@ class OutstandingPaymentsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      ref.read(currencyProvider.notifier).formatAmount(totalOutstanding),
+                      ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(totalOutstanding),
                       style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w900,
@@ -124,7 +129,8 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildContent(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, List properties) {
     // For demo purposes, showing message when no outstanding payments
     // In production, this would show actual outstanding payment data
     return ListView(
@@ -137,7 +143,8 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, WidgetRef ref, DynamicAppColors colors) {
+  Widget _buildOverview(
+      BuildContext context, WidgetRef ref, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
@@ -194,14 +201,18 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverviewItem(WidgetRef ref, DynamicAppColors colors, String label, String value, IconData icon, Color color) {
+  Widget _buildOverviewItem(WidgetRef ref, DynamicAppColors colors,
+      String label, String value, IconData icon, Color color) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.1)],
+              colors: [
+                color.withValues(alpha: 0.2),
+                color.withValues(alpha: 0.1)
+              ],
             ),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -236,7 +247,8 @@ class OutstandingPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, WidgetRef ref, DynamicAppColors colors) {
+  Widget _buildEmptyState(
+      BuildContext context, WidgetRef ref, DynamicAppColors colors) {
     return Container(
       padding: const EdgeInsets.all(40.0),
       decoration: BoxDecoration(

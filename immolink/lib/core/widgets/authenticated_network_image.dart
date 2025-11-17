@@ -6,7 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A custom ImageProvider that includes authentication headers
-class AuthenticatedNetworkImageProvider extends ImageProvider<AuthenticatedNetworkImageProvider> {
+class AuthenticatedNetworkImageProvider
+    extends ImageProvider<AuthenticatedNetworkImageProvider> {
   const AuthenticatedNetworkImageProvider(
     this.url, {
     this.scale = 1.0,
@@ -18,12 +19,14 @@ class AuthenticatedNetworkImageProvider extends ImageProvider<AuthenticatedNetwo
   final Map<String, String>? headers;
 
   @override
-  Future<AuthenticatedNetworkImageProvider> obtainKey(ImageConfiguration configuration) {
+  Future<AuthenticatedNetworkImageProvider> obtainKey(
+      ImageConfiguration configuration) {
     return SynchronousFuture<AuthenticatedNetworkImageProvider>(this);
   }
 
   @override
-  ImageStreamCompleter loadImage(AuthenticatedNetworkImageProvider key, ImageDecoderCallback decode) {
+  ImageStreamCompleter loadImage(
+      AuthenticatedNetworkImageProvider key, ImageDecoderCallback decode) {
     final chunkEvents = StreamController<ImageChunkEvent>();
     return MultiFrameImageStreamCompleter(
       codec: _loadAsync(key, decode, chunkEvents),
@@ -32,7 +35,8 @@ class AuthenticatedNetworkImageProvider extends ImageProvider<AuthenticatedNetwo
       debugLabel: key.url,
       informationCollector: () => <DiagnosticsNode>[
         DiagnosticsProperty<ImageProvider>('Image provider', this),
-        DiagnosticsProperty<AuthenticatedNetworkImageProvider>('Image key', key),
+        DiagnosticsProperty<AuthenticatedNetworkImageProvider>(
+            'Image key', key),
       ],
     );
   }
@@ -51,7 +55,7 @@ class AuthenticatedNetworkImageProvider extends ImageProvider<AuthenticatedNetwo
       final requestHeaders = <String, String>{
         ...?headers,
       };
-      
+
       if (token != null && token.isNotEmpty) {
         requestHeaders['Authorization'] = 'Bearer $token';
       }
@@ -78,8 +82,9 @@ class AuthenticatedNetworkImageProvider extends ImageProvider<AuthenticatedNetwo
       return decode(buffer);
     } catch (e) {
       // Log error for debugging
-      debugPrint('[AuthenticatedNetworkImageProvider] Failed to load image: $e');
-      
+      debugPrint(
+          '[AuthenticatedNetworkImageProvider] Failed to load image: $e');
+
       // Re-throw as appropriate exception
       if (e is NetworkImageLoadException) {
         rethrow;
@@ -105,7 +110,8 @@ class AuthenticatedNetworkImageProvider extends ImageProvider<AuthenticatedNetwo
   int get hashCode => Object.hash(url, scale);
 
   @override
-  String toString() => '${objectRuntimeType(this, 'AuthenticatedNetworkImageProvider')}("$url", scale: $scale)';
+  String toString() =>
+      '${objectRuntimeType(this, 'AuthenticatedNetworkImageProvider')}("$url", scale: $scale)';
 }
 
 /// Widget wrapper for easier usage

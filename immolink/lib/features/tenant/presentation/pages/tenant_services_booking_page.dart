@@ -187,8 +187,8 @@ class _TenantServicesBookingPageState
                         color: colors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child:
-                          Icon(Icons.error_outline, size: 48, color: colors.error),
+                      child: Icon(Icons.error_outline,
+                          size: 48, color: colors.error),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -404,7 +404,8 @@ class _TenantServicesBookingPageState
                   color: colors.textTertiary,
                   fontWeight: FontWeight.w500,
                 ),
-                prefixIcon: Icon(Icons.search, color: colors.primaryAccent, size: 22),
+                prefixIcon:
+                    Icon(Icons.search, color: colors.primaryAccent, size: 22),
                 border: InputBorder.none,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -460,12 +461,11 @@ class _TenantServicesBookingPageState
                   ],
                 )
               : null,
-          color: isSelected ? null : colors.surfaceCards.withValues(alpha: 0.95),
+          color:
+              isSelected ? null : colors.surfaceCards.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected
-                ? colors.primaryAccent
-                : colors.borderLight,
+            color: isSelected ? colors.primaryAccent : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected

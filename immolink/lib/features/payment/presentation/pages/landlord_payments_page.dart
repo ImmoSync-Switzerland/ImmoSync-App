@@ -12,7 +12,8 @@ class LandlordPaymentsPage extends ConsumerStatefulWidget {
   const LandlordPaymentsPage({super.key});
 
   @override
-  ConsumerState<LandlordPaymentsPage> createState() => _LandlordPaymentsPageState();
+  ConsumerState<LandlordPaymentsPage> createState() =>
+      _LandlordPaymentsPageState();
 }
 
 class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
@@ -106,7 +107,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
     );
   }
 
-  Widget _buildOnboardingPrompt(BuildContext context, StripeConnectAccount? account) {
+  Widget _buildOnboardingPrompt(
+      BuildContext context, StripeConnectAccount? account) {
     final colors = ref.watch(dynamicColorsProvider);
 
     return RefreshIndicator(
@@ -169,7 +171,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryAccent,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -238,7 +241,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
     );
   }
 
-  Widget _buildStatusRow(String label, bool completed, DynamicAppColors colors) {
+  Widget _buildStatusRow(
+      String label, bool completed, DynamicAppColors colors) {
     return Row(
       children: [
         Icon(
@@ -265,10 +269,26 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
     final colors = ref.watch(dynamicColorsProvider);
 
     final features = [
-      {'icon': Icons.credit_card, 'title': 'Accept Card Payments', 'desc': 'Visa, Mastercard, and more'},
-      {'icon': Icons.account_balance, 'title': 'Bank Transfers', 'desc': 'Direct to your account'},
-      {'icon': Icons.shield, 'title': 'Secure & Encrypted', 'desc': 'PCI-compliant processing'},
-      {'icon': Icons.speed, 'title': 'Fast Payouts', 'desc': 'Daily automatic transfers'},
+      {
+        'icon': Icons.credit_card,
+        'title': 'Accept Card Payments',
+        'desc': 'Visa, Mastercard, and more'
+      },
+      {
+        'icon': Icons.account_balance,
+        'title': 'Bank Transfers',
+        'desc': 'Direct to your account'
+      },
+      {
+        'icon': Icons.shield,
+        'title': 'Secure & Encrypted',
+        'desc': 'PCI-compliant processing'
+      },
+      {
+        'icon': Icons.speed,
+        'title': 'Fast Payouts',
+        'desc': 'Daily automatic transfers'
+      },
     ];
 
     return Column(
@@ -557,7 +577,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isRequestingPayout ? null : () => _requestPayout(balance),
+                onPressed:
+                    _isRequestingPayout ? null : () => _requestPayout(balance),
                 icon: _isRequestingPayout
                     ? const SizedBox(
                         width: 20,
@@ -565,7 +586,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.send),
-                label: Text(_isRequestingPayout ? 'Processing...' : 'Request Payout'),
+                label: Text(
+                    _isRequestingPayout ? 'Processing...' : 'Request Payout'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primaryAccent,
                   foregroundColor: Colors.white,
@@ -604,7 +626,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: _buildErrorCard('Failed to load payments')),
+        error: (error, _) =>
+            Center(child: _buildErrorCard('Failed to load payments')),
       ),
     );
   }
@@ -631,7 +654,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: _buildErrorCard('Failed to load payouts')),
+        error: (error, _) =>
+            Center(child: _buildErrorCard('Failed to load payouts')),
       ),
     );
   }
@@ -701,7 +725,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -785,7 +810,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -930,7 +956,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
     if (user == null) return;
 
     final notifier = ref.read(stripeConnectNotifierProvider.notifier);
-    
+
     // Store mounted state and context before async operations
     if (!mounted) return;
 
@@ -953,7 +979,8 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
 
       if (account == null) {
         if (mounted) {
-          _showErrorSnackBar('Failed to create Stripe account. Please check your internet connection and try again.');
+          _showErrorSnackBar(
+              'Failed to create Stripe account. Please check your internet connection and try again.');
         }
         return;
       }
@@ -973,7 +1000,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         final uri = Uri.parse(onboardingUrl);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -986,7 +1013,9 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
           if (mounted) _showErrorSnackBar('Could not open browser');
         }
       } else {
-        if (mounted) _showErrorSnackBar('Failed to create onboarding link. Please try again.');
+        if (mounted)
+          _showErrorSnackBar(
+              'Failed to create onboarding link. Please try again.');
       }
     } catch (e) {
       print('[LandlordPayments] Error in _startOnboarding: $e');
@@ -995,10 +1024,10 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         try {
           Navigator.of(context, rootNavigator: true).pop();
         } catch (_) {}
-        
+
         // Show user-friendly error message
         String errorMsg = 'Setup failed. Please try again.';
-        if (e.toString().contains('Failed to host lookup') || 
+        if (e.toString().contains('Failed to host lookup') ||
             e.toString().contains('SocketException')) {
           errorMsg = 'Network error. Please check your internet connection.';
         } else if (e.toString().contains('timeout')) {
@@ -1006,7 +1035,7 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
         } else if (e.toString().contains('404')) {
           errorMsg = 'Service not available. Please contact support.';
         }
-        
+
         _showErrorSnackBar(errorMsg);
       }
     }
@@ -1105,11 +1134,13 @@ class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
                   children: [
                     Text(
                       'Arrival:',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 12),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 12),
                     ),
                     Text(
                       '2-3 business days',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 12),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),

@@ -307,8 +307,7 @@ class StripeConnectNotifier extends StateNotifier<AsyncValue<String?>> {
 }
 
 final stripeConnectNotifierProvider =
-    StateNotifierProvider<StripeConnectNotifier, AsyncValue<String?>>(
-        (ref) {
+    StateNotifierProvider<StripeConnectNotifier, AsyncValue<String?>>((ref) {
   final service = ref.watch(stripeConnectPaymentServiceProvider);
   return StripeConnectNotifier(service);
 });

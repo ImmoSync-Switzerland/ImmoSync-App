@@ -34,12 +34,12 @@ class UserAvatar extends ConsumerWidget {
     final currentRef = current?.profileImage;
     final rawRef =
         imageRef ?? (fallbackToCurrentUser ? (currentUrl ?? currentRef) : null);
-    
+
     // Normalize HTTP to HTTPS for security and authentication
     final effectiveRef = rawRef != null && rawRef.isNotEmpty
         ? rawRef.replaceFirst('http://', 'https://')
         : null;
-    
+
     final bg = bgColor ?? Colors.grey.shade200;
     final tc = textColor ?? Colors.grey.shade700;
 
@@ -53,7 +53,7 @@ class UserAvatar extends ConsumerWidget {
     }
 
     Widget child;
-  // All image sources (including URLs) are loaded via MongoImage to attach auth headers
+    // All image sources (including URLs) are loaded via MongoImage to attach auth headers
 
     if (effectiveRef != null && effectiveRef.isNotEmpty) {
       child = Container(

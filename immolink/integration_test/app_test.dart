@@ -15,7 +15,7 @@ void main() {
       // 4. Send message
       // 5. Create maintenance request
       // 6. Logout
-      
+
       expect(true, isTrue); // Placeholder
     });
 
@@ -26,7 +26,7 @@ void main() {
       // 3. Send message to landlord
       // 4. Report issue
       // 5. Logout
-      
+
       expect(true, isTrue); // Placeholder
     });
   });

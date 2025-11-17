@@ -17,7 +17,8 @@ class _BackendTestPageState extends ConsumerState<BackendTestPage> {
 
   void _addLog(String message) {
     setState(() {
-      _log.add('[${DateTime.now().toIso8601String().substring(11, 19)}] $message');
+      _log.add(
+          '[${DateTime.now().toIso8601String().substring(11, 19)}] $message');
     });
     print(message);
   }
@@ -31,9 +32,9 @@ class _BackendTestPageState extends ConsumerState<BackendTestPage> {
     try {
       _addLog('=== Backend Connection Test ===');
       _addLog('API URL: ${DbConfig.apiUrl}');
-      
+
       final chatService = ChatService();
-      
+
       // Test 1: Fetch messages for a test conversation
       _addLog('\n--- Test 1: Fetch Messages ---');
       try {
@@ -42,12 +43,11 @@ class _BackendTestPageState extends ConsumerState<BackendTestPage> {
       } catch (e) {
         _addLog('❌ FAILED: $e');
       }
-      
+
       // Test 2: Check configuration
       _addLog('\n--- Test 2: Configuration ---');
       _addLog('WS URL: ${DbConfig.wsUrl}');
       _addLog('DB Name: ${DbConfig.dbName}');
-      
     } catch (e, stack) {
       _addLog('❌ Test failed: $e');
       _addLog('Stack: $stack');

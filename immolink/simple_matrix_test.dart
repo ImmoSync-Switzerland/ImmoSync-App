@@ -31,12 +31,12 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
   final List<String> _logs = [];
   final ScrollController _scrollController = ScrollController();
   matrix.Client? _client;
-  
-  final TextEditingController _homeserverController = 
+
+  final TextEditingController _homeserverController =
       TextEditingController(text: 'https://matrix.immosync.ch');
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   bool _isLoading = false;
 
   @override
@@ -84,9 +84,9 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _testMatrix,
-                        child: _isLoading 
-                          ? const CircularProgressIndicator()
-                          : const Text('Test Matrix'),
+                        child: _isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text('Test Matrix'),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -99,7 +99,7 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
               ],
             ),
           ),
-          
+
           // Logs
           Expanded(
             child: Container(
@@ -132,7 +132,7 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
     setState(() {
       _logs.add('${DateTime.now()}: $message');
     });
-    
+
     // Auto scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -147,27 +147,27 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
 
   Future<void> _testMatrix() async {
     setState(() => _isLoading = true);
-    
+
     try {
       _addLog('🚀 Starting Matrix test...');
-      
+
       // Create client
       _addLog('📱 Creating Matrix client...');
       final appDir = await getApplicationDocumentsDirectory();
       final dbPath = '${appDir.path}/matrix_test.db';
-      
+
       _client = matrix.Client(
         'MatrixTestApp',
         database: await matrix.MatrixSdkDatabase.init(dbPath),
       );
-      
+
       _addLog('✅ Matrix client created');
-      
+
       // Check homeserver
       _addLog('🌐 Checking homeserver...');
       await _client!.checkHomeserver(Uri.parse(_homeserverController.text));
       _addLog('✅ Homeserver check successful');
-      
+
       // Login
       _addLog('🔑 Attempting login...');
       await _client!.login(
@@ -177,22 +177,21 @@ class _MatrixTestPageState extends State<MatrixTestPage> {
         ),
         password: _passwordController.text,
       );
-      
+
       _addLog('✅ Login successful!');
       _addLog('👤 User ID: ${_client!.userID}');
-      
+
       // Wait for sync
       _addLog('🔄 Waiting for sync...');
       await _client!.roomsLoading;
       _addLog('✅ Sync completed');
       _addLog('🏠 Rooms available: ${_client!.rooms.length}');
-      
+
       _addLog('🎉 Matrix test completed successfully!');
-      
     } catch (e) {
       _addLog('❌ Error: $e');
     }
-    
+
     setState(() => _isLoading = false);
   }
 }

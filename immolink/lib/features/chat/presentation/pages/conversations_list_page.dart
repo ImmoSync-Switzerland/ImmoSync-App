@@ -141,7 +141,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
   Widget _buildSearchBar() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Container(
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -242,7 +242,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
   Widget _buildEmptyState() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -357,7 +357,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             if (isBlocked) ...[
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),

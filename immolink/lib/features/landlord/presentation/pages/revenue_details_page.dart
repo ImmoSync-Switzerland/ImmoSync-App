@@ -53,8 +53,10 @@ class RevenueDetailsPage extends ConsumerWidget {
                     ),
                   ),
                   child: propertiesAsync.when(
-                    data: (properties) => _buildContent(context, ref, colors, properties),
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    data: (properties) =>
+                        _buildContent(context, ref, colors, properties),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (error, stack) => Center(
                       child: Text('Fehler: $error'),
                     ),
@@ -68,7 +70,8 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, DynamicAppColors colors, AsyncValue propertiesAsync) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, AsyncValue propertiesAsync) {
     final totalRevenue = propertiesAsync.maybeWhen(
       data: (properties) {
         final propertyList = properties as List;
@@ -114,7 +117,9 @@ class RevenueDetailsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      ref.read(currencyProvider.notifier).formatAmount(totalRevenue),
+                      ref
+                          .read(currencyProvider.notifier)
+                          .formatAmount(totalRevenue),
                       style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w900,
@@ -132,7 +137,8 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildContent(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, List properties) {
     return ListView(
       padding: const EdgeInsets.all(24.0),
       children: [
@@ -145,12 +151,14 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRevenueOverview(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildRevenueOverview(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, List properties) {
     final totalRevenue = properties.fold<double>(
       0.0,
       (sum, property) => sum + (property.rentAmount ?? 0.0),
     );
-    final avgRevenuePerProperty = properties.isEmpty ? 0.0 : totalRevenue / properties.length;
+    final avgRevenuePerProperty =
+        properties.isEmpty ? 0.0 : totalRevenue / properties.length;
 
     return Container(
       padding: const EdgeInsets.all(20.0),
@@ -190,7 +198,9 @@ class RevenueDetailsPage extends ConsumerWidget {
             ref,
             colors,
             AppLocalizations.of(context)!.averagePerProperty,
-            ref.read(currencyProvider.notifier).formatAmount(avgRevenuePerProperty),
+            ref
+                .read(currencyProvider.notifier)
+                .formatAmount(avgRevenuePerProperty),
             Icons.home_outlined,
             colors.info,
           ),
@@ -208,14 +218,18 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverviewItem(WidgetRef ref, DynamicAppColors colors, String label, String value, IconData icon, Color color) {
+  Widget _buildOverviewItem(WidgetRef ref, DynamicAppColors colors,
+      String label, String value, IconData icon, Color color) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.1)],
+              colors: [
+                color.withValues(alpha: 0.2),
+                color.withValues(alpha: 0.1)
+              ],
             ),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -250,7 +264,8 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRevenueByProperty(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildRevenueByProperty(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, List properties) {
     return Container(
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
@@ -277,17 +292,19 @@ class RevenueDetailsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           ...properties.map((property) => Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: _buildPropertyRevenueItem(context, ref, colors, property),
-          )),
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child:
+                    _buildPropertyRevenueItem(context, ref, colors, property),
+              )),
         ],
       ),
     );
   }
 
-  Widget _buildPropertyRevenueItem(BuildContext context, WidgetRef ref, DynamicAppColors colors, dynamic property) {
+  Widget _buildPropertyRevenueItem(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, dynamic property) {
     final rent = property.rentAmount ?? 0.0;
-    
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -318,7 +335,8 @@ class RevenueDetailsPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  property.address?.street ?? AppLocalizations.of(context)!.unknownAddress,
+                  property.address?.street ??
+                      AppLocalizations.of(context)!.unknownAddress,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -329,7 +347,8 @@ class RevenueDetailsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${property.address?.city ?? ''} ${property.address?.postalCode ?? ''}'.trim(),
+                  '${property.address?.city ?? ''} ${property.address?.postalCode ?? ''}'
+                      .trim(),
                   style: TextStyle(
                     fontSize: 14,
                     color: colors.textSecondary,
@@ -352,7 +371,8 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRevenueBreakdown(BuildContext context, WidgetRef ref, DynamicAppColors colors, List properties) {
+  Widget _buildRevenueBreakdown(BuildContext context, WidgetRef ref,
+      DynamicAppColors colors, List properties) {
     final totalRevenue = properties.fold<double>(
       0.0,
       (sum, property) => sum + (property.rentAmount ?? 0.0),
@@ -414,7 +434,8 @@ class RevenueDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBreakdownItem(WidgetRef ref, DynamicAppColors colors, String label, String amount, double percentage, Color color) {
+  Widget _buildBreakdownItem(WidgetRef ref, DynamicAppColors colors,
+      String label, String amount, double percentage, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

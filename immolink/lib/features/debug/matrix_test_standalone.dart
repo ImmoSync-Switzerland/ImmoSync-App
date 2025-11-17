@@ -11,13 +11,14 @@ class MatrixTestStandalone extends StatefulWidget {
 }
 
 class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
-  final TextEditingController _homeserverController = TextEditingController(text: 'https://matrix.immosync.ch');
+  final TextEditingController _homeserverController =
+      TextEditingController(text: 'https://matrix.immosync.ch');
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _roomIdController = TextEditingController();
   final TextEditingController _otherUserController = TextEditingController();
-  
+
   bool _isLoading = false;
   String _status = 'Ready to test Matrix';
 
@@ -47,9 +48,10 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Connection Settings
-            Text('Connection Settings', style: Theme.of(context).textTheme.headlineSmall),
+            Text('Connection Settings',
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 10),
             TextField(
               controller: _homeserverController,
@@ -76,7 +78,7 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
               obscureText: true,
             ),
             const SizedBox(height: 10),
-            
+
             // Connection Buttons
             Wrap(
               spacing: 8,
@@ -95,11 +97,12 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Room Operations
-            Text('Room Operations', style: Theme.of(context).textTheme.headlineSmall),
+            Text('Room Operations',
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 10),
             TextField(
               controller: _otherUserController,
@@ -117,7 +120,7 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
               ),
             ),
             const SizedBox(height: 10),
-            
+
             Wrap(
               spacing: 8,
               children: [
@@ -131,9 +134,9 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Messaging
             Text('Messaging', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 10),
@@ -145,17 +148,16 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
               ),
             ),
             const SizedBox(height: 10),
-            
+
             ElevatedButton(
               onPressed: _isLoading ? null : _testSendMessage,
               child: const Text('Send Message'),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Loading indicator
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator()),
+            if (_isLoading) const Center(child: CircularProgressIndicator()),
           ],
         ),
       ),
@@ -173,10 +175,8 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
     setState(() => _isLoading = true);
     try {
       _updateStatus('Initializing Matrix client...');
-      await MobileMatrixClient.instance.init(
-        _homeserverController.text.trim(),
-        '/tmp'
-      );
+      await MobileMatrixClient.instance
+          .init(_homeserverController.text.trim(), '/tmp');
       _updateStatus('✅ Matrix client initialized successfully');
     } catch (e) {
       _updateStatus('❌ Init failed: $e');
@@ -220,7 +220,7 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
         setState(() => _isLoading = false);
         return;
       }
-      
+
       _updateStatus('Creating room with $otherUser...');
       final roomId = await MobileMatrixClient.instance.createRoom(otherUser);
       _roomIdController.text = roomId;
@@ -249,15 +249,16 @@ class _MatrixTestStandaloneState extends State<MatrixTestStandalone> {
     try {
       final roomId = _roomIdController.text.trim();
       final message = _messageController.text.trim();
-      
+
       if (roomId.isEmpty || message.isEmpty) {
         _updateStatus('❌ Please enter room ID and message');
         setState(() => _isLoading = false);
         return;
       }
-      
+
       _updateStatus('Sending message...');
-      final eventId = await MobileMatrixClient.instance.sendMessage(roomId, message);
+      final eventId =
+          await MobileMatrixClient.instance.sendMessage(roomId, message);
       _updateStatus('✅ Message sent: $eventId');
       _messageController.clear();
     } catch (e) {

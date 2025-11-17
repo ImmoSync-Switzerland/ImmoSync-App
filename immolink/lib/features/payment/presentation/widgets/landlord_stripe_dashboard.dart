@@ -47,7 +47,8 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
                   account.payoutsEnabled,
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => _buildOnboardingPrompt(context, ref, colors),
+                error: (error, _) =>
+                    _buildOnboardingPrompt(context, ref, colors),
               ),
               const SizedBox(height: 20),
 
@@ -452,7 +453,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
           final uri = Uri.parse(onboardingUrl);
           if (await canLaunchUrl(uri)) {
             await launchUrl(uri, mode: LaunchMode.externalApplication);
-            
+
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

@@ -9,13 +9,13 @@ import 'device_fingerprint_service.dart';
 enum DeviceVerificationStatus {
   /// Device is verified and can send encrypted messages
   verified,
-  
+
   /// Device is pending email verification
   pendingVerification,
-  
+
   /// Device verification failed or expired
   failed,
-  
+
   /// Unknown status (not yet checked)
   unknown,
 }
@@ -40,9 +40,9 @@ class DeviceVerificationResult {
         orElse: () => DeviceVerificationStatus.unknown,
       ),
       message: json['message'],
-      verifiedAt: json['verifiedAt'] != null 
-        ? DateTime.parse(json['verifiedAt']) 
-        : null,
+      verifiedAt: json['verifiedAt'] != null
+          ? DateTime.parse(json['verifiedAt'])
+          : null,
       deviceId: json['deviceId'],
     );
   }
@@ -53,13 +53,16 @@ class DeviceVerificationResult {
 
 /// Service to handle device verification with email confirmation
 class DeviceVerificationService {
-  static final DeviceVerificationService _instance = DeviceVerificationService._();
+  static final DeviceVerificationService _instance =
+      DeviceVerificationService._();
   static DeviceVerificationService get instance => _instance;
   DeviceVerificationService._();
 
-  final String _baseUrl = 'https://immolink.ddns.net'; // Replace with your actual backend URL
-  final DeviceFingerprintService _fingerprintService = DeviceFingerprintService.instance;
-  
+  final String _baseUrl =
+      'https://immolink.ddns.net'; // Replace with your actual backend URL
+  final DeviceFingerprintService _fingerprintService =
+      DeviceFingerprintService.instance;
+
   DeviceVerificationResult? _cachedStatus;
   Timer? _statusPollTimer;
 
@@ -74,7 +77,8 @@ class DeviceVerificationService {
     required String authToken,
   }) async {
     try {
-      debugPrint('[DeviceVerification] Registering new device for user: $userId');
+      debugPrint(
+          '[DeviceVerification] Registering new device for user: $userId');
 
       final deviceId = await _fingerprintService.getDeviceFingerprint();
       final deviceInfo = await _fingerprintService.getDeviceInfo();
@@ -94,15 +98,16 @@ class DeviceVerificationService {
         }),
       );
 
-      debugPrint('[DeviceVerification] Registration response: ${response.statusCode}');
+      debugPrint(
+          '[DeviceVerification] Registration response: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final result = DeviceVerificationResult.fromJson(data);
-        
+
         _cachedStatus = result;
         await _saveVerificationStatus(result);
-        
+
         // Start polling for verification if pending
         if (result.isPending) {
           startPollingVerificationStatus(
@@ -110,10 +115,11 @@ class DeviceVerificationService {
             authToken: authToken,
           );
         }
-        
+
         return result;
       } else {
-        debugPrint('[DeviceVerification] Registration failed: ${response.body}');
+        debugPrint(
+            '[DeviceVerification] Registration failed: ${response.body}');
         return DeviceVerificationResult(
           status: DeviceVerificationStatus.failed,
           message: 'Registration failed: ${response.statusCode}',
@@ -136,27 +142,30 @@ class DeviceVerificationService {
   }) async {
     try {
       final deviceId = await _fingerprintService.getDeviceFingerprint();
-      
+
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/auth/device/status?deviceId=$deviceId&userId=$userId'),
+        Uri.parse(
+            '$_baseUrl/api/auth/device/status?deviceId=$deviceId&userId=$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $authToken',
         },
       );
 
-      debugPrint('[DeviceVerification] Status check response: ${response.statusCode}');
+      debugPrint(
+          '[DeviceVerification] Status check response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final result = DeviceVerificationResult.fromJson(data);
-        
+
         _cachedStatus = result;
         await _saveVerificationStatus(result);
-        
+
         return result;
       } else {
-        debugPrint('[DeviceVerification] Status check failed: ${response.body}');
+        debugPrint(
+            '[DeviceVerification] Status check failed: ${response.body}');
         return DeviceVerificationResult(
           status: DeviceVerificationStatus.unknown,
           message: 'Status check failed: ${response.statusCode}',
@@ -180,7 +189,7 @@ class DeviceVerificationService {
   }) async {
     try {
       final deviceId = await _fingerprintService.getDeviceFingerprint();
-      
+
       final response = await http.post(
         Uri.parse('$_baseUrl/api/auth/device/verify'),
         headers: {
@@ -194,23 +203,25 @@ class DeviceVerificationService {
         }),
       );
 
-      debugPrint('[DeviceVerification] Verification response: ${response.statusCode}');
+      debugPrint(
+          '[DeviceVerification] Verification response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final result = DeviceVerificationResult.fromJson(data);
-        
+
         _cachedStatus = result;
         await _saveVerificationStatus(result);
-        
+
         // Stop polling if verified
         if (result.isVerified) {
           stopPollingVerificationStatus();
         }
-        
+
         return result;
       } else {
-        debugPrint('[DeviceVerification] Verification failed: ${response.body}');
+        debugPrint(
+            '[DeviceVerification] Verification failed: ${response.body}');
         return DeviceVerificationResult(
           status: DeviceVerificationStatus.failed,
           message: 'Verification failed: ${response.statusCode}',
@@ -233,15 +244,15 @@ class DeviceVerificationService {
     Duration interval = const Duration(seconds: 5),
   }) {
     stopPollingVerificationStatus(); // Stop any existing timer
-    
+
     debugPrint('[DeviceVerification] Started polling verification status');
-    
+
     _statusPollTimer = Timer.periodic(interval, (timer) async {
       final result = await checkVerificationStatus(
         userId: userId,
         authToken: authToken,
       );
-      
+
       if (result.isVerified) {
         debugPrint('[DeviceVerification] Device verified! Stopping poll.');
         stopPollingVerificationStatus();
@@ -264,19 +275,20 @@ class DeviceVerificationService {
   Future<DeviceVerificationResult?> loadStoredStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       final isVerified = prefs.getBool(_storageKeyVerified) ?? false;
       final deviceId = prefs.getString(_storageKeyDeviceId);
       final verifiedAtStr = prefs.getString(_storageKeyVerifiedAt);
-      
+
       if (!isVerified || deviceId == null) {
         return null;
       }
-      
+
       return DeviceVerificationResult(
         status: DeviceVerificationStatus.verified,
         deviceId: deviceId,
-        verifiedAt: verifiedAtStr != null ? DateTime.parse(verifiedAtStr) : null,
+        verifiedAt:
+            verifiedAtStr != null ? DateTime.parse(verifiedAtStr) : null,
       );
     } catch (e) {
       debugPrint('[DeviceVerification] Error loading stored status: $e');
@@ -288,15 +300,16 @@ class DeviceVerificationService {
   Future<void> _saveVerificationStatus(DeviceVerificationResult result) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       await prefs.setBool(_storageKeyVerified, result.isVerified);
-      
+
       if (result.deviceId != null) {
         await prefs.setString(_storageKeyDeviceId, result.deviceId!);
       }
-      
+
       if (result.verifiedAt != null) {
-        await prefs.setString(_storageKeyVerifiedAt, result.verifiedAt!.toIso8601String());
+        await prefs.setString(
+            _storageKeyVerifiedAt, result.verifiedAt!.toIso8601String());
       }
     } catch (e) {
       debugPrint('[DeviceVerification] Error saving status: $e');
@@ -310,10 +323,10 @@ class DeviceVerificationService {
       await prefs.remove(_storageKeyVerified);
       await prefs.remove(_storageKeyDeviceId);
       await prefs.remove(_storageKeyVerifiedAt);
-      
+
       _cachedStatus = null;
       stopPollingVerificationStatus();
-      
+
       debugPrint('[DeviceVerification] Cleared verification status');
     } catch (e) {
       debugPrint('[DeviceVerification] Error clearing status: $e');
@@ -327,7 +340,7 @@ class DeviceVerificationService {
   }) async {
     try {
       final deviceId = await _fingerprintService.getDeviceFingerprint();
-      
+
       final response = await http.post(
         Uri.parse('$_baseUrl/api/auth/device/resend-verification'),
         headers: {
@@ -340,8 +353,9 @@ class DeviceVerificationService {
         }),
       );
 
-      debugPrint('[DeviceVerification] Resend verification response: ${response.statusCode}');
-      
+      debugPrint(
+          '[DeviceVerification] Resend verification response: ${response.statusCode}');
+
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('[DeviceVerification] Error resending verification email: $e');

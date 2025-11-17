@@ -72,7 +72,9 @@ class InvitationCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isLandlord ? l10n.invitationSent : l10n.propertyInvitation,
+                        isLandlord
+                            ? l10n.invitationSent
+                            : l10n.propertyInvitation,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -83,8 +85,11 @@ class InvitationCard extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         isLandlord
-                            ? l10n.toTenant(invitation.tenantName ?? l10n.unknownTenant, invitation.propertyAddress ?? l10n.properties)
-                            : l10n.fromLandlord(invitation.landlordName ?? l10n.landlord),
+                            ? l10n.toTenant(
+                                invitation.tenantName ?? l10n.unknownTenant,
+                                invitation.propertyAddress ?? l10n.properties)
+                            : l10n.fromLandlord(
+                                invitation.landlordName ?? l10n.landlord),
                         style: TextStyle(
                           fontSize: 14,
                           color: colors.textSecondary,

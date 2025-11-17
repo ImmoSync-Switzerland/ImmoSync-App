@@ -93,7 +93,8 @@ class _MongoImageState extends State<MongoImage> {
     if (response.statusCode == 401) {
       await _tokenManager.refreshToken(DbConfig.apiUrl);
       response = await http.get(
-        Uri.parse('${DbConfig.apiUrl}/images/base64/${widget.imageId}?v=$cacheBuster'),
+        Uri.parse(
+            '${DbConfig.apiUrl}/images/base64/${widget.imageId}?v=$cacheBuster'),
         headers: await _headers(),
       );
     }

@@ -332,7 +332,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                 label: Text(l10n.viewAll),
                 style: TextButton.styleFrom(
                   foregroundColor: colors.primaryAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
               ),
           ],
@@ -360,9 +361,10 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
-                final categoryKey = _getCategoryKey(index); // 'Mietvertrag', 'Nebenkosten', etc.
+                final categoryKey = _getCategoryKey(
+                    index); // 'Mietvertrag', 'Nebenkosten', etc.
                 final isSelected = _selectedCategory == categoryKey;
-                
+
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -373,12 +375,12 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isSelected 
+                      color: isSelected
                           ? (category['color'] as Color).withValues(alpha: 0.15)
                           : colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected 
+                        color: isSelected
                             ? (category['color'] as Color)
                             : colors.borderLight,
                         width: isSelected ? 2 : 1,
@@ -597,7 +599,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   Widget _buildRecentDocuments(List<DocumentModel> documents,
       AppLocalizations l10n, DynamicAppColors colors) {
     final filteredDocuments = _filterDocumentsByCategory(documents);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -684,7 +686,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
         documentsAsync.when(
           data: (documents) {
             final filteredDocuments = _filterDocumentsByCategory(documents);
-            
+
             if (filteredDocuments.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(32),
@@ -862,40 +864,47 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     }
   }
 
-  List<DocumentModel> _filterDocumentsByCategory(List<DocumentModel> documents) {
+  List<DocumentModel> _filterDocumentsByCategory(
+      List<DocumentModel> documents) {
     if (_selectedCategory == null) {
       return documents; // Show all if no filter selected
     }
-    
+
     // Case-insensitive comparison and handle variations
     final selectedLower = _selectedCategory!.toLowerCase();
     final filtered = documents.where((doc) {
       final docCategoryLower = doc.category.toLowerCase();
-      
+
       // Direct match
       if (docCategoryLower == selectedLower) return true;
-      
+
       // Handle category variations
-      if (selectedLower == 'lease agreement' && 
-          (docCategoryLower == 'lease' || docCategoryLower == 'lease agreement')) {
+      if (selectedLower == 'lease agreement' &&
+          (docCategoryLower == 'lease' ||
+              docCategoryLower == 'lease agreement')) {
         return true;
       }
-      if (selectedLower == 'operating costs' && 
-          (docCategoryLower == 'utilities' || docCategoryLower == 'operating costs' || docCategoryLower == 'nebenkosten')) {
+      if (selectedLower == 'operating costs' &&
+          (docCategoryLower == 'utilities' ||
+              docCategoryLower == 'operating costs' ||
+              docCategoryLower == 'nebenkosten')) {
         return true;
       }
-      if (selectedLower == 'inspection reports' && 
-          (docCategoryLower == 'protocols' || docCategoryLower == 'inspection reports' || docCategoryLower == 'protokolle')) {
+      if (selectedLower == 'inspection reports' &&
+          (docCategoryLower == 'protocols' ||
+              docCategoryLower == 'inspection reports' ||
+              docCategoryLower == 'protokolle')) {
         return true;
       }
-      if (selectedLower == 'correspondence' && 
-          (docCategoryLower == 'correspondence' || docCategoryLower == 'korrespondenz')) {
+      if (selectedLower == 'correspondence' &&
+          (docCategoryLower == 'correspondence' ||
+              docCategoryLower == 'korrespondenz')) {
         return true;
       }
-      
+
       return false;
     }).toList();
-    
+
     return filtered;
   }
 

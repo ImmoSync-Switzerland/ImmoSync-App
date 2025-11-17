@@ -6,7 +6,8 @@ import 'dart:convert';
 
 /// Service to generate unique device fingerprints for device verification
 class DeviceFingerprintService {
-  static final DeviceFingerprintService _instance = DeviceFingerprintService._();
+  static final DeviceFingerprintService _instance =
+      DeviceFingerprintService._();
   static DeviceFingerprintService get instance => _instance;
   DeviceFingerprintService._();
 
@@ -21,7 +22,7 @@ class DeviceFingerprintService {
     }
 
     final deviceInfo = await getDeviceInfo();
-    
+
     // Create a string from device identifiers
     final identifiers = [
       deviceInfo['model'] ?? '',

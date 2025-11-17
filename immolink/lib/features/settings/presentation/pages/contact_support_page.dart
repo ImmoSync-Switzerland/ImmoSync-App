@@ -569,7 +569,8 @@ class _ContactSupportPageState extends ConsumerState<ContactSupportPage> {
                   backgroundColor:
                       colors.primaryBackground.withValues(alpha: 0.6),
                   labelStyle: TextStyle(
-                    color: isSelected ? colors.textOnAccent : colors.textPrimary,
+                    color:
+                        isSelected ? colors.textOnAccent : colors.textPrimary,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                   shape: StadiumBorder(

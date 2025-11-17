@@ -151,7 +151,8 @@ class PropertyService {
       yield properties.map((json) => Property.fromMap(json)).toList();
     } else {
       // Throw on non-200 so StreamProvider surfaces error instead of hanging
-      throw Exception('Failed to load landlord properties: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Failed to load landlord properties: ${response.statusCode} ${response.body}');
     }
   }
 
@@ -176,7 +177,8 @@ class PropertyService {
       print('Found ${properties.length} properties for tenant');
       yield properties.map((json) => Property.fromMap(json)).toList();
     } else {
-      throw Exception('Failed to load tenant properties: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Failed to load tenant properties: ${response.statusCode} ${response.body}');
     }
   }
 
@@ -196,7 +198,8 @@ class PropertyService {
       final List<dynamic> data = json.decode(response.body);
       yield data.map((json) => Property.fromMap(json)).toList();
     } else {
-      throw Exception('Failed to load properties: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Failed to load properties: ${response.statusCode} ${response.body}');
     }
   }
 

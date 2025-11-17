@@ -686,7 +686,8 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDebugSection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  Widget _buildDebugSection(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
     return Card(
       elevation: 4,
@@ -726,7 +727,8 @@ class SettingsPage extends ConsumerWidget {
                 'View Matrix client logs and debug info',
                 style: TextStyle(color: colors.textSecondary, inherit: true),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, color: colors.textSecondary, size: 16),
+              trailing: Icon(Icons.arrow_forward_ios,
+                  color: colors.textSecondary, size: 16),
               onTap: () {
                 context.push('/debug/matrix-logs');
               },

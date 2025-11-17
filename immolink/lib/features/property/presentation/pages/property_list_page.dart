@@ -324,7 +324,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
 
   Widget _buildPropertyCard(Property property, AppLocalizations l10n) {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     // Gradient colors based on status
     final gradientColors = property.status == 'rented'
         ? [
@@ -340,7 +340,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 const Color(0xFFF59E0B).withValues(alpha: 0.95),
                 const Color(0xFFEA580C).withValues(alpha: 0.85),
               ];
-    
+
     final shadowColor = property.status == 'rented'
         ? const Color(0xFF059669)
         : property.status == 'available'
@@ -437,8 +437,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),

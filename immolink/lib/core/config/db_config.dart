@@ -19,9 +19,8 @@ class DbConfig {
 
   // Whether a MongoDB URI is provided via env (to avoid localhost fallback on desktop)
   static bool get hasMongoEnv {
-    final env = (dotenv.dotenv.isInitialized
-        ? dotenv.dotenv.env['MONGODB_URI']
-        : null);
+    final env =
+        (dotenv.dotenv.isInitialized ? dotenv.dotenv.env['MONGODB_URI'] : null);
     return env != null && env.isNotEmpty;
   }
 
@@ -105,7 +104,8 @@ class DbConfig {
     print('  apiUrl: $apiUrl');
     print('  wsUrl: $wsUrl');
     print('  primaryHost: $primaryHost');
-    print('  googleClientId: ${googleClientId.isNotEmpty ? "${googleClientId.substring(0, 20)}..." : "(not set)"}');
+    print(
+        '  googleClientId: ${googleClientId.isNotEmpty ? "${googleClientId.substring(0, 20)}..." : "(not set)"}');
     print('  (dart-define) API_URL: ${String.fromEnvironment('API_URL')}');
 
     // Verify services will use correct URL

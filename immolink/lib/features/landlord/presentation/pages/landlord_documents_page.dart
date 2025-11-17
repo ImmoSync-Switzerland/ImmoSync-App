@@ -472,7 +472,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                 _selectedPropertyId = null;
               }
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: colors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(12),
@@ -486,7 +487,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                       AppLocalizations.of(context)!.allProperties,
                       style: TextStyle(color: colors.textSecondary),
                     ),
-                    icon: Icon(Icons.arrow_drop_down, color: colors.textPrimary),
+                    icon:
+                        Icon(Icons.arrow_drop_down, color: colors.textPrimary),
                     dropdownColor: colors.surfaceCards,
                     style: TextStyle(
                       color: colors.textPrimary,
@@ -533,7 +535,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(colors.primaryAccent),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -836,8 +839,8 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                             value: category,
                             child: Text(
                               category,
-                              style: TextStyle(
-                                  color: theme.colorScheme.onSurface),
+                              style:
+                                  TextStyle(color: theme.colorScheme.onSurface),
                             )))
                         .toList(),
                     onChanged: (value) =>
@@ -862,17 +865,19 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                           value: null,
                           child: Text(
                             AppLocalizations.of(context)!.noSpecificProperty,
-                            style: TextStyle(color: theme.colorScheme.onSurface),
+                            style:
+                                TextStyle(color: theme.colorScheme.onSurface),
                           ),
                         ),
-                        ...properties.map((property) => DropdownMenuItem<String>(
-                              value: property.id,
-                              child: Text(
-                                '${property.address.street}, ${property.address.city}',
-                                style: TextStyle(
-                                    color: theme.colorScheme.onSurface),
-                              ),
-                            )),
+                        ...properties
+                            .map((property) => DropdownMenuItem<String>(
+                                  value: property.id,
+                                  child: Text(
+                                    '${property.address.street}, ${property.address.city}',
+                                    style: TextStyle(
+                                        color: theme.colorScheme.onSurface),
+                                  ),
+                                )),
                       ],
                       onChanged: (value) => setState(() {
                         selectedPropertyId = value;
@@ -885,9 +890,9 @@ class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
                       style: TextStyle(color: theme.colorScheme.error),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),

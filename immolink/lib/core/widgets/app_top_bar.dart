@@ -191,10 +191,10 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
                                   ? Icons.notifications
                                   : Icons.notifications_outlined,
                               size: AppSizes.iconMedium,
-                              color:
-                                  Theme.of(context).brightness == Brightness.dark
-                                      ? AppColorsDark.textPrimary
-                                      : AppColors.textPrimary,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColorsDark.textPrimary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                           if (unreadCount > 0)

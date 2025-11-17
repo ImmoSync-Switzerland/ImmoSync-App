@@ -116,7 +116,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
           onPressed: () => context.pop(),
         ),
         title: Text(
-          widget.propertyToEdit != null ? AppLocalizations.of(context)!.editProperty : AppLocalizations.of(context)!.addProperty,
+          widget.propertyToEdit != null
+              ? AppLocalizations.of(context)!.editProperty
+              : AppLocalizations.of(context)!.addProperty,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 18,
@@ -200,7 +202,9 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isEditing ? AppLocalizations.of(context)!.editProperty : AppLocalizations.of(context)!.newProperty,
+          isEditing
+              ? AppLocalizations.of(context)!.editProperty
+              : AppLocalizations.of(context)!.newProperty,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w700,
@@ -356,7 +360,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? Colors.white.withValues(alpha: 0.95)
                       : Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
@@ -492,12 +496,11 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
       {required String title,
       required List<Widget> children,
       required DynamicAppColors colors}) {
-    
     // Assign gradient colors based on card title
     List<Color> gradientColors;
     Color shadowColor;
     IconData iconData;
-    
+
     if (title.toLowerCase().contains('location')) {
       gradientColors = [
         const Color(0xFF3B82F6).withValues(alpha: 0.95),
@@ -528,7 +531,7 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
       shadowColor = const Color(0xFF8B5CF6);
       iconData = Icons.image_outlined;
     }
-    
+
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
@@ -985,7 +988,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.propertyUpdatedSuccessfully),
+              content: Text(
+                  AppLocalizations.of(context)!.propertyUpdatedSuccessfully),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -1002,7 +1006,8 @@ class _AddPropertyPageState extends ConsumerState<AddPropertyPage>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.propertyCreatedSuccessfully),
+              content: Text(
+                  AppLocalizations.of(context)!.propertyCreatedSuccessfully),
               backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(

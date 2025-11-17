@@ -30,7 +30,7 @@ class ChatMessagesNotifier
     try {
       // Wait for user to be loaded (with timeout)
       String currentUserId = _ref.read(currentUserProvider)?.id ?? '';
-      
+
       // Also try authState userId as fallback
       if (currentUserId.isEmpty || currentUserId == 'null') {
         final authUserId = _ref.read(authProvider).userId;
@@ -38,10 +38,12 @@ class ChatMessagesNotifier
           currentUserId = authUserId;
         }
       }
-      
+
       if (currentUserId.isEmpty || currentUserId == 'null') {
         debugPrint('[MessagesProvider] Waiting for user to be loaded...');
-        for (int i = 0; i < 10 && (currentUserId.isEmpty || currentUserId == 'null'); i++) {
+        for (int i = 0;
+            i < 10 && (currentUserId.isEmpty || currentUserId == 'null');
+            i++) {
           await Future.delayed(const Duration(milliseconds: 500));
           currentUserId = _ref.read(currentUserProvider)?.id ?? '';
           if (currentUserId.isEmpty || currentUserId == 'null') {
@@ -52,32 +54,37 @@ class ChatMessagesNotifier
           }
         }
       }
-      
+
       if (currentUserId.isEmpty || currentUserId == 'null') {
-        debugPrint('[MessagesProvider] WARNING: User ID still empty/null after waiting, Matrix will not be initialized');
+        debugPrint(
+            '[MessagesProvider] WARNING: User ID still empty/null after waiting, Matrix will not be initialized');
         throw Exception('Benutzer nicht eingeloggt - bitte erneut anmelden');
       } else {
-        debugPrint('[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
+        debugPrint(
+            '[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
         try {
           // Matrix is optional - if it fails, chat continues without E2EE
           await _ref.read(chatServiceProvider).ensureMatrixReady(
-            userId: currentUserId, 
-            required: false // Don't throw if Matrix unavailable
-          );
-          debugPrint('[MessagesProvider] Matrix ready, waiting for initial sync...');
+              userId: currentUserId,
+              required: false // Don't throw if Matrix unavailable
+              );
+          debugPrint(
+              '[MessagesProvider] Matrix ready, waiting for initial sync...');
           // Give sync a moment to start and connect
           await Future.delayed(const Duration(seconds: 3));
           debugPrint('[MessagesProvider] Initial sync delay complete');
         } catch (e) {
-          debugPrint('[MessagesProvider] Matrix initialization failed (will continue without E2EE): $e');
+          debugPrint(
+              '[MessagesProvider] Matrix initialization failed (will continue without E2EE): $e');
           // Don't throw - let chat continue without Matrix
         }
       }
-      
+
       // Get conversation details to extract otherUserId
       String otherUserId = '';
       try {
-        final conversations = await _chatService.getConversationsForUser(currentUserId);
+        final conversations =
+            await _chatService.getConversationsForUser(currentUserId);
         final conversation = conversations.firstWhere(
           (c) => c.id == _conversationId,
           orElse: () => conversations.first,
@@ -88,11 +95,12 @@ class ChatMessagesNotifier
       } catch (e) {
         debugPrint('[MessagesProvider] Failed to get otherUserId: $e');
       }
-      
+
       // Resolve Matrix roomId for this conversation via backend mapping
       String? roomId;
       try {
-        debugPrint('[MessagesProvider] Attempting to resolve Matrix roomId for conversation: $_conversationId');
+        debugPrint(
+            '[MessagesProvider] Attempting to resolve Matrix roomId for conversation: $_conversationId');
         roomId = await _ref
             .read(chatServiceProvider)
             .getMatrixRoomIdForConversation(
@@ -102,8 +110,7 @@ class ChatMessagesNotifier
         debugPrint('[MessagesProvider] Resolved roomId: $roomId');
       } catch (e, stackTrace) {
         // Fallback: try to fetch via conversationId mapping
-        debugPrint(
-            '[MessagesProvider] Failed to resolve roomId: $e');
+        debugPrint('[MessagesProvider] Failed to resolve roomId: $e');
         debugPrint('[MessagesProvider] Stack trace: $stackTrace');
       }
 
@@ -131,7 +138,8 @@ class ChatMessagesNotifier
       // and replace any "[encrypted]" placeholders.
       try {
         await timeline.refreshHistory(_roomId!);
-        debugPrint('[MessagesProvider] Triggered Matrix history refresh for roomId=$_roomId');
+        debugPrint(
+            '[MessagesProvider] Triggered Matrix history refresh for roomId=$_roomId');
       } catch (e) {
         debugPrint('[MessagesProvider] History refresh failed: $e');
       }
@@ -140,23 +148,27 @@ class ChatMessagesNotifier
       // anything yet. If Matrix history/events already populated the state,
       // avoid overriding plaintext with legacy encrypted placeholders.
       if (!(state.hasValue && (state.value?.isNotEmpty ?? false))) {
-        debugPrint('[MessagesProvider] Loading initial messages from backend...');
+        debugPrint(
+            '[MessagesProvider] Loading initial messages from backend...');
         await _loadMessages();
-        debugPrint('[MessagesProvider] Initial messages loaded, timeline will update on new messages');
+        debugPrint(
+            '[MessagesProvider] Initial messages loaded, timeline will update on new messages');
       } else {
-        debugPrint('[MessagesProvider] Skipping backend load (timeline already has messages)');
+        debugPrint(
+            '[MessagesProvider] Skipping backend load (timeline already has messages)');
       }
-      
     } catch (e, st) {
       debugPrint('[MessagesProvider] Timeline init error: $e');
       state = AsyncValue.error(e, st);
-      
+
       // Even if Matrix fails, try to load from backend
       try {
-        debugPrint('[MessagesProvider] Matrix failed, trying backend fallback...');
+        debugPrint(
+            '[MessagesProvider] Matrix failed, trying backend fallback...');
         await _loadMessages();
       } catch (backendError) {
-        debugPrint('[MessagesProvider] Backend fallback also failed: $backendError');
+        debugPrint(
+            '[MessagesProvider] Backend fallback also failed: $backendError');
       }
     }
   }
@@ -232,7 +244,7 @@ class ChatMessagesNotifier
   }) async {
     try {
       debugPrint('[MessagesProvider] Sending message via ChatService');
-      
+
       // 1. Optimistic UI Update - show message immediately
       final tempMessage = ChatMessage(
         id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
@@ -247,10 +259,10 @@ class ChatMessagesNotifier
         isEncrypted: true,
         deliveredAt: DateTime.now(),
       );
-      
+
       addOptimisticMessage(tempMessage);
       debugPrint('[MessagesProvider] Added optimistic message to UI');
-      
+
       // 2. Send via Matrix
       final messageId = await _chatService.sendMessage(
         conversationId: _conversationId,
@@ -260,55 +272,60 @@ class ChatMessagesNotifier
         ref: _ref,
       );
 
-      debugPrint('[MessagesProvider] Message sent successfully with ID: $messageId');
+      debugPrint(
+          '[MessagesProvider] Message sent successfully with ID: $messageId');
 
       // Matrix-only mode: Do not poll HTTP backend for confirmation.
       // The live Matrix timeline already contains the event and UI is updated.
-      
     } catch (error, _) {
       debugPrint('[MessagesProvider] Error sending message: $error');
-      
+
       // Remove optimistic message on error
       final current = List<ChatMessage>.from(state.asData?.value ?? []);
       current.removeWhere((m) => m.id.startsWith('temp_'));
       state = AsyncValue.data(current);
-      
+
       rethrow;
     }
   }
 
   Future<void> _loadMessages() async {
     try {
-      debugPrint('[MessagesProvider] Loading messages for conversation: $_conversationId');
+      debugPrint(
+          '[MessagesProvider] Loading messages for conversation: $_conversationId');
       // DEBUG: Print bearer token
       final token = _ref.read(authProvider).sessionToken;
       debugPrint('[MessagesProvider] DEBUG Bearer Token: $token');
-      final messages = await _chatService.getMessages(_conversationId, ref: _ref);
-      
+      final messages =
+          await _chatService.getMessages(_conversationId, ref: _ref);
+
       // Preserve optimistic messages if they're not in the backend yet
       final current = state.asData?.value ?? [];
-      final optimisticMessages = current.where((m) => m.id.startsWith('temp_')).toList();
-      
+      final optimisticMessages =
+          current.where((m) => m.id.startsWith('temp_')).toList();
+
       if (optimisticMessages.isNotEmpty) {
-        debugPrint('[MessagesProvider] Preserving ${optimisticMessages.length} optimistic messages');
-        
+        debugPrint(
+            '[MessagesProvider] Preserving ${optimisticMessages.length} optimistic messages');
+
         // Merge: remove optimistic messages that now have real counterparts
         final filteredOptimistic = optimisticMessages.where((opt) {
           return !messages.any((real) =>
-            real.content == opt.content &&
-            real.senderId == opt.senderId &&
-            real.timestamp.difference(opt.timestamp).inSeconds.abs() < 10
-          );
+              real.content == opt.content &&
+              real.senderId == opt.senderId &&
+              real.timestamp.difference(opt.timestamp).inSeconds.abs() < 10);
         }).toList();
-        
+
         final mergedMessages = [...messages, ...filteredOptimistic]
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        
+
         state = AsyncValue.data(mergedMessages);
-        debugPrint('[MessagesProvider] Loaded ${messages.length} backend messages + ${filteredOptimistic.length} optimistic messages');
+        debugPrint(
+            '[MessagesProvider] Loaded ${messages.length} backend messages + ${filteredOptimistic.length} optimistic messages');
       } else {
         state = AsyncValue.data(messages);
-        debugPrint('[MessagesProvider] Loaded ${messages.length} messages from backend');
+        debugPrint(
+            '[MessagesProvider] Loaded ${messages.length} messages from backend');
       }
     } catch (error, stackTrace) {
       debugPrint('[MessagesProvider] Error loading messages: $error');

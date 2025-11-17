@@ -24,7 +24,6 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
   String _tenantFilter = 'all';
   String _sortKey = 'name'; // name | status
 
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -77,11 +76,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                       colors),
                   loading: () => SliverFillRemaining(
                       child: _buildLoadingState(colors, l10n)),
-                  error: (_, __) =>
-                      SliverFillRemaining(child: _buildErrorState(colors, l10n)),
+                  error: (_, __) => SliverFillRemaining(
+                      child: _buildErrorState(colors, l10n)),
                 ),
-                loading: () =>
-                    SliverFillRemaining(child: _buildLoadingState(colors, l10n)),
+                loading: () => SliverFillRemaining(
+                    child: _buildLoadingState(colors, l10n)),
                 error: (_, __) =>
                     SliverFillRemaining(child: _buildErrorState(colors, l10n)),
               ),
@@ -110,8 +109,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
         ],
       );
 
-  Widget _buildStatsSection(List<ContactUser> tenants, List<Property> properties,
-      DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildStatsSection(
+      List<ContactUser> tenants,
+      List<Property> properties,
+      DynamicAppColors colors,
+      AppLocalizations l10n) {
     final occupied = properties.where((p) => p.status == 'rented').length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
@@ -168,7 +170,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
         decoration: BoxDecoration(
           color: colors.surfaceCards,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.borderLight.withValues(alpha: 0.5), width: 1),
+          border: Border.all(
+              color: colors.borderLight.withValues(alpha: 0.5), width: 1),
           boxShadow: [
             BoxShadow(
                 color: colors.shadowColor.withValues(alpha: 0.06),
@@ -209,8 +212,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
         ),
       );
 
-  Widget _buildFilterChips(DynamicAppColors colors) =>
-      Padding(
+  Widget _buildFilterChips(DynamicAppColors colors) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         child: Row(
           children: [
@@ -268,7 +270,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                 decoration: BoxDecoration(
                   color: colors.primaryBackground,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors.borderLight.withValues(alpha: 0.5), width: 1),
+                  border: Border.all(
+                      color: colors.borderLight.withValues(alpha: 0.5),
+                      width: 1),
                 ),
                 child: Row(children: [
                   Icon(Icons.sort_rounded, size: 18, color: colors.textPrimary),
@@ -305,9 +309,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
               : colors.primaryBackground,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: selected
-                ? colors.primaryAccent
-                : colors.borderLight,
+            color: selected ? colors.primaryAccent : colors.borderLight,
             width: 1,
           ),
         ),
@@ -485,7 +487,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
       AppLocalizations l10n, DynamicAppColors colors) {
     final hasProps = tenantProperties.isNotEmpty;
     final status = tenant.status ?? (hasProps ? 'active' : 'available');
-    final statusColor = status == 'active' ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
+    final statusColor =
+        status == 'active' ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -533,7 +536,9 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                         ]),
                     child: Center(
                         child: Text(
-                            (tenant.fullName.isNotEmpty ? tenant.fullName[0] : 'T')
+                            (tenant.fullName.isNotEmpty
+                                    ? tenant.fullName[0]
+                                    : 'T')
                                 .toUpperCase(),
                             style: const TextStyle(
                                 color: Colors.white,
@@ -552,8 +557,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                               letterSpacing: -0.5)),
                       const SizedBox(height: 6),
                       Text(tenant.email,
-                          style:
-                              TextStyle(fontSize: 14, color: colors.textSecondary)),
+                          style: TextStyle(
+                              fontSize: 14, color: colors.textSecondary)),
                     ])),
                 Container(
                     padding:
@@ -641,13 +646,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
           Container(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: Row(children: [
-            Expanded(
-                child: _buildActionButton(
-                    l10n.message,
-                    Icons.chat_bubble_outline,
-                    colors.primaryAccent,
-                    () => _messageTenant(tenant))),
-            const SizedBox(width: 12),
+              Expanded(
+                  child: _buildActionButton(
+                      l10n.message,
+                      Icons.chat_bubble_outline,
+                      colors.primaryAccent,
+                      () => _messageTenant(tenant))),
+              const SizedBox(width: 12),
               Expanded(
                   child: _buildActionButton(l10n.call, Icons.phone_outlined,
                       colors.success, () => _callTenant(tenant))),
@@ -674,8 +679,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
             decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: color.withValues(alpha: 0.3), width: 1.5),
+                border:
+                    Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
                 boxShadow: [
                   BoxShadow(
                       color: color.withValues(alpha: 0.1),

@@ -44,7 +44,7 @@ class UserService {
     try {
       // Include session token if available for backend-side identification
       final headers = <String, String>{'Content-Type': 'application/json'};
-      
+
       // Read token from SharedPreferences
       String? token;
       try {
@@ -53,9 +53,10 @@ class UserService {
       } catch (e) {
         print('[UserService] Failed to get token from SharedPreferences: $e');
       }
-      
+
       if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $token'; // Backend expects Bearer prefix
+        headers['Authorization'] =
+            'Bearer $token'; // Backend expects Bearer prefix
         print('[UserService] Authorization header set with token');
       } else {
         print('[UserService] No token available for update profile request');
@@ -99,21 +100,25 @@ class UserService {
       // Use JWT token instead of session token
       final headers = await _tokenManager.getHeaders();
       headers['Content-Type'] = 'application/json';
-      
+
       print('[UserService] Fetching current user from $_apiUrl/users/me');
       final resp =
           await http.get(Uri.parse('$_apiUrl/users/me'), headers: headers);
       print('[UserService] Response status: ${resp.statusCode}');
-      
+
       if (resp.statusCode == 200) {
         final data = json.decode(resp.body) as Map<String, dynamic>;
         print('[UserService] User data keys: ${data.keys.toList()}');
-        print('[UserService] profileImageUrl in response: ${data['profileImageUrl']}');
-        print('[UserService] profileImage in response: ${data['profileImage']}');
-        
+        print(
+            '[UserService] profileImageUrl in response: ${data['profileImageUrl']}');
+        print(
+            '[UserService] profileImage in response: ${data['profileImage']}');
+
         final user = User.fromMap(data);
-        print('[UserService] User.fromMap - profileImageUrl: ${user.profileImageUrl}');
-        print('[UserService] User.fromMap - profileImage: ${user.profileImage}');
+        print(
+            '[UserService] User.fromMap - profileImageUrl: ${user.profileImageUrl}');
+        print(
+            '[UserService] User.fromMap - profileImage: ${user.profileImage}');
         return user;
       }
       print('[UserService] Failed to fetch user: ${resp.body}');
@@ -129,7 +134,7 @@ class UserService {
     try {
       final headers = await _tokenManager.getHeaders();
       headers['Content-Type'] = 'application/json';
-      
+
       final resp = await http.get(Uri.parse('$_apiUrl/users/by-id/$userId'),
           headers: headers);
       if (resp.statusCode == 200) {

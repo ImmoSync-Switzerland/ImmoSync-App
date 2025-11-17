@@ -15,7 +15,7 @@ class ProfilePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
@@ -73,8 +73,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileHeader(
-      BuildContext context, AppLocalizations l10n, user, DynamicAppColors colors) {
+  Widget _buildProfileHeader(BuildContext context, AppLocalizations l10n, user,
+      DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -147,12 +147,13 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRoleBadge(String role, DynamicAppColors colors, AppLocalizations l10n) {
+  Widget _buildRoleBadge(
+      String role, DynamicAppColors colors, AppLocalizations l10n) {
     final isLandlord = role.toLowerCase() == 'landlord';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isLandlord 
+        color: isLandlord
             ? colors.primaryAccent.withValues(alpha: 0.2)
             : Colors.blue.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
@@ -183,8 +184,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserInfoSection(
-      BuildContext context, AppLocalizations l10n, user, DynamicAppColors colors) {
+  Widget _buildUserInfoSection(BuildContext context, AppLocalizations l10n,
+      user, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -218,10 +219,10 @@ class ProfilePage extends ConsumerWidget {
               user?.email ?? l10n.notAvailable,
               colors,
             ),
-            if (user?.address != null && 
-                (user!.address.street.isNotEmpty || 
-                 user.address.city.isNotEmpty || 
-                 user.address.postalCode.isNotEmpty)) ...[
+            if (user?.address != null &&
+                (user!.address.street.isNotEmpty ||
+                    user.address.city.isNotEmpty ||
+                    user.address.postalCode.isNotEmpty)) ...[
               const Divider(height: 24),
               _buildInfoRow(
                 Icons.location_on_outlined,
@@ -236,7 +237,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, DynamicAppColors colors) {
+  Widget _buildInfoRow(
+      IconData icon, String label, String value, DynamicAppColors colors) {
     return Row(
       children: [
         Container(
@@ -364,8 +366,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildAccountSection(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
+  Widget _buildAccountSection(BuildContext context, AppLocalizations l10n,
+      WidgetRef ref, DynamicAppColors colors) {
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -382,7 +384,8 @@ class ProfilePage extends ConsumerWidget {
             colors: colors,
             onTap: () => context.push('/settings'),
           ),
-          Divider(height: 1, color: colors.textSecondary.withValues(alpha: 0.1)),
+          Divider(
+              height: 1, color: colors.textSecondary.withValues(alpha: 0.1)),
           _buildMenuTile(
             context,
             icon: Icons.help_outline,
@@ -391,7 +394,8 @@ class ProfilePage extends ConsumerWidget {
             colors: colors,
             onTap: () => context.push('/help-center'),
           ),
-          Divider(height: 1, color: colors.textSecondary.withValues(alpha: 0.1)),
+          Divider(
+              height: 1, color: colors.textSecondary.withValues(alpha: 0.1)),
           _buildMenuTile(
             context,
             icon: Icons.logout_outlined,
@@ -420,7 +424,7 @@ class ProfilePage extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDestructive 
+          color: isDestructive
               ? Colors.red.withValues(alpha: 0.1)
               : colors.primaryAccent.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
@@ -468,20 +472,25 @@ class ProfilePage extends ConsumerWidget {
     return parts.isEmpty ? '' : parts.join(', ');
   }
 
-  void _handleLogout(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  void _handleLogout(
+      BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (ctx) {
         final colors = ref.watch(dynamicColorsProvider);
         return AlertDialog(
           backgroundColor: colors.surfaceCards,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(l10n.confirmLogout, style: TextStyle(color: colors.textPrimary)),
-          content: Text(l10n.logoutConfirmation, style: TextStyle(color: colors.textSecondary)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(l10n.confirmLogout,
+              style: TextStyle(color: colors.textPrimary)),
+          content: Text(l10n.logoutConfirmation,
+              style: TextStyle(color: colors.textSecondary)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(l10n.cancel, style: TextStyle(color: colors.textSecondary)),
+              child: Text(l10n.cancel,
+                  style: TextStyle(color: colors.textSecondary)),
             ),
             TextButton(
               onPressed: () {
@@ -491,7 +500,8 @@ class ProfilePage extends ConsumerWidget {
               },
               child: Text(
                 l10n.logout,
-                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.w600),
               ),
             ),
           ],

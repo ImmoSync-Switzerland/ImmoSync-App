@@ -19,14 +19,14 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
   void initState() {
     super.initState();
     _loadLogs();
-    
+
     // Listen to new log entries
     MobileMatrixLogger.logStream.listen((logEntry) {
       if (mounted) {
         setState(() {
           _logs.add(logEntry);
         });
-        
+
         // Auto-scroll to bottom
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
@@ -106,15 +106,16 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
                 Text(
                   'Matrix Client Status',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text('Ready: ${MobileMatrixClient.instance.isReady}'),
-                Text('Current User: ${MobileMatrixClient.instance.currentUserId ?? 'Not logged in'}'),
+                Text(
+                    'Current User: ${MobileMatrixClient.instance.currentUserId ?? 'Not logged in'}'),
                 Text('Total Logs: ${_logs.length}'),
                 const SizedBox(height: 8),
-                
+
                 // Test buttons
                 Wrap(
                   spacing: 8,
@@ -136,7 +137,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
               ],
             ),
           ),
-          
+
           // Logs list
           Expanded(
             child: _logs.isEmpty
@@ -153,25 +154,25 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
                     itemCount: _logs.length,
                     itemBuilder: (context, index) {
                       final log = _logs[index];
-                      final isError = log.toLowerCase().contains('error') || 
-                                    log.toLowerCase().contains('failed');
-                      final isSuccess = log.toLowerCase().contains('success') || 
-                                      log.toLowerCase().contains('initialized');
-                      
+                      final isError = log.toLowerCase().contains('error') ||
+                          log.toLowerCase().contains('failed');
+                      final isSuccess = log.toLowerCase().contains('success') ||
+                          log.toLowerCase().contains('initialized');
+
                       return Container(
                         margin: const EdgeInsets.symmetric(vertical: 2),
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: isError 
+                          color: isError
                               ? Colors.red.withValues(alpha: 0.1)
-                              : isSuccess 
+                              : isSuccess
                                   ? Colors.green.withValues(alpha: 0.1)
                                   : Colors.grey.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: isError 
+                            color: isError
                                 ? Colors.red.withValues(alpha: 0.3)
-                                : isSuccess 
+                                : isSuccess
                                     ? Colors.green.withValues(alpha: 0.3)
                                     : Colors.grey.withValues(alpha: 0.2),
                           ),
@@ -181,9 +182,9 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 12,
-                            color: isError 
+                            color: isError
                                 ? Colors.red.shade700
-                                : isSuccess 
+                                : isSuccess
                                     ? Colors.green.shade700
                                     : Colors.black87,
                           ),
@@ -194,7 +195,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
           ),
         ],
       ),
-      
+
       // Test buttons
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
@@ -204,10 +205,8 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await MobileMatrixClient.instance.init(
-                    'https://matrix.immosync.ch', 
-                    '/tmp'
-                  );
+                  await MobileMatrixClient.instance
+                      .init('https://matrix.immosync.ch', '/tmp');
                 } catch (e) {
                   MobileMatrixLogger.log('[Test] Init failed: $e');
                 }
@@ -216,7 +215,8 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
             ),
             ElevatedButton(
               onPressed: () {
-                MobileMatrixLogger.log('[Test] Test log entry at ${DateTime.now()}');
+                MobileMatrixLogger.log(
+                    '[Test] Test log entry at ${DateTime.now()}');
               },
               child: const Text('Add Test Log'),
             ),
@@ -230,7 +230,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
     try {
       MobileMatrixLogger.log('[Diagnostics] Running client diagnostics...');
       final diagnostics = MobileMatrixClient.instance.getDiagnostics();
-      
+
       for (final entry in diagnostics.entries) {
         MobileMatrixLogger.log('[Diagnostics] ${entry.key}: ${entry.value}');
       }
@@ -243,7 +243,7 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
     try {
       MobileMatrixLogger.log('[Test] Running connection test...');
       final results = await MobileMatrixClient.instance.testConnection();
-      
+
       for (final entry in results.entries) {
         MobileMatrixLogger.log('[Test] ${entry.key}: ${entry.value}');
       }
@@ -255,9 +255,10 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
   void _testMessage() async {
     try {
       MobileMatrixLogger.log('[Test] Testing message functionality...');
-      
+
       if (!MobileMatrixClient.instance.isReady) {
-        MobileMatrixLogger.log('[Test] Client not ready - cannot test messaging');
+        MobileMatrixLogger.log(
+            '[Test] Client not ready - cannot test messaging');
         return;
       }
 
@@ -265,17 +266,18 @@ class _MatrixLogsViewerState extends State<MatrixLogsViewer> {
       final client = MobileMatrixClient.instance;
       final diagnostics = client.getDiagnostics();
       final roomCount = diagnostics['roomCount'] ?? 0;
-      
+
       if (roomCount == 0) {
         MobileMatrixLogger.log('[Test] No rooms available for testing');
         return;
       }
 
-      MobileMatrixLogger.log('[Test] Found $roomCount rooms, attempting to send test message...');
-      
+      MobileMatrixLogger.log(
+          '[Test] Found $roomCount rooms, attempting to send test message...');
+
       // This is just a test - in real usage, you would specify the actual room ID
-      MobileMatrixLogger.log('[Test] Message test completed - check actual chat implementation');
-      
+      MobileMatrixLogger.log(
+          '[Test] Message test completed - check actual chat implementation');
     } catch (e) {
       MobileMatrixLogger.log('[Test] Message test failed: $e');
     }

@@ -6,7 +6,8 @@ import 'package:immosync/core/widgets/common_bottom_nav.dart';
 
 void main() {
   group('CommonBottomNav Integration Tests', () {
-    testWidgets('Navigation highlights correct tab when tapping', (WidgetTester tester) async {
+    testWidgets('Navigation highlights correct tab when tapping',
+        (WidgetTester tester) async {
       // Create a simple router for testing
       final router = GoRouter(
         initialLocation: '/home',
@@ -21,7 +22,8 @@ void main() {
           ),
           GoRoute(
             path: '/properties',
-            builder: (context, state) => const Scaffold(body: Text('Properties')),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Properties')),
           ),
           GoRoute(
             path: '/reports',
@@ -50,9 +52,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Initially should be on dashboard (index 0)
-      final bottomNavBar = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final bottomNavBar =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBar.currentIndex, 0);
 
       // Tap on Messages (index 2)
@@ -61,9 +62,8 @@ void main() {
 
       // Should navigate to conversations and highlight Messages tab
       expect(find.text('Chat'), findsOneWidget);
-      final updatedBottomNavBar = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final updatedBottomNavBar =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(updatedBottomNavBar.currentIndex, 2);
 
       // Tap on Dashboard (index 0)
@@ -72,9 +72,8 @@ void main() {
 
       // Should navigate to home and highlight Dashboard tab
       expect(find.text('Home'), findsOneWidget);
-      final finalBottomNavBar = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final finalBottomNavBar =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(finalBottomNavBar.currentIndex, 0);
     });
   });

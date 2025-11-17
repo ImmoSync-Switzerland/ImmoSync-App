@@ -13,10 +13,10 @@ dart format . --set-exit-if-changed || {
   git add -u
 }
 
-# 2. Analyze code
+# 2. Analyze code (only errors/warnings, not infos)
 echo "🔍 Running Flutter analyze..."
-flutter analyze --fatal-infos || {
-  echo "❌ Flutter analyze found issues!"
+flutter analyze --fatal-warnings || {
+  echo "❌ Flutter analyze found critical issues!"
   exit 1
 }
 

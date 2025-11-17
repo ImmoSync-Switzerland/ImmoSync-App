@@ -46,9 +46,10 @@ class MatrixTestHomePage extends StatelessWidget {
                   children: [
                     Text(
                       'Matrix Testing Tools',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -59,13 +60,14 @@ class MatrixTestHomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Matrix Logs Viewer
             Card(
               child: ListTile(
                 leading: const Icon(Icons.bug_report, color: Colors.blue),
                 title: const Text('Matrix Debug Logs'),
-                subtitle: const Text('View real-time Matrix client logs and diagnostics'),
+                subtitle: const Text(
+                    'View real-time Matrix client logs and diagnostics'),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
                   Navigator.push(
@@ -77,15 +79,17 @@ class MatrixTestHomePage extends StatelessWidget {
                 },
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Matrix Test Tool
             Card(
               child: ListTile(
-                leading: const Icon(Icons.chat_bubble_outline, color: Colors.green),
+                leading:
+                    const Icon(Icons.chat_bubble_outline, color: Colors.green),
                 title: const Text('Matrix Test Tool'),
-                subtitle: const Text('Test Matrix messaging functionality step-by-step'),
+                subtitle: const Text(
+                    'Test Matrix messaging functionality step-by-step'),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
                   Navigator.push(
@@ -97,9 +101,9 @@ class MatrixTestHomePage extends StatelessWidget {
                 },
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             Card(
               color: Colors.amber.withValues(alpha: 0.1),
               child: const Padding(

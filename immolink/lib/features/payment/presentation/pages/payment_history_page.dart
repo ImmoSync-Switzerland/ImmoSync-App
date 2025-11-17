@@ -165,7 +165,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, color: colors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_rounded,
+              color: colors.textPrimary, size: 20),
           onPressed: () {
             HapticFeedback.lightImpact();
             context.pop();
@@ -185,7 +186,9 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         ),
         child: Column(
           children: [
-            SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight + 8),
+            SizedBox(
+                height:
+                    MediaQuery.of(context).padding.top + kToolbarHeight + 8),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -199,7 +202,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                     Expanded(
                       child: paymentsAsync.when(
                         data: (paymentsList) {
-                          final filteredPayments = _filterPayments(paymentsList);
+                          final filteredPayments =
+                              _filterPayments(paymentsList);
                           if (filteredPayments.isEmpty) {
                             return Center(
                               child: Column(
@@ -269,7 +273,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.error_outline, size: 48, color: colors.error),
+                              Icon(Icons.error_outline,
+                                  size: 48, color: colors.error),
                               const SizedBox(height: 16),
                               Text(
                                 'Error loading payment history',
@@ -302,7 +307,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: Text(AppLocalizations.of(context)!.retry),
+                                child:
+                                    Text(AppLocalizations.of(context)!.retry),
                               ),
                             ],
                           ),
@@ -467,7 +473,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
             children: [
               _buildFilterChip('All Types', null, colors, isTypeFilter: true),
               _buildFilterChip('Rent', 'rent', colors, isTypeFilter: true),
-              _buildFilterChip('Maintenance', 'maintenance', colors, isTypeFilter: true),
+              _buildFilterChip('Maintenance', 'maintenance', colors,
+                  isTypeFilter: true),
               _buildFilterChip('Other', 'other', colors, isTypeFilter: true),
             ],
           ),
@@ -482,9 +489,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     DynamicAppColors colors, {
     bool isTypeFilter = false,
   }) {
-    final isSelected = isTypeFilter
-        ? _selectedType == value
-        : _selectedStatus == value;
+    final isSelected =
+        isTypeFilter ? _selectedType == value : _selectedStatus == value;
 
     return GestureDetector(
       onTap: () {
@@ -512,9 +518,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           color: isSelected ? null : colors.surfaceCards,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? Color(0xFF2E7D32)
-                : colors.borderLight,
+            color: isSelected ? Color(0xFF2E7D32) : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected

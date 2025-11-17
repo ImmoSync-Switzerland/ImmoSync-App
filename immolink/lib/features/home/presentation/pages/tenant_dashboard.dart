@@ -722,7 +722,8 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
             Builder(builder: (context) {
               final l10n = AppLocalizations.of(context)!;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -1022,14 +1023,17 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                   () async {
                     HapticFeedback.mediumImpact();
                     // Get tenant's property
-                    final tenantPropertiesAsync = ref.read(tenantPropertiesProvider);
+                    final tenantPropertiesAsync =
+                        ref.read(tenantPropertiesProvider);
                     tenantPropertiesAsync.when(
                       data: (properties) {
                         if (properties.isNotEmpty) {
-                          context.push('/payments/tenant', extra: properties.first);
+                          context.push('/payments/tenant',
+                              extra: properties.first);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('No property assigned')),
+                            const SnackBar(
+                                content: Text('No property assigned')),
                           );
                         }
                       },
@@ -1111,12 +1115,13 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
   }
 
   Widget _buildActionCard(String title, IconData icon, Color iconColor,
-      VoidCallback onTap, DynamicAppColors colors, {bool isFullWidth = false}) {
+      VoidCallback onTap, DynamicAppColors colors,
+      {bool isFullWidth = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: 16, 
+          horizontal: 16,
           vertical: isFullWidth ? 16 : 16,
         ),
         decoration: BoxDecoration(
@@ -1380,13 +1385,16 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  _getActivityColor(activity.type, colors).withValues(alpha: 0.15),
-                  _getActivityColor(activity.type, colors).withValues(alpha: 0.05),
+                  _getActivityColor(activity.type, colors)
+                      .withValues(alpha: 0.15),
+                  _getActivityColor(activity.type, colors)
+                      .withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _getActivityColor(activity.type, colors).withValues(alpha: 0.1),
+                color: _getActivityColor(activity.type, colors)
+                    .withValues(alpha: 0.1),
                 width: 1.5,
               ),
             ),

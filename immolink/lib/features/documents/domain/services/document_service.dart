@@ -217,8 +217,8 @@ class DocumentService {
   Future<List<DocumentModel>> _fetchLandlordDocumentsFromAPI(
       String landlordId) async {
     // Use debug=1 to potentially get {count, documents}
-  final uri = Uri.parse('$_baseUrl/landlord/$landlordId?debug=1');
-  final response = await http.get(uri, headers: await _authHeaders());
+    final uri = Uri.parse('$_baseUrl/landlord/$landlordId?debug=1');
+    final response = await http.get(uri, headers: await _authHeaders());
     if (response.statusCode == 200) {
       dynamic decoded;
       try {
@@ -509,29 +509,33 @@ class DocumentService {
   /// Delete a document
   Future<void> deleteDocument(String documentId) async {
     await _initialize();
-    
+
     print('DocumentService: Attempting to delete document: $documentId');
-    
+
     // Try to delete from backend first
     try {
       final response = await http.delete(
         Uri.parse('$_baseUrl/$documentId'),
         headers: await _authHeaders(),
       );
-      
-      print('DocumentService: Delete response - Status: ${response.statusCode}');
-      
+
+      print(
+          'DocumentService: Delete response - Status: ${response.statusCode}');
+
       if (response.statusCode == 200 || response.statusCode == 204) {
         print('DocumentService: Successfully deleted from backend');
       } else if (response.statusCode == 401) {
-        print('DocumentService: Auth failed (401), trying to delete locally only');
+        print(
+            'DocumentService: Auth failed (401), trying to delete locally only');
       } else {
-        print('DocumentService: Backend delete failed with ${response.statusCode}, continuing with local delete');
+        print(
+            'DocumentService: Backend delete failed with ${response.statusCode}, continuing with local delete');
       }
     } catch (e) {
-      print('DocumentService: Backend delete error: $e, continuing with local delete');
+      print(
+          'DocumentService: Backend delete error: $e, continuing with local delete');
     }
-    
+
     // Always remove from local storage regardless of backend result
     _documents.removeWhere((doc) => doc.id == documentId);
     await _saveDocuments();

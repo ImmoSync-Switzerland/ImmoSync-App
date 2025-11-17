@@ -16,7 +16,8 @@ class SubscriptionService {
 
   Future<List<SubscriptionPlan>> getAvailablePlans() async {
     try {
-      print('[SubscriptionService] Fetching subscription plans from: $_apiUrl/subscriptions/plans');
+      print(
+          '[SubscriptionService] Fetching subscription plans from: $_apiUrl/subscriptions/plans');
       var response = await http.get(
         Uri.parse('$_apiUrl/subscriptions/plans'),
         headers: await _headers(),
@@ -29,13 +30,14 @@ class SubscriptionService {
         );
       }
 
-      print('[SubscriptionService] Plans response status: ${response.statusCode}');
-      
+      print(
+          '[SubscriptionService] Plans response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         print('[SubscriptionService] Received ${data.length} plans from API');
         print('[SubscriptionService] Raw plans data: ${json.encode(data)}');
-        
+
         final plans = data.map((json) {
           try {
             return SubscriptionPlan.fromMap(json);
@@ -45,21 +47,25 @@ class SubscriptionService {
             rethrow;
           }
         }).toList();
-        
-        print('[SubscriptionService] Successfully parsed ${plans.length} plans');
+
+        print(
+            '[SubscriptionService] Successfully parsed ${plans.length} plans');
         for (var plan in plans) {
-          print('  - ${plan.name}: Monthly: ${plan.monthlyPrice}, Yearly: ${plan.yearlyPrice}');
+          print(
+              '  - ${plan.name}: Monthly: ${plan.monthlyPrice}, Yearly: ${plan.yearlyPrice}');
         }
-        
+
         return plans;
       } else {
-        print('[SubscriptionService][ERROR] Failed to load plans from Stripe: ${response.statusCode}');
+        print(
+            '[SubscriptionService][ERROR] Failed to load plans from Stripe: ${response.statusCode}');
         print('[SubscriptionService][ERROR] Response body: ${response.body}');
         print('[SubscriptionService] Falling back to default plans...');
         return _getDefaultPlans();
       }
     } catch (e, stackTrace) {
-      print('[SubscriptionService][ERROR] Error getting subscription plans from Stripe: $e');
+      print(
+          '[SubscriptionService][ERROR] Error getting subscription plans from Stripe: $e');
       print('[SubscriptionService][ERROR] Stack trace: $stackTrace');
       print('[SubscriptionService] Falling back to default plans...');
       return _getDefaultPlans();
@@ -82,11 +88,12 @@ class SubscriptionService {
       }
 
       print('[SubscriptionService] Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('[SubscriptionService] Raw subscription data: ${json.encode(data)}');
-        
+        print(
+            '[SubscriptionService] Raw subscription data: ${json.encode(data)}');
+
         if (data != null) {
           try {
             final subscription = UserSubscription.fromMap(data);
@@ -100,9 +107,11 @@ class SubscriptionService {
             print('  - Next Billing: ${subscription.nextBillingDate}');
             return subscription;
           } catch (e, stackTrace) {
-            print('[SubscriptionService][ERROR] Error parsing subscription data: $e');
+            print(
+                '[SubscriptionService][ERROR] Error parsing subscription data: $e');
             print('[SubscriptionService][ERROR] Stack trace: $stackTrace');
-            print('[SubscriptionService][ERROR] Raw data was: ${json.encode(data)}');
+            print(
+                '[SubscriptionService][ERROR] Raw data was: ${json.encode(data)}');
             return null;
           }
         }
@@ -111,7 +120,8 @@ class SubscriptionService {
         print('[SubscriptionService] No subscription found for user $userId');
         return null; // No subscription found
       } else {
-        print('[SubscriptionService][ERROR] Failed to get user subscription: ${response.statusCode}');
+        print(
+            '[SubscriptionService][ERROR] Failed to get user subscription: ${response.statusCode}');
         print('[SubscriptionService][ERROR] Response body: ${response.body}');
         throw Exception('Failed to load user subscription');
       }
@@ -231,8 +241,9 @@ class SubscriptionService {
     String? returnUrl,
   }) async {
     try {
-      print('[SubscriptionService] Creating customer portal session for: $customerId');
-      
+      print(
+          '[SubscriptionService] Creating customer portal session for: $customerId');
+
       var response = await http.post(
         Uri.parse('$_apiUrl/subscriptions/create-portal-session'),
         headers: await _headers(),
@@ -241,7 +252,7 @@ class SubscriptionService {
           'returnUrl': returnUrl ?? 'immosync://subscription',
         }),
       );
-      
+
       if (response.statusCode == 401) {
         await _tokenManager.refreshToken(_apiUrl);
         response = await http.post(
@@ -254,7 +265,8 @@ class SubscriptionService {
         );
       }
 
-      print('[SubscriptionService] Portal session response: ${response.statusCode}');
+      print(
+          '[SubscriptionService] Portal session response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -262,8 +274,10 @@ class SubscriptionService {
         print('[SubscriptionService] Portal URL created: $url');
         return url;
       } else {
-        print('[SubscriptionService][ERROR] Failed to create portal session: ${response.body}');
-        throw Exception('Failed to create portal session: ${response.statusCode}');
+        print(
+            '[SubscriptionService][ERROR] Failed to create portal session: ${response.body}');
+        throw Exception(
+            'Failed to create portal session: ${response.statusCode}');
       }
     } catch (e) {
       print('[SubscriptionService][ERROR] Error creating portal session: $e');

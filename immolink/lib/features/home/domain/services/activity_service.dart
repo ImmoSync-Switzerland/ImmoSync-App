@@ -18,7 +18,8 @@ class ActivityService {
 
       // Fetch maintenance requests
       try {
-        final maintenanceRequests = await _maintenanceService.getMaintenanceRequestsByTenant(userId);
+        final maintenanceRequests =
+            await _maintenanceService.getMaintenanceRequestsByTenant(userId);
         for (var request in maintenanceRequests) {
           activities.add(_maintenanceRequestToActivity(request));
         }

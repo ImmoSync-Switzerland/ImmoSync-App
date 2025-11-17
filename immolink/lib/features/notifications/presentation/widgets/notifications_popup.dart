@@ -104,7 +104,8 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup>
                                   )),
                               Text('$e',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
                                   )),
                             ],
                           ),
@@ -125,12 +126,15 @@ class _NotificationsPopupState extends ConsumerState<NotificationsPopup>
                                       size: 40, color: theme.disabledColor),
                                   const SizedBox(height: 10),
                                   Text('You\'re all caught up',
-                                      style: theme.textTheme.titleSmall?.copyWith(
+                                      style:
+                                          theme.textTheme.titleSmall?.copyWith(
                                         color: theme.colorScheme.onSurface,
                                       )),
                                   Text('No notifications yet',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.7),
                                       )),
                                 ],
                               ),
@@ -423,7 +427,8 @@ class _NotificationTile extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: n.read ? FontWeight.w500 : FontWeight.w600,
+                            fontWeight:
+                                n.read ? FontWeight.w500 : FontWeight.w600,
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
@@ -431,7 +436,8 @@ class _NotificationTile extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(_formatTime(n.timestamp),
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.6),
                           )),
                     ],
                   ),
@@ -443,7 +449,8 @@ class _NotificationTile extends StatelessWidget {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.85),
                           height: 1.4,
                         ),
                       ),

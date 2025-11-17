@@ -143,7 +143,8 @@ class _ConversationsTabbedPageState
         ),
         child: SafeArea(
           child: AnimatedBuilder(
-            animation: _animationController ?? const AlwaysStoppedAnimation(1.0),
+            animation:
+                _animationController ?? const AlwaysStoppedAnimation(1.0),
             builder: (context, child) {
               return Transform.translate(
                 offset: Offset(0, _slideAnimation?.value ?? 0.0),

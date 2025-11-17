@@ -14,7 +14,7 @@ class TokenManager {
 
   static const String _tokenKey = 'sessionToken';
   static const String _userIdKey = 'userId';
-  
+
   // Load JWT secret from environment
   String get _jwtSecret => dotenv.env['JWT_SECRET'] ?? 'jETT?599Ps4e?#&4';
 
@@ -89,7 +89,7 @@ class TokenManager {
       }
 
       print('[TokenManager] Requesting token exchange for userId: $userId');
-      
+
       final response = await http.post(
         Uri.parse('$apiUrl/auth/login-exchange'),
         headers: {
@@ -112,7 +112,8 @@ class TokenManager {
           return false;
         }
       } else {
-        print('[TokenManager] Token refresh failed: ${response.statusCode} ${response.body}');
+        print(
+            '[TokenManager] Token refresh failed: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e, stackTrace) {
@@ -128,9 +129,11 @@ class TokenManager {
   String? _buildUiJwt(String userId) {
     try {
       // Debug: Log the JWT secret being used (first 8 chars for security)
-      final secretPreview = _jwtSecret.length > 8 ? _jwtSecret.substring(0, 8) : _jwtSecret;
-      print('[TokenManager] Using JWT secret starting with: $secretPreview (length: ${_jwtSecret.length})');
-      
+      final secretPreview =
+          _jwtSecret.length > 8 ? _jwtSecret.substring(0, 8) : _jwtSecret;
+      print(
+          '[TokenManager] Using JWT secret starting with: $secretPreview (length: ${_jwtSecret.length})');
+
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final header = {'alg': 'HS256', 'typ': 'JWT'};
       final payload = {
@@ -150,7 +153,7 @@ class TokenManager {
       final key = utf8.encode(_jwtSecret);
       final sig = Hmac(sha256, key).convert(data);
       final s = base64Url.encode(sig.bytes).replaceAll('=', '');
-      
+
       return '$h.$p.$s';
     } catch (e) {
       print('[TokenManager] Error building UI-JWT: $e');
@@ -161,7 +164,7 @@ class TokenManager {
   /// Ensure a valid token is available, refreshing if necessary
   Future<void> ensureTokenAvailable(String apiUrl) async {
     final token = await getToken();
-    
+
     // If no token or needs refresh, try to refresh
     if (token == null || token.isEmpty || needsRefresh()) {
       print('[TokenManager] Token unavailable or expired, refreshing...');
@@ -173,7 +176,7 @@ class TokenManager {
   Future<Map<String, String>> getHeaders() async {
     // Ensure token is valid before returning headers
     await ensureTokenAvailable(DbConfig.apiUrl);
-    
+
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -182,10 +185,11 @@ class TokenManager {
     final token = await getToken();
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
-      
+
       final looksJwt = token.contains('.') && token.split('.').length == 3;
       final prefix = token.substring(0, token.length < 8 ? token.length : 8);
-      print('[TokenManager] Adding token to headers; looksJwt=$looksJwt prefix=$prefix');
+      print(
+          '[TokenManager] Adding token to headers; looksJwt=$looksJwt prefix=$prefix');
     } else {
       print('[TokenManager] No token available');
     }

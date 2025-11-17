@@ -39,10 +39,12 @@ class _PropertyEmailInviteDialogState
 
   Future<void> _sendInvitation() async {
     print('[PropertyEmailInviteDialog] _sendInvitation called');
-    print('[PropertyEmailInviteDialog] Email: ${_emailController.text.trim()}, PropertyId: $_selectedPropertyId');
-    
+    print(
+        '[PropertyEmailInviteDialog] Email: ${_emailController.text.trim()}, PropertyId: $_selectedPropertyId');
+
     if (_emailController.text.trim().isEmpty || _selectedPropertyId == null) {
-      print('[PropertyEmailInviteDialog] Validation failed - email or property empty');
+      print(
+          '[PropertyEmailInviteDialog] Validation failed - email or property empty');
       return;
     }
 
@@ -64,7 +66,8 @@ class _PropertyEmailInviteDialogState
         'invitationType': 'email', // Mark as email invitation
       };
 
-      print('[PropertyEmailInviteDialog] Calling _sendEmailInvitation with data: $invitationData');
+      print(
+          '[PropertyEmailInviteDialog] Calling _sendEmailInvitation with data: $invitationData');
 
       // Send email invitation through backend
       final success = await _sendEmailInvitation(invitationData);
@@ -103,22 +106,24 @@ class _PropertyEmailInviteDialogState
 
   Future<bool> _sendEmailInvitation(Map<String, dynamic> invitationData) async {
     try {
-      print('[PropertyEmailInviteDialog] Sending email invitation: $invitationData');
-      
+      print(
+          '[PropertyEmailInviteDialog] Sending email invitation: $invitationData');
+
       // CRITICAL: Get auth token from TokenManager
       final tokenManager = TokenManager();
       final headers = await tokenManager.getHeaders();
       headers['Content-Type'] = 'application/json';
-      
+
       print('[PropertyEmailInviteDialog] Headers prepared with token');
-      
+
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/invitations/email-invite'),
         headers: headers,
         body: json.encode(invitationData),
       );
 
-      print('[PropertyEmailInviteDialog] Response status: ${response.statusCode}');
+      print(
+          '[PropertyEmailInviteDialog] Response status: ${response.statusCode}');
       print('[PropertyEmailInviteDialog] Response body: ${response.body}');
 
       if (response.statusCode == 201) {
@@ -131,7 +136,8 @@ class _PropertyEmailInviteDialogState
         throw Exception(errorResponse['message'] ??
             'User with this email address does not exist in the system');
       } else {
-        print('[PropertyEmailInviteDialog] Unexpected status code: ${response.statusCode}');
+        print(
+            '[PropertyEmailInviteDialog] Unexpected status code: ${response.statusCode}');
         throw Exception('Failed to send invitation');
       }
     } catch (error) {

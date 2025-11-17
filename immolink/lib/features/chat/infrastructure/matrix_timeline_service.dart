@@ -17,13 +17,14 @@ class MatrixTimelineService {
 
   final Map<String, StreamController<List<ChatMessage>>> _controllers = {};
   final Map<String, List<ChatMessage>> _buffers = {};
-  final Map<String, bool> _historyLoaded = {}; // Track which rooms have loaded history
+  final Map<String, bool> _historyLoaded =
+      {}; // Track which rooms have loaded history
 
   /// Check if the current platform supports the Matrix Rust bridge
   bool get _isRustBridgeSupported {
-    return defaultTargetPlatform == TargetPlatform.windows || 
-           defaultTargetPlatform == TargetPlatform.linux ||
-           defaultTargetPlatform == TargetPlatform.macOS;
+    return defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS;
   }
 
   Stream<List<ChatMessage>> watchRoom(String roomId) {
@@ -32,34 +33,35 @@ class MatrixTimelineService {
       () => StreamController<List<ChatMessage>>.broadcast(),
     );
     _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);
-    
+
     // Load historical messages if not already loaded
     if (!_historyLoaded.containsKey(roomId)) {
       _historyLoaded[roomId] = true;
       _loadHistoricalMessages(roomId);
     }
-    
+
     // Emit current buffer on new subscription
     scheduleMicrotask(() {
       if (!ctrl.isClosed) ctrl.add(List.unmodifiable(_buffers[roomId]!));
     });
     return ctrl.stream;
   }
-  
+
   /// Load historical messages from Matrix room
-  Future<void> _loadHistoricalMessages(String roomId, {bool immediate = false}) async {
+  Future<void> _loadHistoricalMessages(String roomId,
+      {bool immediate = false}) async {
     try {
       debugPrint('[MatrixTimeline] Loading history for room: $roomId');
-      
+
       // Wait a bit for sync to complete before querying (shorter/skip on manual refresh)
       if (!immediate) {
         await Future.delayed(const Duration(seconds: 2));
       } else {
         await Future.delayed(const Duration(milliseconds: 200));
       }
-      
+
       debugPrint('[MatrixTimeline] Calling getRoomMessages...');
-      
+
       // Use appropriate client based on platform
       String jsonStr;
       if (_isRustBridgeSupported) {
@@ -69,18 +71,20 @@ class MatrixTimelineService {
         final mobileClient = MobileMatrixClient.instance;
         jsonStr = await mobileClient.getRoomMessages(roomId, 50);
       }
-      
+
       debugPrint('[MatrixTimeline] getRoomMessages returned: $jsonStr');
-      
+
       final List<dynamic> messages = jsonDecode(jsonStr);
-      
-      debugPrint('[MatrixTimeline] Loaded ${messages.length} historical messages');
-      
+
+      debugPrint(
+          '[MatrixTimeline] Loaded ${messages.length} historical messages');
+
       if (messages.isEmpty) {
-        debugPrint('[MatrixTimeline] No messages found - room might be new or user not synced yet');
+        debugPrint(
+            '[MatrixTimeline] No messages found - room might be new or user not synced yet');
         return;
       }
-      
+
       for (final msgData in messages) {
         try {
           // Extract user ID from Matrix MXID format: @userid:homeserver -> userid
@@ -90,16 +94,15 @@ class MatrixTimelineService {
             }
             return mxid;
           }
-          
+
           // Timestamp is in seconds from Rust, convert to milliseconds
           final timestampSecs = msgData['timestamp'] as int;
           final senderMxid = msgData['sender'] as String;
           final senderId = extractUserId(senderMxid);
-          
-          final ts = DateTime.fromMillisecondsSinceEpoch(
-            timestampSecs * 1000, isUtc: true
-          );
-          
+
+          final ts = DateTime.fromMillisecondsSinceEpoch(timestampSecs * 1000,
+              isUtc: true);
+
           final message = ChatMessage(
             id: msgData['eventId'] as String,
             conversationId: roomId,
@@ -107,20 +110,24 @@ class MatrixTimelineService {
             receiverId: '', // Will be determined by context
             content: msgData['body'] as String,
             timestamp: ts,
-            deliveredAt: ts, // Historical messages were already delivered to server
-            isEncrypted: true, // Matrix rooms use encryption, content is auto-decrypted by SDK
+            deliveredAt:
+                ts, // Historical messages were already delivered to server
+            isEncrypted:
+                true, // Matrix rooms use encryption, content is auto-decrypted by SDK
             messageType: 'text',
           );
-          
-          debugPrint('[MatrixTimeline] Ingesting message from $senderMxid -> $senderId: ${message.content}');
-          
+
+          debugPrint(
+              '[MatrixTimeline] Ingesting message from $senderMxid -> $senderId: ${message.content}');
+
           // If message already exists (e.g., placeholder from live event), replace with full content
           final list = _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);
           final existingIdx = list.indexWhere((m) => m.id == message.id);
           if (existingIdx >= 0) {
             // Prefer non-empty/non-placeholder content, but replace regardless to normalize timestamps
             list[existingIdx] = message;
-            _controllers[roomId]?.add(List.unmodifiable(list..sort((a,b)=>a.timestamp.compareTo(b.timestamp))));
+            _controllers[roomId]?.add(List.unmodifiable(
+                list..sort((a, b) => a.timestamp.compareTo(b.timestamp))));
           } else {
             ingestMatrixEvent(roomId, message);
           }
@@ -128,8 +135,9 @@ class MatrixTimelineService {
           debugPrint('[MatrixTimeline] Failed to parse message: $e');
         }
       }
-      
-      debugPrint('[MatrixTimeline] History loaded successfully for $roomId: ${messages.length} messages');
+
+      debugPrint(
+          '[MatrixTimeline] History loaded successfully for $roomId: ${messages.length} messages');
     } catch (e) {
       debugPrint('[MatrixTimeline] Failed to load history for $roomId: $e');
       // Continue gracefully - new messages will still work via event stream
@@ -137,7 +145,8 @@ class MatrixTimelineService {
   }
 
   /// Public method to force a quick history refresh (used when live events lack plaintext content)
-  Future<void> refreshHistory(String roomId) => _loadHistoricalMessages(roomId, immediate: true);
+  Future<void> refreshHistory(String roomId) =>
+      _loadHistoricalMessages(roomId, immediate: true);
 
   void pushLocal(String roomId, ChatMessage msg) {
     final list = _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);

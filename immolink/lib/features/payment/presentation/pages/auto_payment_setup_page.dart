@@ -44,9 +44,9 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     try {
       final currentUser = ref.read(currentUserProvider);
       if (currentUser == null) return;
-      
+
       _tenantId = currentUser.id;
-      
+
       // Get tenant's property to find landlord
       final propertiesAsync = ref.read(tenantPropertiesProvider);
       propertiesAsync.whenData((properties) {
@@ -320,9 +320,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected 
-                ? Color(0xFF2E7D32)
-                : colors.borderLight,
+            color: isSelected ? Color(0xFF2E7D32) : colors.borderLight,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -340,16 +338,14 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isSelected 
+                color: isSelected
                     ? Colors.white.withValues(alpha: 0.2)
                     : colors.textSecondary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 icon,
-                color: isSelected 
-                    ? Colors.white
-                    : colors.textSecondary,
+                color: isSelected ? Colors.white : colors.textSecondary,
                 size: 28,
               ),
             ),
@@ -368,7 +364,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: isSelected 
+                color: isSelected
                     ? Colors.white.withValues(alpha: 0.9)
                     : colors.textSecondary,
               ),

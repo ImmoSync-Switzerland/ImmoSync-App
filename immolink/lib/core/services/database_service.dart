@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform, debugPrint;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform, debugPrint;
 import 'database_interface.dart';
 import 'web_database_service.dart';
 import 'mobile_database_service.dart';
@@ -10,7 +11,8 @@ class DatabaseService {
   static IDatabaseService _createInstance() {
     // Force HTTP DB via env flag on any platform
     if (DbConfig.forceHttpDb) {
-      debugPrint('[DatabaseService] Using WebDatabaseService (forced by DB_FORCE_HTTP)');
+      debugPrint(
+          '[DatabaseService] Using WebDatabaseService (forced by DB_FORCE_HTTP)');
       return WebDatabaseService(apiBaseUrl: DbConfig.apiUrl);
     }
 
@@ -18,16 +20,19 @@ class DatabaseService {
     if (kIsWeb ||
         defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS) {
-      debugPrint('[DatabaseService] Using WebDatabaseService (web/mobile platform)');
+      debugPrint(
+          '[DatabaseService] Using WebDatabaseService (web/mobile platform)');
       return WebDatabaseService(apiBaseUrl: DbConfig.apiUrl);
     }
 
     // Desktop platforms: use direct MongoDB only if a URI is provided via env; otherwise use HTTP
     if (DbConfig.hasMongoEnv) {
-      debugPrint('[DatabaseService] Using MobileDatabaseService (desktop with Mongo env)');
+      debugPrint(
+          '[DatabaseService] Using MobileDatabaseService (desktop with Mongo env)');
       return MobileDatabaseService();
     }
-    debugPrint('[DatabaseService] Using WebDatabaseService (desktop without Mongo env)');
+    debugPrint(
+        '[DatabaseService] Using WebDatabaseService (desktop without Mongo env)');
     return WebDatabaseService(apiBaseUrl: DbConfig.apiUrl);
   }
 

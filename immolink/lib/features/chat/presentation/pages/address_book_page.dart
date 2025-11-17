@@ -93,7 +93,8 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
         ),
         child: SafeArea(
           child: AnimatedBuilder(
-            animation: _animationController ?? const AlwaysStoppedAnimation(1.0),
+            animation:
+                _animationController ?? const AlwaysStoppedAnimation(1.0),
             builder: (context, child) {
               return Transform.translate(
                 offset: Offset(0, _slideAnimation?.value ?? 0.0),
@@ -126,8 +127,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
                                 itemBuilder: (context, index) {
                                   final contact = filteredContacts[index];
                                   return Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.only(bottom: 12),
                                     child: _buildContactTile(
                                         contact, isLandlord, colors),
                                   );
@@ -221,8 +221,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 32, vertical: 16),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     child: Text(

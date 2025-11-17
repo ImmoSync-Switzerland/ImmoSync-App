@@ -18,7 +18,14 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/core/services/token_manager.dart';
 
 /// Client-visible initialization states for the Matrix chat client.
-enum MatrixClientState { idle, starting, ensuringCrypto, ensuringRoom, ready, error }
+enum MatrixClientState {
+  idle,
+  starting,
+  ensuringCrypto,
+  ensuringRoom,
+  ready,
+  error
+}
 
 class MatrixNotReadyException implements Exception {
   final String message;
@@ -29,14 +36,16 @@ class MatrixNotReadyException implements Exception {
 
 class MatrixRoomMissingException implements Exception {
   final String message;
-  MatrixRoomMissingException([this.message = 'Matrix room could not be ensured']);
+  MatrixRoomMissingException(
+      [this.message = 'Matrix room could not be ensured']);
   @override
   String toString() => 'MatrixRoomMissingException: $message';
 }
 
 class MatrixSendFailedException implements Exception {
   final String message;
-  MatrixSendFailedException([this.message = 'Failed to send message via Matrix']);
+  MatrixSendFailedException(
+      [this.message = 'Failed to send message via Matrix']);
   @override
   String toString() => 'MatrixSendFailedException: $message';
 }
@@ -49,7 +58,7 @@ class ChatService {
   /// Reactive Matrix client state for UI (Riverpod can watch ValueListenable).
   static final ValueNotifier<MatrixClientState> clientState =
       ValueNotifier<MatrixClientState>(MatrixClientState.idle);
-  
+
   /// Get headers with authorization token if available (async version using JWT)
   Future<Map<String, String>> _getHeadersAsync() async {
     // Use TokenManager to get JWT-based headers
@@ -57,7 +66,7 @@ class ChatService {
     headers['Content-Type'] = 'application/json';
     return headers;
   }
-  
+
   /// Synchronous version for backward compatibility (falls back to sessionToken)
   Map<String, String> _getHeaders({Ref? ref}) {
     final headers = <String, String>{'Content-Type': 'application/json'};
@@ -78,7 +87,7 @@ class ChatService {
   Future<List<Conversation>> getConversationsForUser(String userId) async {
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
+
     final response = await http.get(
       Uri.parse('$_apiUrl/conversations/user/$userId'),
       headers: headers,
@@ -89,7 +98,8 @@ class ChatService {
       // Return ALL conversations - Matrix room will be created on first message send
       return data.map((json) => Conversation.fromMap(json)).toList();
     }
-    throw Exception('Failed to load conversations: ${response.statusCode} - ${response.body}');
+    throw Exception(
+        'Failed to load conversations: ${response.statusCode} - ${response.body}');
   }
 
   Future<List<Conversation>> getConversations() async {
@@ -107,34 +117,37 @@ class ChatService {
     return []; // Return empty list instead of throwing
   }
 
-  Future<List<ChatMessage>> getMessages(String conversationId, {Ref? ref}) async {
+  Future<List<ChatMessage>> getMessages(String conversationId,
+      {Ref? ref}) async {
     print('[ChatService] Fetching messages for conversation: $conversationId');
     print('[ChatService] API URL: $_apiUrl/chat/$conversationId/messages');
-    
+
     // Use JWT-based authentication instead of session token
     final headers = await _getHeadersAsync();
     print('[ChatService] Using JWT authentication');
-    
+
     final response = await http.get(
       Uri.parse('$_apiUrl/chat/$conversationId/messages'),
       headers: headers,
     );
 
     print('[ChatService] Response status: ${response.statusCode}');
-    
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       print('[ChatService] Fetched ${data.length} messages from backend');
       return data.map((json) => ChatMessage.fromMap(json)).toList();
     }
-    
-    print('[ChatService] Failed to fetch messages: ${response.statusCode} - ${response.body}');
+
+    print(
+        '[ChatService] Failed to fetch messages: ${response.statusCode} - ${response.body}');
     throw Exception('Failed to fetch messages: ${response.statusCode}');
   }
 
   /// Ensure Matrix client is initialized, logged in, and syncing for the given user
   /// Throws exception only if Matrix is required. On mobile, Matrix errors are logged but don't block chat.
-  Future<void> ensureMatrixReady({required String userId, bool required = false}) async {
+  Future<void> ensureMatrixReady(
+      {required String userId, bool required = false}) async {
     if (clientState.value == MatrixClientState.ready) return;
     clientState.value = MatrixClientState.starting;
     try {
@@ -153,90 +166,116 @@ class ChatService {
       } else {
         // Mobile: Use Dart Matrix SDK
         final mobileClient = MobileMatrixClient.instance;
-        
+
         // Get Matrix credentials via provision endpoint (creates account if needed)
         final headers = await _tokenManager.getHeaders();
-        
+
         // First try to get existing account credentials (faster than provision)
         String? mxid;
         String? password;
         String? accessToken;
         String? fullMxid;
-        
+
         try {
-          print('[ChatService.ensureMatrixReady] Checking for existing Matrix account: $userId');
+          print(
+              '[ChatService.ensureMatrixReady] Checking for existing Matrix account: $userId');
           final accountUrl = '$_apiUrl/matrix/accounts/$userId';
           print('[ChatService.ensureMatrixReady] Account URL: $accountUrl');
-          
-          final accountResp = await http.get(
-            Uri.parse(accountUrl), 
-            headers: headers
-          ).timeout(const Duration(seconds: 10));
-          
-          print('[ChatService.ensureMatrixReady] Account check response: ${accountResp.statusCode}');
-          print('[ChatService.ensureMatrixReady] Account check body: ${accountResp.body}');
-          
+
+          final accountResp = await http
+              .get(Uri.parse(accountUrl), headers: headers)
+              .timeout(const Duration(seconds: 10));
+
+          print(
+              '[ChatService.ensureMatrixReady] Account check response: ${accountResp.statusCode}');
+          print(
+              '[ChatService.ensureMatrixReady] Account check body: ${accountResp.body}');
+
           if (accountResp.statusCode == 200) {
             final accountData = json.decode(accountResp.body);
-            mxid = accountData['username']?.toString() ?? accountData['userId']?.toString();
+            mxid = accountData['username']?.toString() ??
+                accountData['userId']?.toString();
             password = accountData['password']?.toString();
             accessToken = accountData['accessToken']?.toString();
-            fullMxid = accountData['mxid']?.toString(); // Full Matrix ID like @user:server
-            
-            print('[ChatService.ensureMatrixReady] Parsed - username: $mxid, mxid: $fullMxid, has accessToken: ${accessToken != null}');
-            
+            fullMxid = accountData['mxid']
+                ?.toString(); // Full Matrix ID like @user:server
+
+            print(
+                '[ChatService.ensureMatrixReady] Parsed - username: $mxid, mxid: $fullMxid, has accessToken: ${accessToken != null}');
+
             if (mxid != null && (password != null || accessToken != null)) {
-              print('[ChatService.ensureMatrixReady] ✅ Found existing Matrix account with credentials: $mxid');
+              print(
+                  '[ChatService.ensureMatrixReady] ✅ Found existing Matrix account with credentials: $mxid');
             } else {
-              print('[ChatService.ensureMatrixReady] ⚠️ Account exists but missing credentials (username: $mxid, accessToken: ${accessToken != null})');
+              print(
+                  '[ChatService.ensureMatrixReady] ⚠️ Account exists but missing credentials (username: $mxid, accessToken: ${accessToken != null})');
             }
           } else {
-            print('[ChatService.ensureMatrixReady] Account check failed with status: ${accountResp.statusCode}');
+            print(
+                '[ChatService.ensureMatrixReady] Account check failed with status: ${accountResp.statusCode}');
           }
         } catch (e) {
           print('[ChatService.ensureMatrixReady] ❌ Account check error: $e');
         }
-        
+
         // If no existing account, provision a new one
         if (mxid == null || password == null) {
-          print('[ChatService.ensureMatrixReady] 🔧 Provisioning new Matrix account for user: $userId');
+          print(
+              '[ChatService.ensureMatrixReady] 🔧 Provisioning new Matrix account for user: $userId');
           final provisionUrl = '$_apiUrl/matrix/provision';
           print('[ChatService.ensureMatrixReady] Provision URL: $provisionUrl');
-          print('[ChatService.ensureMatrixReady] Provision timeout: 20 seconds');
-          
+          print(
+              '[ChatService.ensureMatrixReady] Provision timeout: 20 seconds');
+
           try {
-            final provisionResp = await http.post(
-              Uri.parse(provisionUrl),
-              headers: headers,
-              body: json.encode({'userId': userId}),
-            ).timeout(const Duration(seconds: 20)); // Reduced from 60s - if it takes this long, backend has issues
-            
-            print('[ChatService.ensureMatrixReady] Provision response: ${provisionResp.statusCode}');
-            
-            if (provisionResp.statusCode != 200 && provisionResp.statusCode != 201) {
+            final provisionResp = await http
+                .post(
+                  Uri.parse(provisionUrl),
+                  headers: headers,
+                  body: json.encode({'userId': userId}),
+                )
+                .timeout(const Duration(
+                    seconds:
+                        20)); // Reduced from 60s - if it takes this long, backend has issues
+
+            print(
+                '[ChatService.ensureMatrixReady] Provision response: ${provisionResp.statusCode}');
+
+            if (provisionResp.statusCode != 200 &&
+                provisionResp.statusCode != 201) {
               final errorBody = provisionResp.body;
-              print('[ChatService.ensureMatrixReady] Provision failed: $errorBody');
-              throw Exception('Matrix Provisionierung fehlgeschlagen. Bitte Backend prüfen.');
+              print(
+                  '[ChatService.ensureMatrixReady] Provision failed: $errorBody');
+              throw Exception(
+                  'Matrix Provisionierung fehlgeschlagen. Bitte Backend prüfen.');
             }
-            
+
             final provisionData = json.decode(provisionResp.body);
-            mxid = provisionData['username']?.toString() ?? provisionData['userId']?.toString();
+            mxid = provisionData['username']?.toString() ??
+                provisionData['userId']?.toString();
             password = provisionData['password']?.toString();
-            
+
             if (mxid == null || password == null) {
-              print('[ChatService.ensureMatrixReady] Missing credentials in response: $provisionData');
+              print(
+                  '[ChatService.ensureMatrixReady] Missing credentials in response: $provisionData');
               throw Exception('Matrix Credentials fehlen in der Antwort');
             }
-            
-            print('[ChatService.ensureMatrixReady] Successfully provisioned Matrix account (username): $mxid');
+
+            print(
+                '[ChatService.ensureMatrixReady] Successfully provisioned Matrix account (username): $mxid');
           } on TimeoutException {
-            print('[ChatService.ensureMatrixReady] ⏱️ Provision timeout after 20 seconds');
-            print('[ChatService.ensureMatrixReady] ⚠️ Backend Matrix provision ist zu langsam oder hängt!');
+            print(
+                '[ChatService.ensureMatrixReady] ⏱️ Provision timeout after 20 seconds');
+            print(
+                '[ChatService.ensureMatrixReady] ⚠️ Backend Matrix provision ist zu langsam oder hängt!');
             if (required) {
-              throw Exception('Matrix Server antwortet nicht (Timeout nach 20s). Backend Problem - Admin kontaktieren.');
+              throw Exception(
+                  'Matrix Server antwortet nicht (Timeout nach 20s). Backend Problem - Admin kontaktieren.');
             } else {
-              print('[ChatService.ensureMatrixReady] ℹ️ Matrix unavailable but not required - Chat funktioniert ohne E2EE');
-              clientState.value = MatrixClientState.error; // Mark as error but don't throw
+              print(
+                  '[ChatService.ensureMatrixReady] ℹ️ Matrix unavailable but not required - Chat funktioniert ohne E2EE');
+              clientState.value =
+                  MatrixClientState.error; // Mark as error but don't throw
               return; // Exit early, chat will work without Matrix
             }
           } catch (e) {
@@ -244,52 +283,59 @@ class ChatService {
             if (required) {
               rethrow;
             } else {
-              print('[ChatService.ensureMatrixReady] ℹ️ Matrix error but not required - Chat funktioniert ohne E2EE');
+              print(
+                  '[ChatService.ensureMatrixReady] ℹ️ Matrix error but not required - Chat funktioniert ohne E2EE');
               clientState.value = MatrixClientState.error;
               return;
             }
           }
         }
-        
+
         // At this point we have credentials, try to init and login
         try {
-          print('[ChatService.ensureMatrixReady] Using Matrix credentials - username: $mxid, fullMxid: $fullMxid');
-          
+          print(
+              '[ChatService.ensureMatrixReady] Using Matrix credentials - username: $mxid, fullMxid: $fullMxid');
+
           // Initialize mobile client
-          print('[ChatService.ensureMatrixReady] Initializing mobile Matrix client...');
+          print(
+              '[ChatService.ensureMatrixReady] Initializing mobile Matrix client...');
           await mobileClient.init('https://matrix.immosync.ch', '');
-          
+
           // Try login with access token first (if it's a real Matrix access token)
           // Otherwise fall back to password login
           print('[ChatService.ensureMatrixReady] Logging in to Matrix...');
-          
+
           // Note: The backend currently returns the shared secret password as both
           // 'password' and 'accessToken'. We need to use password login for now.
-          if (password != null && password.isNotEmpty && mxid != null) {
-            print('[ChatService.ensureMatrixReady] Using password login for: $mxid');
+          if (password.isNotEmpty && mxid.isNotEmpty) {
+            print(
+                '[ChatService.ensureMatrixReady] Using password login for: $mxid');
             await mobileClient.login(mxid, password);
           } else {
-            final hasToken = accessToken != null && accessToken.isNotEmpty;
-            final hasPassword = password != null && password.isNotEmpty;
-            throw Exception('No valid credentials available (accessToken: $hasToken, password: $hasPassword)');
+            final hasToken = accessToken?.isNotEmpty ?? false;
+            final hasPassword = password.isNotEmpty;
+            throw Exception(
+                'No valid credentials available (accessToken: $hasToken, password: $hasPassword)');
           }
-          
+
           print('[ChatService.ensureMatrixReady] Mobile Matrix client ready');
-          
+
           // Give brief moment for sync to start
           await Future.delayed(const Duration(seconds: 2));
         } catch (e) {
-          print('[ChatService.ensureMatrixReady] Matrix client init/login failed: $e');
+          print(
+              '[ChatService.ensureMatrixReady] Matrix client init/login failed: $e');
           if (required) {
             throw Exception('Matrix Login fehlgeschlagen: $e');
           } else {
-            print('[ChatService.ensureMatrixReady] Matrix not available but not required - chat will work without E2EE');
+            print(
+                '[ChatService.ensureMatrixReady] Matrix not available but not required - chat will work without E2EE');
             clientState.value = MatrixClientState.error;
             return;
           }
         }
       }
-      
+
       clientState.value = MatrixClientState.ready;
     } catch (e) {
       print('[ChatService.ensureMatrixReady] Error: $e');
@@ -324,7 +370,8 @@ class ChatService {
       try {
         await ensureMatrixReady(userId: senderId);
       } catch (_) {
-        throw MatrixNotReadyException('Matrix client initializing – bitte warten');
+        throw MatrixNotReadyException(
+            'Matrix client initializing – bitte warten');
       }
       int waited = 0;
       while (clientState.value != MatrixClientState.ready && waited < 5000) {
@@ -354,13 +401,14 @@ class ChatService {
     }
     if (roomId == null || roomId.isEmpty) {
       clientState.value = MatrixClientState.ready; // revert state indicator
-      throw MatrixRoomMissingException('Could not ensure Matrix room for conversation');
+      throw MatrixRoomMissingException(
+          'Could not ensure Matrix room for conversation');
     }
 
     // Send via Matrix (native E2EE handled by SDK)
     try {
       final String matrixEventId;
-      
+
       // Use platform-specific SDK
       if (defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux ||
@@ -372,7 +420,7 @@ class ChatService {
         final mobileClient = MobileMatrixClient.instance;
         matrixEventId = await mobileClient.sendMessage(roomId, content);
       }
-      
+
       clientState.value = MatrixClientState.ready;
       // Return event ID to the caller (no HTTP persistence here)
       return matrixEventId.toString();
@@ -392,19 +440,20 @@ class ChatService {
         await _waitForCryptoReady(timeout: const Duration(seconds: 2));
         try {
           final String matrixEventId;
-          
+
           // Use platform-specific SDK for retry
           if (defaultTargetPlatform == TargetPlatform.windows ||
               defaultTargetPlatform == TargetPlatform.linux ||
               defaultTargetPlatform == TargetPlatform.macOS) {
             // Desktop: Use Rust bridge
-            matrixEventId = await frb.sendMessage(roomId: roomId, body: content);
+            matrixEventId =
+                await frb.sendMessage(roomId: roomId, body: content);
           } else {
             // Mobile: Use Dart Matrix SDK
             final mobileClient = MobileMatrixClient.instance;
             matrixEventId = await mobileClient.sendMessage(roomId, content);
           }
-          
+
           clientState.value = MatrixClientState.ready;
           return matrixEventId.toString();
         } catch (e2) {
@@ -426,20 +475,22 @@ class ChatService {
     // Use JWT authentication
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
-    print('[ChatService] Fetching Matrix roomId for conversation: $conversationId');
-    
+
+    print(
+        '[ChatService] Fetching Matrix roomId for conversation: $conversationId');
+
     // Expect backend to expose mapping endpoint
     final res = await http.get(
       Uri.parse('$_apiUrl/conversations/$conversationId/matrix-room'),
       headers: headers,
     );
-    
+
     print('[ChatService] Matrix room mapping response: ${res.statusCode}');
-    
+
     if (res.statusCode == 200) {
       final data = json.decode(res.body);
-      final roomId = data['matrixRoomId'] ?? data['roomId'] ?? data['matrix_room_id'];
+      final roomId =
+          data['matrixRoomId'] ?? data['roomId'] ?? data['matrix_room_id'];
       print('[ChatService] Found Matrix roomId: $roomId');
       return roomId;
     }
@@ -469,8 +520,9 @@ class ChatService {
     // Use JWT authentication
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
-    print('[ChatService] Ensuring Matrix room for conversation: $conversationId');
+
+    print(
+        '[ChatService] Ensuring Matrix room for conversation: $conversationId');
 
     // First check if other user has Matrix account and get their MXID
     String? otherMxid = await _getMatrixMxid(otherUserId);
@@ -483,17 +535,20 @@ class ChatService {
       // ignore: avoid_print
       print('[MatrixRoom] Provisioning user $otherUserId at $provisionUri');
       try {
-        final provResp = await http.post(
-          provisionUri,
-          headers: headers,
-          body: json.encode({'userId': otherUserId}),
-        ).timeout(const Duration(seconds: 30));
+        final provResp = await http
+            .post(
+              provisionUri,
+              headers: headers,
+              body: json.encode({'userId': otherUserId}),
+            )
+            .timeout(const Duration(seconds: 30));
         // ignore: avoid_print
         print(
             '[MatrixRoom] Provision response: status=${provResp.statusCode} body=${provResp.body}');
         if (provResp.statusCode < 200 || provResp.statusCode >= 300) {
           // ignore: avoid_print
-          print('[MatrixRoom] Failed to provision other user: ${provResp.body}');
+          print(
+              '[MatrixRoom] Failed to provision other user: ${provResp.body}');
           return null;
         }
         // Retry getting MXID and update the variable
@@ -522,26 +577,29 @@ class ChatService {
     // Create room using platform-specific SDK
     try {
       final String roomId;
-      
+
       // Check if we should use Rust bridge or mobile client
       if (defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.macOS) {
         // Desktop: Use Rust bridge
         // ignore: avoid_print
-        print('[MatrixRoom] Creating room with Rust bridge, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
+        print(
+            '[MatrixRoom] Creating room with Rust bridge, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
         roomId = await frb.createRoom(
           otherMxid: otherMxid,
-          creatorMxid: creatorMxid, // Pass creator's MXID to invite their other sessions
+          creatorMxid:
+              creatorMxid, // Pass creator's MXID to invite their other sessions
         );
       } else {
         // Mobile: Use Dart Matrix SDK
         // ignore: avoid_print
-        print('[MatrixRoom] Creating room with MobileMatrixClient, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
+        print(
+            '[MatrixRoom] Creating room with MobileMatrixClient, otherMxid: $otherMxid, creatorMxid: $creatorMxid');
         final mobileClient = MobileMatrixClient.instance;
         roomId = await mobileClient.createRoom(otherMxid, creatorMxid);
       }
-      
+
       // ignore: avoid_print
       print('[MatrixRoom] Created room: $roomId');
 
@@ -587,7 +645,9 @@ class ChatService {
       // ignore: avoid_print
       print('[MatrixRoom] Getting MXID from $url');
       final headers = await _tokenManager.getHeaders();
-      final resp = await http.get(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 10));
+      final resp = await http
+          .get(Uri.parse(url), headers: headers)
+          .timeout(const Duration(seconds: 10));
       // ignore: avoid_print
       print(
           '[MatrixRoom] MXID response: status=${resp.statusCode} body=${resp.body}');
@@ -687,14 +747,17 @@ class ChatService {
     required String otherUserId,
   }) async {
     debugPrint('[ChatService][findOrCreate] Starting conversation creation');
-    debugPrint('[ChatService][findOrCreate] Current user: $currentUserId, Other user: $otherUserId');
-    
+    debugPrint(
+        '[ChatService][findOrCreate] Current user: $currentUserId, Other user: $otherUserId');
+
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
-    debugPrint('[ChatService][findOrCreate] Request URL: $_apiUrl/conversations/find-or-create');
-    debugPrint('[ChatService][findOrCreate] Has Authorization: ${headers.containsKey('Authorization')}');
-    
+
+    debugPrint(
+        '[ChatService][findOrCreate] Request URL: $_apiUrl/conversations/find-or-create');
+    debugPrint(
+        '[ChatService][findOrCreate] Has Authorization: ${headers.containsKey('Authorization')}');
+
     final response = await http.post(
       Uri.parse('$_apiUrl/conversations/find-or-create'),
       headers: headers,
@@ -704,13 +767,15 @@ class ChatService {
       }),
     );
 
-    debugPrint('[ChatService][findOrCreate] Response status: ${response.statusCode}');
+    debugPrint(
+        '[ChatService][findOrCreate] Response status: ${response.statusCode}');
     debugPrint('[ChatService][findOrCreate] Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final conversationId = data['_id'];
-      debugPrint('[ChatService][findOrCreate] Conversation created/found: $conversationId');
+      debugPrint(
+          '[ChatService][findOrCreate] Conversation created/found: $conversationId');
       return conversationId;
     }
     throw Exception('Failed to find or create conversation: ${response.body}');
@@ -742,7 +807,8 @@ class ChatService {
         'Failed to delete conversation (${resp.statusCode}): ${resp.body}');
   }
 
-  Future<void> deleteConversationWithToken(String conversationId, String? token) async {
+  Future<void> deleteConversationWithToken(
+      String conversationId, String? token) async {
     final headers = <String, String>{'Content-Type': 'application/json'};
     if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';

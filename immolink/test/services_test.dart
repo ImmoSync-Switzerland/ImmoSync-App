@@ -38,7 +38,7 @@ void main() {
       final authService = AuthService();
       final propertyService = PropertyService();
       final chatService = ChatService();
-      
+
       // These should not throw during instantiation
       expect(authService, isNotNull);
       expect(propertyService, isNotNull);
@@ -49,7 +49,7 @@ void main() {
   group('ChatService functionality tests', () {
     test('ChatService methods exist', () {
       final chatService = ChatService();
-      
+
       // Verify that our key methods exist
       expect(chatService.findOrCreateConversation, isNotNull);
       expect(chatService.createNewConversation, isNotNull);

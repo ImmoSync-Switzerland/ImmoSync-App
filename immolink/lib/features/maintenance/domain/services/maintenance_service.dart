@@ -38,7 +38,8 @@ class MaintenanceService {
         print('DEBUG: recent maintenance count=${data.length}');
         return data.map((json) => MaintenanceRequest.fromMap(json)).toList();
       } else {
-        print('DEBUG: Failed recent requests with status: ${response.statusCode}');
+        print(
+            'DEBUG: Failed recent requests with status: ${response.statusCode}');
         print('DEBUG: Body: ${response.body}');
         throw Exception('Failed to load recent maintenance requests');
       }
@@ -126,7 +127,8 @@ class MaintenanceService {
       );
 
       if (response.statusCode == 401) {
-        print('AUTH DEBUG [MaintenanceService]: create received 401, attempting login-exchange and retry');
+        print(
+            'AUTH DEBUG [MaintenanceService]: create received 401, attempting login-exchange and retry');
         await _tokenManager.refreshToken(_apiUrl);
         response = await http.post(
           Uri.parse('$_apiUrl/maintenance'),

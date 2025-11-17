@@ -20,10 +20,10 @@ class InvitationService {
   Future<List<Invitation>> getUserInvitations(String userId) async {
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
+
     debugPrint('[InvitationService] Fetching invitations for user: $userId');
     debugPrint('[InvitationService] Token present: true (from TokenManager)');
-    
+
     final response = await http.get(
       Uri.parse('$_apiUrl/invitations/user/$userId'),
       headers: headers,
@@ -36,13 +36,14 @@ class InvitationService {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => Invitation.fromMap(json)).toList();
     }
-    throw Exception('Failed to fetch invitations: ${response.statusCode} - ${response.body}');
+    throw Exception(
+        'Failed to fetch invitations: ${response.statusCode} - ${response.body}');
   }
 
   Future<dynamic> acceptInvitation(String invitationId) async {
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
+
     final httpResponse = await http.put(
       Uri.parse('$_apiUrl/invitations/$invitationId/accept'),
       headers: headers,
@@ -63,7 +64,7 @@ class InvitationService {
   Future<void> declineInvitation(String invitationId) async {
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
+
     final httpResponse = await http.put(
       Uri.parse('$_apiUrl/invitations/$invitationId/decline'),
       headers: headers,
@@ -92,9 +93,10 @@ class InvitationService {
   }) async {
     final headers = await _tokenManager.getHeaders();
     headers['Content-Type'] = 'application/json';
-    
-    debugPrint('[InvitationService] Sending invitation - propertyId: $propertyId, landlordId: $landlordId, tenantId: $tenantId');
-    
+
+    debugPrint(
+        '[InvitationService] Sending invitation - propertyId: $propertyId, landlordId: $landlordId, tenantId: $tenantId');
+
     final response = await http.post(
       Uri.parse('$_apiUrl/invitations'),
       headers: headers,
@@ -106,13 +108,16 @@ class InvitationService {
       }),
     );
 
-    debugPrint('[InvitationService] Send invitation response status: ${response.statusCode}');
-    debugPrint('[InvitationService] Send invitation response body: ${response.body}');
+    debugPrint(
+        '[InvitationService] Send invitation response status: ${response.statusCode}');
+    debugPrint(
+        '[InvitationService] Send invitation response body: ${response.body}');
 
     if (response.statusCode != 201) {
-      throw Exception('Failed to send invitation: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Failed to send invitation: ${response.statusCode} - ${response.body}');
     }
-    
+
     debugPrint('[InvitationService] Invitation sent successfully');
   }
 }
@@ -121,18 +126,23 @@ class InvitationService {
 final userInvitationsProvider = FutureProvider<List<Invitation>>((ref) async {
   debugPrint('[userInvitationsProvider] Starting...');
   final authState = ref.watch(authProvider);
-  debugPrint('[userInvitationsProvider] Auth state - isAuthenticated: ${authState.isAuthenticated}, userId: ${authState.userId}');
-  
+  debugPrint(
+      '[userInvitationsProvider] Auth state - isAuthenticated: ${authState.isAuthenticated}, userId: ${authState.userId}');
+
   if (!authState.isAuthenticated || authState.userId == null) {
-    debugPrint('[userInvitationsProvider] User not authenticated, returning empty list');
+    debugPrint(
+        '[userInvitationsProvider] User not authenticated, returning empty list');
     return [];
   }
 
-  debugPrint('[userInvitationsProvider] Calling getUserInvitations with TokenManager...');
+  debugPrint(
+      '[userInvitationsProvider] Calling getUserInvitations with TokenManager...');
   final invitationService = ref.watch(invitationServiceProvider);
   try {
-    final result = await invitationService.getUserInvitations(authState.userId!);
-    debugPrint('[userInvitationsProvider] Success! Got ${result.length} invitations');
+    final result =
+        await invitationService.getUserInvitations(authState.userId!);
+    debugPrint(
+        '[userInvitationsProvider] Success! Got ${result.length} invitations');
     return result;
   } catch (e, stack) {
     debugPrint('[userInvitationsProvider] ERROR: $e');

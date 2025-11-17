@@ -10,14 +10,15 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 class DeepLinkService {
   StreamSubscription? _sub;
   final AppLinks _appLinks = AppLinks();
-  
+
   /// Check if deep links are supported on this platform
   bool get isSupported {
     if (kIsWeb) return false;
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) return false;
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+      return false;
     return true; // Android and iOS
   }
-  
+
   /// Initialize deep link handling
   Future<void> initialize(WidgetRef ref) async {
     // Skip deep link initialization on unsupported platforms
@@ -25,7 +26,7 @@ class DeepLinkService {
       print('[DeepLink] Deep links not supported on this platform');
       return;
     }
-    
+
     // Handle the initial link if the app was opened via deep link
     try {
       final initialLink = await _appLinks.getInitialLink();
@@ -52,7 +53,7 @@ class DeepLinkService {
   /// Handle incoming deep link
   void _handleDeepLink(Uri uri, WidgetRef ref) {
     print('[DeepLink] Handling: ${uri.scheme}://${uri.host}${uri.path}');
-    
+
     // Check scheme
     if (uri.scheme != 'immosync') {
       print('[DeepLink] Unknown scheme: ${uri.scheme}');
@@ -75,14 +76,15 @@ class DeepLinkService {
   /// Handle Stripe Connect return (after completing onboarding)
   void _handleStripeReturn(Uri uri, WidgetRef ref) {
     print('[DeepLink] Stripe onboarding completed');
-    
+
     // Trigger a refresh of the Stripe Connect account status
     try {
       // Invalidate the Stripe Connect account provider to force a refresh
       ref.invalidate(stripeConnectAccountProvider);
-      
-      print('[DeepLink] Stripe account status invalidated, will refresh on next view');
-      
+
+      print(
+          '[DeepLink] Stripe account status invalidated, will refresh on next view');
+
       // Show success notification when payment page becomes active
     } catch (e) {
       print('[DeepLink][ERROR] Error handling Stripe return: $e');
@@ -92,15 +94,15 @@ class DeepLinkService {
   /// Handle Stripe Connect refresh (when onboarding link expired)
   void _handleStripeRefresh(Uri uri, WidgetRef ref) {
     print('[DeepLink] Stripe onboarding link expired, needs refresh');
-    
+
     // The app should regenerate the onboarding link
     try {
       // Invalidate the account provider to trigger re-creation of onboarding link
       ref.invalidate(stripeConnectAccountProvider);
-      
+
       print('[DeepLink] Stripe account provider invalidated');
       print('[DeepLink] User should restart onboarding from payment page');
-      
+
       // The payment page will detect the invalidation and offer to restart onboarding
     } catch (e) {
       print('[DeepLink][ERROR] Error handling Stripe refresh: $e');

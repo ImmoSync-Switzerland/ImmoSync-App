@@ -216,7 +216,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
           ValueListenableBuilder<MatrixClientState>(
             valueListenable: ChatService.clientState,
             builder: (context, state, _) {
-              if (state == MatrixClientState.ready) return const SizedBox.shrink();
+              if (state == MatrixClientState.ready)
+                return const SizedBox.shrink();
               String text;
               bool busy = true;
               switch (state) {
@@ -238,12 +239,16 @@ class _ChatPageState extends ConsumerState<ChatPage>
               }
               return Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 color: Colors.amber.withValues(alpha: 0.15),
                 child: Row(
                   children: [
                     if (busy)
-                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                      const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2)),
                     if (busy) const SizedBox(width: 8),
                     Expanded(child: Text(text)),
                     if (state == MatrixClientState.error)
@@ -251,7 +256,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         onPressed: () async {
                           final me = ref.read(currentUserProvider)?.id ?? '';
                           if (me.isNotEmpty) {
-                            await ref.read(chat_providers.chatServiceProvider).ensureMatrixReady(userId: me);
+                            await ref
+                                .read(chat_providers.chatServiceProvider)
+                                .ensureMatrixReady(userId: me);
                           }
                         },
                         child: const Text('Erneut verbinden'),
@@ -304,7 +311,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
 
   PreferredSizeWidget _buildAppBar() {
     final colors = ref.watch(dynamicColorsProvider);
-    
+
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
@@ -356,9 +363,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         height: 8,
                         margin: const EdgeInsets.only(right: 4),
                         decoration: BoxDecoration(
-                          color: _otherOnline
-                              ? Colors.green
-                              : colors.textTertiary,
+                          color:
+                              _otherOnline ? Colors.green : colors.textTertiary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -715,221 +721,227 @@ class _ChatPageState extends ConsumerState<ChatPage>
       builder: (context, state, _) {
         final matrixReady = state == MatrixClientState.ready;
         return Container(
-      padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
-      decoration: BoxDecoration(
-        color: colors.primaryBackground,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            if (_pendingImage != null || _pendingFile != null) ...[
-              _buildAttachmentPreview(),
-              const SizedBox(height: 8),
+          padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
+          decoration: BoxDecoration(
+            color: colors.primaryBackground,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, -2),
+              ),
             ],
-            Row(
+          ),
+          child: SafeArea(
+            child: Column(
               children: [
-                // Attachment button
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                if (_pendingImage != null || _pendingFile != null) ...[
+                  _buildAttachmentPreview(),
+                  const SizedBox(height: 8),
+                ],
+                Row(
+                  children: [
+                    // Attachment button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.attach_file,
-                      color: colors.textSecondary,
-                      size: 22,
-                    ),
-                    onPressed: () => _showAttachmentOptions(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Emoji button
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.emoji_emotions_outlined,
-                      color: colors.textSecondary,
-                      size: 22,
-                    ),
-                    onPressed: () => _showEmojiPicker(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.attach_file,
+                          color: colors.textSecondary,
+                          size: 22,
                         ),
-                      ],
+                        onPressed: () => _showAttachmentOptions(),
+                      ),
                     ),
-                    child: TextField(
-                      controller: _messageController,
-                      enabled: matrixReady,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        inherit: true,
+                    const SizedBox(width: 8),
+                    // Emoji button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      decoration: InputDecoration(
-                        hintText: matrixReady
-                            ? AppLocalizations.of(context)!.typeAMessage
-                            : 'Warte auf Matrix …',
-                        hintStyle: TextStyle(
-                          color: colors.textTertiary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          inherit: true,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.emoji_emotions_outlined,
+                          color: colors.textSecondary,
+                          size: 22,
                         ),
-                        border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        onPressed: () => _showEmojiPicker(),
                       ),
-                      maxLines: null,
-                      textCapitalization: TextCapitalization.sentences,
-                      onChanged: (text) {
-                        setState(() {
-                          _isTyping = text.isNotEmpty;
-                          final convId = _currentConversationId;
-                          if (convId != null && convId != 'new') {
-                            ref.read(presenceWsServiceProvider).sendTyping(
-                                conversationId: convId, isTyping: true);
-                            // Schedule stop typing after debounce
-                            Future.delayed(const Duration(seconds: 2), () {
-                              if (mounted && _isTyping == false) {
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _messageController,
+                          enabled: matrixReady,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            inherit: true,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: matrixReady
+                                ? AppLocalizations.of(context)!.typeAMessage
+                                : 'Warte auf Matrix …',
+                            hintStyle: TextStyle(
+                              color: colors.textTertiary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              inherit: true,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.md),
+                          ),
+                          maxLines: null,
+                          textCapitalization: TextCapitalization.sentences,
+                          onChanged: (text) {
+                            setState(() {
+                              _isTyping = text.isNotEmpty;
+                              final convId = _currentConversationId;
+                              if (convId != null && convId != 'new') {
                                 ref.read(presenceWsServiceProvider).sendTyping(
-                                    conversationId: convId, isTyping: false);
+                                    conversationId: convId, isTyping: true);
+                                // Schedule stop typing after debounce
+                                Future.delayed(const Duration(seconds: 2), () {
+                                  if (mounted && _isTyping == false) {
+                                    ref
+                                        .read(presenceWsServiceProvider)
+                                        .sendTyping(
+                                            conversationId: convId,
+                                            isTyping: false);
+                                  }
+                                });
                               }
                             });
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                GestureDetector(
-                  onTap: () {
-                    if (!matrixReady) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Matrix wird initialisiert …')),
-                      );
-                      return;
-                    }
-                    if (_sendingAttachment) return; // busy
-                    if (!_encryptionReady &&
-                        widget.otherUserId != null &&
-                        (_currentConversationId ?? widget.conversationId) !=
-                            'new') {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(AppLocalizations.of(context)!
-                              .encryptionKeyNotReady)));
-                      return;
-                    }
-                    if (_pendingImage != null || _pendingFile != null) {
-                      _sendPendingAttachment(currentUserId);
-                    } else if (_messageController.text.trim().isNotEmpty) {
-                      _sendMessage(currentUserId);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: _sendingAttachment
-                          ? LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                colors.textTertiary,
-                                colors.textTertiary.withValues(alpha: 0.8),
-                              ],
-                            )
-                          : const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xF23B82F6), // Blue #3B82F6 @ 95%
-                                Color(0xD98B5CF6), // Purple #8B5CF6 @ 85%
-                              ],
-                            ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0x4D3B82F6).withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          },
                         ),
-                      ],
+                      ),
                     ),
-                    child: _sendingAttachment
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white)),
-                          )
-                        : (!_encryptionReady &&
-                                widget.otherUserId != null &&
-                                (_currentConversationId ??
-                                        widget.conversationId) !=
-                                    'new')
-                            ? const Icon(Icons.lock_clock,
-                                color: Colors.white, size: 20)
-                            : Icon(
-                                _pendingImage != null || _pendingFile != null
-                                    ? Icons.cloud_upload
-                                    : Icons.send,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                  ),
+                    const SizedBox(width: AppSpacing.sm),
+                    GestureDetector(
+                      onTap: () {
+                        if (!matrixReady) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Matrix wird initialisiert …')),
+                          );
+                          return;
+                        }
+                        if (_sendingAttachment) return; // busy
+                        if (!_encryptionReady &&
+                            widget.otherUserId != null &&
+                            (_currentConversationId ?? widget.conversationId) !=
+                                'new') {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(AppLocalizations.of(context)!
+                                  .encryptionKeyNotReady)));
+                          return;
+                        }
+                        if (_pendingImage != null || _pendingFile != null) {
+                          _sendPendingAttachment(currentUserId);
+                        } else if (_messageController.text.trim().isNotEmpty) {
+                          _sendMessage(currentUserId);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: _sendingAttachment
+                              ? LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    colors.textTertiary,
+                                    colors.textTertiary.withValues(alpha: 0.8),
+                                  ],
+                                )
+                              : const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xF23B82F6), // Blue #3B82F6 @ 95%
+                                    Color(0xD98B5CF6), // Purple #8B5CF6 @ 85%
+                                  ],
+                                ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0x4D3B82F6)
+                                  .withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: _sendingAttachment
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white)),
+                              )
+                            : (!_encryptionReady &&
+                                    widget.otherUserId != null &&
+                                    (_currentConversationId ??
+                                            widget.conversationId) !=
+                                        'new')
+                                ? const Icon(Icons.lock_clock,
+                                    color: Colors.white, size: 20)
+                                : Icon(
+                                    _pendingImage != null ||
+                                            _pendingFile != null
+                                        ? Icons.cloud_upload
+                                        : Icons.send,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                      ),
+                    ),
+                  ],
                 ),
+                if (_uploadProgress != null) ...[
+                  const SizedBox(height: 6),
+                  LinearProgressIndicator(value: _uploadProgress, minHeight: 4),
+                ],
               ],
             ),
-            if (_uploadProgress != null) ...[
-              const SizedBox(height: 6),
-              LinearProgressIndicator(value: _uploadProgress, minHeight: 4),
-            ],
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
@@ -1595,7 +1607,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
             onPressed: () async {
               Navigator.of(context).pop();
               final convId = _currentConversationId ?? widget.conversationId;
-              final messenger = ScaffoldMessenger.of(context); // Save messenger before async gap
+              final messenger = ScaffoldMessenger.of(
+                  context); // Save messenger before async gap
               final token = ref.read(authProvider).sessionToken;
               try {
                 await ref
