@@ -9,8 +9,9 @@
 
 import 'dart:async';
 
-// TODO: After running flutter_rust_bridge_codegen this import will exist.
-// import 'bridge_generated.dart' as bridge;
+// NOTE: Matrix Rust Bridge bindings
+// Run `flutter_rust_bridge_codegen` to generate bridge_generated.dart
+// Then uncomment: import 'bridge_generated.dart' as bridge;
 
 class MatrixRustBridge {
   static final MatrixRustBridge _instance = MatrixRustBridge._internal();

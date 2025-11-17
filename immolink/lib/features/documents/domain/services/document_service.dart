@@ -442,7 +442,9 @@ class DocumentService {
     await _saveDocuments(); // Save to local storage
     print('DocumentService: Document persisted to local storage successfully');
 
-    // TODO: If needed, implement backend API call for metadata-only documents
+    // NOTE: Backend API call for metadata-only documents
+    // Current implementation stores documents locally. For multi-device sync,
+    // consider adding: await _uploadDocumentMetadata(document);
 
     return document;
   }

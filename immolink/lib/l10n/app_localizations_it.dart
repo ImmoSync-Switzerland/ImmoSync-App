@@ -1359,6 +1359,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get failedToLoadImage => 'Caricamento immagine fallito';
 
   @override
+  String get failedToLoadMessages => 'Caricamento messaggi fallito';
+
+  @override
   String get recentMessages => 'Messaggi recenti';
 
   @override

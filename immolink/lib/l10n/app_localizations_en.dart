@@ -1339,6 +1339,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadImage => 'Failed to load image';
 
   @override
+  String get failedToLoadMessages => 'Failed to load messages';
+
+  @override
   String get recentMessages => 'Recent Messages';
 
   @override

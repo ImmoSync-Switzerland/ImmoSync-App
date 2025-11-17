@@ -432,6 +432,7 @@
   "searchContactsHint": "Cerca contatti...",
   "failedToStartConversation": "Avvio conversazione fallito",
   "failedToLoadImage": "Caricamento immagine fallito",
+  "failedToLoadMessages": "Caricamento messaggi fallito",
   "recentMessages": "Messaggi recenti",
   "propertyManager": "Gestore proprietà",
   "documents": "Documenti",

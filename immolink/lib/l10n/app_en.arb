@@ -448,6 +448,7 @@
   "searchContactsHint": "Search contacts...",
   "failedToStartConversation": "Failed to start conversation",
   "failedToLoadImage": "Failed to load image",
+  "failedToLoadMessages": "Failed to load messages",
   "recentMessages": "Recent Messages",
   "propertyManager": "Property Manager",
   "documents": "Documents",

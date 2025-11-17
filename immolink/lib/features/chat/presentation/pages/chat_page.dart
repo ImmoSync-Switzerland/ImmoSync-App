@@ -287,8 +287,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     Icon(Icons.error_outline, size: 48, color: colors.error),
                     const SizedBox(height: 16),
                     Text(
-                      AppLocalizations.of(context)!
-                          .failedToLoadImage, // TODO: replace with dedicated failedToLoadMessages key
+                      AppLocalizations.of(context)!.failedToLoadMessages,
                       style: AppTypography.subhead.copyWith(
                         color: colors.error,
                         inherit: true,
@@ -957,8 +956,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
       _isTyping = false;
     });
     try {
-      // TODO: Migrate to WebSocket send for lower latency & real-time fanout
-      // Example (after ensuring conversationId is established):
+      // NOTE: WebSocket send for lower latency & real-time fanout
+      // Current implementation uses HTTP POST which is reliable but has higher latency.
+      // For real-time experience, consider migrating to WebSocket:
       // ref.read(presenceWsServiceProvider).sendChatMessage(
       //   conversationId: widget.conversationId,
       //   senderId: realSenderId,

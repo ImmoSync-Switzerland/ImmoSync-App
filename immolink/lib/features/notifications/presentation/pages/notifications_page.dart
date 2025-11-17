@@ -57,7 +57,46 @@ class NotificationsPage extends ConsumerWidget {
                       style: const TextStyle(fontSize: 11),
                     ),
                     onTap: () {
-                      // TODO navigate based on n.type / n.data
+                      // Mark as read
+                      ref
+                          .read(notificationsProvider.notifier)
+                          .markNotificationRead(n.id);
+
+                      // Navigate based on notification type
+                      switch (n.type) {
+                        case 'message':
+                        case 'chat':
+                          if (n.data['conversationId'] != null) {
+                            Navigator.pushNamed(
+                              context,
+                              '/chat',
+                              arguments: {
+                                'conversationId': n.data['conversationId']
+                              },
+                            );
+                          }
+                          break;
+                        case 'maintenance':
+                          if (n.data['requestId'] != null) {
+                            Navigator.pushNamed(
+                              context,
+                              '/maintenance',
+                              arguments: {'requestId': n.data['requestId']},
+                            );
+                          }
+                          break;
+                        case 'payment':
+                          Navigator.pushNamed(context, '/payments');
+                          break;
+                        case 'document':
+                          Navigator.pushNamed(context, '/documents');
+                          break;
+                        default:
+                          // For unknown types, show a snackbar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(n.body)),
+                          );
+                      }
                     },
                   );
                 },

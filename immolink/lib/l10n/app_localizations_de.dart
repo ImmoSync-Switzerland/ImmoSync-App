@@ -1371,6 +1371,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get failedToLoadImage => 'Bild konnte nicht geladen werden';
 
   @override
+  String get failedToLoadMessages => 'Nachrichten konnten nicht geladen werden';
+
+  @override
   String get recentMessages => 'Neueste Nachrichten';
 
   @override

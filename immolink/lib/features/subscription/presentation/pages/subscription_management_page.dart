@@ -123,7 +123,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
           const SizedBox(height: 40),
           ElevatedButton(
             onPressed: () {
-              // TODO: Navigate to subscription plans
+              // Navigate to subscription plans page
+              Navigator.pushNamed(context, '/subscription-plans');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryAccent,
@@ -526,7 +527,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              // TODO: Implement cancellation
+              // Implement subscription cancellation
               try {
                 final service = ref.read(subscriptionServiceProvider);
                 await service.cancelSubscription(subscriptionId);

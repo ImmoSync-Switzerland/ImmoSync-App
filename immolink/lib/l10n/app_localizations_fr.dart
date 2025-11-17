@@ -1370,6 +1370,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get failedToLoadImage => 'Échec du chargement de l\'image';
 
   @override
+  String get failedToLoadMessages => 'Échec du chargement des messages';
+
+  @override
   String get recentMessages => 'Messages récents';
 
   @override

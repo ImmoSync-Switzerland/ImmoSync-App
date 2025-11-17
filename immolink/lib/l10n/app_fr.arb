@@ -431,6 +431,7 @@
   "searchContactsHint": "Rechercher des contacts...",
   "failedToStartConversation": "Échec du démarrage de la conversation",
   "failedToLoadImage": "Échec du chargement de l'image",
+  "failedToLoadMessages": "Échec du chargement des messages",
   "recentMessages": "Messages récents",
   "propertyManager": "Gestionnaire immobilier",
   "documents": "Documents",

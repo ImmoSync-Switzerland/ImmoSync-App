@@ -2670,6 +2670,12 @@ abstract class AppLocalizations {
   /// **'Failed to load image'**
   String get failedToLoadImage;
 
+  /// No description provided for @failedToLoadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load messages'**
+  String get failedToLoadMessages;
+
   /// No description provided for @recentMessages.
   ///
   /// In en, this message translates to:
