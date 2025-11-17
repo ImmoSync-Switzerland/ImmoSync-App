@@ -166,7 +166,7 @@ void main() {
       });
 
       // Create request with contractor assignment
-      final contractorInfo = ContractorInfo(
+      const contractorInfo = ContractorInfo(
         name: 'John Plumber',
         contact: '+41 79 123 4567',
         company: 'Swiss Plumbing Services',
@@ -213,8 +213,9 @@ void main() {
               'priority': 'high',
               'status': 'completed',
               'location': 'Kitchen',
-              'requestedDate':
-                  DateTime.now().subtract(Duration(days: 2)).toIso8601String(),
+              'requestedDate': DateTime.now()
+                  .subtract(const Duration(days: 2))
+                  .toIso8601String(),
               'completedDate': DateTime.now().toIso8601String(),
               'urgencyLevel': 4,
               'cost': {
@@ -241,10 +242,10 @@ void main() {
         priority: 'high',
         status: 'completed',
         location: 'Kitchen',
-        requestedDate: DateTime.now().subtract(Duration(days: 2)),
+        requestedDate: DateTime.now().subtract(const Duration(days: 2)),
         completedDate: DateTime.now(),
         urgencyLevel: 4,
-        cost: MaintenanceCost(
+        cost: const MaintenanceCost(
           estimated: 150.0,
           actual: 145.50,
         ),
@@ -356,7 +357,7 @@ void main() {
         priority: 'high',
         status: 'pending',
         location: 'Kitchen',
-        requestedDate: now.subtract(Duration(days: 5)),
+        requestedDate: now.subtract(const Duration(days: 5)),
         urgencyLevel: 4,
       );
 
@@ -371,7 +372,7 @@ void main() {
         priority: 'medium',
         status: 'pending',
         location: 'Living Room',
-        requestedDate: now.subtract(Duration(hours: 1)),
+        requestedDate: now.subtract(const Duration(hours: 1)),
         urgencyLevel: 3,
       );
 
@@ -386,7 +387,7 @@ void main() {
         priority: 'urgent',
         status: 'pending',
         location: 'Boiler',
-        requestedDate: now.subtract(Duration(minutes: 2)),
+        requestedDate: now.subtract(const Duration(minutes: 2)),
         urgencyLevel: 5,
       );
 
@@ -441,7 +442,7 @@ void main() {
       });
 
       // Create scheduled maintenance request
-      final scheduledDate = DateTime.now().add(Duration(days: 2));
+      final scheduledDate = DateTime.now().add(const Duration(days: 2));
       final scheduledRequest = MaintenanceRequest(
         id: 'req_123',
         propertyId: 'prop_123',
@@ -456,7 +457,7 @@ void main() {
         requestedDate: DateTime.now(),
         scheduledDate: scheduledDate,
         urgencyLevel: 5,
-        contractorInfo: ContractorInfo(
+        contractorInfo: const ContractorInfo(
           name: 'Expert Heating',
           contact: '+41 79 999 8888',
           company: 'Swiss Heating Solutions',
@@ -491,7 +492,7 @@ void main() {
               'location': 'Boiler Room',
               'requestedDate': DateTime.now().toIso8601String(),
               'scheduledDate':
-                  DateTime.now().add(Duration(days: 2)).toIso8601String(),
+                  DateTime.now().add(const Duration(days: 2)).toIso8601String(),
               'urgencyLevel': 5,
               'notes': [
                 {
@@ -520,7 +521,7 @@ void main() {
         status: 'cancelled',
         location: 'Boiler Room',
         requestedDate: DateTime.now(),
-        scheduledDate: DateTime.now().add(Duration(days: 2)),
+        scheduledDate: DateTime.now().add(const Duration(days: 2)),
         urgencyLevel: 5,
         notes: [
           MaintenanceNote(
@@ -557,8 +558,8 @@ void main() {
         'location': 'Main Panel',
         'images': ['image1.jpg', 'image2.jpg'],
         'requestedDate': now.toIso8601String(),
-        'scheduledDate': now.add(Duration(days: 1)).toIso8601String(),
-        'completedDate': now.add(Duration(days: 3)).toIso8601String(),
+        'scheduledDate': now.add(const Duration(days: 1)).toIso8601String(),
+        'completedDate': now.add(const Duration(days: 3)).toIso8601String(),
         'urgencyLevel': 4,
         'cost': {
           'estimated': 200.0,
