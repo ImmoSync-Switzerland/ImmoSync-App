@@ -62,7 +62,7 @@ void main() {
     });
 
     test('Process payment should succeed with valid card', () async {
-      final paymentIntentId = 'pi_test_success';
+      const paymentIntentId = 'pi_test_success';
 
       final mockClient = MockClient((request) async {
         if (request.method == 'POST' &&
@@ -95,7 +95,7 @@ void main() {
     });
 
     test('Payment should fail with invalid card', () async {
-      final paymentIntentId = 'pi_test_fail';
+      const paymentIntentId = 'pi_test_fail';
 
       final mockClient = MockClient((request) async {
         if (request.method == 'POST' &&
@@ -491,8 +491,8 @@ void main() {
       const yearlyPrice = 29900; // CHF 299.00
 
       // Yearly savings
-      final monthlyCostPerYear = monthlyPrice * 12;
-      final yearlySavings = monthlyCostPerYear - yearlyPrice;
+      const monthlyCostPerYear = monthlyPrice * 12;
+      const yearlySavings = monthlyCostPerYear - yearlyPrice;
 
       expect(yearlySavings, greaterThan(0));
       expect(yearlySavings, 6088); // ~CHF 60.88 savings
