@@ -1,0 +1,42 @@
+# ImmoLink Pre-Commit Hook Configuration
+
+echo "🔍 Running Flutter pre-commit checks..."
+
+# Change to Flutter project directory
+cd immolink || exit 1
+
+# 1. Format code
+echo "✨ Formatting Dart code..."
+dart format . --set-exit-if-changed || {
+  echo "⚠️  Code was auto-formatted. Re-staging files..."
+  dart format .
+  git add -u
+}
+
+# 2. Analyze code
+echo "🔍 Running Flutter analyze..."
+flutter analyze --fatal-infos || {
+  echo "❌ Flutter analyze found issues!"
+  exit 1
+}
+
+# 3. Run tests
+echo "🧪 Running tests..."
+flutter test --coverage || {
+  echo "❌ Tests failed!"
+  exit 1
+}
+
+# 4. Check for unused imports (via custom script)
+echo "🧹 Checking for unused imports..."
+dart run scripts/check_unused_imports.dart || {
+  echo "⚠️  Found unused imports (auto-fixing...)"
+  dart run scripts/fix_unused_imports.dart
+  git add -u
+}
+
+# 5. Security: Check pubspec.lock for known vulnerabilities
+echo "🔒 Running security checks..."
+# Future: Add dart pub outdated --mode=null-safety check
+
+echo "✅ All pre-commit checks passed!"

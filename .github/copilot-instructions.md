@@ -102,16 +102,42 @@ flutter build apk --release --split-per-abi `
   --dart-define=API_URL=... --dart-define=STRIPE_PUBLISHABLE_KEY=... --dart-define=GOOGLE_CLIENT_ID=...
 ```
 
-**CI pipeline** (`.github/workflows/android_build.yml`):
-- Validates Stripe SDK version ≥20.34.0 (required for Stripe Terminal compatibility)
-- Writes `google-services.json` from GitHub secret before build
-- Produces split APKs, uploads to artifact, optionally publishes to download site via `SITE_REPO_PAT`
+**CI pipelines**:
+- `.github/workflows/android_build.yml`: Full APK builds
+  - Validates Stripe SDK version ≥20.34.0 (required for Stripe Terminal compatibility)
+  - Writes `google-services.json` from GitHub secret before build
+  - Produces split APKs, uploads to artifact, optionally publishes to download site via `SITE_REPO_PAT`
+- `.github/workflows/flutter_ci.yml`: Quality checks on every push/PR
+  - Runs `flutter analyze --fatal-infos`
+  - Checks code formatting with `dart format`
+  - Executes all unit and integration tests
+  - Generates and uploads coverage reports
+  - Performs build test (debug APK)
 
-### Testing
-- **Unit tests**: Standard Flutter test setup in `test/` directory
-- **Run tests**: `flutter test` (from `immolink/` directory)
-- **Example**: `test/widget_test.dart` validates initial app render and page structure
+### Testing & Quality Assurance
+- **Test Structure**: Feature-based tests in `test/features/`, integration tests in `integration_test/`
+- **Run all tests**: `flutter test` (from `immolink/` directory)
+- **Run with coverage**: `flutter test --coverage`
+- **Integration tests**: `flutter test integration_test/`
 - **Convention**: Use `ProviderScope` wrapper for tests involving Riverpod providers
+- **Coverage goals**: ≥70% overall, ≥80% for models, ≥75% for services
+- **Mocking**: Use `mockito` with `build_runner` for generating mocks
+
+### Pre-Commit Automation (`.husky/pre-commit`)
+Automated quality checks run on every commit:
+1. **✨ Code Format** - `dart format` with auto-fix
+2. **🔍 Static Analysis** - `flutter analyze --fatal-infos`
+3. **🧪 Tests** - `flutter test --coverage`
+4. **🧹 Unused Imports** - Auto-detection and removal
+
+**Manual commands**:
+```bash
+dart format .                                    # Format code
+flutter analyze                                  # Static analysis
+flutter test                                     # Run tests
+dart run scripts/check_unused_imports.dart       # Check imports
+dart run scripts/fix_unused_imports.dart         # Fix imports
+```
 
 ### Localization
 - **System**: Flutter's `intl` + generated `AppLocalizations` (`lib/l10n/`)

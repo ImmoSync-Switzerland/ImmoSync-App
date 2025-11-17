@@ -1,0 +1,12 @@
+{
+  "name": "immolink-hooks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pre-commit hooks for ImmoLink Flutter project",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

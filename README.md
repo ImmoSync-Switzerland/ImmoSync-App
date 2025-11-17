@@ -41,11 +41,36 @@ A modern multi-platform (Android / Windows desktop WIP) property management appl
 
 ## Getting Started (Client)
 
+### Quick Setup (Recommended)
+
+Run the automated setup script to initialize your development environment:
+
+**Windows (PowerShell)**:
+```powershell
+.\setup.ps1
+```
+
+**Linux/macOS**:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+The script will:
+- ✅ Validate Flutter installation
+- ✅ Check Dart version (≥3.6 required)
+- ✅ Install dependencies
+- ✅ Set up Git hooks (pre-commit automation)
+- ✅ Run tests to verify setup
+- ✅ Display environment summary
+
+### Manual Setup
+
 1. Clone the repository:
 
 ```bash
   git clone https://github.com/ImmoSync-Switzerland/ImmoSync-App.git
-  cd ImmoSync/ImmoSync
+  cd ImmoSync/immolink
 ```
 
 2. Install Flutter dependencies:
@@ -54,13 +79,20 @@ A modern multi-platform (Android / Windows desktop WIP) property management appl
   flutter pub get
 ```
 
-3. (Optional) Regenerate localization after edits:
+3. Install Git hooks (pre-commit quality checks):
+
+```bash
+  cd ..
+  npm install  # Installs Husky
+```
+
+4. (Optional) Regenerate localization after edits:
 
 ```bash
   flutter gen-l10n
 ```
 
-4. Provide required runtime defines when building manually (match CI):
+5. Provide required runtime defines when building manually (match CI):
 
 ```bash
   flutter run \
@@ -69,7 +101,7 @@ A modern multi-platform (Android / Windows desktop WIP) property management appl
     --dart-define=GOOGLE_CLIENT_ID=clientid.apps.googleusercontent.com
 ```
 
-5. Build a release split APK locally:
+6. Build a release split APK locally:
 
 ```bash
   flutter build apk --release --split-per-abi \
@@ -77,6 +109,62 @@ A modern multi-platform (Android / Windows desktop WIP) property management appl
     --dart-define=STRIPE_PUBLISHABLE_KEY=... \
     --dart-define=GOOGLE_CLIENT_ID=...
 ```
+
+## Development Workflow
+
+### Pre-Commit Quality Automation
+
+Git hooks automatically run on every commit:
+
+1. **✨ Code Format** - `dart format` with auto-fix
+2. **🔍 Static Analysis** - `flutter analyze --fatal-infos`
+3. **🧪 Tests** - `flutter test --coverage`
+4. **🧹 Unused Imports** - Auto-detection and removal
+
+**Manual commands**:
+```bash
+dart format .                                    # Format code
+flutter analyze                                  # Static analysis
+flutter test                                     # Run tests
+dart run scripts/check_unused_imports.dart       # Check imports
+dart run scripts/fix_unused_imports.dart         # Fix imports
+```
+
+See [`.github/PRECOMMIT_GUIDE.md`](.github/PRECOMMIT_GUIDE.md) for detailed setup instructions.
+
+### Testing
+
+We maintain comprehensive test coverage across all features:
+
+```bash
+# Run all tests
+flutter test
+
+# Run with coverage report
+flutter test --coverage
+
+# Run specific feature tests
+flutter test test/features/auth_test.dart
+flutter test test/features/property_test.dart
+flutter test test/features/chat_test.dart
+
+# Run integration tests
+flutter test integration_test/
+```
+
+**Test Structure**:
+- `test/features/` - Unit tests for domain features
+  - `auth_test.dart` - Authentication flows
+  - `property_test.dart` - Property management
+  - `chat_test.dart` - Matrix E2EE messaging
+  - `payment_test.dart` - Stripe payments
+  - `maintenance_test.dart` - Maintenance requests
+  - `document_test.dart` - Document management
+- `integration_test/` - End-to-end integration tests
+
+**Coverage Goals**: ≥70% overall, ≥80% for models, ≥75% for services
+
+See [`.github/TESTING_GUIDE.md`](.github/TESTING_GUIDE.md) for comprehensive testing documentation.
 
 ## Backend Quick Start
 
@@ -108,7 +196,27 @@ Android google services: create a Firebase project → download `google-services
 
 ## CI / CD Pipeline Overview
 
-Workflow file: `.github/workflows/android_build.yml`
+### Quality Assurance Workflow (`.github/workflows/flutter_ci.yml`)
+
+Runs on every push and pull request to enforce code quality:
+
+**Jobs**:
+
+1. **test** - Run all unit and integration tests with coverage reporting
+   - Executes `flutter test --coverage`
+   - Uploads coverage to Codecov
+   - Generates coverage summary comment on PRs
+
+2. **analyze** - Static code analysis
+   - Runs `flutter analyze --fatal-infos`
+   - Checks code formatting with `dart format`
+   - Enforces 60+ lint rules from `analysis_options.yaml`
+
+3. **build-test** - Validate build process
+   - Builds debug APK to catch build issues early
+   - Runs on Ubuntu with Java 17 + Flutter 3.35.5
+
+### Android Build & Release Workflow (`.github/workflows/android_build.yml`)
 
 Jobs:
 
