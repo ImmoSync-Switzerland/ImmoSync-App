@@ -227,28 +227,127 @@ class HttpChatService {
   }
 
   Future<List<int>?> downloadAndDecryptAttachment(String attachmentId) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Attachment download not implemented yet');
+    try {
+      print('[HttpChat] Downloading attachment: $attachmentId');
+
+      final response = await http.get(
+        Uri.parse('$_apiUrl/attachments/$attachmentId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('[HttpChat] Attachment download response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        print('[HttpChat] Attachment downloaded successfully');
+        return response.bodyBytes;
+      } else {
+        print(
+            '[HttpChat] Failed to download attachment: ${response.statusCode}');
+        throw Exception('Failed to download attachment');
+      }
+    } catch (e) {
+      print('[HttpChat] Error downloading attachment: $e');
+      rethrow;
+    }
   }
 
   Future<void> blockUser(String userId, String otherUserId) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Block user not implemented yet');
+    try {
+      print('[HttpChat] Blocking user: $otherUserId by $userId');
+
+      final response = await http.post(
+        Uri.parse('$_apiUrl/users/$userId/block'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'blockedUserId': otherUserId}),
+      );
+
+      print('[HttpChat] Block user response: ${response.statusCode}');
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        print('[HttpChat] Failed to block user: ${response.statusCode}');
+        throw Exception('Failed to block user');
+      }
+
+      print('[HttpChat] User blocked successfully');
+    } catch (e) {
+      print('[HttpChat] Error blocking user: $e');
+      rethrow;
+    }
   }
 
   Future<void> unblockUser(String userId, String otherUserId) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Unblock user not implemented yet');
+    try {
+      print('[HttpChat] Unblocking user: $otherUserId by $userId');
+
+      final response = await http.delete(
+        Uri.parse('$_apiUrl/users/$userId/block/$otherUserId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('[HttpChat] Unblock user response: ${response.statusCode}');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        print('[HttpChat] Failed to unblock user: ${response.statusCode}');
+        throw Exception('Failed to unblock user');
+      }
+
+      print('[HttpChat] User unblocked successfully');
+    } catch (e) {
+      print('[HttpChat] Error unblocking user: $e');
+      rethrow;
+    }
   }
 
   Future<void> reportConversation(String conversationId) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Report conversation not implemented yet');
+    try {
+      print('[HttpChat] Reporting conversation: $conversationId');
+
+      final response = await http.post(
+        Uri.parse('$_apiUrl/conversations/$conversationId/report'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'reason': 'Inappropriate content',
+          'timestamp': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      print('[HttpChat] Report conversation response: ${response.statusCode}');
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        print(
+            '[HttpChat] Failed to report conversation: ${response.statusCode}');
+        throw Exception('Failed to report conversation');
+      }
+
+      print('[HttpChat] Conversation reported successfully');
+    } catch (e) {
+      print('[HttpChat] Error reporting conversation: $e');
+      rethrow;
+    }
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Delete conversation not implemented yet');
+    try {
+      print('[HttpChat] Deleting conversation: $conversationId');
+
+      final response = await http.delete(
+        Uri.parse('$_apiUrl/conversations/$conversationId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('[HttpChat] Delete conversation response: ${response.statusCode}');
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        print(
+            '[HttpChat] Failed to delete conversation: ${response.statusCode}');
+        throw Exception('Failed to delete conversation');
+      }
+
+      print('[HttpChat] Conversation deleted successfully');
+    } catch (e) {
+      print('[HttpChat] Error deleting conversation: $e');
+      rethrow;
+    }
   }
 
   Future<String> sendImage({
@@ -257,8 +356,41 @@ class HttpChatService {
     required String receiverId,
     required String imagePath,
   }) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Send image not implemented yet');
+    try {
+      print('[HttpChat] Sending image to conversation $conversationId');
+      print('[HttpChat] Image path: $imagePath');
+
+      final uri = Uri.parse('$_apiUrl/chat/$conversationId/messages/image');
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add fields
+      request.fields['senderId'] = senderId;
+      request.fields['receiverId'] = receiverId;
+      request.fields['messageType'] = 'image';
+
+      // Add image file
+      final imageFile = await http.MultipartFile.fromPath('image', imagePath);
+      request.files.add(imageFile);
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('[HttpChat] Send image response: ${response.statusCode}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final messageId = responseData['messageId'];
+        print('[HttpChat] Image sent successfully with ID: $messageId');
+        return messageId.toString();
+      } else {
+        print('[HttpChat] Failed to send image: ${response.statusCode}');
+        throw Exception('Failed to send image: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('[HttpChat] Error sending image: $e');
+      rethrow;
+    }
   }
 
   Future<String> sendDocument({
@@ -267,8 +399,42 @@ class HttpChatService {
     required String receiverId,
     required String documentPath,
   }) async {
-    // TODO: Implement when needed
-    throw UnimplementedError('Send document not implemented yet');
+    try {
+      print('[HttpChat] Sending document to conversation $conversationId');
+      print('[HttpChat] Document path: $documentPath');
+
+      final uri = Uri.parse('$_apiUrl/chat/$conversationId/messages/document');
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add fields
+      request.fields['senderId'] = senderId;
+      request.fields['receiverId'] = receiverId;
+      request.fields['messageType'] = 'document';
+
+      // Add document file
+      final documentFile =
+          await http.MultipartFile.fromPath('document', documentPath);
+      request.files.add(documentFile);
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('[HttpChat] Send document response: ${response.statusCode}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final messageId = responseData['messageId'];
+        print('[HttpChat] Document sent successfully with ID: $messageId');
+        return messageId.toString();
+      } else {
+        print('[HttpChat] Failed to send document: ${response.statusCode}');
+        throw Exception('Failed to send document: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('[HttpChat] Error sending document: $e');
+      rethrow;
+    }
   }
 
   // Compatibility method - not needed for HTTP
