@@ -8,6 +8,9 @@ import 'package:immosync/features/chat/domain/models/conversation.dart';
 /// This replaces the Matrix-based implementation
 class HttpChatService {
   final String _apiUrl = DbConfig.apiUrl;
+  final http.Client _client;
+
+  HttpChatService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Send a message via HTTP API to your backend
   Future<String> sendMessage({
@@ -22,7 +25,7 @@ class HttpChatService {
       print('[HttpChat] From: $senderId, To: $receiverId');
       print('[HttpChat] Content: $content');
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +62,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Getting conversations for user: $userId');
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$_apiUrl/conversations/user/$userId'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -88,7 +91,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Getting messages for conversation: $conversationId');
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -120,7 +123,7 @@ class HttpChatService {
       print(
           '[HttpChat] Creating conversation between $senderId and $receiverId');
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$_apiUrl/conversations'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
@@ -164,7 +167,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Marking message as read: $messageId');
 
-      final response = await http.patch(
+      final response = await _client.patch(
         Uri.parse('$_apiUrl/messages/$messageId/read'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -230,7 +233,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Downloading attachment: $attachmentId');
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse('$_apiUrl/attachments/$attachmentId'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -255,7 +258,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Blocking user: $otherUserId by $userId');
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$_apiUrl/users/$userId/block'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'blockedUserId': otherUserId}),
@@ -279,7 +282,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Unblocking user: $otherUserId by $userId');
 
-      final response = await http.delete(
+      final response = await _client.delete(
         Uri.parse('$_apiUrl/users/$userId/block/$otherUserId'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -302,7 +305,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Reporting conversation: $conversationId');
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$_apiUrl/conversations/$conversationId/report'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
@@ -330,7 +333,7 @@ class HttpChatService {
     try {
       print('[HttpChat] Deleting conversation: $conversationId');
 
-      final response = await http.delete(
+      final response = await _client.delete(
         Uri.parse('$_apiUrl/conversations/$conversationId'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -372,8 +375,8 @@ class HttpChatService {
       final imageFile = await http.MultipartFile.fromPath('image', imagePath);
       request.files.add(imageFile);
 
-      // Send request
-      final streamedResponse = await request.send();
+      // Send request via client
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
 
       print('[HttpChat] Send image response: ${response.statusCode}');
@@ -416,8 +419,8 @@ class HttpChatService {
           await http.MultipartFile.fromPath('document', documentPath);
       request.files.add(documentFile);
 
-      // Send request
-      final streamedResponse = await request.send();
+      // Send request via client
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
 
       print('[HttpChat] Send document response: ${response.statusCode}');
