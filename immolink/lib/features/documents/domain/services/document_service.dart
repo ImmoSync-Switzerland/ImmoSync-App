@@ -847,9 +847,14 @@ extension on DocumentService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('sessionToken');
+
+      // Debug: Print all SharedPreferences keys to diagnose storage issues
+      final allKeys = prefs.getKeys();
+      print('DocumentService: SharedPreferences keys: ${allKeys.join(", ")}');
+
       if (token != null && token.isNotEmpty) {
         print(
-            'DocumentService: Using auth token: ${token.substring(0, 16)}...');
+            'DocumentService: Using auth token (length: ${token.length}): ${token.substring(0, token.length > 16 ? 16 : token.length)}...');
         // Backend's authenticate middleware checks:
         // 1. Authorization: Bearer <token>
         // 2. x-access-token: <token>
@@ -857,13 +862,21 @@ extension on DocumentService {
         return {
           'Authorization': 'Bearer $token',
           'x-access-token': token,
+          'Content-Type': 'application/json',
         };
       }
-      print('DocumentService: No session token found in SharedPreferences');
-      return const {};
-    } catch (e) {
-      print('DocumentService: Failed to read auth token: $e');
-      return const {};
+      print(
+          'DocumentService: WARNING - No session token found in SharedPreferences!');
+      print('DocumentService: Available keys in SharedPreferences: $allKeys');
+      return {
+        'Content-Type': 'application/json',
+      };
+    } catch (e, stackTrace) {
+      print('DocumentService: ERROR - Failed to read auth token: $e');
+      print('DocumentService: Stack trace: $stackTrace');
+      return {
+        'Content-Type': 'application/json',
+      };
     }
   }
 }
