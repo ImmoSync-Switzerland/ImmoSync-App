@@ -19,12 +19,18 @@ final recentActivitiesProvider = StreamProvider<List<Activity>>((ref) async* {
 
   final activityService = ref.watch(activityServiceProvider);
 
+  // Load cached data immediately on first load
+  bool isFirstLoad = true;
+
   // Simulate a stream by fetching data periodically
   while (true) {
     try {
-      final activities =
-          await activityService.getRecentActivities(currentUser.id);
+      final activities = await activityService.getRecentActivities(
+        currentUser.id,
+        forceRefresh: !isFirstLoad, // Use cache on first load only
+      );
       yield activities;
+      isFirstLoad = false;
     } catch (e) {
       print('[ActivityProvider] Error loading activities: $e');
       // Don't yield empty list on error - keep showing previous data

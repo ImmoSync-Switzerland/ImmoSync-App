@@ -11,6 +11,8 @@ class ChatPreviewNotifier extends StateNotifier<Map<String, String>> {
   final _subs = <String, StreamSubscription<List<ChatMessage>>>{};
   final _roomByConversation = <String, String>{};
   final _chatService = ChatService();
+  final _backendFallback =
+      <String, bool>{}; // Track if we need backend fallback
 
   Future<void> ensureWatching({
     required String conversationId,
@@ -18,21 +20,35 @@ class ChatPreviewNotifier extends StateNotifier<Map<String, String>> {
     required String otherUserId,
   }) async {
     if (_subs.containsKey(conversationId)) return;
+
+    // Load preview from backend FIRST (instant display)
+    _loadBackendPreview(conversationId);
+
+    // Then subscribe to Matrix updates
     // Resolve roomId
     String roomId;
     if (_roomByConversation.containsKey(conversationId)) {
       roomId = _roomByConversation[conversationId]!;
     } else {
-      final rid = await _chatService.getMatrixRoomIdForConversation(
-          conversationId: conversationId,
-          currentUserId: currentUserId,
-          otherUserId: otherUserId);
-      roomId = rid ?? conversationId;
-      _roomByConversation[conversationId] = roomId;
+      try {
+        final rid = await _chatService.getMatrixRoomIdForConversation(
+            conversationId: conversationId,
+            currentUserId: currentUserId,
+            otherUserId: otherUserId);
+        roomId = rid ?? conversationId;
+        _roomByConversation[conversationId] = roomId;
+      } catch (e) {
+        print('[ChatPreviewNotifier] Failed to resolve roomId: $e');
+        _backendFallback[conversationId] = true;
+        return; // Stay with backend preview
+      }
     }
     final timeline = _ref.read(matrixTimelineServiceProvider);
     final sub = timeline.watchRoom(roomId).listen((messages) {
-      if (messages.isEmpty) return;
+      if (messages.isEmpty) {
+        // Keep backend preview if Matrix is empty
+        return;
+      }
       final last = messages.last;
       String preview;
       if (last.content.isNotEmpty && last.content != '[encrypted]') {
@@ -55,6 +71,38 @@ class ChatPreviewNotifier extends StateNotifier<Map<String, String>> {
       state = copy;
     });
     _subs[conversationId] = sub;
+  }
+
+  Future<void> _loadBackendPreview(String conversationId) async {
+    try {
+      final messages =
+          await _chatService.getMessages(conversationId, ref: _ref);
+      if (messages.isEmpty) return;
+
+      final last = messages.last;
+      String preview;
+      if (last.content.isNotEmpty && last.content != '[encrypted]') {
+        preview = last.content;
+      } else if (last.messageType == 'image') {
+        preview = '📷 Photo';
+      } else if (last.messageType == 'file') {
+        final meta = last.metadata;
+        String name = '';
+        if (meta is Map<String, dynamic>) {
+          final v = meta['fileName'];
+          if (v != null) name = v.toString();
+        }
+        preview = name.isNotEmpty ? '📎 $name' : '📎 File';
+      } else {
+        preview = 'Encrypted message';
+      }
+
+      final copy = Map<String, String>.from(state);
+      copy[conversationId] = preview;
+      state = copy;
+    } catch (e) {
+      print('[ChatPreviewNotifier] Failed to load backend preview: $e');
+    }
   }
 
   @override

@@ -23,6 +23,20 @@ class ChatMessagesNotifier
 
   ChatMessagesNotifier(this._chatService, this._conversationId, this._ref)
       : super(const AsyncValue.loading()) {
+    _initMessages();
+  }
+
+  Future<void> _initMessages() async {
+    // STEP 1: Load backend messages FIRST (instant display)
+    try {
+      debugPrint('[MessagesProvider] Loading initial messages from backend...');
+      await _loadMessages();
+      debugPrint('[MessagesProvider] Initial messages loaded from backend');
+    } catch (e) {
+      debugPrint('[MessagesProvider] Backend load failed: $e');
+    }
+
+    // STEP 2: Initialize Matrix in background (will update when ready)
     _initMatrixTimeline();
   }
 
@@ -129,6 +143,17 @@ class ChatMessagesNotifier
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
         debugPrint(
             '[MessagesProvider] Timeline update: ${sorted.length} messages for $_roomId');
+
+        // If Matrix returns empty but we have backend messages, keep backend messages
+        // This prevents "blinking" where messages disappear during Matrix sync
+        if (sorted.isEmpty &&
+            state.hasValue &&
+            (state.value?.isNotEmpty ?? false)) {
+          debugPrint(
+              '[MessagesProvider] Matrix empty, keeping backend messages');
+          return;
+        }
+
         state = AsyncValue.data(sorted);
       });
 
@@ -144,19 +169,10 @@ class ChatMessagesNotifier
         debugPrint('[MessagesProvider] History refresh failed: $e');
       }
 
-      // Load initial messages from backend only if the timeline hasn't produced
-      // anything yet. If Matrix history/events already populated the state,
-      // avoid overriding plaintext with legacy encrypted placeholders.
-      if (!(state.hasValue && (state.value?.isNotEmpty ?? false))) {
-        debugPrint(
-            '[MessagesProvider] Loading initial messages from backend...');
-        await _loadMessages();
-        debugPrint(
-            '[MessagesProvider] Initial messages loaded, timeline will update on new messages');
-      } else {
-        debugPrint(
-            '[MessagesProvider] Skipping backend load (timeline already has messages)');
-      }
+      // Backend messages already loaded in _initMessages() before Matrix init
+      // Matrix timeline will now update the state when new messages arrive
+      debugPrint(
+          '[MessagesProvider] Matrix timeline ready, will update on new messages');
     } catch (e, st) {
       debugPrint('[MessagesProvider] Timeline init error: $e');
       state = AsyncValue.error(e, st);

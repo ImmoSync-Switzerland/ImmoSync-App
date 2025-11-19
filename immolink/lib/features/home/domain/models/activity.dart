@@ -29,6 +29,9 @@ class Activity {
     );
   }
 
+  // Alias for compatibility
+  factory Activity.fromMap(Map<String, dynamic> map) => Activity.fromJson(map);
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -40,6 +43,9 @@ class Activity {
       'metadata': metadata,
     };
   }
+
+  // Alias for compatibility
+  Map<String, dynamic> toMap() => toJson();
 
   String get timeAgo {
     final now = DateTime.now();
