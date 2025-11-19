@@ -405,15 +405,36 @@ class DocumentService {
 
         print('DocumentService: Document also saved to local storage');
         return document;
+      } else if (response.statusCode == 401) {
+        print('DocumentService: Upload failed - Unauthorized (401)');
+        throw Exception('Unauthorized: Please log in again');
+      } else if (response.statusCode == 403) {
+        print('DocumentService: Upload failed - Forbidden (403)');
+        throw Exception(
+            'Access denied: You do not have permission to upload documents');
+      } else if (response.statusCode == 400) {
+        print(
+            'DocumentService: Upload failed - Bad Request (400): $responseData');
+        try {
+          final errorJson = json.decode(responseData);
+          throw Exception(errorJson['message'] ?? 'Bad request');
+        } catch (_) {
+          throw Exception('Bad request: $responseData');
+        }
       } else {
         print(
             'DocumentService: Upload failed - Status: ${response.statusCode}, Response: $responseData');
         throw Exception(
-            'Failed to upload document: ${response.statusCode} - $responseData');
+            'Failed to upload document (${response.statusCode}): $responseData');
       }
     } catch (e) {
       print('DocumentService: Upload failed with error: $e');
-      rethrow; // No fallback - throw the error
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(
+            'Network error: Cannot reach server. Please check your connection.');
+      }
+      rethrow;
     }
   }
 
@@ -827,12 +848,18 @@ extension on DocumentService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('sessionToken');
       if (token != null && token.isNotEmpty) {
+        print(
+            'DocumentService: Using auth token: ${token.substring(0, 16)}...');
+        // Backend's authenticate middleware checks:
+        // 1. Authorization: Bearer <token>
+        // 2. x-access-token: <token>
+        // 3. auth-token cookie
         return {
           'Authorization': 'Bearer $token',
           'x-access-token': token,
-          'x-session-token': token,
         };
       }
+      print('DocumentService: No session token found in SharedPreferences');
       return const {};
     } catch (e) {
       print('DocumentService: Failed to read auth token: $e');

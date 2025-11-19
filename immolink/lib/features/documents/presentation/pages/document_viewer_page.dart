@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -51,10 +52,15 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         _error = null;
       });
 
+      // Get authentication headers
+      final headers = await _getAuthHeaders();
+      print('DocumentViewer: Auth headers: ${headers.keys.join(", ")}');
+
       // Prefer raw endpoint (streams from disk or DB) rather than guessing path
       final rawUrl = '${ApiConfig.baseUrl}/documents/${widget.document.id}/raw';
       print('DocumentViewer: Loading document from raw endpoint: $rawUrl');
-      http.Response response = await http.get(Uri.parse(rawUrl));
+      http.Response response =
+          await http.get(Uri.parse(rawUrl), headers: headers);
 
       // Fallback: if 404, attempt download endpoint (may differ in older deployments)
       if (response.statusCode == 404) {
@@ -62,7 +68,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
             '${ApiConfig.baseUrl}/documents/download/${widget.document.id}';
         print(
             'DocumentViewer: raw endpoint 404, trying download endpoint: $altUrl');
-        response = await http.get(Uri.parse(altUrl));
+        response = await http.get(Uri.parse(altUrl), headers: headers);
       }
 
       print('DocumentViewer: Response status: ${response.statusCode}');
@@ -76,6 +82,11 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
           print(
               'DocumentViewer: Successfully loaded ${response.bodyBytes.length} bytes');
         }
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized: Please log in again');
+      } else if (response.statusCode == 403) {
+        throw Exception(
+            'Access denied: You do not have permission to view this document');
       } else {
         throw Exception(
             'Failed to load document: ${response.statusCode} - ${response.reasonPhrase}');
@@ -88,6 +99,23 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<Map<String, String>> _getAuthHeaders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('sessionToken');
+      if (token != null && token.isNotEmpty) {
+        return {
+          'Authorization': 'Bearer $token',
+          'x-access-token': token,
+        };
+      }
+      return {};
+    } catch (e) {
+      print('DocumentViewer: Failed to read auth token: $e');
+      return {};
     }
   }
 
