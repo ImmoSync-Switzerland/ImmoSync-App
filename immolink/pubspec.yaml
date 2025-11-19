@@ -75,6 +75,8 @@ flutter:
   assets:
     - assets/icon/
     - assets/fonts/
+    # .env is optional - used for local dev, not tracked in git
+    - .env
 
 dependency_overrides:
   web:

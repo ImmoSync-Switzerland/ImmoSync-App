@@ -30,6 +30,15 @@ jobs:
         working-directory: immolink
         run: flutter pub get
         
+      - name: Create .env file for analysis
+        working-directory: immolink
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
+        
       - name: Run Flutter analyzer
         working-directory: immolink
         run: flutter analyze --fatal-infos
@@ -82,6 +91,15 @@ jobs:
         working-directory: immolink
         run: flutter pub get
         
+      - name: Create .env file for analysis
+        working-directory: immolink
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
+        
       - name: Run custom lints
         working-directory: immolink
         run: flutter analyze --no-fatal-infos
@@ -116,6 +134,15 @@ jobs:
       - name: Install dependencies
         working-directory: immolink
         run: flutter pub get
+        
+      - name: Create .env file for build
+        working-directory: immolink
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
         
       - name: Build APK (debug)
         working-directory: immolink
