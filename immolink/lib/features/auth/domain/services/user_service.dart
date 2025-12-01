@@ -1,9 +1,12 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:immosync/core/config/db_config.dart';
-import '../models/user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:immosync/core/services/token_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/user.dart';
 
 class UserService {
   final String _apiUrl = DbConfig.apiUrl;
@@ -121,11 +124,73 @@ class UserService {
             '[UserService] User.fromMap - profileImage: ${user.profileImage}');
         return user;
       }
+
+      if (resp.statusCode == 404) {
+        print(
+            '[UserService] /users/me returned 404 - attempting graceful fallback');
+        final fallback = await _buildUserFallback(headers);
+        if (fallback != null) {
+          print('[UserService] Returning fallback user profile');
+          return fallback;
+        }
+        return null;
+      }
+
       print('[UserService] Failed to fetch user: ${resp.body}');
       return null;
     } catch (e, stackTrace) {
       print('[UserService] Error fetching current user: $e');
       print('[UserService] Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  Future<User?> _buildUserFallback(Map<String, String> headers) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedUserId = prefs.getString('userId');
+      if (cachedUserId == null || cachedUserId.isEmpty) {
+        return null;
+      }
+
+      // Try to resolve via by-id endpoint first (may exist even if /users/me 404s)
+      try {
+        final resp = await http.get(
+          Uri.parse('$_apiUrl/users/by-id/$cachedUserId'),
+          headers: headers,
+        );
+        if (resp.statusCode == 200) {
+          final map = json.decode(resp.body) as Map<String, dynamic>;
+          return User.fromMap(map);
+        }
+      } catch (e) {
+        debugPrint('[UserService] users/by-id fallback failed: $e');
+      }
+
+      final fallbackMap = <String, dynamic>{
+        '_id': cachedUserId,
+        'email': prefs.getString('email') ?? '',
+        'fullName': prefs.getString('fullName') ?? '',
+        'role': prefs.getString('userRole') ?? '',
+        'birthDate':
+            prefs.getString('birthDate') ?? DateTime.now().toIso8601String(),
+        'isAdmin': prefs.getBool('isAdmin') ?? false,
+        'isValidated': true,
+        'address': {
+          'street': prefs.getString('addressStreet') ?? '',
+          'city': prefs.getString('addressCity') ?? '',
+          'postalCode': prefs.getString('addressPostal') ?? '',
+          'country': prefs.getString('addressCountry') ?? '',
+        },
+        'profileImage':
+            prefs.getString('immosync-profileImage-$cachedUserId') ?? '',
+        'profileImageUrl':
+            prefs.getString('immosync-profileImageUrl-$cachedUserId') ?? '',
+      };
+
+      return User.fromMap(fallbackMap);
+    } catch (e) {
+      debugPrint('[UserService] Failed to build fallback user: $e');
       return null;
     }
   }

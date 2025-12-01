@@ -1,8 +1,11 @@
 import 'dart:convert';
+
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import '../config/db_config.dart';
 
 /// Central token management service to prevent race conditions
@@ -41,7 +44,7 @@ class TokenManager {
     _lastRefresh = DateTime.now();
 
     final prefix = token.substring(0, token.length < 8 ? token.length : 8);
-    print('[TokenManager] Token updated; prefix=$prefix');
+    _log('[TokenManager] Token updated; prefix=$prefix');
   }
 
   /// Clear the session token
@@ -50,7 +53,7 @@ class TokenManager {
     _lastRefresh = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
-    print('[TokenManager] Token cleared');
+    _log('[TokenManager] Token cleared');
   }
 
   /// Check if token needs refresh (older than 5 minutes)
@@ -64,7 +67,7 @@ class TokenManager {
   Future<bool> refreshToken(String apiUrl) async {
     // Prevent concurrent refresh attempts
     if (_isRefreshing) {
-      print('[TokenManager] Refresh already in progress, waiting...');
+      _log('[TokenManager] Refresh already in progress, waiting...');
       // Wait for ongoing refresh to complete
       while (_isRefreshing) {
         await Future.delayed(const Duration(milliseconds: 100));
@@ -78,17 +81,17 @@ class TokenManager {
       final userId = prefs.getString(_userIdKey);
 
       if (userId == null || userId.isEmpty) {
-        print('[TokenManager] No userId available for token refresh');
+        _warn('[TokenManager] No userId available for token refresh');
         return false;
       }
 
       final assertion = _buildUiJwt(userId);
       if (assertion == null) {
-        print('[TokenManager] Failed to build UI-JWT');
+        _warn('[TokenManager] Failed to build UI-JWT');
         return false;
       }
 
-      print('[TokenManager] Requesting token exchange for userId: $userId');
+      _log('[TokenManager] Requesting token exchange for userId: $userId');
 
       final response = await http.post(
         Uri.parse('$apiUrl/auth/login-exchange'),
@@ -105,20 +108,20 @@ class TokenManager {
 
         if (newToken != null && newToken.isNotEmpty) {
           await setToken(newToken);
-          print('[TokenManager] Token refresh successful');
+          _log('[TokenManager] Token refresh successful');
           return true;
         } else {
-          print('[TokenManager] Token refresh response missing token');
+          _warn('[TokenManager] Token refresh response missing token');
           return false;
         }
       } else {
-        print(
+        _warn(
             '[TokenManager] Token refresh failed: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e, stackTrace) {
-      print('[TokenManager] Token refresh error: $e');
-      print(stackTrace);
+      _warn('[TokenManager] Token refresh error: $e');
+      _log(stackTrace.toString());
       return false;
     } finally {
       _isRefreshing = false;
@@ -131,7 +134,7 @@ class TokenManager {
       // Debug: Log the JWT secret being used (first 8 chars for security)
       final secretPreview =
           _jwtSecret.length > 8 ? _jwtSecret.substring(0, 8) : _jwtSecret;
-      print(
+      _log(
           '[TokenManager] Using JWT secret starting with: $secretPreview (length: ${_jwtSecret.length})');
 
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -156,7 +159,7 @@ class TokenManager {
 
       return '$h.$p.$s';
     } catch (e) {
-      print('[TokenManager] Error building UI-JWT: $e');
+      _warn('[TokenManager] Error building UI-JWT: $e');
       return null;
     }
   }
@@ -167,7 +170,7 @@ class TokenManager {
 
     // If no token or needs refresh, try to refresh
     if (token == null || token.isEmpty || needsRefresh()) {
-      print('[TokenManager] Token unavailable or expired, refreshing...');
+      _log('[TokenManager] Token unavailable or expired, refreshing...');
       await refreshToken(apiUrl);
     }
   }
@@ -188,12 +191,22 @@ class TokenManager {
 
       final looksJwt = token.contains('.') && token.split('.').length == 3;
       final prefix = token.substring(0, token.length < 8 ? token.length : 8);
-      print(
+      _log(
           '[TokenManager] Adding token to headers; looksJwt=$looksJwt prefix=$prefix');
     } else {
-      print('[TokenManager] No token available');
+      _warn('[TokenManager] No token available');
     }
 
     return headers;
   }
+}
+
+void _log(String message) {
+  if (kDebugMode) {
+    debugPrint(message);
+  }
+}
+
+void _warn(String message) {
+  debugPrint(message);
 }

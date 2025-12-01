@@ -1,10 +1,63 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:immosync/l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:immosync/l10n/app_localizations.dart';
+
 import '../config/db_config.dart';
 import '../services/token_manager.dart';
+
+class _MongoImageCacheEntry {
+  final Uint8List? bytes;
+  final String? dataUrl;
+  final DateTime fetchedAt;
+
+  _MongoImageCacheEntry({this.bytes, this.dataUrl})
+      : fetchedAt = DateTime.now();
+
+  bool get isValid => bytes != null || (dataUrl != null && dataUrl!.isNotEmpty);
+}
+
+class _MongoImageCache {
+  static const Duration _ttl = Duration(minutes: 5);
+  static final Map<String, _MongoImageCacheEntry> _cache = {};
+  static final Map<String, Future<_MongoImageCacheEntry?>> _inFlight = {};
+
+  static _MongoImageCacheEntry? get(String key) {
+    final entry = _cache[key];
+    if (entry == null) return null;
+    if (DateTime.now().difference(entry.fetchedAt) > _ttl) {
+      _cache.remove(key);
+      return null;
+    }
+    return entry;
+  }
+
+  static void put(String key, _MongoImageCacheEntry entry) {
+    if (entry.isValid) {
+      _cache[key] = entry;
+    }
+  }
+
+  static void invalidate(String key) {
+    _cache.remove(key);
+  }
+
+  static Future<_MongoImageCacheEntry?> join(
+      String key, Future<_MongoImageCacheEntry?> Function() loader) {
+    final existing = _inFlight[key];
+    if (existing != null) {
+      return existing;
+    }
+    final future = loader();
+    _inFlight[key] = future;
+    return future.whenComplete(() {
+      _inFlight.remove(key);
+    });
+  }
+}
 
 class MongoImage extends StatefulWidget {
   final String imageId;
@@ -58,18 +111,43 @@ class _MongoImageState extends State<MongoImage> {
         _hasError = false;
       });
 
-      // Ensure token is available before loading image
-      await _tokenManager.ensureTokenAvailable(DbConfig.apiUrl);
-
-      if (kIsWeb) {
-        // For web, use the base64 endpoint
-        await _loadImageAsBase64();
+      final cacheKey = widget.imageId;
+      if (!widget.forceReload) {
+        final cached = _MongoImageCache.get(cacheKey);
+        if (cached != null) {
+          if (!mounted) return;
+          _applyCacheEntry(cached);
+          return;
+        }
       } else {
-        // For mobile, use direct HTTP request
-        await _loadImageAsBytes();
+        _MongoImageCache.invalidate(cacheKey);
+      }
+
+      Future<_MongoImageCacheEntry?> fetcher() async {
+        if (kIsWeb) {
+          return _loadImageAsBase64();
+        } else {
+          return _loadImageAsBytes();
+        }
+      }
+
+      final entry = widget.forceReload
+          ? await fetcher()
+          : await _MongoImageCache.join(cacheKey, fetcher);
+
+      if (!mounted) return;
+
+      if (entry != null) {
+        _MongoImageCache.put(cacheKey, entry);
+        _applyCacheEntry(entry);
+      } else {
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      print('[MongoImage] Error loading image ${widget.imageId}: $e');
+      debugPrint('[MongoImage] Error loading image ${widget.imageId}: $e');
       if (!mounted) return;
       setState(() {
         _hasError = true;
@@ -78,11 +156,19 @@ class _MongoImageState extends State<MongoImage> {
     }
   }
 
+  void _applyCacheEntry(_MongoImageCacheEntry entry) {
+    setState(() {
+      _imageBytes = entry.bytes;
+      _dataUrl = entry.dataUrl;
+      _isLoading = false;
+    });
+  }
+
   Future<Map<String, String>> _headers() async {
     return await _tokenManager.getHeaders();
   }
 
-  Future<void> _loadImageAsBase64() async {
+  Future<_MongoImageCacheEntry?> _loadImageAsBase64() async {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     var response = await http.get(
@@ -99,23 +185,27 @@ class _MongoImageState extends State<MongoImage> {
       );
     }
 
-    print(
-        'Loading base64 image for ID: ${widget.imageId}, Status: ${response.statusCode}');
+    if (kDebugMode) {
+      debugPrint(
+          'Loading base64 image for ID: ${widget.imageId}, Status: ${response.statusCode}');
+    }
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      if (!mounted) return;
-      setState(() {
-        _dataUrl = data['dataUrl'];
-        _isLoading = false;
-      });
-      print('Base64 image loaded successfully');
+      final url = data['dataUrl']?.toString();
+      if (url == null || url.isEmpty) {
+        throw Exception('Base64 response missing dataUrl');
+      }
+      if (kDebugMode) {
+        debugPrint('Base64 image loaded successfully');
+      }
+      return _MongoImageCacheEntry(dataUrl: url);
     } else {
       throw Exception('Failed to load image: ${response.statusCode}');
     }
   }
 
-  Future<void> _loadImageAsBytes() async {
+  Future<_MongoImageCacheEntry?> _loadImageAsBytes() async {
     // Add cache buster to ensure fresh load
     final cacheBuster = DateTime.now().millisecondsSinceEpoch;
     // Accept raw ID or full URL; if widget.imageId already looks like a URL keep it
@@ -135,16 +225,16 @@ class _MongoImageState extends State<MongoImage> {
       response = await http.get(Uri.parse(url), headers: await _headers());
     }
 
-    print(
-        'Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
+    if (kDebugMode) {
+      debugPrint(
+          'Loading image bytes for ID: ${widget.imageId}, Status: ${response.statusCode}');
+    }
 
     if (response.statusCode == 200) {
-      if (!mounted) return;
-      setState(() {
-        _imageBytes = response.bodyBytes;
-        _isLoading = false;
-      });
-      print('Image bytes loaded successfully');
+      if (kDebugMode) {
+        debugPrint('Image bytes loaded successfully');
+      }
+      return _MongoImageCacheEntry(bytes: response.bodyBytes);
     } else {
       throw Exception(
           'Failed to load image: ${response.statusCode} (${response.reasonPhrase})');
@@ -202,7 +292,7 @@ class _MongoImageState extends State<MongoImage> {
         height: widget.height,
         fit: widget.fit,
         errorBuilder: (context, error, stackTrace) {
-          print('Data URL image error: $error');
+          debugPrint('Data URL image error: $error');
           return widget.errorWidget ??
               Container(
                 width: widget.width,
@@ -220,7 +310,7 @@ class _MongoImageState extends State<MongoImage> {
         height: widget.height,
         fit: widget.fit,
         errorBuilder: (context, error, stackTrace) {
-          print('Memory image error: $error');
+          debugPrint('Memory image error: $error');
           return widget.errorWidget ??
               Container(
                 width: widget.width,

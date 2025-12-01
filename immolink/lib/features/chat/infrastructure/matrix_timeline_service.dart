@@ -20,6 +20,27 @@ class MatrixTimelineService {
   final Map<String, bool> _historyLoaded =
       {}; // Track which rooms have loaded history
 
+  Future<bool> _waitForMobileClientReady(
+      {Duration timeout = const Duration(seconds: 6)}) async {
+    if (_isRustBridgeSupported) {
+      return true;
+    }
+    final client = MobileMatrixClient.instance;
+    if (client.isReady) {
+      return true;
+    }
+    final sw = Stopwatch()..start();
+    while (sw.elapsed < timeout) {
+      await Future.delayed(const Duration(milliseconds: 150));
+      if (client.isReady) {
+        return true;
+      }
+    }
+    debugPrint(
+        '[MatrixTimeline] Mobile Matrix client not ready after ${timeout.inMilliseconds}ms - skipping history load');
+    return false;
+  }
+
   /// Check if the current platform supports the Matrix Rust bridge
   bool get _isRustBridgeSupported {
     return defaultTargetPlatform == TargetPlatform.windows ||
@@ -69,6 +90,10 @@ class MatrixTimelineService {
       } else {
         // Use mobile client
         final mobileClient = MobileMatrixClient.instance;
+        final ready = await _waitForMobileClientReady();
+        if (!ready) {
+          return;
+        }
         jsonStr = await mobileClient.getRoomMessages(roomId, 50);
       }
 

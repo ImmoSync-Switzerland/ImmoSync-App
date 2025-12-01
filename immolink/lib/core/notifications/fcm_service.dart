@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import '../../firebase_options.dart';
 import 'package:immosync/core/config/api_config.dart';
+import 'package:immosync/core/services/token_manager.dart';
 
 /// Top-level background handler (required by Firebase Messaging)
 @pragma('vm:entry-point')
@@ -41,6 +42,7 @@ class FcmService {
   FcmService(Ref ref);
   final _messaging = FirebaseMessaging.instance;
   final _local = FlutterLocalNotificationsPlugin();
+  final TokenManager _tokenManager = TokenManager();
   bool _started = false;
   String? _currentUserId;
   String? _lastTokenSent;
@@ -200,10 +202,19 @@ class FcmService {
     try {
       final baseUrl = ApiConfig.baseUrl;
       final uri = Uri.parse('$baseUrl/notifications/register-token');
+      final headers = await _tokenManager.getHeaders();
+      headers['Content-Type'] = 'application/json';
+      final payload = {
+        'userId': _currentUserId,
+        'token': token,
+        'platform': defaultTargetPlatform.name,
+        'app': 'immosync',
+        if (!isMobile) 'mock': allowNonMobileMock,
+      };
       final resp = await http.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': _currentUserId, 'token': token}),
+        headers: headers,
+        body: jsonEncode(payload),
       );
       if (resp.statusCode >= 200 && resp.statusCode < 300) {
         _lastTokenSent = token;

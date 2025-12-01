@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'mongo_image.dart';
@@ -44,7 +45,7 @@ class UserAvatar extends ConsumerWidget {
     final tc = textColor ?? Colors.grey.shade700;
 
     // Only log when showing current user profile (not other users)
-    if (fallbackToCurrentUser && imageRef == null) {
+    if (fallbackToCurrentUser && imageRef == null && kDebugMode) {
       debugPrint('[UserAvatar] CURRENT USER PROFILE:');
       debugPrint('[UserAvatar] - fullName: ${current?.fullName}');
       debugPrint('[UserAvatar] - profileImageUrl: ${current?.profileImageUrl}');

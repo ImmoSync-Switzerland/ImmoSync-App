@@ -683,6 +683,40 @@ class MobileMatrixClient {
       // Get timeline
       final timeline = await room.getTimeline();
 
+      Future<void> backfillHistory() async {
+        if (!timeline.canRequestHistory) {
+          MobileMatrixLogger.log(
+              '[MobileMatrix] Timeline cannot request more history (prev_batch exhausted)');
+          return;
+        }
+
+        var attempts = 0;
+        while (timeline.events.length < limit &&
+            timeline.canRequestHistory &&
+            attempts < 5) {
+          final missing = limit - timeline.events.length;
+          final int batchSize = missing.clamp(1, 100).toInt();
+          MobileMatrixLogger.log(
+              '[MobileMatrix] Requesting $batchSize more events (attempt ${attempts + 1})');
+          try {
+            await timeline.requestHistory(historyCount: batchSize);
+            // Give the SDK a short moment to merge events into the timeline
+            await Future.delayed(const Duration(milliseconds: 150));
+          } catch (e, stackTrace) {
+            MobileMatrixLogger.log(
+                '[MobileMatrix] History request failed: $e\n$stackTrace');
+            break;
+          }
+          attempts++;
+        }
+      }
+
+      if (timeline.events.length < limit) {
+        MobileMatrixLogger.log(
+            '[MobileMatrix] Timeline has only ${timeline.events.length} events, backfilling from homeserver...');
+        await backfillHistory();
+      }
+
       final messages = <Map<String, dynamic>>[];
 
       // Convert timeline events to our message format

@@ -19,12 +19,10 @@ import 'package:immosync/features/settings/providers/settings_provider.dart';
 import 'package:immosync/l10n_helper.dart';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_frb_events_adapter.dart';
 import 'package:immosync/core/services/deep_link_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:immosync/frb_generated.dart';
+import 'package:immosync/features/chat/presentation/providers/matrix_bootstrap_provider.dart';
 
 void main() async {
   bool _appStarted = false; // track if primary runApp already executed
@@ -207,15 +205,8 @@ class ImmoSync extends ConsumerWidget {
       ref.watch(matrixFrbEventsAdapterProvider);
     }
 
-    // Listen for auth userId changes (avoid triggering on every rebuild)
-    ref.listen<AuthState>(authProvider, (prev, next) {
-      if (prev?.userId != next.userId) {
-        // Initialize and login Matrix bridge once user is known
-        if (next.isAuthenticated && next.userId != null) {
-          _initMatrixForUser(next.userId!);
-        }
-      }
-    });
+    // Keep Matrix client initialized as soon as the user opens the app.
+    ref.watch(matrixBootstrapProvider);
     final router = ref.watch(routerProvider);
     final currentLocale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
@@ -258,32 +249,3 @@ class ImmoSync extends ConsumerWidget {
 }
 
 // Fire-and-forget Matrix init+login using backend-provisioned credentials
-Future<void> _initMatrixForUser(String userId) async {
-  try {
-    final api = DbConfig.apiUrl;
-    Future<Map<String, dynamic>?> fetchAccount() async {
-      final r = await http.get(Uri.parse('$api/matrix/account/$userId'));
-      if (r.statusCode != 200) return null;
-      return json.decode(r.body) as Map<String, dynamic>;
-    }
-
-    var data = await fetchAccount();
-    if (data == null) {
-      // Try to provision the account then fetch again
-      await http.post(Uri.parse('$api/matrix/provision'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({'userId': userId}));
-      data = await fetchAccount();
-    }
-    if (data == null) return;
-    final homeserver = (data['baseUrl'] as String?) ?? '';
-    final username = data['username'] as String?;
-    final password = data['password'] as String?;
-    if (homeserver.isEmpty || username == null || password == null) return;
-    // Centralized readiness (idempotent) avoids duplicate login/sync
-    await MatrixChatService.instance.ensureReadyForUser(userId);
-  } catch (e, st) {
-    debugPrint('Matrix init/login failed: $e');
-    debugPrint(st.toString());
-  }
-}
