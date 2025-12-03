@@ -1647,6 +1647,127 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removePhoto => 'Remove Photo';
 
   @override
+  String get tenantSortNameAz => 'Name (A–Z)';
+
+  @override
+  String tenantStartingConversation(Object fullName) {
+    return 'Starting conversation with $fullName...';
+  }
+
+  @override
+  String tenantNoPhoneAvailable(Object fullName) {
+    return 'No phone number available for $fullName';
+  }
+
+  @override
+  String tenantCallTitle(Object fullName) {
+    return 'Call $fullName';
+  }
+
+  @override
+  String tenantCallConfirmation(Object phone) {
+    return 'Do you want to call $phone?';
+  }
+
+  @override
+  String tenantCallError(Object error) {
+    return 'Could not make phone call: $error';
+  }
+
+  @override
+  String get tenantFilterTitle => 'Filter Tenants';
+
+  @override
+  String get tenantServicesServiceProviderLabel => 'Service Provider';
+
+  @override
+  String get tenantServicesErrorLoadingProperties => 'Error loading properties';
+
+  @override
+  String get tenantServicesNoPropertiesTitle => 'No Properties Assigned';
+
+  @override
+  String get tenantServicesNoPropertiesBody =>
+      'You need to be assigned to a property to view available services.';
+
+  @override
+  String get tenantServicesErrorLoadingServices => 'Error loading services';
+
+  @override
+  String get tenantServicesHeaderTitle => 'Available Services';
+
+  @override
+  String get tenantServicesHeaderSubtitle =>
+      'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.';
+
+  @override
+  String get tenantServicesSearchHint => 'Search services...';
+
+  @override
+  String get tenantServicesCategoryAll => 'All';
+
+  @override
+  String get tenantServicesCategoryMaintenance => 'Maintenance';
+
+  @override
+  String get tenantServicesCategoryCleaning => 'Cleaning';
+
+  @override
+  String get tenantServicesCategoryRepair => 'Repair';
+
+  @override
+  String get tenantServicesCategoryGeneral => 'General';
+
+  @override
+  String get tenantServicesBookServiceButton => 'Book Service';
+
+  @override
+  String get tenantServicesUnavailableLabel => 'Unavailable';
+
+  @override
+  String get tenantServicesNoServicesTitle => 'No Services Available';
+
+  @override
+  String get tenantServicesNoServicesBody =>
+      'Your landlord hasn\'t set up any services yet.';
+
+  @override
+  String tenantServicesBookDialogTitle(Object serviceName) {
+    return 'Book $serviceName';
+  }
+
+  @override
+  String tenantServicesServiceLine(Object serviceName) {
+    return 'Service: $serviceName';
+  }
+
+  @override
+  String tenantServicesProviderLine(Object provider) {
+    return 'Provider: $provider';
+  }
+
+  @override
+  String tenantServicesPriceLine(Object price) {
+    return 'Price: $price';
+  }
+
+  @override
+  String get tenantServicesContactInfoLabel => 'Contact Information:';
+
+  @override
+  String get tenantServicesContactInfoUnavailable =>
+      'No contact info available';
+
+  @override
+  String get tenantServicesContactProviderButton => 'Contact Provider';
+
+  @override
+  String tenantServicesContactInfoProvided(
+      Object provider, Object serviceName) {
+    return 'Contact information for $serviceName has been provided. Please reach out to $provider directly.';
+  }
+
+  @override
   String get tenant => 'Tenant';
 
   @override
@@ -1686,6 +1807,209 @@ class AppLocalizationsEn extends AppLocalizations {
   String get twoFactorAuthentication => 'Two-Factor Authentication';
 
   @override
+  String get privacySettingsTitle => 'Privacy Settings';
+
+  @override
+  String get privacySettingsIntro =>
+      'Control who can see your profile information and how you appear to other users.';
+
+  @override
+  String get privacyProfileVisibilityTitle => 'Show profile to other users';
+
+  @override
+  String get privacyProfileVisibilityDescription =>
+      'Allow other users you interact with to see your profile details.';
+
+  @override
+  String get privacyContactInfoTitle => 'Show contact information';
+
+  @override
+  String get privacyContactInfoDescription =>
+      'Display email and phone number to connected users';
+
+  @override
+  String get privacyDataSharingSectionTitle => 'Data Sharing';
+
+  @override
+  String get privacyDataSharingDescription =>
+      'Choose how your data is used to improve ImmoLink services.';
+
+  @override
+  String get privacyAllowPropertySearchTitle => 'Allow property search';
+
+  @override
+  String get privacyAllowPropertySearchDescription =>
+      'Let other users find your properties in search results';
+
+  @override
+  String get privacyUsageAnalyticsTitle => 'Share usage analytics';
+
+  @override
+  String get privacyUsageAnalyticsDescription =>
+      'Help improve ImmoLink by sharing anonymous usage data';
+
+  @override
+  String get privacyMarketingSectionTitle => 'Marketing & Communications';
+
+  @override
+  String get privacyMarketingDescription =>
+      'Control how we communicate with you about new features and offers.';
+
+  @override
+  String get privacyMarketingEmailsTitle => 'Receive marketing emails';
+
+  @override
+  String get privacyMarketingEmailsDescription =>
+      'Get updates about new features, tips, and special offers';
+
+  @override
+  String get privacyDataManagementSectionTitle => 'Data Management';
+
+  @override
+  String get privacyDataManagementDescription =>
+      'Manage your personal data and export your information.';
+
+  @override
+  String get privacyExportDataTitle => 'Export my data';
+
+  @override
+  String get privacyExportDataSubtitle =>
+      'Download a copy of your personal data';
+
+  @override
+  String get privacyDeleteAccountTitle => 'Delete account';
+
+  @override
+  String get privacyDeleteAccountSubtitle =>
+      'Permanently delete your account and all data';
+
+  @override
+  String get privacyExportDialogTitle => 'Export your data';
+
+  @override
+  String get privacyExportDialogDescription =>
+      'We will prepare a download link with all your personal data including:';
+
+  @override
+  String get privacyExportIncludesProfile => 'Profile information';
+
+  @override
+  String get privacyExportIncludesProperty => 'Property data';
+
+  @override
+  String get privacyExportIncludesMessages => 'Messages and conversations';
+
+  @override
+  String get privacyExportIncludesPayments => 'Payment history';
+
+  @override
+  String get privacyExportIncludesSettings => 'Settings and preferences';
+
+  @override
+  String get privacyExportDialogNote =>
+      'The export process may take up to 24 hours. You will receive an email with the download link.';
+
+  @override
+  String get privacyExportSuccess =>
+      'Data export request submitted. You will receive an email with the download link.';
+
+  @override
+  String get privacyExportButton => 'Request export';
+
+  @override
+  String get privacyDeleteDialogTitle => 'Delete account';
+
+  @override
+  String get privacyDeleteDialogQuestion =>
+      'Are you sure you want to delete your account?';
+
+  @override
+  String get privacyDeleteDialogWarningTitle =>
+      'This action will permanently delete:';
+
+  @override
+  String get privacyDeleteDialogDeleteProfile =>
+      'Your profile and all personal data';
+
+  @override
+  String get privacyDeleteDialogDeleteProperties =>
+      'All properties and property data';
+
+  @override
+  String get privacyDeleteDialogDeleteMessages => 'Messages and conversations';
+
+  @override
+  String get privacyDeleteDialogDeletePayments => 'Payment history';
+
+  @override
+  String get privacyDeleteDialogDeleteDocuments =>
+      'All uploaded documents and images';
+
+  @override
+  String get privacyDeleteDialogIrreversible =>
+      'This action cannot be undone. Please export your data first if you want to keep a copy.';
+
+  @override
+  String get privacyDeleteRequestSubmitted =>
+      'Account deletion request submitted. This feature will be available soon.';
+
+  @override
+  String get privacyDeleteButton => 'Delete account';
+
+  @override
+  String get changePasswordPageTitle => 'Change Password';
+
+  @override
+  String get changePasswordSubtitle =>
+      'Enter your current password and choose a new one';
+
+  @override
+  String get changePasswordCurrentLabel => 'Current password';
+
+  @override
+  String get changePasswordCurrentRequired =>
+      'Please enter your current password';
+
+  @override
+  String get changePasswordNewLabel => 'New password';
+
+  @override
+  String get changePasswordNewRequired => 'Please enter a new password';
+
+  @override
+  String get changePasswordNewLength =>
+      'Password must be at least 8 characters long';
+
+  @override
+  String get changePasswordNewComplexity =>
+      'Password must contain uppercase, lowercase, and numbers';
+
+  @override
+  String get changePasswordConfirmRequired =>
+      'Please confirm your new password';
+
+  @override
+  String get changePasswordConfirmMismatch => 'Passwords do not match';
+
+  @override
+  String get passwordRequirementsTitle => 'Password Requirements';
+
+  @override
+  String get passwordRequirementLength => 'At least 8 characters long';
+
+  @override
+  String get passwordRequirementUppercase => 'Contains uppercase letters (A-Z)';
+
+  @override
+  String get passwordRequirementLowercase => 'Contains lowercase letters (a-z)';
+
+  @override
+  String get passwordRequirementNumbers => 'Contains numbers (0-9)';
+
+  @override
+  String get changePasswordButton => 'Change Password';
+
+  @override
   String get removeTenant => 'Remove Tenant';
 
   @override
@@ -1700,6 +2024,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invitations => 'Invitations';
+
+  @override
+  String get subscriptionPageTitle => 'Subscription';
+
+  @override
+  String get subscriptionLoginPrompt => 'Please log in';
+
+  @override
+  String get subscriptionNoActiveTitle => 'No Active Subscription';
+
+  @override
+  String get subscriptionNoActiveDescription =>
+      'You currently don\'t have an active subscription.';
+
+  @override
+  String get subscriptionViewPlansButton => 'View Plans';
+
+  @override
+  String get subscriptionStatusActive => 'Subscription Active';
+
+  @override
+  String subscriptionStatusValue(Object status) {
+    return 'Subscription $status';
+  }
+
+  @override
+  String get subscriptionPlanLabel => 'Plan';
+
+  @override
+  String get subscriptionAmountLabel => 'Amount';
+
+  @override
+  String get subscriptionBillingLabel => 'Billing';
+
+  @override
+  String get subscriptionBillingMonthly => 'Monthly';
+
+  @override
+  String get subscriptionBillingYearly => 'Yearly';
+
+  @override
+  String get subscriptionNextBillingLabel => 'Next Billing';
+
+  @override
+  String get subscriptionDetailsTitle => 'Subscription Details';
+
+  @override
+  String get subscriptionIdLabel => 'Subscription ID';
+
+  @override
+  String get subscriptionCustomerIdLabel => 'Customer ID';
+
+  @override
+  String get subscriptionCustomerIdUnavailable => 'N/A';
+
+  @override
+  String get subscriptionStartedLabel => 'Started';
+
+  @override
+  String get subscriptionEndsLabel => 'Ends';
+
+  @override
+  String get subscriptionManageButton => 'Manage Subscription';
+
+  @override
+  String get subscriptionCancelButton => 'Cancel Subscription';
+
+  @override
+  String get subscriptionErrorLoading => 'Error loading subscription';
+
+  @override
+  String get subscriptionNoCustomerIdMessage => 'No customer ID found';
+
+  @override
+  String get subscriptionOpeningPortal => 'Opening Stripe Portal...';
+
+  @override
+  String subscriptionFailedToOpenPortal(Object error) {
+    return 'Failed to open portal: $error';
+  }
+
+  @override
+  String get subscriptionCancelDialogTitle => 'Cancel Subscription?';
+
+  @override
+  String get subscriptionCancelDialogBody =>
+      'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of the current billing period.';
+
+  @override
+  String get subscriptionKeepButton => 'Keep Subscription';
+
+  @override
+  String get subscriptionCancelledMessage => 'Subscription cancelled';
+
+  @override
+  String subscriptionCancelErrorMessage(Object error) {
+    return 'Error: $error';
+  }
 
   @override
   String get analyticsAndReports => 'Analytics & Reports';

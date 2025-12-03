@@ -3,14 +3,23 @@ import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/domain/models/conversation.dart';
+import 'package:immosync/core/services/token_manager.dart';
 
 /// HTTP-based chat service that communicates with your normal backend API
 /// This replaces the Matrix-based implementation
 class HttpChatService {
   final String _apiUrl = DbConfig.apiUrl;
   final http.Client _client;
+  final TokenManager _tokenManager = TokenManager();
 
   HttpChatService({http.Client? client}) : _client = client ?? http.Client();
+
+  Future<Map<String, String>> _headers() async {
+    final headers = await _tokenManager.getHeaders();
+    headers['Content-Type'] = 'application/json';
+    headers['Accept'] = 'application/json';
+    return headers;
+  }
 
   /// Send a message via HTTP API to your backend
   Future<String> sendMessage({
@@ -27,9 +36,7 @@ class HttpChatService {
 
       final response = await _client.post(
         Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: await _headers(),
         body: json.encode({
           'senderId': senderId,
           'receiverId': receiverId,
@@ -64,7 +71,7 @@ class HttpChatService {
 
       final response = await _client.get(
         Uri.parse('$_apiUrl/conversations/user/$userId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
       );
 
       print('[HttpChat] Conversations response: ${response.statusCode}');
@@ -260,7 +267,7 @@ class HttpChatService {
 
       final response = await _client.post(
         Uri.parse('$_apiUrl/users/$userId/block'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
         body: json.encode({'blockedUserId': otherUserId}),
       );
 
@@ -284,7 +291,7 @@ class HttpChatService {
 
       final response = await _client.delete(
         Uri.parse('$_apiUrl/users/$userId/block/$otherUserId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
       );
 
       print('[HttpChat] Unblock user response: ${response.statusCode}');
@@ -307,7 +314,7 @@ class HttpChatService {
 
       final response = await _client.post(
         Uri.parse('$_apiUrl/conversations/$conversationId/report'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
         body: json.encode({
           'reason': 'Inappropriate content',
           'timestamp': DateTime.now().toIso8601String(),
@@ -335,7 +342,7 @@ class HttpChatService {
 
       final response = await _client.delete(
         Uri.parse('$_apiUrl/conversations/$conversationId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _headers(),
       );
 
       print('[HttpChat] Delete conversation response: ${response.statusCode}');

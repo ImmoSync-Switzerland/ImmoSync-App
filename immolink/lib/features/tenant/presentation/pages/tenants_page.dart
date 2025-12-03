@@ -49,7 +49,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(child: _buildSearchBar(colors, l10n)),
-            SliverToBoxAdapter(child: _buildFilterChips(colors)),
+            SliverToBoxAdapter(child: _buildFilterChips(colors, l10n)),
             SliverToBoxAdapter(
               child: contactsAsync.when(
                 data: (contacts) => propertiesAsync.when(
@@ -212,7 +212,8 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
         ),
       );
 
-  Widget _buildFilterChips(DynamicAppColors colors) => Padding(
+  Widget _buildFilterChips(DynamicAppColors colors, AppLocalizations l10n) =>
+      Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         child: Row(
           children: [
@@ -248,7 +249,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                             ? colors.primaryAccent
                             : colors.textSecondary),
                     const SizedBox(width: 8),
-                    const Text('Name (A–Z)')
+                    Text(l10n.tenantSortNameAz)
                   ]),
                 ),
                 PopupMenuItem(
@@ -260,7 +261,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                             ? colors.primaryAccent
                             : colors.textSecondary),
                     const SizedBox(width: 8),
-                    const Text('Status')
+                    Text(l10n.status)
                   ]),
                 ),
               ],
@@ -278,7 +279,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
                   Icon(Icons.sort_rounded, size: 18, color: colors.textPrimary),
                   const SizedBox(width: 6),
                   Text(
-                    _sortKey == 'name' ? 'Name' : 'Status',
+                    _sortKey == 'name' ? l10n.name : l10n.status,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w600,
@@ -861,12 +862,13 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
   void _messageTenant(ContactUser tenant) {
     HapticFeedback.lightImpact();
     final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Starting conversation with ${tenant.fullName}...'),
+        content: Text(l10n.tenantStartingConversation(tenant.fullName)),
         backgroundColor: colors.primaryAccent,
         action: SnackBarAction(
-          label: 'Open Chat',
+          label: l10n.openChat,
           textColor: Colors.white,
           onPressed: () => context.push('/conversations'),
         ),
@@ -876,10 +878,11 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
 
   void _callTenant(ContactUser tenant) {
     final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     if (tenant.phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No phone number available for ${tenant.fullName}'),
+          content: Text(l10n.tenantNoPhoneAvailable(tenant.fullName)),
           backgroundColor: colors.warning,
         ),
       );
@@ -890,15 +893,15 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
       builder: (c) => AlertDialog(
         backgroundColor: colors.surfaceCards,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Call ${tenant.fullName}',
+        title: Text(l10n.tenantCallTitle(tenant.fullName),
             style: TextStyle(color: colors.textPrimary)),
-        content: Text('Do you want to call ${tenant.phone}?',
+        content: Text(l10n.tenantCallConfirmation(tenant.phone),
             style: TextStyle(color: colors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(c).pop(),
-            child:
-                Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child: Text(l10n.cancel,
+                style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -913,7 +916,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Could not make phone call: ${e.toString()}'),
+                    content: Text(l10n.tenantCallError(e.toString())),
                     backgroundColor: colors.error,
                   ),
                 );
@@ -923,7 +926,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
               backgroundColor: colors.success,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Call'),
+            child: Text(l10n.call),
           )
         ],
       ),
@@ -1200,11 +1203,12 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
 
   void _showFilterOptions() {
     String temp = _tenantFilter;
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (c) => StatefulBuilder(
         builder: (c, setStateDialog) => AlertDialog(
-          title: const Text('Filter Tenants'),
+          title: Text(l10n.tenantFilterTitle),
           content: _FilterOptionList(
             selected: temp,
             onSelect: (val) {
@@ -1216,7 +1220,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(c).pop(),
-              child: const Text('Close'),
+              child: Text(l10n.close),
             ),
           ],
         ),

@@ -83,6 +83,7 @@ class PrivacySettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final privacySettings = ref.watch(privacySettingsProvider);
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -90,7 +91,7 @@ class PrivacySettingsPage extends ConsumerWidget {
         backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
-          'Privacy Settings',
+          l10n.privacySettingsTitle,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 18,
@@ -157,7 +158,7 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Kontrollieren Sie, wer Ihre Profilinformationen sehen kann und wie Sie anderen Benutzern angezeigt werden.',
+              l10n.privacySettingsIntro,
               style: TextStyle(
                 fontSize: 14,
                 color: colors.textSecondary,
@@ -165,9 +166,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Profil anderen Benutzern zeigen',
+              title: Text(l10n.privacyProfileVisibilityTitle,
                   style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.allowOtherUsersViewProfile,
+              subtitle: Text(l10n.privacyProfileVisibilityDescription,
                   style: TextStyle(color: colors.textSecondary)),
               value: settings.showProfile,
               onChanged: (value) {
@@ -180,10 +181,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text('Kontaktinformationen anzeigen',
+              title: Text(l10n.privacyContactInfoTitle,
                   style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(
-                  'E-Mail und Telefonnummer für verbundene Benutzer anzeigen',
+              subtitle: Text(l10n.privacyContactInfoDescription,
                   style: TextStyle(color: colors.textSecondary)),
               value: settings.showContactInfo,
               onChanged: (value) {
@@ -202,6 +202,7 @@ class PrivacySettingsPage extends ConsumerWidget {
 
   Widget _buildDataSharingSection(BuildContext context, WidgetRef ref,
       PrivacySettings settings, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -218,7 +219,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 Icon(Icons.share, color: colors.primaryAccent),
                 const SizedBox(width: 12),
                 Text(
-                  'Data Sharing',
+                  l10n.privacyDataSharingSectionTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -229,7 +230,7 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Choose how your data is used to improve ImmoLink services.',
+              l10n.privacyDataSharingDescription,
               style: TextStyle(
                 fontSize: 14,
                 color: colors.textSecondary,
@@ -237,10 +238,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Allow Property Search',
+              title: Text(l10n.privacyAllowPropertySearchTitle,
                   style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(
-                  'Let other users find your properties in search results',
+              subtitle: Text(l10n.privacyAllowPropertySearchDescription,
                   style: TextStyle(color: colors.textSecondary)),
               value: settings.allowPropertySearch,
               onChanged: (value) {
@@ -253,10 +253,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             Divider(color: colors.dividerSeparator),
             SwitchListTile(
-              title: Text('Share Usage Analytics',
+              title: Text(l10n.privacyUsageAnalyticsTitle,
                   style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(
-                  'Help improve ImmoLink by sharing anonymous usage data',
+              subtitle: Text(l10n.privacyUsageAnalyticsDescription,
                   style: TextStyle(color: colors.textSecondary)),
               value: settings.shareAnalytics,
               onChanged: (value) {
@@ -275,6 +274,7 @@ class PrivacySettingsPage extends ConsumerWidget {
 
   Widget _buildMarketingSection(BuildContext context, WidgetRef ref,
       PrivacySettings settings, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -291,7 +291,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 Icon(Icons.campaign, color: colors.primaryAccent),
                 const SizedBox(width: 12),
                 Text(
-                  'Marketing & Communications',
+                  l10n.privacyMarketingSectionTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -302,7 +302,7 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Control how we communicate with you about new features and offers.',
+              l10n.privacyMarketingDescription,
               style: TextStyle(
                 fontSize: 14,
                 color: colors.textSecondary,
@@ -310,10 +310,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Receive Marketing Emails',
+              title: Text(l10n.privacyMarketingEmailsTitle,
                   style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(
-                  'Get updates about new features, tips, and special offers',
+              subtitle: Text(l10n.privacyMarketingEmailsDescription,
                   style: TextStyle(color: colors.textSecondary)),
               value: settings.receiveMarketing,
               onChanged: (value) {
@@ -332,6 +331,7 @@ class PrivacySettingsPage extends ConsumerWidget {
 
   Widget _buildDataManagementSection(BuildContext context, WidgetRef ref,
       PrivacySettings settings, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 4,
       color: colors.surfaceCards,
@@ -348,7 +348,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 Icon(Icons.folder_outlined, color: colors.primaryAccent),
                 const SizedBox(width: 12),
                 Text(
-                  'Data Management',
+                  l10n.privacyDataManagementSectionTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -359,7 +359,7 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Manage your personal data and export your information.',
+              l10n.privacyDataManagementDescription,
               style: TextStyle(
                 fontSize: 14,
                 color: colors.textSecondary,
@@ -368,9 +368,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             ListTile(
               leading: Icon(Icons.download, color: colors.primaryAccent),
-              title: Text('Export My Data',
+              title: Text(l10n.privacyExportDataTitle,
                   style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text('Download a copy of your personal data',
+              subtitle: Text(l10n.privacyExportDataSubtitle,
                   style: TextStyle(color: colors.textSecondary)),
               trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
               onTap: () {
@@ -380,9 +380,9 @@ class PrivacySettingsPage extends ConsumerWidget {
             Divider(color: colors.dividerSeparator),
             ListTile(
               leading: Icon(Icons.delete_forever, color: colors.error),
-              title:
-                  Text('Delete Account', style: TextStyle(color: colors.error)),
-              subtitle: Text('Permanently delete your account and all data',
+              title: Text(l10n.privacyDeleteAccountTitle,
+                  style: TextStyle(color: colors.error)),
+              subtitle: Text(l10n.privacyDeleteAccountSubtitle,
                   style: TextStyle(color: colors.textSecondary)),
               trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
               onTap: () {
@@ -397,27 +397,28 @@ class PrivacySettingsPage extends ConsumerWidget {
 
   void _showDataExportDialog(BuildContext context, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text('Export Your Data',
+        title: Text(l10n.privacyExportDialogTitle,
             style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'We will prepare a download link with all your personal data including:',
+              l10n.privacyExportDialogDescription,
               style: TextStyle(color: colors.textPrimary),
             ),
             const SizedBox(height: 16),
             ...[
-              'Profile information',
-              'Property data',
-              'Messages and conversations',
-              'Payment history',
-              'Settings and preferences'
+              l10n.privacyExportIncludesProfile,
+              l10n.privacyExportIncludesProperty,
+              l10n.privacyExportIncludesMessages,
+              l10n.privacyExportIncludesPayments,
+              l10n.privacyExportIncludesSettings
             ].map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
@@ -432,7 +433,7 @@ class PrivacySettingsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'The export process may take up to 24 hours. You will receive an email with the download link.',
+              l10n.privacyExportDialogNote,
               style: TextStyle(color: colors.textSecondary, fontSize: 12),
             ),
           ],
@@ -440,22 +441,21 @@ class PrivacySettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child:
-                Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child: Text(l10n.cancel,
+                style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Data export request submitted. You will receive an email with the download link.'),
+                SnackBar(
+                  content: Text(l10n.privacyExportSuccess),
                 ),
               );
             },
             style:
                 ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
-            child: Text('Request Export',
+            child: Text(l10n.privacyExportButton,
                 style: TextStyle(color: colors.textOnAccent)),
           ),
         ],
@@ -465,32 +465,34 @@ class PrivacySettingsPage extends ConsumerWidget {
 
   void _showDeleteAccountDialog(BuildContext context, WidgetRef ref) {
     final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceCards,
-        title: Text('Delete Account', style: TextStyle(color: colors.error)),
+        title: Text(l10n.privacyDeleteDialogTitle,
+            style: TextStyle(color: colors.error)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Are you sure you want to delete your account?',
+              l10n.privacyDeleteDialogQuestion,
               style: TextStyle(
                   color: colors.textPrimary, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Text(
-              'This action will permanently delete:',
+              l10n.privacyDeleteDialogWarningTitle,
               style: TextStyle(color: colors.textPrimary),
             ),
             const SizedBox(height: 8),
             ...[
-              'Your profile and all personal data',
-              'All properties and property data',
-              'Messages and conversations',
-              'Payment history',
-              'All uploaded documents and images'
+              l10n.privacyDeleteDialogDeleteProfile,
+              l10n.privacyDeleteDialogDeleteProperties,
+              l10n.privacyDeleteDialogDeleteMessages,
+              l10n.privacyDeleteDialogDeletePayments,
+              l10n.privacyDeleteDialogDeleteDocuments
             ].map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
@@ -513,7 +515,7 @@ class PrivacySettingsPage extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'This action cannot be undone. Please export your data first if you want to keep a copy.',
+                l10n.privacyDeleteDialogIrreversible,
                 style: TextStyle(color: colors.error, fontSize: 12),
               ),
             ),
@@ -522,21 +524,20 @@ class PrivacySettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child:
-                Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child: Text(l10n.cancel,
+                style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Account deletion request submitted. This feature will be available soon.'),
+                SnackBar(
+                  content: Text(l10n.privacyDeleteRequestSubmitted),
                 ),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: colors.error),
-            child: Text('Delete Account',
+            child: Text(l10n.privacyDeleteButton,
                 style: TextStyle(color: colors.textOnAccent)),
           ),
         ],

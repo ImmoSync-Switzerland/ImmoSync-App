@@ -3240,6 +3240,198 @@ abstract class AppLocalizations {
   /// **'Remove Photo'**
   String get removePhoto;
 
+  /// No description provided for @tenantSortNameAz.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get tenantSortNameAz;
+
+  /// No description provided for @tenantStartingConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting conversation with {fullName}...'**
+  String tenantStartingConversation(Object fullName);
+
+  /// No description provided for @tenantNoPhoneAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No phone number available for {fullName}'**
+  String tenantNoPhoneAvailable(Object fullName);
+
+  /// No description provided for @tenantCallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {fullName}'**
+  String tenantCallTitle(Object fullName);
+
+  /// No description provided for @tenantCallConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to call {phone}?'**
+  String tenantCallConfirmation(Object phone);
+
+  /// No description provided for @tenantCallError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not make phone call: {error}'**
+  String tenantCallError(Object error);
+
+  /// No description provided for @tenantFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Tenants'**
+  String get tenantFilterTitle;
+
+  /// No description provided for @tenantServicesServiceProviderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Provider'**
+  String get tenantServicesServiceProviderLabel;
+
+  /// No description provided for @tenantServicesErrorLoadingProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading properties'**
+  String get tenantServicesErrorLoadingProperties;
+
+  /// No description provided for @tenantServicesNoPropertiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Properties Assigned'**
+  String get tenantServicesNoPropertiesTitle;
+
+  /// No description provided for @tenantServicesNoPropertiesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be assigned to a property to view available services.'**
+  String get tenantServicesNoPropertiesBody;
+
+  /// No description provided for @tenantServicesErrorLoadingServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading services'**
+  String get tenantServicesErrorLoadingServices;
+
+  /// No description provided for @tenantServicesHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Services'**
+  String get tenantServicesHeaderTitle;
+
+  /// No description provided for @tenantServicesHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.'**
+  String get tenantServicesHeaderSubtitle;
+
+  /// No description provided for @tenantServicesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search services...'**
+  String get tenantServicesSearchHint;
+
+  /// No description provided for @tenantServicesCategoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get tenantServicesCategoryAll;
+
+  /// No description provided for @tenantServicesCategoryMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get tenantServicesCategoryMaintenance;
+
+  /// No description provided for @tenantServicesCategoryCleaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaning'**
+  String get tenantServicesCategoryCleaning;
+
+  /// No description provided for @tenantServicesCategoryRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair'**
+  String get tenantServicesCategoryRepair;
+
+  /// No description provided for @tenantServicesCategoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get tenantServicesCategoryGeneral;
+
+  /// No description provided for @tenantServicesBookServiceButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Service'**
+  String get tenantServicesBookServiceButton;
+
+  /// No description provided for @tenantServicesUnavailableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get tenantServicesUnavailableLabel;
+
+  /// No description provided for @tenantServicesNoServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Services Available'**
+  String get tenantServicesNoServicesTitle;
+
+  /// No description provided for @tenantServicesNoServicesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your landlord hasn\'t set up any services yet.'**
+  String get tenantServicesNoServicesBody;
+
+  /// No description provided for @tenantServicesBookDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book {serviceName}'**
+  String tenantServicesBookDialogTitle(Object serviceName);
+
+  /// No description provided for @tenantServicesServiceLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Service: {serviceName}'**
+  String tenantServicesServiceLine(Object serviceName);
+
+  /// No description provided for @tenantServicesProviderLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider: {provider}'**
+  String tenantServicesProviderLine(Object provider);
+
+  /// No description provided for @tenantServicesPriceLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: {price}'**
+  String tenantServicesPriceLine(Object price);
+
+  /// No description provided for @tenantServicesContactInfoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information:'**
+  String get tenantServicesContactInfoLabel;
+
+  /// No description provided for @tenantServicesContactInfoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No contact info available'**
+  String get tenantServicesContactInfoUnavailable;
+
+  /// No description provided for @tenantServicesContactProviderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Provider'**
+  String get tenantServicesContactProviderButton;
+
+  /// No description provided for @tenantServicesContactInfoProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact information for {serviceName} has been provided. Please reach out to {provider} directly.'**
+  String tenantServicesContactInfoProvided(Object provider, Object serviceName);
+
   /// No description provided for @tenant.
   ///
   /// In en, this message translates to:
@@ -3312,6 +3504,360 @@ abstract class AppLocalizations {
   /// **'Two-Factor Authentication'**
   String get twoFactorAuthentication;
 
+  /// No description provided for @privacySettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Settings'**
+  String get privacySettingsTitle;
+
+  /// No description provided for @privacySettingsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Control who can see your profile information and how you appear to other users.'**
+  String get privacySettingsIntro;
+
+  /// No description provided for @privacyProfileVisibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show profile to other users'**
+  String get privacyProfileVisibilityTitle;
+
+  /// No description provided for @privacyProfileVisibilityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow other users you interact with to see your profile details.'**
+  String get privacyProfileVisibilityDescription;
+
+  /// No description provided for @privacyContactInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show contact information'**
+  String get privacyContactInfoTitle;
+
+  /// No description provided for @privacyContactInfoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Display email and phone number to connected users'**
+  String get privacyContactInfoDescription;
+
+  /// No description provided for @privacyDataSharingSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Sharing'**
+  String get privacyDataSharingSectionTitle;
+
+  /// No description provided for @privacyDataSharingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how your data is used to improve ImmoLink services.'**
+  String get privacyDataSharingDescription;
+
+  /// No description provided for @privacyAllowPropertySearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow property search'**
+  String get privacyAllowPropertySearchTitle;
+
+  /// No description provided for @privacyAllowPropertySearchDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Let other users find your properties in search results'**
+  String get privacyAllowPropertySearchDescription;
+
+  /// No description provided for @privacyUsageAnalyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share usage analytics'**
+  String get privacyUsageAnalyticsTitle;
+
+  /// No description provided for @privacyUsageAnalyticsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve ImmoLink by sharing anonymous usage data'**
+  String get privacyUsageAnalyticsDescription;
+
+  /// No description provided for @privacyMarketingSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Marketing & Communications'**
+  String get privacyMarketingSectionTitle;
+
+  /// No description provided for @privacyMarketingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how we communicate with you about new features and offers.'**
+  String get privacyMarketingDescription;
+
+  /// No description provided for @privacyMarketingEmailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive marketing emails'**
+  String get privacyMarketingEmailsTitle;
+
+  /// No description provided for @privacyMarketingEmailsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Get updates about new features, tips, and special offers'**
+  String get privacyMarketingEmailsDescription;
+
+  /// No description provided for @privacyDataManagementSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Management'**
+  String get privacyDataManagementSectionTitle;
+
+  /// No description provided for @privacyDataManagementDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your personal data and export your information.'**
+  String get privacyDataManagementDescription;
+
+  /// No description provided for @privacyExportDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export my data'**
+  String get privacyExportDataTitle;
+
+  /// No description provided for @privacyExportDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a copy of your personal data'**
+  String get privacyExportDataSubtitle;
+
+  /// No description provided for @privacyDeleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get privacyDeleteAccountTitle;
+
+  /// No description provided for @privacyDeleteAccountSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and all data'**
+  String get privacyDeleteAccountSubtitle;
+
+  /// No description provided for @privacyExportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export your data'**
+  String get privacyExportDialogTitle;
+
+  /// No description provided for @privacyExportDialogDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We will prepare a download link with all your personal data including:'**
+  String get privacyExportDialogDescription;
+
+  /// No description provided for @privacyExportIncludesProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile information'**
+  String get privacyExportIncludesProfile;
+
+  /// No description provided for @privacyExportIncludesProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Property data'**
+  String get privacyExportIncludesProperty;
+
+  /// No description provided for @privacyExportIncludesMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages and conversations'**
+  String get privacyExportIncludesMessages;
+
+  /// No description provided for @privacyExportIncludesPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment history'**
+  String get privacyExportIncludesPayments;
+
+  /// No description provided for @privacyExportIncludesSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and preferences'**
+  String get privacyExportIncludesSettings;
+
+  /// No description provided for @privacyExportDialogNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The export process may take up to 24 hours. You will receive an email with the download link.'**
+  String get privacyExportDialogNote;
+
+  /// No description provided for @privacyExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data export request submitted. You will receive an email with the download link.'**
+  String get privacyExportSuccess;
+
+  /// No description provided for @privacyExportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Request export'**
+  String get privacyExportButton;
+
+  /// No description provided for @privacyDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get privacyDeleteDialogTitle;
+
+  /// No description provided for @privacyDeleteDialogQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account?'**
+  String get privacyDeleteDialogQuestion;
+
+  /// No description provided for @privacyDeleteDialogWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This action will permanently delete:'**
+  String get privacyDeleteDialogWarningTitle;
+
+  /// No description provided for @privacyDeleteDialogDeleteProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile and all personal data'**
+  String get privacyDeleteDialogDeleteProfile;
+
+  /// No description provided for @privacyDeleteDialogDeleteProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'All properties and property data'**
+  String get privacyDeleteDialogDeleteProperties;
+
+  /// No description provided for @privacyDeleteDialogDeleteMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages and conversations'**
+  String get privacyDeleteDialogDeleteMessages;
+
+  /// No description provided for @privacyDeleteDialogDeletePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment history'**
+  String get privacyDeleteDialogDeletePayments;
+
+  /// No description provided for @privacyDeleteDialogDeleteDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'All uploaded documents and images'**
+  String get privacyDeleteDialogDeleteDocuments;
+
+  /// No description provided for @privacyDeleteDialogIrreversible.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone. Please export your data first if you want to keep a copy.'**
+  String get privacyDeleteDialogIrreversible;
+
+  /// No description provided for @privacyDeleteRequestSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deletion request submitted. This feature will be available soon.'**
+  String get privacyDeleteRequestSubmitted;
+
+  /// No description provided for @privacyDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get privacyDeleteButton;
+
+  /// No description provided for @changePasswordPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePasswordPageTitle;
+
+  /// No description provided for @changePasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password and choose a new one'**
+  String get changePasswordSubtitle;
+
+  /// No description provided for @changePasswordCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get changePasswordCurrentLabel;
+
+  /// No description provided for @changePasswordCurrentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your current password'**
+  String get changePasswordCurrentRequired;
+
+  /// No description provided for @changePasswordNewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get changePasswordNewLabel;
+
+  /// No description provided for @changePasswordNewRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a new password'**
+  String get changePasswordNewRequired;
+
+  /// No description provided for @changePasswordNewLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters long'**
+  String get changePasswordNewLength;
+
+  /// No description provided for @changePasswordNewComplexity.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must contain uppercase, lowercase, and numbers'**
+  String get changePasswordNewComplexity;
+
+  /// No description provided for @changePasswordConfirmRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your new password'**
+  String get changePasswordConfirmRequired;
+
+  /// No description provided for @changePasswordConfirmMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get changePasswordConfirmMismatch;
+
+  /// No description provided for @passwordRequirementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Requirements'**
+  String get passwordRequirementsTitle;
+
+  /// No description provided for @passwordRequirementLength.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters long'**
+  String get passwordRequirementLength;
+
+  /// No description provided for @passwordRequirementUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains uppercase letters (A-Z)'**
+  String get passwordRequirementUppercase;
+
+  /// No description provided for @passwordRequirementLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains lowercase letters (a-z)'**
+  String get passwordRequirementLowercase;
+
+  /// No description provided for @passwordRequirementNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains numbers (0-9)'**
+  String get passwordRequirementNumbers;
+
+  /// No description provided for @changePasswordButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePasswordButton;
+
   /// No description provided for @removeTenant.
   ///
   /// In en, this message translates to:
@@ -3341,6 +3887,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invitations'**
   String get invitations;
+
+  /// No description provided for @subscriptionPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscriptionPageTitle;
+
+  /// No description provided for @subscriptionLoginPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in'**
+  String get subscriptionLoginPrompt;
+
+  /// No description provided for @subscriptionNoActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Active Subscription'**
+  String get subscriptionNoActiveTitle;
+
+  /// No description provided for @subscriptionNoActiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You currently don\'t have an active subscription.'**
+  String get subscriptionNoActiveDescription;
+
+  /// No description provided for @subscriptionViewPlansButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View Plans'**
+  String get subscriptionViewPlansButton;
+
+  /// No description provided for @subscriptionStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Active'**
+  String get subscriptionStatusActive;
+
+  /// No description provided for @subscriptionStatusValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription {status}'**
+  String subscriptionStatusValue(Object status);
+
+  /// No description provided for @subscriptionPlanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get subscriptionPlanLabel;
+
+  /// No description provided for @subscriptionAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get subscriptionAmountLabel;
+
+  /// No description provided for @subscriptionBillingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing'**
+  String get subscriptionBillingLabel;
+
+  /// No description provided for @subscriptionBillingMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get subscriptionBillingMonthly;
+
+  /// No description provided for @subscriptionBillingYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get subscriptionBillingYearly;
+
+  /// No description provided for @subscriptionNextBillingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Billing'**
+  String get subscriptionNextBillingLabel;
+
+  /// No description provided for @subscriptionDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Details'**
+  String get subscriptionDetailsTitle;
+
+  /// No description provided for @subscriptionIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription ID'**
+  String get subscriptionIdLabel;
+
+  /// No description provided for @subscriptionCustomerIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer ID'**
+  String get subscriptionCustomerIdLabel;
+
+  /// No description provided for @subscriptionCustomerIdUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get subscriptionCustomerIdUnavailable;
+
+  /// No description provided for @subscriptionStartedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get subscriptionStartedLabel;
+
+  /// No description provided for @subscriptionEndsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get subscriptionEndsLabel;
+
+  /// No description provided for @subscriptionManageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get subscriptionManageButton;
+
+  /// No description provided for @subscriptionCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Subscription'**
+  String get subscriptionCancelButton;
+
+  /// No description provided for @subscriptionErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading subscription'**
+  String get subscriptionErrorLoading;
+
+  /// No description provided for @subscriptionNoCustomerIdMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer ID found'**
+  String get subscriptionNoCustomerIdMessage;
+
+  /// No description provided for @subscriptionOpeningPortal.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Stripe Portal...'**
+  String get subscriptionOpeningPortal;
+
+  /// No description provided for @subscriptionFailedToOpenPortal.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open portal: {error}'**
+  String subscriptionFailedToOpenPortal(Object error);
+
+  /// No description provided for @subscriptionCancelDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Subscription?'**
+  String get subscriptionCancelDialogTitle;
+
+  /// No description provided for @subscriptionCancelDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of the current billing period.'**
+  String get subscriptionCancelDialogBody;
+
+  /// No description provided for @subscriptionKeepButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Subscription'**
+  String get subscriptionKeepButton;
+
+  /// No description provided for @subscriptionCancelledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription cancelled'**
+  String get subscriptionCancelledMessage;
+
+  /// No description provided for @subscriptionCancelErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String subscriptionCancelErrorMessage(Object error);
 
   /// No description provided for @analyticsAndReports.
   ///

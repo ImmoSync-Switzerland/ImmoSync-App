@@ -69,7 +69,10 @@ class ChatService {
 
   /// Synchronous version for backward compatibility (falls back to sessionToken)
   Map<String, String> _getHeaders({Ref? ref}) {
-    final headers = <String, String>{'Content-Type': 'application/json'};
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
     if (ref != null) {
       try {
         final auth = ref.read(authProvider);
@@ -82,6 +85,26 @@ class ChatService {
       }
     }
     return headers;
+  }
+
+  Future<Map<String, String>> _authHeaders({Ref? ref, String? token}) async {
+    if (token != null && token.isNotEmpty) {
+      return {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+    }
+
+    if (ref != null) {
+      final headers = _getHeaders(ref: ref);
+      if (headers['Authorization'] != null &&
+          headers['Authorization']!.isNotEmpty) {
+        return headers;
+      }
+    }
+
+    return await _getHeadersAsync();
   }
 
   Future<List<Conversation>> getConversationsForUser(String userId) async {
@@ -785,42 +808,47 @@ class ChatService {
   /// Also removes any Matrix mapping in backend storage. Note: This does not
   /// leave/delete the actual Matrix room on the homeserver.
   Future<void> deleteConversation(String conversationId, {Ref? ref}) async {
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    try {
-      if (ref != null) {
-        final auth = ref.read(authProvider);
-        final token = auth.sessionToken;
-        if (token != null && token.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $token';
-        }
-      }
-    } catch (_) {}
+    final headers = await _authHeaders(ref: ref);
 
     final resp = await http.delete(
       Uri.parse('$_apiUrl/conversations/$conversationId'),
       headers: headers,
     );
     if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      debugPrint('[ChatService] Deleted conversation $conversationId');
       return;
     }
+    debugPrint(
+        '[ChatService] deleteConversation failed status=${resp.statusCode} body=${resp.body}');
     throw Exception(
         'Failed to delete conversation (${resp.statusCode}): ${resp.body}');
   }
 
   Future<void> deleteConversationWithToken(
       String conversationId, String? token) async {
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
+    Future<http.Response> _attempt(Map<String, String> headers) {
+      return http.delete(
+        Uri.parse('$_apiUrl/conversations/$conversationId'),
+        headers: headers,
+      );
     }
 
-    final resp = await http.delete(
-      Uri.parse('$_apiUrl/conversations/$conversationId'),
-      headers: headers,
-    );
+    var headers = await _authHeaders(token: token);
+    var resp = await _attempt(headers);
+
+    if (resp.statusCode == 401) {
+      debugPrint(
+          '[ChatService] deleteConversationWithToken received 401 - retrying with refreshed token');
+      headers = await _authHeaders();
+      resp = await _attempt(headers);
+    }
+
     if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      debugPrint('[ChatService] Deleted conversation $conversationId');
       return;
     }
+    debugPrint(
+        '[ChatService] deleteConversationWithToken failed status=${resp.statusCode} body=${resp.body}');
     throw Exception(
         'Failed to delete conversation (${resp.statusCode}): ${resp.body}');
   }
@@ -950,40 +978,57 @@ class ChatService {
     required String conversationId,
     required String reporterId,
     String? reason,
+    String? reportedUserId,
   }) async {
+    final headers = await _authHeaders();
     final resp = await http.post(
       Uri.parse('$_apiUrl/conversations/$conversationId/report'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(
-          {'reporterId': reporterId, 'reason': reason ?? 'unspecified'}),
+      headers: headers,
+      body: json.encode({
+        'reporterId': reporterId,
+        if (reportedUserId != null) 'reportedUserId': reportedUserId,
+        'reason': reason ?? 'unspecified',
+        'timestamp': DateTime.now().toIso8601String(),
+      }),
     );
     if (resp.statusCode != 201) {
+      debugPrint(
+          '[ChatService] reportConversation failed status=${resp.statusCode} body=${resp.body}');
       throw Exception('Failed to report conversation: ${resp.body}');
     }
+    debugPrint('[ChatService] Reported conversation $conversationId');
   }
 
   Future<void> blockUser(
       {required String userId, required String targetUserId}) async {
+    final headers = await _authHeaders();
     final resp = await http.post(
       Uri.parse('$_apiUrl/users/$userId/block'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode({'targetUserId': targetUserId}),
     );
     if (resp.statusCode != 200) {
+      debugPrint(
+          '[ChatService] blockUser failed status=${resp.statusCode} body=${resp.body}');
       throw Exception('Failed to block user: ${resp.body}');
     }
+    debugPrint('[ChatService] Blocked user $targetUserId for $userId');
   }
 
   Future<void> unblockUser(
       {required String userId, required String targetUserId}) async {
+    final headers = await _authHeaders();
     final resp = await http.post(
       Uri.parse('$_apiUrl/users/$userId/unblock'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode({'targetUserId': targetUserId}),
     );
     if (resp.statusCode != 200) {
+      debugPrint(
+          '[ChatService] unblockUser failed status=${resp.statusCode} body=${resp.body}');
       throw Exception('Failed to unblock user: ${resp.body}');
     }
+    debugPrint('[ChatService] Unblocked user $targetUserId for $userId');
   }
 
   // Send document/file message

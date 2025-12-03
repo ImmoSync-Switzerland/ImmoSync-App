@@ -39,9 +39,7 @@ class TenantService {
       description: service.description,
       category: service.category,
       price: service.price,
-      provider: service.contactInfo.isNotEmpty
-          ? service.contactInfo
-          : 'Service Provider',
+      provider: service.contactInfo,
       contactInfo: service.contactInfo,
       icon: _getIconForCategory(service.category),
       isAvailable: service.availability == 'available',
@@ -192,7 +190,7 @@ class _TenantServicesBookingPageState
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Error loading properties',
+                      l10n.tenantServicesErrorLoadingProperties,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -234,7 +232,7 @@ class _TenantServicesBookingPageState
           ),
           const SizedBox(height: 20),
           Text(
-            'No Properties Assigned',
+            l10n.tenantServicesNoPropertiesTitle,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -243,7 +241,7 @@ class _TenantServicesBookingPageState
           ),
           const SizedBox(height: 12),
           Text(
-            'You need to be assigned to a property to view available services.',
+            l10n.tenantServicesNoPropertiesBody,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -270,7 +268,7 @@ class _TenantServicesBookingPageState
 
         return Column(
           children: [
-            _buildHeader(colors),
+            _buildHeader(l10n, colors),
             _buildSearchAndFilter(l10n, colors),
             Expanded(
               child: tenantServices.isEmpty
@@ -288,7 +286,7 @@ class _TenantServicesBookingPageState
             Icon(Icons.error_outline, size: 64, color: colors.error),
             const SizedBox(height: 16),
             Text(
-              'Error loading services',
+              l10n.tenantServicesErrorLoadingServices,
               style: TextStyle(fontSize: 18, color: colors.textPrimary),
             ),
             const SizedBox(height: 8),
@@ -301,7 +299,7 @@ class _TenantServicesBookingPageState
             ElevatedButton(
               onPressed: () => ref
                   .invalidate(tenantAvailableServicesProvider(firstLandlordId)),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -309,7 +307,7 @@ class _TenantServicesBookingPageState
     );
   }
 
-  Widget _buildHeader(DynamicAppColors colors) {
+  Widget _buildHeader(AppLocalizations l10n, DynamicAppColors colors) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(20),
@@ -349,10 +347,10 @@ class _TenantServicesBookingPageState
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Available Services',
-                  style: TextStyle(
+                  l10n.tenantServicesHeaderTitle,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -364,7 +362,7 @@ class _TenantServicesBookingPageState
           ),
           const SizedBox(height: 12),
           Text(
-            'Book services that your landlord has made available for tenants. All services are pre-approved and professionally managed.',
+            l10n.tenantServicesHeaderSubtitle,
             style: TextStyle(
               fontSize: 14,
               color: Colors.white.withValues(alpha: 0.9),
@@ -399,7 +397,7 @@ class _TenantServicesBookingPageState
             child: TextField(
               onChanged: (value) => setState(() => _searchQuery = value),
               decoration: InputDecoration(
-                hintText: 'Search services...',
+                hintText: l10n.tenantServicesSearchHint,
                 hintStyle: TextStyle(
                   color: colors.textTertiary,
                   fontWeight: FontWeight.w500,
@@ -424,15 +422,20 @@ class _TenantServicesBookingPageState
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildCategoryChip('all', 'All', colors),
+                _buildCategoryChip(
+                    'all', l10n.tenantServicesCategoryAll, colors),
                 const SizedBox(width: 10),
-                _buildCategoryChip('maintenance', 'Maintenance', colors),
+                _buildCategoryChip('maintenance',
+                    l10n.tenantServicesCategoryMaintenance, colors),
                 const SizedBox(width: 10),
-                _buildCategoryChip('cleaning', 'Cleaning', colors),
+                _buildCategoryChip(
+                    'cleaning', l10n.tenantServicesCategoryCleaning, colors),
                 const SizedBox(width: 10),
-                _buildCategoryChip('repair', 'Repair', colors),
+                _buildCategoryChip(
+                    'repair', l10n.tenantServicesCategoryRepair, colors),
                 const SizedBox(width: 10),
-                _buildCategoryChip('general', 'General', colors),
+                _buildCategoryChip(
+                    'general', l10n.tenantServicesCategoryGeneral, colors),
               ],
             ),
           ),
@@ -638,7 +641,7 @@ class _TenantServicesBookingPageState
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Available',
+                        l10n.available,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -706,7 +709,9 @@ class _TenantServicesBookingPageState
                     const Icon(Icons.calendar_today, size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      service.isAvailable ? 'Book Service' : 'Unavailable',
+                      service.isAvailable
+                          ? l10n.tenantServicesBookServiceButton
+                          : l10n.tenantServicesUnavailableLabel,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -735,7 +740,7 @@ class _TenantServicesBookingPageState
           ),
           const SizedBox(height: 16),
           Text(
-            'No Services Available',
+            l10n.tenantServicesNoServicesTitle,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -744,7 +749,7 @@ class _TenantServicesBookingPageState
           ),
           const SizedBox(height: 8),
           Text(
-            'Your landlord hasn\'t set up any services yet.',
+            l10n.tenantServicesNoServicesBody,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -758,39 +763,43 @@ class _TenantServicesBookingPageState
 
   void _showBookingDialog(
       BuildContext context, TenantService service, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Book ${service.name}'),
+        title: Text(l10n.tenantServicesBookDialogTitle(service.name)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Service: ${service.name}',
+              l10n.tenantServicesServiceLine(service.name),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
-              'Provider: ${service.provider}',
+              l10n.tenantServicesProviderLine(service.provider.isNotEmpty
+                  ? service.provider
+                  : l10n.tenantServicesServiceProviderLabel),
               style: TextStyle(color: colors.textSecondary),
             ),
             const SizedBox(height: 8),
             Text(
-              'Price: CHF ${service.price.toStringAsFixed(2)}',
+              l10n.tenantServicesPriceLine(
+                  'CHF ${service.price.toStringAsFixed(2)}'),
               style: TextStyle(color: colors.textSecondary),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Contact Information:',
-              style: TextStyle(fontWeight: FontWeight.w600),
+            Text(
+              l10n.tenantServicesContactInfoLabel,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
             Text(
               service.contactInfo.isNotEmpty
                   ? service.contactInfo
-                  : 'No contact info available',
+                  : l10n.tenantServicesContactInfoUnavailable,
               style: TextStyle(color: colors.textSecondary),
             ),
           ],
@@ -798,7 +807,7 @@ class _TenantServicesBookingPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -809,7 +818,7 @@ class _TenantServicesBookingPageState
               backgroundColor: colors.primaryAccent,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Contact Provider'),
+            child: Text(l10n.tenantServicesContactProviderButton),
           ),
         ],
       ),
@@ -818,10 +827,16 @@ class _TenantServicesBookingPageState
 
   void _showBookingConfirmation(
       BuildContext context, TenantService service, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Contact information for ${service.name} has been provided. Please reach out to ${service.provider} directly.',
+          l10n.tenantServicesContactInfoProvided(
+            service.name,
+            service.provider.isNotEmpty
+                ? service.provider
+                : l10n.tenantServicesServiceProviderLabel,
+          ),
         ),
         backgroundColor: colors.success,
         behavior: SnackBarBehavior.floating,

@@ -43,7 +43,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
-          'Change Password',
+          l10n.changePasswordPageTitle,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 18,
@@ -64,7 +64,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Change Your Password',
+                  l10n.changePasswordPageTitle,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -74,7 +74,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter your current password and choose a new one',
+                  l10n.changePasswordSubtitle,
                   style: TextStyle(
                     fontSize: 16,
                     color: colors.textTertiary,
@@ -86,7 +86,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 // Current Password Field
                 _buildPasswordField(
                   controller: _currentPasswordController,
-                  label: 'Current Password',
+                  label: l10n.changePasswordCurrentLabel,
                   obscureText: _obscureCurrentPassword,
                   onToggleVisibility: () {
                     setState(() {
@@ -95,7 +95,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your current password';
+                      return l10n.changePasswordCurrentRequired;
                     }
                     return null;
                   },
@@ -106,7 +106,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 // New Password Field
                 _buildPasswordField(
                   controller: _newPasswordController,
-                  label: 'New Password',
+                  label: l10n.changePasswordNewLabel,
                   obscureText: _obscureNewPassword,
                   onToggleVisibility: () {
                     setState(() {
@@ -115,14 +115,14 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a new password';
+                      return l10n.changePasswordNewRequired;
                     }
                     if (value.length < 8) {
-                      return 'Password must be at least 8 characters long';
+                      return l10n.changePasswordNewLength;
                     }
                     if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
                         .hasMatch(value)) {
-                      return 'Password must contain uppercase, lowercase, and numbers';
+                      return l10n.changePasswordNewComplexity;
                     }
                     return null;
                   },
@@ -142,10 +142,10 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please confirm your new password';
+                      return l10n.changePasswordConfirmRequired;
                     }
                     if (value != _newPasswordController.text) {
-                      return 'Passwords do not match';
+                      return l10n.changePasswordConfirmMismatch;
                     }
                     return null;
                   },
@@ -183,7 +183,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Password Requirements',
+                            l10n.passwordRequirementsTitle,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -193,12 +193,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildRequirement('At least 8 characters long', colors),
+                      _buildRequirement(l10n.passwordRequirementLength, colors),
                       _buildRequirement(
-                          'Contains uppercase letters (A-Z)', colors),
+                          l10n.passwordRequirementUppercase, colors),
                       _buildRequirement(
-                          'Contains lowercase letters (a-z)', colors),
-                      _buildRequirement('Contains numbers (0-9)', colors),
+                          l10n.passwordRequirementLowercase, colors),
+                      _buildRequirement(
+                          l10n.passwordRequirementNumbers, colors),
                     ],
                   ),
                 ),
@@ -228,7 +229,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                             ),
                           )
                         : Text(
-                            'Change Password',
+                            l10n.changePasswordButton,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

@@ -1451,21 +1451,23 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 
   void _blockUser() {
+    final rootContext = context;
+    final messenger = ScaffoldMessenger.of(rootContext);
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.blockUser),
-        content: Text(AppLocalizations.of(context)!.blockConfirmBody),
+      context: rootContext,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(AppLocalizations.of(rootContext)!.blockUser),
+        content: Text(AppLocalizations.of(rootContext)!.blockConfirmBody),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(AppLocalizations.of(rootContext)!.cancel),
           ),
           TextButton(
             onPressed: () async {
               final me = ref.read(currentUserProvider);
               final other = widget.otherUserId;
-              Navigator.of(context).pop();
+              Navigator.of(dialogCtx).pop();
               if (me?.id == null || other == null) return;
               try {
                 await ref
@@ -1476,7 +1478,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     blockedUsers: {...me.blockedUsers, other}.toList());
                 ref.read(currentUserProvider.notifier).setUserModel(updated);
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(
                     content: Text('User blocked successfully'),
                     backgroundColor: AppColors.primaryAccent,
@@ -1484,14 +1486,14 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 );
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                       content: Text('Failed to block user: $e'),
                       backgroundColor: AppColors.error),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.block),
+            child: Text(AppLocalizations.of(rootContext)!.block),
           ),
         ],
       ),
@@ -1499,21 +1501,23 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 
   void _unblockUser() {
+    final rootContext = context;
+    final messenger = ScaffoldMessenger.of(rootContext);
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.unblockUser),
-        content: Text(AppLocalizations.of(context)!.unblockConfirmBody),
+      context: rootContext,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(AppLocalizations.of(rootContext)!.unblockUser),
+        content: Text(AppLocalizations.of(rootContext)!.unblockConfirmBody),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(AppLocalizations.of(rootContext)!.cancel),
           ),
           TextButton(
             onPressed: () async {
               final me = ref.read(currentUserProvider);
               final other = widget.otherUserId;
-              Navigator.of(context).pop();
+              Navigator.of(dialogCtx).pop();
               if (me?.id == null || other == null) return;
               try {
                 await ref
@@ -1525,7 +1529,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 final updated = me.copyWith(blockedUsers: updatedList);
                 ref.read(currentUserProvider.notifier).setUserModel(updated);
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(
                     content: Text('User unblocked successfully'),
                     backgroundColor: AppColors.primaryAccent,
@@ -1533,14 +1537,14 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 );
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                       content: Text('Failed to unblock user: $e'),
                       backgroundColor: AppColors.error),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.unblock),
+            child: Text(AppLocalizations.of(rootContext)!.unblock),
           ),
         ],
       ),
@@ -1548,46 +1552,86 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 
   void _reportConversation() {
+    final rootContext = context;
+    final messenger = ScaffoldMessenger.of(rootContext);
+    final navigator = Navigator.of(rootContext);
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.reportConversation),
-        content: Text(AppLocalizations.of(context)!.reportConfirmBody),
+      context: rootContext,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(AppLocalizations.of(rootContext)!.reportConversation),
+        content: Text(AppLocalizations.of(rootContext)!.reportConfirmBody),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(AppLocalizations.of(rootContext)!.cancel),
           ),
           TextButton(
             onPressed: () async {
               final me = ref.read(currentUserProvider);
-              Navigator.of(context).pop();
-              try {
-                await ref
-                    .read(chat_providers.chatServiceProvider)
-                    .reportConversation(
-                      conversationId:
-                          _currentConversationId ?? widget.conversationId,
-                      reporterId: me?.id ?? '',
-                      reason: 'user_report',
-                    );
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+              final otherId = widget.otherUserId;
+              final convId = (_currentConversationId?.isNotEmpty ?? false)
+                  ? _currentConversationId!
+                  : widget.conversationId;
+              Navigator.of(dialogCtx).pop();
+              if (me == null || me.id.isEmpty) {
+                messenger.showSnackBar(
                   const SnackBar(
-                    content: Text('Conversation reported successfully'),
+                    content: Text('You must be logged in to report.'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+              if (convId.isEmpty) {
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Unable to determine conversation to report'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+              try {
+                final chatService =
+                    ref.read(chat_providers.chatServiceProvider);
+                await chatService.reportConversation(
+                  conversationId: convId,
+                  reporterId: me.id,
+                  reportedUserId: otherId,
+                  reason: 'user_report',
+                );
+
+                if (otherId != null && otherId.isNotEmpty) {
+                  final reportedSet = {...me.reportedUsers, otherId}.toList();
+                  ref
+                      .read(currentUserProvider.notifier)
+                      .setUserModel(me.copyWith(reportedUsers: reportedSet));
+                }
+
+                final token = ref.read(authProvider).sessionToken;
+                await chatService.deleteConversationWithToken(convId, token);
+
+                if (!mounted) return;
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Conversation reported and removed'),
                     backgroundColor: AppColors.primaryAccent,
                   ),
                 );
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
-                      content: Text('Failed to report: $e'),
-                      backgroundColor: AppColors.error),
+                    content: Text('Failed to report conversation: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.report),
+            child: Text(AppLocalizations.of(rootContext)!.report),
           ),
         ],
       ),
@@ -1595,30 +1639,33 @@ class _ChatPageState extends ConsumerState<ChatPage>
   }
 
   void _deleteConversation() {
+    final rootContext = context;
+    final messenger = ScaffoldMessenger.of(rootContext);
+    final navigator = Navigator.of(rootContext);
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteConversation),
-        content:
-            Text(AppLocalizations.of(context)!.deleteConversationConfirmBody),
+      context: rootContext,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(AppLocalizations.of(rootContext)!.deleteConversation),
+        content: Text(
+            AppLocalizations.of(rootContext)!.deleteConversationConfirmBody),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(AppLocalizations.of(rootContext)!.cancel),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.of(dialogCtx).pop();
               final convId = _currentConversationId ?? widget.conversationId;
-              final messenger = ScaffoldMessenger.of(
-                  context); // Save messenger before async gap
               final token = ref.read(authProvider).sessionToken;
               try {
                 await ref
                     .read(chat_providers.chatServiceProvider)
                     .deleteConversationWithToken(convId, token);
                 if (!mounted) return;
-                Navigator.of(context).pop();
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
                 messenger.showSnackBar(
                   const SnackBar(
                     content: Text('Conversation deleted successfully'),
@@ -1634,7 +1681,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.delete),
+            child: Text(AppLocalizations.of(rootContext)!.delete),
           ),
         ],
       ),

@@ -2,11 +2,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'dart:convert';
+import 'package:immosync/core/services/token_manager.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/domain/models/conversation.dart';
 import 'package:immosync/features/chat/infrastructure/http_chat_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues(const {});
+
+  setUpAll(() async {
+    await TokenManager().setToken('test-token');
+  });
+
   group('Chat Service Tests', () {
     test('Send message should succeed', () async {
       final mockClient = MockClient((request) async {

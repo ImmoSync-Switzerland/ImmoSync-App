@@ -308,6 +308,54 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
     final isBlocked =
         (currentUser?.blockedUsers ?? const <String>[]).contains(otherUserId);
+    final isReported =
+        (currentUser?.reportedUsers ?? const <String>[]).contains(otherUserId);
+    final List<Widget> statusBadges = [];
+    const Color reportedColor = Color(0xFFFF6B6B);
+    if (isBlocked) {
+      statusBadges.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            AppLocalizations.of(context)!.blockedLabel,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      );
+    }
+    if (isReported) {
+      statusBadges.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: reportedColor.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: reportedColor.withValues(alpha: 0.55),
+              width: 0.6,
+            ),
+          ),
+          child: Text(
+            AppLocalizations.of(context)!.reported,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -354,24 +402,12 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (isBlocked) ...[
+            if (statusBadges.isNotEmpty) ...[
               const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.blockedLabel,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
-                  ),
-                ),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: statusBadges,
               ),
             ],
           ],

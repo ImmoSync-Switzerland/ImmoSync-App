@@ -1685,6 +1685,129 @@ class AppLocalizationsDe extends AppLocalizations {
   String get removePhoto => 'Foto entfernen';
 
   @override
+  String get tenantSortNameAz => 'Name (A–Z)';
+
+  @override
+  String tenantStartingConversation(Object fullName) {
+    return 'Unterhaltung mit $fullName wird gestartet...';
+  }
+
+  @override
+  String tenantNoPhoneAvailable(Object fullName) {
+    return 'Keine Telefonnummer für $fullName verfügbar';
+  }
+
+  @override
+  String tenantCallTitle(Object fullName) {
+    return 'Anruf $fullName';
+  }
+
+  @override
+  String tenantCallConfirmation(Object phone) {
+    return 'Möchten Sie $phone anrufen?';
+  }
+
+  @override
+  String tenantCallError(Object error) {
+    return 'Telefonanruf konnte nicht gestartet werden: $error';
+  }
+
+  @override
+  String get tenantFilterTitle => 'Mieter filtern';
+
+  @override
+  String get tenantServicesServiceProviderLabel => 'Dienstleister';
+
+  @override
+  String get tenantServicesErrorLoadingProperties =>
+      'Fehler beim Laden der Immobilien';
+
+  @override
+  String get tenantServicesNoPropertiesTitle => 'Keine zugewiesenen Immobilien';
+
+  @override
+  String get tenantServicesNoPropertiesBody =>
+      'Sie müssen einer Immobilie zugeordnet sein, um verfügbare Services zu sehen.';
+
+  @override
+  String get tenantServicesErrorLoadingServices =>
+      'Fehler beim Laden der Services';
+
+  @override
+  String get tenantServicesHeaderTitle => 'Verfügbare Services';
+
+  @override
+  String get tenantServicesHeaderSubtitle =>
+      'Buchen Sie Services, die Ihr Vermieter für Mieter freigegeben hat. Alle Services sind vorab genehmigt und professionell betreut.';
+
+  @override
+  String get tenantServicesSearchHint => 'Services durchsuchen...';
+
+  @override
+  String get tenantServicesCategoryAll => 'Alle';
+
+  @override
+  String get tenantServicesCategoryMaintenance => 'Wartung';
+
+  @override
+  String get tenantServicesCategoryCleaning => 'Reinigung';
+
+  @override
+  String get tenantServicesCategoryRepair => 'Reparatur';
+
+  @override
+  String get tenantServicesCategoryGeneral => 'Allgemein';
+
+  @override
+  String get tenantServicesBookServiceButton => 'Service buchen';
+
+  @override
+  String get tenantServicesUnavailableLabel => 'Nicht verfügbar';
+
+  @override
+  String get tenantServicesNoServicesTitle => 'Keine Services verfügbar';
+
+  @override
+  String get tenantServicesNoServicesBody =>
+      'Ihr Vermieter hat noch keine Services eingerichtet.';
+
+  @override
+  String tenantServicesBookDialogTitle(Object serviceName) {
+    return 'Service $serviceName buchen';
+  }
+
+  @override
+  String tenantServicesServiceLine(Object serviceName) {
+    return 'Service: $serviceName';
+  }
+
+  @override
+  String tenantServicesProviderLine(Object provider) {
+    return 'Anbieter: $provider';
+  }
+
+  @override
+  String tenantServicesPriceLine(Object price) {
+    return 'Preis: $price';
+  }
+
+  @override
+  String get tenantServicesContactInfoLabel => 'Kontaktinformationen:';
+
+  @override
+  String get tenantServicesContactInfoUnavailable =>
+      'Keine Kontaktinformationen verfügbar';
+
+  @override
+  String get tenantServicesContactProviderButton => 'Anbieter kontaktieren';
+
+  @override
+  String tenantServicesContactInfoProvided(
+      Object provider, Object serviceName) {
+    return 'Kontaktinformationen für $serviceName wurden bereitgestellt. Bitte wenden Sie sich direkt an $provider.';
+  }
+
+  @override
   String get tenant => 'Mieter';
 
   @override
@@ -1726,6 +1849,210 @@ class AppLocalizationsDe extends AppLocalizations {
   String get twoFactorAuthentication => 'Zwei-Faktor-Authentifizierung';
 
   @override
+  String get privacySettingsTitle => 'Datenschutzeinstellungen';
+
+  @override
+  String get privacySettingsIntro =>
+      'Bestimmen Sie, wer Ihre Profilinformationen sehen kann und wie Sie anderen Benutzern angezeigt werden.';
+
+  @override
+  String get privacyProfileVisibilityTitle => 'Profil anderen Benutzern zeigen';
+
+  @override
+  String get privacyProfileVisibilityDescription =>
+      'Erlaubt anderen Benutzern, mit denen Sie interagieren, Ihre Profildaten zu sehen.';
+
+  @override
+  String get privacyContactInfoTitle => 'Kontaktinformationen anzeigen';
+
+  @override
+  String get privacyContactInfoDescription =>
+      'E-Mail und Telefonnummer für verbundene Benutzer anzeigen';
+
+  @override
+  String get privacyDataSharingSectionTitle => 'Datennutzung';
+
+  @override
+  String get privacyDataSharingDescription =>
+      'Legen Sie fest, wie Ihre Daten zur Verbesserung von ImmoLink verwendet werden.';
+
+  @override
+  String get privacyAllowPropertySearchTitle => 'Immobiliensuche erlauben';
+
+  @override
+  String get privacyAllowPropertySearchDescription =>
+      'Ermöglicht anderen Benutzern, Ihre Immobilien in Suchergebnissen zu finden';
+
+  @override
+  String get privacyUsageAnalyticsTitle => 'Nutzungsanalysen teilen';
+
+  @override
+  String get privacyUsageAnalyticsDescription =>
+      'Helfen Sie mit, ImmoLink zu verbessern, indem Sie anonyme Nutzungsdaten teilen';
+
+  @override
+  String get privacyMarketingSectionTitle => 'Marketing & Kommunikation';
+
+  @override
+  String get privacyMarketingDescription =>
+      'Steuern Sie, wie wir Sie über neue Funktionen und Angebote informieren.';
+
+  @override
+  String get privacyMarketingEmailsTitle => 'Marketing-E-Mails erhalten';
+
+  @override
+  String get privacyMarketingEmailsDescription =>
+      'Updates zu neuen Funktionen, Tipps und Angeboten erhalten';
+
+  @override
+  String get privacyDataManagementSectionTitle => 'Datenverwaltung';
+
+  @override
+  String get privacyDataManagementDescription =>
+      'Verwalten Sie Ihre personenbezogenen Daten und exportieren Sie Ihre Informationen.';
+
+  @override
+  String get privacyExportDataTitle => 'Meine Daten exportieren';
+
+  @override
+  String get privacyExportDataSubtitle =>
+      'Laden Sie eine Kopie Ihrer persönlichen Daten herunter';
+
+  @override
+  String get privacyDeleteAccountTitle => 'Konto löschen';
+
+  @override
+  String get privacyDeleteAccountSubtitle =>
+      'Ihr Konto und alle Daten dauerhaft löschen';
+
+  @override
+  String get privacyExportDialogTitle => 'Daten exportieren';
+
+  @override
+  String get privacyExportDialogDescription =>
+      'Wir erstellen einen Download-Link mit allen Ihren persönlichen Daten, einschließlich:';
+
+  @override
+  String get privacyExportIncludesProfile => 'Profilinformationen';
+
+  @override
+  String get privacyExportIncludesProperty => 'Immobiliendaten';
+
+  @override
+  String get privacyExportIncludesMessages => 'Nachrichten und Unterhaltungen';
+
+  @override
+  String get privacyExportIncludesPayments => 'Zahlungshistorie';
+
+  @override
+  String get privacyExportIncludesSettings => 'Einstellungen und Präferenzen';
+
+  @override
+  String get privacyExportDialogNote =>
+      'Der Export kann bis zu 24 Stunden dauern. Sie erhalten einen E-Mail-Link zum Download.';
+
+  @override
+  String get privacyExportSuccess =>
+      'Datenexport angefordert. Sie erhalten bald einen Download-Link per E-Mail.';
+
+  @override
+  String get privacyExportButton => 'Export anfordern';
+
+  @override
+  String get privacyDeleteDialogTitle => 'Konto löschen';
+
+  @override
+  String get privacyDeleteDialogQuestion =>
+      'Sind Sie sicher, dass Sie Ihr Konto löschen möchten?';
+
+  @override
+  String get privacyDeleteDialogWarningTitle =>
+      'Folgende Daten werden dauerhaft gelöscht:';
+
+  @override
+  String get privacyDeleteDialogDeleteProfile =>
+      'Ihr Profil und alle persönlichen Daten';
+
+  @override
+  String get privacyDeleteDialogDeleteProperties =>
+      'Alle Immobilien und Immobiliendaten';
+
+  @override
+  String get privacyDeleteDialogDeleteMessages =>
+      'Nachrichten und Unterhaltungen';
+
+  @override
+  String get privacyDeleteDialogDeletePayments => 'Zahlungshistorie';
+
+  @override
+  String get privacyDeleteDialogDeleteDocuments =>
+      'Alle hochgeladenen Dokumente und Bilder';
+
+  @override
+  String get privacyDeleteDialogIrreversible =>
+      'Diese Aktion kann nicht rückgängig gemacht werden. Exportieren Sie Ihre Daten, wenn Sie eine Kopie behalten möchten.';
+
+  @override
+  String get privacyDeleteRequestSubmitted =>
+      'Antrag zum Löschen des Kontos eingereicht. Diese Funktion wird bald verfügbar sein.';
+
+  @override
+  String get privacyDeleteButton => 'Konto löschen';
+
+  @override
+  String get changePasswordPageTitle => 'Passwort ändern';
+
+  @override
+  String get changePasswordSubtitle =>
+      'Geben Sie Ihr aktuelles Passwort ein und wählen Sie ein neues';
+
+  @override
+  String get changePasswordCurrentLabel => 'Aktuelles Passwort';
+
+  @override
+  String get changePasswordCurrentRequired =>
+      'Bitte aktuelles Passwort eingeben';
+
+  @override
+  String get changePasswordNewLabel => 'Neues Passwort';
+
+  @override
+  String get changePasswordNewRequired => 'Bitte ein neues Passwort eingeben';
+
+  @override
+  String get changePasswordNewLength =>
+      'Das Passwort muss mindestens 8 Zeichen lang sein';
+
+  @override
+  String get changePasswordNewComplexity =>
+      'Das Passwort muss Groß-, Kleinbuchstaben und Zahlen enthalten';
+
+  @override
+  String get changePasswordConfirmRequired => 'Bitte neues Passwort bestätigen';
+
+  @override
+  String get changePasswordConfirmMismatch =>
+      'Passwörter stimmen nicht überein';
+
+  @override
+  String get passwordRequirementsTitle => 'Passwortrichtlinien';
+
+  @override
+  String get passwordRequirementLength => 'Mindestens 8 Zeichen lang';
+
+  @override
+  String get passwordRequirementUppercase => 'Enthält Großbuchstaben (A-Z)';
+
+  @override
+  String get passwordRequirementLowercase => 'Enthält Kleinbuchstaben (a-z)';
+
+  @override
+  String get passwordRequirementNumbers => 'Enthält Zahlen (0-9)';
+
+  @override
+  String get changePasswordButton => 'Passwort ändern';
+
+  @override
   String get removeTenant => 'Mieter entfernen';
 
   @override
@@ -1740,6 +2067,104 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get invitations => 'Einladungen';
+
+  @override
+  String get subscriptionPageTitle => 'Abonnement';
+
+  @override
+  String get subscriptionLoginPrompt => 'Bitte melden Sie sich an';
+
+  @override
+  String get subscriptionNoActiveTitle => 'Kein aktives Abonnement';
+
+  @override
+  String get subscriptionNoActiveDescription =>
+      'Sie haben derzeit kein aktives Abonnement.';
+
+  @override
+  String get subscriptionViewPlansButton => 'Pläne anzeigen';
+
+  @override
+  String get subscriptionStatusActive => 'Abonnement aktiv';
+
+  @override
+  String subscriptionStatusValue(Object status) {
+    return 'Abonnement $status';
+  }
+
+  @override
+  String get subscriptionPlanLabel => 'Tarif';
+
+  @override
+  String get subscriptionAmountLabel => 'Betrag';
+
+  @override
+  String get subscriptionBillingLabel => 'Abrechnung';
+
+  @override
+  String get subscriptionBillingMonthly => 'Monatlich';
+
+  @override
+  String get subscriptionBillingYearly => 'Jährlich';
+
+  @override
+  String get subscriptionNextBillingLabel => 'Nächste Abrechnung';
+
+  @override
+  String get subscriptionDetailsTitle => 'Abonnementdetails';
+
+  @override
+  String get subscriptionIdLabel => 'Abonnement-ID';
+
+  @override
+  String get subscriptionCustomerIdLabel => 'Kunden-ID';
+
+  @override
+  String get subscriptionCustomerIdUnavailable => 'N/V';
+
+  @override
+  String get subscriptionStartedLabel => 'Gestartet';
+
+  @override
+  String get subscriptionEndsLabel => 'Endet';
+
+  @override
+  String get subscriptionManageButton => 'Abonnement verwalten';
+
+  @override
+  String get subscriptionCancelButton => 'Abonnement kündigen';
+
+  @override
+  String get subscriptionErrorLoading => 'Fehler beim Laden des Abonnements';
+
+  @override
+  String get subscriptionNoCustomerIdMessage => 'Keine Kunden-ID gefunden';
+
+  @override
+  String get subscriptionOpeningPortal => 'Stripe-Portal wird geöffnet...';
+
+  @override
+  String subscriptionFailedToOpenPortal(Object error) {
+    return 'Portal konnte nicht geöffnet werden: $error';
+  }
+
+  @override
+  String get subscriptionCancelDialogTitle => 'Abonnement kündigen?';
+
+  @override
+  String get subscriptionCancelDialogBody =>
+      'Sind Sie sicher, dass Sie Ihr Abonnement kündigen möchten? Sie verlieren am Ende des aktuellen Abrechnungszeitraums den Zugriff auf Premium-Funktionen.';
+
+  @override
+  String get subscriptionKeepButton => 'Abonnement behalten';
+
+  @override
+  String get subscriptionCancelledMessage => 'Abonnement gekündigt';
+
+  @override
+  String subscriptionCancelErrorMessage(Object error) {
+    return 'Fehler: $error';
+  }
 
   @override
   String get analyticsAndReports => 'Analysen & Berichte';

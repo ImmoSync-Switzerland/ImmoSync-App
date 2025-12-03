@@ -15,6 +15,7 @@ class User {
   // Back-compat field used across UI; we will prefer profileImageUrl if present
   final String? profileImage; // optional GridFS id or URL
   final List<String> blockedUsers; // ids the current user has blocked
+  final List<String> reportedUsers; // ids the current user has reported
 
   User({
     required this.id,
@@ -29,6 +30,7 @@ class User {
     this.profileImageUrl,
     this.profileImage,
     this.blockedUsers = const [],
+    this.reportedUsers = const [],
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -59,14 +61,16 @@ class User {
       }
     }
 
-    // blockedUsers list
-    final List<String> blocked = () {
-      final raw = map['blockedUsers'];
+    // blocked/report lists
+    List<String> _extractIds(dynamic raw) {
       if (raw is List) {
         return raw.map((e) => e.toString()).toList();
       }
       return <String>[];
-    }();
+    }
+
+    final List<String> blocked = _extractIds(map['blockedUsers']);
+    final List<String> reported = _extractIds(map['reportedUsers']);
 
     // Prefer canonical absolute URL if provided by the server
     // Normalize HTTP to HTTPS for security
@@ -97,6 +101,7 @@ class User {
       // Back-compat: set profileImage to canonical URL if present, else legacy ref
       profileImage: canonicalUrl ?? legacyRef,
       blockedUsers: blocked,
+      reportedUsers: reported,
     );
   }
 
@@ -114,6 +119,7 @@ class User {
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       if (profileImage != null) 'profileImage': profileImage,
       'blockedUsers': blockedUsers,
+      'reportedUsers': reportedUsers,
     };
   }
 
@@ -130,6 +136,7 @@ class User {
     String? profileImageUrl,
     String? profileImage,
     List<String>? blockedUsers,
+    List<String>? reportedUsers,
   }) {
     return User(
       id: id ?? this.id,
@@ -144,6 +151,7 @@ class User {
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       profileImage: profileImage ?? this.profileImage,
       blockedUsers: blockedUsers ?? this.blockedUsers,
+      reportedUsers: reportedUsers ?? this.reportedUsers,
     );
   }
 }

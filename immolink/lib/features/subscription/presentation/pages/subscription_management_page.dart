@@ -20,16 +20,16 @@ class SubscriptionManagementPage extends ConsumerWidget {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Subscription'),
+          title: Text(l10n.subscriptionPageTitle),
           backgroundColor: colors.primaryBackground,
         ),
-        body: const Center(child: Text('Please log in')),
+        body: Center(child: Text(l10n.subscriptionLoginPrompt)),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription'),
+        title: Text(l10n.subscriptionPageTitle),
         backgroundColor: colors.primaryBackground,
         elevation: 0,
         actions: [
@@ -72,7 +72,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
                 ),
               ),
               error: (error, _) =>
-                  _buildErrorState(context, colors, error.toString()),
+                  _buildErrorState(context, colors, l10n, error.toString()),
             ),
           ),
         ),
@@ -101,7 +101,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
           ),
           const SizedBox(height: 32),
           Text(
-            'No Active Subscription',
+            l10n.subscriptionNoActiveTitle,
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
@@ -112,7 +112,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'You currently don\'t have an active subscription.',
+            l10n.subscriptionNoActiveDescription,
             style: TextStyle(
               fontSize: 16,
               color: colors.textSecondary,
@@ -133,9 +133,9 @@ class SubscriptionManagementPage extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'View Plans',
-              style: TextStyle(
+            child: Text(
+              l10n.subscriptionViewPlansButton,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -198,8 +198,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       subscription.isActive
-                          ? 'Subscription Active'
-                          : 'Subscription ${subscription.status}',
+                          ? l10n.subscriptionStatusActive
+                          : l10n.subscriptionStatusValue(subscription.status),
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -213,28 +213,30 @@ class SubscriptionManagementPage extends ConsumerWidget {
               const SizedBox(height: 20),
               _buildInfoRow(
                 Icons.credit_card,
-                'Plan',
+                l10n.subscriptionPlanLabel,
                 subscription.planId.toUpperCase(),
                 Colors.white,
               ),
               const SizedBox(height: 12),
               _buildInfoRow(
                 Icons.payment,
-                'Amount',
+                l10n.subscriptionAmountLabel,
                 'CHF ${subscription.amount.toStringAsFixed(2)}',
                 Colors.white,
               ),
               const SizedBox(height: 12),
               _buildInfoRow(
                 Icons.calendar_today,
-                'Billing',
-                subscription.billingInterval == 'month' ? 'Monthly' : 'Yearly',
+                l10n.subscriptionBillingLabel,
+                subscription.billingInterval == 'month'
+                    ? l10n.subscriptionBillingMonthly
+                    : l10n.subscriptionBillingYearly,
                 Colors.white,
               ),
               const SizedBox(height: 12),
               _buildInfoRow(
                 Icons.event,
-                'Next Billing',
+                l10n.subscriptionNextBillingLabel,
                 _formatDate(subscription.nextBillingDate),
                 Colors.white,
               ),
@@ -261,7 +263,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Subscription Details',
+                l10n.subscriptionDetailsTitle,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -271,26 +273,27 @@ class SubscriptionManagementPage extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               _buildDetailRow(
-                'Subscription ID',
+                l10n.subscriptionIdLabel,
                 subscription.stripeSubscriptionId,
                 colors,
               ),
               const Divider(height: 32),
               _buildDetailRow(
-                'Customer ID',
-                subscription.stripeCustomerId ?? 'N/A',
+                l10n.subscriptionCustomerIdLabel,
+                subscription.stripeCustomerId ??
+                    l10n.subscriptionCustomerIdUnavailable,
                 colors,
               ),
               const Divider(height: 32),
               _buildDetailRow(
-                'Started',
+                l10n.subscriptionStartedLabel,
                 _formatDate(subscription.startDate),
                 colors,
               ),
               if (subscription.endDate != null) ...[
                 const Divider(height: 32),
                 _buildDetailRow(
-                  'Ends',
+                  l10n.subscriptionEndsLabel,
                   _formatDate(subscription.endDate!),
                   colors,
                 ),
@@ -305,20 +308,20 @@ class SubscriptionManagementPage extends ConsumerWidget {
           _buildActionButton(
             context,
             colors,
-            'Manage Subscription',
+            l10n.subscriptionManageButton,
             Icons.settings,
             () async {
-              await _openCustomerPortal(context, ref, subscription);
+              await _openCustomerPortal(context, ref, subscription, l10n);
             },
           ),
           const SizedBox(height: 12),
           _buildActionButton(
             context,
             colors,
-            'Cancel Subscription',
+            l10n.subscriptionCancelButton,
             Icons.cancel,
             () {
-              _showCancelDialog(context, colors, ref, subscription.id);
+              _showCancelDialog(context, colors, ref, subscription.id, l10n);
             },
             isDestructive: true,
           ),
@@ -410,7 +413,8 @@ class SubscriptionManagementPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, dynamic colors, String error) {
+  Widget _buildErrorState(BuildContext context, dynamic colors,
+      AppLocalizations l10n, String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -418,7 +422,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
           Icon(Icons.error_outline, size: 64, color: colors.error),
           const SizedBox(height: 16),
           Text(
-            'Error Loading Subscription',
+            l10n.subscriptionErrorLoading,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -447,13 +451,14 @@ class SubscriptionManagementPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     dynamic subscription,
+    AppLocalizations l10n,
   ) async {
     try {
       final customerId = subscription.stripeCustomerId;
       if (customerId == null || customerId.isEmpty) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No customer ID found')),
+            SnackBar(content: Text(l10n.subscriptionNoCustomerIdMessage)),
           );
         }
         return;
@@ -462,19 +467,23 @@ class SubscriptionManagementPage extends ConsumerWidget {
       // Show loading indicator
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 16),
-                Text('Opening Stripe Portal...'),
+                const SizedBox(width: 16),
+                Expanded(
+                    child: Text(
+                  l10n.subscriptionOpeningPortal,
+                  overflow: TextOverflow.ellipsis,
+                )),
               ],
             ),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -502,7 +511,7 @@ class SubscriptionManagementPage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to open portal: $e'),
+            content: Text(l10n.subscriptionFailedToOpenPortal(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -511,18 +520,16 @@ class SubscriptionManagementPage extends ConsumerWidget {
   }
 
   void _showCancelDialog(BuildContext context, dynamic colors, WidgetRef ref,
-      String subscriptionId) {
+      String subscriptionId, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Subscription?'),
-        content: const Text(
-          'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of the current billing period.',
-        ),
+        title: Text(l10n.subscriptionCancelDialogTitle),
+        content: Text(l10n.subscriptionCancelDialogBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Keep Subscription'),
+            child: Text(l10n.subscriptionKeepButton),
           ),
           TextButton(
             onPressed: () async {
@@ -534,19 +541,21 @@ class SubscriptionManagementPage extends ConsumerWidget {
                 ref.invalidate(userSubscriptionProvider);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Subscription cancelled')),
+                    SnackBar(content: Text(l10n.subscriptionCancelledMessage)),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
+                    SnackBar(
+                        content: Text(
+                            l10n.subscriptionCancelErrorMessage(e.toString()))),
                   );
                 }
               }
             },
             style: TextButton.styleFrom(foregroundColor: colors.error),
-            child: const Text('Cancel Subscription'),
+            child: Text(l10n.subscriptionCancelButton),
           ),
         ],
       ),
