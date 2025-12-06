@@ -1,16 +1,13 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
-import '../../domain/models/chat_message.dart';
-import '../../domain/services/chat_service.dart';
-import '../../../../core/crypto/e2ee_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/crypto/e2ee_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/models/chat_message.dart';
+import '../../domain/models/conversation.dart';
+import '../../domain/services/chat_service.dart';
 import '../../infrastructure/matrix_timeline_service.dart';
-
-// Provider for chat service (with Matrix support)
-final chatServiceProvider = Provider<ChatService>((ref) {
-  return ChatService();
-});
+import 'chat_provider.dart';
 
 // StateNotifier for managing chat messages
 class ChatMessagesNotifier
@@ -27,166 +24,138 @@ class ChatMessagesNotifier
   }
 
   Future<void> _initMessages() async {
-    // STEP 1: Load backend messages FIRST (instant display)
-    try {
-      debugPrint('[MessagesProvider] Loading initial messages from backend...');
-      await _loadMessages();
-      debugPrint('[MessagesProvider] Initial messages loaded from backend');
-    } catch (e) {
-      debugPrint('[MessagesProvider] Backend load failed: $e');
-    }
-
-    // STEP 2: Initialize Matrix in background (will update when ready)
-    _initMatrixTimeline();
+    await _configureMatrixPipeline();
   }
 
-  Future<void> _initMatrixTimeline() async {
+  Future<void> _configureMatrixPipeline() async {
     try {
-      // Wait for user to be loaded (with timeout)
-      String currentUserId = _ref.read(currentUserProvider)?.id ?? '';
+      final currentUserId = await _resolveCurrentUserId();
 
-      // Also try authState userId as fallback
-      if (currentUserId.isEmpty || currentUserId == 'null') {
-        final authUserId = _ref.read(authProvider).userId;
-        if (authUserId != null && authUserId != 'null') {
-          currentUserId = authUserId;
-        }
-      }
+      await _ref
+          .read(chatServiceProvider)
+          .ensureMatrixReady(userId: currentUserId, required: false);
 
-      if (currentUserId.isEmpty || currentUserId == 'null') {
-        debugPrint('[MessagesProvider] Waiting for user to be loaded...');
-        for (int i = 0;
-            i < 10 && (currentUserId.isEmpty || currentUserId == 'null');
-            i++) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          currentUserId = _ref.read(currentUserProvider)?.id ?? '';
-          if (currentUserId.isEmpty || currentUserId == 'null') {
-            final authUserId = _ref.read(authProvider).userId;
-            if (authUserId != null && authUserId != 'null') {
-              currentUserId = authUserId;
-            }
-          }
-        }
-      }
+      final otherUserId = await _resolveOtherUserId(currentUserId);
+      final roomId = await _resolveMatrixRoomId(
+        currentUserId: currentUserId,
+        otherUserId: otherUserId,
+      );
 
-      if (currentUserId.isEmpty || currentUserId == 'null') {
-        debugPrint(
-            '[MessagesProvider] WARNING: User ID still empty/null after waiting, Matrix will not be initialized');
-        throw Exception('Benutzer nicht eingeloggt - bitte erneut anmelden');
-      } else {
-        debugPrint(
-            '[MessagesProvider] Ensuring Matrix ready for user $currentUserId');
-        try {
-          // Matrix is optional - if it fails, chat continues without E2EE
-          await _ref.read(chatServiceProvider).ensureMatrixReady(
-              userId: currentUserId,
-              required: false // Don't throw if Matrix unavailable
-              );
-          debugPrint(
-              '[MessagesProvider] Matrix ready, waiting for initial sync...');
-          // Give sync a moment to start and connect
-          await Future.delayed(const Duration(seconds: 3));
-          debugPrint('[MessagesProvider] Initial sync delay complete');
-        } catch (e) {
-          debugPrint(
-              '[MessagesProvider] Matrix initialization failed (will continue without E2EE): $e');
-          // Don't throw - let chat continue without Matrix
-        }
-      }
+      _roomId = roomId;
 
-      // Get conversation details to extract otherUserId
-      String otherUserId = '';
-      try {
-        final conversations =
-            await _chatService.getConversationsForUser(currentUserId);
-        final conversation = conversations.firstWhere(
-          (c) => c.id == _conversationId,
-          orElse: () => conversations.first,
-        );
-        // otherParticipantId is the other user in the conversation
-        otherUserId = conversation.otherParticipantId ?? '';
-        debugPrint('[MessagesProvider] Found otherUserId: $otherUserId');
-      } catch (e) {
-        debugPrint('[MessagesProvider] Failed to get otherUserId: $e');
-      }
-
-      // Resolve Matrix roomId for this conversation via backend mapping
-      String? roomId;
-      try {
-        debugPrint(
-            '[MessagesProvider] Attempting to resolve Matrix roomId for conversation: $_conversationId');
-        roomId = await _ref
-            .read(chatServiceProvider)
-            .getMatrixRoomIdForConversation(
-                conversationId: _conversationId,
-                currentUserId: currentUserId,
-                otherUserId: otherUserId);
-        debugPrint('[MessagesProvider] Resolved roomId: $roomId');
-      } catch (e, stackTrace) {
-        // Fallback: try to fetch via conversationId mapping
-        debugPrint('[MessagesProvider] Failed to resolve roomId: $e');
-        debugPrint('[MessagesProvider] Stack trace: $stackTrace');
-      }
-
-      // Use roomId if found, otherwise use conversationId as key (will be updated on first send)
-      _roomId = roomId ?? _conversationId;
-
-      debugPrint(
-          '[MessagesProvider] Subscribing to Matrix timeline roomId=$_roomId conversationId=$_conversationId');
-
-      // Subscribe to matrix timeline stream keyed by roomId
       final timeline = _ref.read(matrixTimelineServiceProvider);
       _sub?.cancel();
-      _sub = timeline.watchRoom(_roomId!).listen((messages) {
-        // ensure sorted by timestamp
+      _sub = timeline.watchRoom(roomId).listen((messages) {
         final sorted = List<ChatMessage>.from(messages)
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        debugPrint(
-            '[MessagesProvider] Timeline update: ${sorted.length} messages for $_roomId');
-
-        // If Matrix returns empty but we have backend messages, keep backend messages
-        // This prevents "blinking" where messages disappear during Matrix sync
-        if (sorted.isEmpty &&
-            state.hasValue &&
-            (state.value?.isNotEmpty ?? false)) {
-          debugPrint(
-              '[MessagesProvider] Matrix empty, keeping backend messages');
-          return;
-        }
-
         state = AsyncValue.data(sorted);
       });
 
-      // Proactively refresh history once Matrix is ready to recover from any
-      // early attempts that happened before login/sync (e.g., “no access token”).
-      // This ensures we load decrypted plaintext from Matrix as soon as possible
-      // and replace any "[encrypted]" placeholders.
-      try {
-        await timeline.refreshHistory(_roomId!);
-        debugPrint(
-            '[MessagesProvider] Triggered Matrix history refresh for roomId=$_roomId');
-      } catch (e) {
-        debugPrint('[MessagesProvider] History refresh failed: $e');
+      final snapshot = timeline.snapshot(roomId);
+      if (snapshot != null) {
+        final sorted = List<ChatMessage>.from(snapshot)
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        state = AsyncValue.data(sorted);
+      } else if (!state.hasValue) {
+        state = const AsyncValue.data(<ChatMessage>[]);
       }
 
-      // Backend messages already loaded in _initMessages() before Matrix init
-      // Matrix timeline will now update the state when new messages arrive
-      debugPrint(
-          '[MessagesProvider] Matrix timeline ready, will update on new messages');
+      await timeline.refreshHistory(roomId);
     } catch (e, st) {
-      debugPrint('[MessagesProvider] Timeline init error: $e');
+      debugPrint('[MessagesProvider] Matrix init failed: $e');
       state = AsyncValue.error(e, st);
+    }
+  }
 
-      // Even if Matrix fails, try to load from backend
-      try {
-        debugPrint(
-            '[MessagesProvider] Matrix failed, trying backend fallback...');
-        await _loadMessages();
-      } catch (backendError) {
-        debugPrint(
-            '[MessagesProvider] Backend fallback also failed: $backendError');
+  Future<String> _resolveCurrentUserId() async {
+    String currentUserId = _ref.read(currentUserProvider)?.id ?? '';
+
+    if (currentUserId.isEmpty || currentUserId == 'null') {
+      final authUserId = _ref.read(authProvider).userId;
+      if (authUserId != null && authUserId.isNotEmpty && authUserId != 'null') {
+        currentUserId = authUserId;
       }
     }
+
+    if (currentUserId.isEmpty || currentUserId == 'null') {
+      for (int attempt = 0; attempt < 10; attempt++) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        currentUserId = _ref.read(currentUserProvider)?.id ?? '';
+        if (currentUserId.isNotEmpty && currentUserId != 'null') {
+          break;
+        }
+        final authUserId = _ref.read(authProvider).userId;
+        if (authUserId != null &&
+            authUserId.isNotEmpty &&
+            authUserId != 'null') {
+          currentUserId = authUserId;
+          break;
+        }
+      }
+    }
+
+    if (currentUserId.isEmpty || currentUserId == 'null') {
+      throw Exception('Benutzer nicht eingeloggt - bitte erneut anmelden');
+    }
+
+    return currentUserId;
+  }
+
+  Future<String?> _resolveOtherUserId(String currentUserId) async {
+    try {
+      final conversations =
+          await _chatService.getConversationsForUser(currentUserId);
+      if (conversations.isEmpty) {
+        return null;
+      }
+
+      Conversation conversation;
+      try {
+        conversation = conversations.firstWhere((c) => c.id == _conversationId);
+      } catch (_) {
+        conversation = conversations.first;
+      }
+
+      final direct = conversation.otherParticipantId ??
+          conversation.getOtherParticipantId(currentUserId);
+      if (direct != null &&
+          direct.isNotEmpty &&
+          direct != 'null' &&
+          direct != currentUserId) {
+        return direct;
+      }
+    } catch (e, st) {
+      debugPrint('[MessagesProvider] Failed to resolve other user: $e');
+      debugPrint(st.toString());
+    }
+    return null;
+  }
+
+  Future<String> _resolveMatrixRoomId({
+    required String currentUserId,
+    String? otherUserId,
+  }) async {
+    if (_roomId != null && _roomId!.isNotEmpty) {
+      return _roomId!;
+    }
+
+    if (otherUserId != null && otherUserId.isNotEmpty) {
+      try {
+        final resolved = await _chatService.getMatrixRoomIdForConversation(
+          conversationId: _conversationId,
+          currentUserId: currentUserId,
+          otherUserId: otherUserId,
+        );
+        if (resolved != null && resolved.isNotEmpty) {
+          return resolved;
+        }
+      } catch (e, st) {
+        debugPrint('[MessagesProvider] Room resolve failed: $e');
+        debugPrint(st.toString());
+      }
+    }
+
+    return _conversationId;
   }
 
   // Explicit history decryption called by UI once otherUserId is known (avoids sender heuristics)
@@ -305,51 +274,6 @@ class ChatMessagesNotifier
     }
   }
 
-  Future<void> _loadMessages() async {
-    try {
-      debugPrint(
-          '[MessagesProvider] Loading messages for conversation: $_conversationId');
-      // DEBUG: Print bearer token
-      final token = _ref.read(authProvider).sessionToken;
-      debugPrint('[MessagesProvider] DEBUG Bearer Token: $token');
-      final messages =
-          await _chatService.getMessages(_conversationId, ref: _ref);
-
-      // Preserve optimistic messages if they're not in the backend yet
-      final current = state.asData?.value ?? [];
-      final optimisticMessages =
-          current.where((m) => m.id.startsWith('temp_')).toList();
-
-      if (optimisticMessages.isNotEmpty) {
-        debugPrint(
-            '[MessagesProvider] Preserving ${optimisticMessages.length} optimistic messages');
-
-        // Merge: remove optimistic messages that now have real counterparts
-        final filteredOptimistic = optimisticMessages.where((opt) {
-          return !messages.any((real) =>
-              real.content == opt.content &&
-              real.senderId == opt.senderId &&
-              real.timestamp.difference(opt.timestamp).inSeconds.abs() < 10);
-        }).toList();
-
-        final mergedMessages = [...messages, ...filteredOptimistic]
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-        state = AsyncValue.data(mergedMessages);
-        debugPrint(
-            '[MessagesProvider] Loaded ${messages.length} backend messages + ${filteredOptimistic.length} optimistic messages');
-      } else {
-        state = AsyncValue.data(messages);
-        debugPrint(
-            '[MessagesProvider] Loaded ${messages.length} messages from backend');
-      }
-    } catch (error, stackTrace) {
-      debugPrint('[MessagesProvider] Error loading messages: $error');
-      debugPrint('[MessagesProvider] Stack trace: $stackTrace');
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
-
   @override
   void dispose() {
     _sub?.cancel();
@@ -361,132 +285,6 @@ class ChatMessagesNotifier
     final List<ChatMessage> current =
         List<ChatMessage>.from(state.asData?.value ?? const <ChatMessage>[]);
     state = AsyncValue.data([...current, msg]);
-  }
-
-  // Apply incoming WS message or ack
-  void applyWsMessage(Map<String, dynamic> data, {bool isAck = false}) {
-    try {
-      if (data['conversationId'] != _conversationId) return;
-      final msg = ChatMessage.fromMap(data);
-      final List<ChatMessage> current =
-          List<ChatMessage>.from(state.asData?.value ?? const <ChatMessage>[]);
-      // For ack, try to replace optimistic (match by content + sender + timestamp within 5s window)
-      if (isAck) {
-        int idx = current.indexWhere((m) =>
-            m.content == msg.content &&
-            m.senderId == msg.senderId &&
-            (msg.timestamp.difference(m.timestamp).inSeconds).abs() < 5 &&
-            (m.id.startsWith('temp_')));
-        if (idx < 0) {
-          // Fallback: if exactly one temp_* message pending in last 30s, treat it as the ack target
-          final now = DateTime.now();
-          final tempCandidates = <int>[];
-          for (var i = 0; i < current.length; i++) {
-            final m = current[i];
-            if (m.id.startsWith('temp_') &&
-                now.difference(m.timestamp).inSeconds < 30) {
-              tempCandidates.add(i);
-            }
-          }
-          if (tempCandidates.length == 1) {
-            idx = tempCandidates.first;
-          }
-        }
-        if (idx >= 0) {
-          final optimistic = current[idx];
-          // Preserve original senderId (in case backend echo differs) to avoid misattribution
-          final fixed = ChatMessage(
-            id: msg.id,
-            senderId: optimistic.senderId,
-            receiverId: optimistic.receiverId,
-            content: msg.content.isNotEmpty ? msg.content : optimistic.content,
-            timestamp: msg.timestamp,
-            isRead: msg.isRead,
-            deliveredAt: msg.deliveredAt,
-            readAt: msg.readAt,
-            messageType: msg.messageType,
-            metadata: msg.metadata,
-            conversationId: msg.conversationId ?? _conversationId,
-            isEncrypted: msg.isEncrypted,
-          );
-          current[idx] = fixed;
-          state = AsyncValue.data(current);
-          return;
-        }
-      }
-      // Avoid duplicates (id or same sender+timestamp+content)
-      final dup = current.any((m) =>
-          m.id == msg.id ||
-          (m.content == msg.content &&
-              m.senderId == msg.senderId &&
-              (m.timestamp.difference(msg.timestamp).inSeconds).abs() < 2));
-      if (!dup) {
-        current.add(msg);
-        current.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        state = AsyncValue.data(current);
-      }
-    } catch (e) {
-      // ignore parsing issues
-    }
-  }
-
-  void applyDeliveryOrRead(Map<String, dynamic> data) {
-    if (data['conversationId'] != _conversationId) return;
-    final List<ChatMessage> current =
-        List<ChatMessage>.from(state.asData?.value ?? const <ChatMessage>[]);
-    if (data['type'] == 'read' && data['messageIds'] is List) {
-      final readAt = data['readAt'] != null
-          ? DateTime.tryParse(data['readAt'].toString())
-          : DateTime.now();
-      final ids = (data['messageIds'] as List).map((e) => e.toString()).toSet();
-      for (var i = 0; i < current.length; i++) {
-        final old = current[i];
-        if (ids.contains(old.id)) {
-          current[i] = ChatMessage(
-            id: old.id,
-            senderId: old.senderId,
-            receiverId: old.receiverId,
-            content: old.content,
-            timestamp: old.timestamp,
-            isRead: true,
-            deliveredAt: old.deliveredAt ?? readAt, // ensure delivered
-            readAt: readAt,
-            messageType: old.messageType,
-            metadata: old.metadata,
-            conversationId: old.conversationId,
-            isEncrypted: old.isEncrypted,
-          );
-        }
-      }
-      state = AsyncValue.data(current);
-      return;
-    }
-    final id = data['_id']?.toString();
-    if (id == null) return;
-    final idx = current.indexWhere((m) => m.id == id);
-    if (idx >= 0) {
-      final old = current[idx];
-      current[idx] = ChatMessage(
-        id: old.id,
-        senderId: old.senderId,
-        receiverId: old.receiverId,
-        content: old.content,
-        timestamp: old.timestamp,
-        isRead: data['type'] == 'read' ? true : old.isRead,
-        deliveredAt: data['type'] == 'delivered' && data['deliveredAt'] != null
-            ? DateTime.tryParse(data['deliveredAt'].toString()) ??
-                old.deliveredAt
-            : old.deliveredAt,
-        readAt: data['type'] == 'read' && data['readAt'] != null
-            ? DateTime.tryParse(data['readAt'].toString()) ?? old.readAt
-            : old.readAt,
-        messageType: old.messageType,
-        metadata: old.metadata,
-        conversationId: old.conversationId,
-        isEncrypted: old.isEncrypted,
-      );
-      state = AsyncValue.data(current);
-    }
   }
 
   // Insert or replace message by id (used for optimistic attachment insertion)
@@ -502,8 +300,6 @@ class ChatMessagesNotifier
     }
     state = AsyncValue.data(current);
   }
-
-  void refresh() {}
 
   // Optimistically mark a set of message IDs as read locally
   void bulkMarkRead(Iterable<String> ids) {

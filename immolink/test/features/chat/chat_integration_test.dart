@@ -6,9 +6,8 @@ import 'package:immosync/features/chat/domain/models/chat_message.dart';
 ///
 /// These tests verify:
 /// 1. ChatService methods have correct signatures
-/// 2. Backend storage integration is present (_storeMessageInBackend)
-/// 3. Core functionality is accessible
-/// 4. Data models work correctly
+/// 2. Core functionality is accessible
+/// 3. Data models work correctly
 ///
 /// Note: Full end-to-end tests require:
 /// - Matrix server connection
@@ -34,10 +33,6 @@ void main() {
 
     test('ChatService should have sendMessage method', () {
       expect(chatService.sendMessage, isA<Function>());
-    });
-
-    test('ChatService should have getMessages method', () {
-      expect(chatService.getMessages, isA<Function>());
     });
 
     test('ChatService should have ensureMatrixReady method', () {

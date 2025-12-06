@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/chat/domain/models/chat_message.dart';
+import 'package:immosync/features/chat/infrastructure/matrix_timeline_service.dart';
+import 'package:immosync/features/chat/presentation/providers/chat_provider.dart';
+import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
 
 /// Debug page for testing chat functionality
 ///
@@ -120,23 +123,51 @@ class _ChatDebugPageState extends ConsumerState<ChatDebugPage> {
     setState(() {
       _isLoading = true;
     });
-    _log('Starting message fetch test...');
+    _log('Starting message snapshot test...');
 
     try {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser == null) {
+        _log('ERROR: No current user found');
+        setState(() => _isLoading = false);
+        return;
+      }
+
       final conversationId = _conversationIdController.text;
-      _log('Fetching messages for: $conversationId');
+      final receiverId = _receiverIdController.text;
+      _log('Fetching Matrix snapshot for: $conversationId');
 
       final chatService = ref.read(chatServiceProvider);
-      final messages = await chatService.getMessages(conversationId);
+      await chatService.ensureMatrixReady(
+        userId: currentUser.id,
+        required: false,
+      );
 
-      _log('✅ Fetched ${messages.length} messages');
-      for (var i = 0; i < messages.length && i < 5; i++) {
-        final msg = messages[i];
-        _log(
-            '  Message ${i + 1}: ${msg.content.substring(0, msg.content.length.clamp(0, 50))}...');
+      final roomId = await chatService.getMatrixRoomIdForConversation(
+            conversationId: conversationId,
+            currentUserId: currentUser.id,
+            otherUserId: receiverId,
+          ) ??
+          conversationId;
+
+      final timeline = ref.read(matrixTimelineServiceProvider);
+      await timeline.refreshHistory(roomId);
+      final snapshot = timeline.snapshot(roomId) ?? const <ChatMessage>[];
+
+      _log('✅ Snapshot contains ${snapshot.length} messages');
+      for (var i = 0; i < snapshot.length && i < 5; i++) {
+        final msg = snapshot[i];
+        final preview = msg.content.isNotEmpty
+            ? msg.content
+            : '[${msg.messageType.toUpperCase()}]';
+        final shortened = preview.substring(
+          0,
+          preview.length.clamp(0, 50),
+        );
+        _log('  Message ${i + 1}: $shortened');
       }
     } catch (e, stack) {
-      _log('❌ Message fetch failed: $e');
+      _log('❌ Message snapshot failed: $e');
       _log('Stack: ${stack.toString().split('\n').take(3).join('\n')}');
     } finally {
       setState(() => _isLoading = false);

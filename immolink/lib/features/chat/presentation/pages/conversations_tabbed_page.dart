@@ -612,11 +612,12 @@ class _ConversationsTabbedPageState
                       ref.read(chatPreviewProvider.notifier).ensureWatching(
                           conversationId: conversation.id,
                           currentUserId: me.id,
-                          otherUserId: otherUserId);
+                          otherUserId: otherUserId,
+                          fallbackPreview: conversation.lastMessage);
                     }
                     return Text(
                       (() {
-                        final previews = ref.read(chatPreviewProvider);
+                        final previews = ref.watch(chatPreviewProvider);
                         final override = previews[conversation.id];
                         if (override != null && override.isNotEmpty) {
                           return override;

@@ -169,6 +169,15 @@ class MatrixTimelineService {
     }
   }
 
+  /// Returns a snapshot of the currently buffered messages for a room.
+  /// A defensive copy is returned so callers cannot mutate internal state.
+  List<ChatMessage>? snapshot(String roomId) {
+    final list = _buffers[roomId];
+    if (list == null) return null;
+    return List<ChatMessage>.from(list)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  }
+
   /// Public method to force a quick history refresh (used when live events lack plaintext content)
   Future<void> refreshHistory(String roomId) =>
       _loadHistoricalMessages(roomId, immediate: true);

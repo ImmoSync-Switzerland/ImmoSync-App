@@ -140,33 +140,6 @@ class ChatService {
     return []; // Return empty list instead of throwing
   }
 
-  Future<List<ChatMessage>> getMessages(String conversationId,
-      {Ref? ref}) async {
-    print('[ChatService] Fetching messages for conversation: $conversationId');
-    print('[ChatService] API URL: $_apiUrl/chat/$conversationId/messages');
-
-    // Use JWT-based authentication instead of session token
-    final headers = await _getHeadersAsync();
-    print('[ChatService] Using JWT authentication');
-
-    final response = await http.get(
-      Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-      headers: headers,
-    );
-
-    print('[ChatService] Response status: ${response.statusCode}');
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      print('[ChatService] Fetched ${data.length} messages from backend');
-      return data.map((json) => ChatMessage.fromMap(json)).toList();
-    }
-
-    print(
-        '[ChatService] Failed to fetch messages: ${response.statusCode} - ${response.body}');
-    throw Exception('Failed to fetch messages: ${response.statusCode}');
-  }
-
   /// Ensure Matrix client is initialized, logged in, and syncing for the given user
   /// Throws exception only if Matrix is required. On mobile, Matrix errors are logged but don't block chat.
   Future<void> ensureMatrixReady(
@@ -688,33 +661,6 @@ class ChatService {
     return null;
   }
 
-  /// Delete an old Matrix room mapping to force recreation
-  // Deprecated: legacy mapping maintenance (kept for reference - not used in Matrix-only mode)
-  Future<void> _deleteRoomMapping(String conversationId, Ref? ref) async {
-    try {
-      final headers = <String, String>{'Content-Type': 'application/json'};
-      if (ref != null) {
-        final auth = ref.read(authProvider);
-        final token = auth.sessionToken;
-        if (token != null && token.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $token';
-        }
-      }
-      final resp = await http.delete(
-        Uri.parse('$_apiUrl/matrix/rooms/mapping/$conversationId'),
-        headers: headers,
-      );
-      if (resp.statusCode == 200) {
-        // ignore: avoid_print
-        print(
-            '[MatrixRoom] Deleted old mapping for conversation $conversationId');
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('[MatrixRoom] Failed to delete mapping: $e');
-    }
-  }
-
   // Public helper for UI layers to resolve room mapping without duplicating logic
   Future<String?> getMatrixRoomIdForConversation({
     required String conversationId,
@@ -725,42 +671,6 @@ class ChatService {
         conversationId: conversationId,
         creatorUserId: currentUserId,
         otherUserId: otherUserId);
-  }
-
-  /// Store a Matrix message in the HTTP backend for persistence
-  /// This ensures messages are searchable and survive Matrix sync issues
-  // Deprecated: legacy HTTP chat persistence (not used in Matrix-only mode)
-  Future<void> _storeMessageInBackend({
-    required String conversationId,
-    required String senderId,
-    required String receiverId,
-    required String content,
-    required String matrixRoomId,
-    required String matrixEventId,
-    Ref? ref,
-  }) async {
-    print('[ChatService] Storing message in backend: $conversationId');
-    final response = await http.post(
-      Uri.parse('$_apiUrl/chat/$conversationId/messages'),
-      headers: _getHeaders(ref: ref),
-      body: json.encode({
-        'conversationId': conversationId,
-        'senderId': senderId,
-        'receiverId': receiverId,
-        'content': content,
-        'messageType': 'text',
-        'matrixRoomId': matrixRoomId,
-        'matrixEventId': matrixEventId,
-      }),
-    );
-
-    print('[ChatService] Backend store response: ${response.statusCode}');
-    if (response.statusCode != 201 && response.statusCode != 200) {
-      print('[ChatService] Backend store failed: ${response.body}');
-      throw Exception(
-          'Failed to store message in backend: ${response.statusCode} ${response.body}');
-    }
-    print('[ChatService] Message stored successfully in backend');
   }
 
   // Note: Conversation preview updates are handled by backend on message POST

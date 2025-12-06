@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
-import 'messages_provider.dart';
+import 'chat_provider.dart';
 
 /// Keeps the Matrix client warm once the user opens the app so that
 /// conversations load instantly when navigating to chat screens.

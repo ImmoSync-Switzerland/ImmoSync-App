@@ -437,7 +437,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
                   ref.read(chatPreviewProvider.notifier).ensureWatching(
                       conversationId: conversation.id,
                       currentUserId: me.id,
-                      otherUserId: otherUserId);
+                      otherUserId: otherUserId,
+                      fallbackPreview: conversation.lastMessage);
                 }
                 final previews = ref.watch(chatPreviewProvider);
                 final override = previews[conversation.id];
