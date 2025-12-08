@@ -1,111 +1,140 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
-import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:intl/intl.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/payment/domain/models/payment.dart';
+import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../core/providers/currency_provider.dart';
+import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/providers/currency_provider.dart';
+import '../../../home/presentation/models/dashboard_design.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../settings/providers/settings_provider.dart';
 
 class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
+    final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isLandlord = currentUser?.role == 'landlord';
+    final currentUser = ref.watch(currentUserProvider);
+    final bool isLandlord = currentUser?.role == 'landlord';
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
+    final bool glassMode = design == DashboardDesign.glass;
 
-    // Set navigation index to Reports (3) when this page is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(routeAwareNavigationProvider.notifier).setIndex(3);
     });
 
+    final content = _buildReportsContent(
+      ref: ref,
+      colors: colors,
+      l10n: l10n,
+      isLandlord: isLandlord,
+      glassMode: glassMode,
+    );
+
+    if (glassMode) {
+      return GlassPageScaffold(
+        title: l10n.analyticsAndReports,
+        onBack: () => context.go('/home'),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
+          child: content,
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: colors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: colors.primaryBackground,
         elevation: 0,
         title: Text(
           l10n.analyticsAndReports,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
-          onPressed: () {
-            // Navigate back to dashboard instead of popping
-            context.go('/home');
-          },
+          icon:
+              Icon(Icons.arrow_back_ios_new_rounded, color: colors.textPrimary),
+          onPressed: () => context.go('/home'),
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primaryBackground, AppColors.surfaceCards],
-          ),
-        ),
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildReportPeriod(context),
-              const SizedBox(height: 24),
-              isLandlord
-                  ? _buildLandlordReports(context, ref)
-                  : _buildTenantReports(context, ref),
-            ],
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          child: content,
         ),
       ),
     );
   }
 
-  Widget _buildReportPeriod(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
+  Widget _buildReportsContent({
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required bool isLandlord,
+    required bool glassMode,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildReportPeriod(
+          colors: colors,
+          l10n: l10n,
+          glassMode: glassMode,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+        const SizedBox(height: 20),
+        if (isLandlord)
+          _buildLandlordReports(
+            ref: ref,
+            colors: colors,
+            l10n: l10n,
+            glassMode: glassMode,
+          )
+        else
+          _buildTenantReports(
+            ref: ref,
+            colors: colors,
+            l10n: l10n,
+            glassMode: glassMode,
           ),
-        ],
-      ),
+      ],
+    );
+  }
+
+  Widget _buildReportPeriod({
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final labelColor = _primaryTextColor(colors, glassMode);
+    final hintColor = _secondaryTextColor(colors, glassMode);
+
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context)!.reportPeriod,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
+            l10n.reportPeriod,
+            style: TextStyle(
+              color: labelColor,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -113,30 +142,36 @@ class ReportsPage extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.primaryBackground,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
+              color: glassMode
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : colors.surfaceWithElevation(2),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: glassMode
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : colors.borderLight,
+              ),
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.calendar_today,
-                  color: AppColors.primaryAccent,
-                  size: 20,
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: 18,
+                  color: glassMode ? Colors.white : colors.primaryAccent,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  AppLocalizations.of(context)!.thisMonth,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    l10n.thisMonth,
+                    style: TextStyle(
+                      color: labelColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.textTertiary,
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: hintColor,
                 ),
               ],
             ),
@@ -146,135 +181,553 @@ class ReportsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLandlordReports(BuildContext context, WidgetRef ref) {
-    final properties = ref.watch(landlordPropertiesProvider);
-    final payments = ref.watch(landlordPaymentsProvider);
+  Widget _buildLandlordReports({
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final propertiesAsync = ref.watch(landlordPropertiesProvider);
+    final paymentsAsync = ref.watch(landlordPaymentsProvider);
+
+    final properties = propertiesAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => const <Property>[],
+    );
+    final payments = paymentsAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => const <Payment>[],
+    );
+
+    final loadingProperties = propertiesAsync.isLoading && properties.isEmpty;
+    final loadingPayments = paymentsAsync.isLoading && payments.isEmpty;
+    final propertyError =
+        propertiesAsync.whenOrNull(error: (error, _) => error);
+    final paymentError = paymentsAsync.whenOrNull(error: (error, _) => error);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildFinancialSummary(context, properties, payments, ref),
-        const SizedBox(height: 24),
-        _buildOccupancySection(context, properties),
-      ],
-    );
-  }
-
-  Widget _buildTenantReports(BuildContext context, WidgetRef ref) {
-    final payments = ref.watch(tenantPaymentsProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildPaymentSummary(context, payments, ref),
-        const SizedBox(height: 24),
-        _buildPaymentHistory(payments, ref),
-      ],
-    );
-  }
-
-  Widget _buildFinancialSummary(BuildContext context, AsyncValue properties,
-      AsyncValue payments, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+        if (propertyError != null || paymentError != null)
+          _buildErrorState(
+            colors: colors,
+            l10n: l10n,
+            error: propertyError ?? paymentError!,
+            glassMode: glassMode,
           ),
-        ],
-      ),
+        _buildFinancialSummaryCard(
+          ref: ref,
+          colors: colors,
+          payments: payments,
+          properties: properties,
+          isLoading: loadingPayments,
+          l10n: l10n,
+          glassMode: glassMode,
+        ),
+        const SizedBox(height: 20),
+        _buildOccupancyCard(
+          colors: colors,
+          properties: properties,
+          isLoading: loadingProperties,
+          l10n: l10n,
+          glassMode: glassMode,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinancialSummaryCard({
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required List<Payment> payments,
+    required List<Property> properties,
+    required bool isLoading,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final currencyNotifier = ref.read(currencyProvider.notifier);
+    final completedIncome = payments
+        .where((payment) => payment.status.toLowerCase() == 'completed')
+        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
+    final pendingIncome = payments
+        .where((payment) => payment.status.toLowerCase() == 'pending')
+        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
+    final outstandingBalance = properties.fold<double>(
+      0.0,
+      (sum, property) => sum + property.outstandingPayments,
+    );
+
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppLocalizations.of(context)!.financialSummary,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildFinancialMetric(
-            icon: Icons.attach_money,
-            title: AppLocalizations.of(context)!.totalIncome,
-            value: ref.read(currencyProvider.notifier).formatAmount(0.00),
-            color: Colors.green,
-            iconColor: Colors.green,
-          ),
-          const SizedBox(height: 16),
-          _buildFinancialMetric(
-            icon: Icons.money_off,
-            title: AppLocalizations.of(context)!.outstandingPayments,
-            value: ref.read(currencyProvider.notifier).formatAmount(0.00),
-            color: Colors.red,
-            iconColor: Colors.red,
-          ),
-          const SizedBox(height: 16),
-          _buildFinancialMetric(
-            icon: Icons.home,
-            title: AppLocalizations.of(context)!.occupancyRate,
-            value: '100.0%',
-            color: Colors.blue,
-            iconColor: Colors.blue,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.financialSummary,
+                style: TextStyle(
+                  color: _primaryTextColor(colors, glassMode),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (isLoading)
+                SizedBox(
+                  width: 82,
+                  height: 4,
+                  child: LinearProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      glassMode ? Colors.white : colors.primaryAccent,
+                    ),
+                    backgroundColor:
+                        (glassMode ? Colors.white : colors.primaryAccent)
+                            .withValues(alpha: 0.15),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
-          _buildFinancialMetric(
-            icon: Icons.apartment,
-            title: AppLocalizations.of(context)!.totalProperties,
-            value: '1',
-            color: Colors.purple,
-            iconColor: Colors.purple,
+          _buildMetricRow(
+            colors: colors,
+            glassMode: glassMode,
+            icon: Icons.trending_up_rounded,
+            iconColor: colors.success,
+            title: l10n.totalIncome,
+            value: currencyNotifier.formatAmount(completedIncome),
+          ),
+          const SizedBox(height: 12),
+          _buildMetricRow(
+            colors: colors,
+            glassMode: glassMode,
+            icon: Icons.timer_outlined,
+            iconColor: colors.warning,
+            title: l10n.outstandingPayments,
+            value: currencyNotifier.formatAmount(pendingIncome),
+          ),
+          const SizedBox(height: 12),
+          _buildMetricRow(
+            colors: colors,
+            glassMode: glassMode,
+            icon: Icons.warning_amber_rounded,
+            iconColor: colors.error,
+            title: l10n.totalOutstanding,
+            value: currencyNotifier.formatAmount(outstandingBalance),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFinancialMetric({
+  Widget _buildOccupancyCard({
+    required DynamicAppColors colors,
+    required List<Property> properties,
+    required bool isLoading,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final total = properties.length;
+    final occupied = properties
+        .where((property) => property.status.toLowerCase() == 'rented')
+        .length;
+    final occupancyRate = total == 0 ? 0.0 : (occupied / total * 100);
+
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.occupancyRate,
+                style: TextStyle(
+                  color: _primaryTextColor(colors, glassMode),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (isLoading)
+                SizedBox(
+                  width: 82,
+                  height: 4,
+                  child: LinearProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      glassMode ? Colors.white : colors.primaryAccent,
+                    ),
+                    backgroundColor:
+                        (glassMode ? Colors.white : colors.primaryAccent)
+                            .withValues(alpha: 0.15),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (total == 0)
+            _buildEmptyState(
+              colors: colors,
+              message: l10n.noPropertiesFound,
+              icon: Icons.home_outlined,
+              glassMode: glassMode,
+            )
+          else
+            Row(
+              children: [
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CircularProgressIndicator(
+                        value: occupancyRate / 100,
+                        strokeWidth: 8,
+                        backgroundColor: glassMode
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : colors.borderLight,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          glassMode ? Colors.white : colors.success,
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          '${occupancyRate.toStringAsFixed(0)}%',
+                          style: TextStyle(
+                            color: _primaryTextColor(colors, glassMode),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${l10n.rented}: $occupied',
+                        style: TextStyle(
+                          color: _primaryTextColor(colors, glassMode),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${l10n.numberOfProperties}: $total',
+                        style: TextStyle(
+                          color: _secondaryTextColor(colors, glassMode),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTenantReports({
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final paymentsAsync = ref.watch(tenantPaymentsProvider);
+    final payments = paymentsAsync.maybeWhen(
+      data: (value) => value,
+      orElse: () => const <Payment>[],
+    );
+    final isLoading = paymentsAsync.isLoading && payments.isEmpty;
+    final error = paymentsAsync.whenOrNull(error: (error, _) => error);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (error != null)
+          _buildErrorState(
+            colors: colors,
+            l10n: l10n,
+            error: error,
+            glassMode: glassMode,
+          ),
+        _buildTenantSummaryCard(
+          ref: ref,
+          colors: colors,
+          payments: payments,
+          isLoading: isLoading,
+          l10n: l10n,
+          glassMode: glassMode,
+        ),
+        const SizedBox(height: 20),
+        _buildPaymentHistory(
+          paymentsAsync: paymentsAsync,
+          ref: ref,
+          colors: colors,
+          l10n: l10n,
+          glassMode: glassMode,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTenantSummaryCard({
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required List<Payment> payments,
+    required bool isLoading,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final currencyNotifier = ref.read(currencyProvider.notifier);
+    final total =
+        payments.fold<double>(0.0, (sum, payment) => sum + payment.amount);
+    final completed = payments
+        .where((payment) => payment.status.toLowerCase() == 'completed')
+        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
+    final pending = payments
+        .where((payment) => payment.status.toLowerCase() == 'pending')
+        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
+
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.paymentSummary,
+                style: TextStyle(
+                  color: _primaryTextColor(colors, glassMode),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (isLoading)
+                SizedBox(
+                  width: 82,
+                  height: 4,
+                  child: LinearProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      glassMode ? Colors.white : colors.primaryAccent,
+                    ),
+                    backgroundColor:
+                        (glassMode ? Colors.white : colors.primaryAccent)
+                            .withValues(alpha: 0.15),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildMetricRow(
+            colors: colors,
+            glassMode: glassMode,
+            icon: Icons.attach_money_rounded,
+            iconColor: colors.primaryAccent,
+            title: l10n.totalPayments,
+            value: currencyNotifier.formatAmount(total),
+          ),
+          const SizedBox(height: 12),
+          _buildMetricRow(
+            colors: colors,
+            glassMode: glassMode,
+            icon: Icons.check_circle_outline,
+            iconColor: colors.success,
+            title: l10n.completed,
+            value: currencyNotifier.formatAmount(completed),
+          ),
+          const SizedBox(height: 12),
+          _buildMetricRow(
+            colors: colors,
+            glassMode: glassMode,
+            icon: Icons.hourglass_bottom_rounded,
+            iconColor: colors.warning,
+            title: l10n.pending,
+            value: currencyNotifier.formatAmount(pending),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentHistory({
+    required AsyncValue<List<Payment>> paymentsAsync,
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
+      child: paymentsAsync.when(
+        data: (payments) {
+          if (payments.isEmpty) {
+            return _buildEmptyState(
+              colors: colors,
+              message: l10n.noPaymentsFound,
+              icon: Icons.receipt_long_outlined,
+              glassMode: glassMode,
+            );
+          }
+
+          final sortedPayments = payments.toList()
+            ..sort((a, b) => b.date.compareTo(a.date));
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.recentPayments,
+                style: TextStyle(
+                  color: _primaryTextColor(colors, glassMode),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...sortedPayments.take(6).map(
+                    (payment) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: _buildPaymentHistoryRow(
+                        payment: payment,
+                        ref: ref,
+                        colors: colors,
+                        l10n: l10n,
+                        glassMode: glassMode,
+                      ),
+                    ),
+                  ),
+            ],
+          );
+        },
+        loading: () => Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              glassMode ? Colors.white : colors.primaryAccent,
+            ),
+          ),
+        ),
+        error: (error, _) => _buildEmptyState(
+          colors: colors,
+          message: error.toString(),
+          icon: Icons.error_outline,
+          glassMode: glassMode,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentHistoryRow({
+    required Payment payment,
+    required WidgetRef ref,
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required bool glassMode,
+  }) {
+    final currencyNotifier = ref.read(currencyProvider.notifier);
+    final Color statusColor = _statusColor(payment.status, colors);
+    final String formattedDate = DateFormat.yMMMd().format(payment.date);
+    final String formattedType = _formatPaymentType(payment.type, l10n);
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: statusColor.withValues(alpha: glassMode ? 0.25 : 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            _statusIcon(payment.status),
+            color: statusColor,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                currencyNotifier.formatAmount(payment.amount),
+                style: TextStyle(
+                  color: _primaryTextColor(colors, glassMode),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$formattedDate • $formattedType',
+                style: TextStyle(
+                  color: _secondaryTextColor(colors, glassMode),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: statusColor.withValues(alpha: glassMode ? 0.25 : 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            payment.status.toUpperCase(),
+            style: TextStyle(
+              color: statusColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricRow({
+    required DynamicAppColors colors,
+    required bool glassMode,
     required IconData icon,
+    required Color iconColor,
     required String title,
     required String value,
-    required Color color,
-    required Color iconColor,
   }) {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.1),
+            color: glassMode
+                ? Colors.white.withValues(alpha: 0.2)
+                : iconColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
-            color: iconColor,
-            size: 24,
+            color: glassMode ? Colors.white : iconColor,
+            size: 20,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 14),
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 16,
+            style: TextStyle(
+              color: _secondaryTextColor(colors, glassMode),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -282,370 +735,197 @@ class ReportsPage extends ConsumerWidget {
         Text(
           value,
           style: TextStyle(
-            color: color,
+            color: _primaryTextColor(colors, glassMode),
+            fontWeight: FontWeight.w700,
             fontSize: 16,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildOccupancySection(BuildContext context, AsyncValue properties) {
+  Widget _buildEmptyState({
+    required DynamicAppColors colors,
+    required String message,
+    required IconData icon,
+    required bool glassMode,
+  }) {
+    final child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: glassMode ? Colors.white : colors.textSecondary,
+          size: 28,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: _secondaryTextColor(colors, glassMode),
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        padding: const EdgeInsets.all(20),
+        child: child,
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
+        color: colors.surfaceWithElevation(1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: const [
+        border: Border.all(color: colors.borderLight),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: colors.shadowColor.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.occupancyRate,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 32),
-          const Center(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: CircularProgressIndicator(
-                    value: 1.0,
-                    strokeWidth: 20,
-                    backgroundColor: AppColors.borderLight,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                  ),
+      child: child,
+    );
+  }
+
+  Widget _buildErrorState({
+    required DynamicAppColors colors,
+    required AppLocalizations l10n,
+    required Object error,
+    required bool glassMode,
+  }) {
+    final child = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.error_outline,
+          color: glassMode ? Colors.white : colors.error,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.somethingWentWrong,
+                style: TextStyle(
+                  color: _primaryTextColor(colors, glassMode),
+                  fontWeight: FontWeight.w700,
                 ),
-                Column(
-                  children: [
-                    Text(
-                      '100.0%',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '1 of 1',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                error.toString(),
+                style: TextStyle(
+                  color: _secondaryTextColor(colors, glassMode),
+                  fontSize: 12,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: _sectionCard(
+        colors: colors,
+        glassMode: glassMode,
+        child: child,
       ),
     );
   }
 
-  Widget _buildPaymentSummary(
-      BuildContext context, AsyncValue<List<dynamic>> payments, WidgetRef ref) {
+  IconData _statusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Icons.check_circle_outline;
+      case 'pending':
+        return Icons.hourglass_bottom_rounded;
+      case 'failed':
+        return Icons.error_outline;
+      case 'refunded':
+        return Icons.refresh_outlined;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  Color _statusColor(String status, DynamicAppColors colors) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return colors.success;
+      case 'pending':
+        return colors.warning;
+      case 'failed':
+        return colors.error;
+      case 'refunded':
+        return colors.info;
+      default:
+        return colors.textSecondary;
+    }
+  }
+
+  String _formatPaymentType(String type, AppLocalizations l10n) {
+    if (type.isEmpty) {
+      return '-';
+    }
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      default:
+        return type[0].toUpperCase() + type.substring(1);
+    }
+  }
+
+  Widget _sectionCard({
+    required DynamicAppColors colors,
+    required Widget child,
+    required bool glassMode,
+    EdgeInsets padding = const EdgeInsets.all(20),
+  }) {
+    if (glassMode) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: GlassContainer(
+          width: double.infinity,
+          padding: padding,
+          child: child,
+        ),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: const [
+        color: colors.surfaceWithElevation(1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.borderLight),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: colors.shadowColor.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.paymentSummary,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 20),
-          payments.when(
-            data: (paymentsList) {
-              // Calculate total payments
-              final totalPayments = paymentsList.fold<double>(
-                0,
-                (sum, payment) => sum + payment.amount,
-              );
-
-              // Calculate completed payments
-              final completedPayments = paymentsList
-                  .where((p) => p.status == 'completed')
-                  .fold<double>(0, (sum, p) => sum + p.amount);
-
-              // Calculate pending payments
-              final pendingPayments = paymentsList
-                  .where((p) => p.status == 'pending')
-                  .fold<double>(0, (sum, p) => sum + p.amount);
-
-              return Column(
-                children: [
-                  _buildFinancialMetric(
-                    icon: Icons.attach_money,
-                    title: 'Total Payments',
-                    value: ref
-                        .read(currencyProvider.notifier)
-                        .formatAmount(totalPayments),
-                    color: Colors.blue,
-                    iconColor: Colors.blue,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    icon: Icons.check_circle,
-                    title: 'Completed Payments',
-                    value: ref
-                        .read(currencyProvider.notifier)
-                        .formatAmount(completedPayments),
-                    color: Colors.green,
-                    iconColor: Colors.green,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFinancialMetric(
-                    icon: Icons.hourglass_empty,
-                    title: 'Pending Payments',
-                    value: ref
-                        .read(currencyProvider.notifier)
-                        .formatAmount(pendingPayments),
-                    color: Colors.orange,
-                    iconColor: Colors.orange,
-                  ),
-                ],
-              );
-            },
-            loading: () => const Center(
-              child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
-              ),
-            ),
-            error: (error, stack) => Center(
-              child: Text(
-                'Error loading payments: $error',
-                style: const TextStyle(color: AppColors.textTertiary),
-              ),
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: padding,
+        child: child,
       ),
     );
   }
 
-  Widget _buildPaymentHistory(
-      AsyncValue<List<dynamic>> payments, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceCards,
-            AppColors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Payment History',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 20),
-          payments.when(
-            data: (paymentsList) {
-              if (paymentsList.isEmpty) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text(
-                      'No payment history found',
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                );
-              }
+  Color _primaryTextColor(DynamicAppColors colors, bool glassMode) =>
+      glassMode ? Colors.white : colors.textPrimary;
 
-              // Sort payments by date
-              paymentsList.sort((a, b) => b.date.compareTo(a.date));
-
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: paymentsList.length > 5 ? 5 : paymentsList.length,
-                separatorBuilder: (context, index) => const Divider(
-                  color: AppColors.borderLight,
-                  height: 1,
-                ),
-                itemBuilder: (context, index) {
-                  final payment = paymentsList[index];
-
-                  Color statusColor;
-                  switch (payment.status) {
-                    case 'completed':
-                      statusColor = Colors.green;
-                      break;
-                    case 'pending':
-                      statusColor = Colors.orange;
-                      break;
-                    case 'failed':
-                      statusColor = Colors.red;
-                      break;
-                    default:
-                      statusColor = Colors.grey;
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            payment.status == 'completed'
-                                ? Icons.check_circle
-                                : payment.status == 'pending'
-                                    ? Icons.hourglass_empty
-                                    : Icons.error,
-                            color: statusColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ref
-                                    .read(currencyProvider.notifier)
-                                    .formatAmount(payment.amount),
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${payment.type.toUpperCase()} - ${DateFormat('MMM d, yyyy').format(payment.date)}',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            payment.status.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: statusColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-            loading: () => const Center(
-              child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
-              ),
-            ),
-            error: (error, stack) => Center(
-              child: Text(
-                'Error loading payments: $error',
-                style: const TextStyle(color: AppColors.textTertiary),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Color _secondaryTextColor(DynamicAppColors colors, bool glassMode) =>
+      glassMode ? Colors.white.withValues(alpha: 0.8) : colors.textSecondary;
 }

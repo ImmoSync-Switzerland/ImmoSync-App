@@ -53,16 +53,181 @@ class Conversation {
       return s == 'Instance of \"_Map\"' || s == '[object Object]' ? null : s;
     }
 
+    String _sanitizeString(String value) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty ||
+          trimmed.toLowerCase() == 'null' ||
+          trimmed.toLowerCase() == 'undefined') {
+        return '';
+      }
+      if (trimmed == '[encrypted]') {
+        return 'Encrypted message';
+      }
+      return trimmed;
+    }
+
+    String _buildPreview(dynamic raw) {
+      if (raw == null) return '';
+      if (raw is String) {
+        return _sanitizeString(raw);
+      }
+      if (raw is Map) {
+        final candidateKeys = <String>[
+          'preview',
+          'plaintext',
+          'plainText',
+          'text',
+          'body',
+          'content',
+          'message',
+          'lastMessage',
+          'snippet',
+          'summary',
+          'value',
+        ];
+        for (final key in candidateKeys) {
+          final candidate = raw[key];
+          if (candidate is String && candidate.trim().isNotEmpty) {
+            return _sanitizeString(candidate);
+          }
+        }
+
+        final messageType = raw['messageType'] ?? raw['type'];
+        final metadata = raw['metadata'] is Map
+            ? Map<String, dynamic>.from(raw['metadata'])
+            : null;
+
+        bool _isImage() {
+          if (messageType == 'image') return true;
+          if (metadata != null && metadata['fileType'] == 'image') return true;
+          return false;
+        }
+
+        bool _isFile() {
+          if (messageType == 'file' || messageType == 'document') return true;
+          if (metadata != null &&
+              (metadata['fileType'] == 'file' ||
+                  metadata.containsKey('fileName') ||
+                  metadata.containsKey('filename'))) {
+            return true;
+          }
+          if (raw.containsKey('fileName') || raw.containsKey('filename')) {
+            return true;
+          }
+          return false;
+        }
+
+        if (_isImage()) {
+          return '[Photo]';
+        }
+        if (_isFile()) {
+          final fileNameCandidates = <dynamic>[
+            if (metadata != null) metadata['fileName'],
+            if (metadata != null) metadata['filename'],
+            raw['fileName'],
+            raw['filename'],
+            raw['name'],
+            raw['title'],
+          ];
+          for (final candidate in fileNameCandidates) {
+            if (candidate is String && candidate.trim().isNotEmpty) {
+              return '[File] ${candidate.trim()}';
+            }
+          }
+          return '[File]';
+        }
+
+        for (final entry in raw.entries) {
+          final value = entry.value;
+          if (value is String && value.trim().isNotEmpty) {
+            return _sanitizeString(value);
+          }
+        }
+      }
+
+      if (raw is Iterable) {
+        for (final item in raw) {
+          final preview = _buildPreview(item);
+          if (preview.isNotEmpty) return preview;
+        }
+        return '';
+      }
+
+      return _sanitizeString(raw.toString());
+    }
+
+    DateTime? _tryParseTimestamp(dynamic raw) {
+      if (raw == null) return null;
+      if (raw is DateTime) return raw;
+      if (raw is int) {
+        final isSeconds = raw < 1000000000000;
+        try {
+          return DateTime.fromMillisecondsSinceEpoch(
+            isSeconds ? raw * 1000 : raw,
+            isUtc: true,
+          ).toLocal();
+        } catch (_) {
+          return null;
+        }
+      }
+      if (raw is double) return _tryParseTimestamp(raw.toInt());
+      if (raw is String) {
+        final sanitized = raw.trim();
+        if (sanitized.isEmpty ||
+            sanitized.toLowerCase() == 'null' ||
+            sanitized.toLowerCase() == 'undefined') {
+          return null;
+        }
+        try {
+          return DateTime.parse(sanitized).toLocal();
+        } catch (_) {
+          // Try parsing as integer timestamp string
+          final parsedInt = int.tryParse(sanitized);
+          if (parsedInt != null) return _tryParseTimestamp(parsedInt);
+          return null;
+        }
+      }
+      if (raw is Map) {
+        final dynamic nested = raw[r'$date'] ??
+            raw['date'] ??
+            raw['timestamp'] ??
+            raw['iso'] ??
+            raw['value'];
+        if (nested != null) return _tryParseTimestamp(nested);
+      }
+      if (raw is Iterable) {
+        for (final item in raw) {
+          final ts = _tryParseTimestamp(item);
+          if (ts != null) return ts;
+        }
+      }
+      return null;
+    }
+
+    DateTime _parseTimestamp(dynamic raw) =>
+        _tryParseTimestamp(raw) ?? DateTime.now();
+
+    final lastMessageSource = map.containsKey('lastMessage')
+        ? map['lastMessage']
+        : (map['lastMessagePreview'] ??
+            map['messagePreview'] ??
+            map['lastMessageBody'] ??
+            map['latestMessage']);
+
+    final lastMessageTimeSource = map['lastMessageTime'] ??
+        map['lastMessageAt'] ??
+        map['updatedAt'] ??
+        map['lastActivityAt'] ??
+        map['createdAt'];
+
     return Conversation(
       id: map['_id']?.toString() ?? map['id']?.toString() ?? '',
       propertyId: map['propertyId'] ?? '',
       landlordId: map['landlordId'] ?? '',
       tenantId: map['tenantId'] ?? '',
       propertyAddress: map['propertyAddress'] ?? 'Unknown Property',
-      lastMessage: map['lastMessage'] ?? '',
-      lastMessageTime: map['lastMessageTime'] != null
-          ? DateTime.parse(map['lastMessageTime'])
-          : DateTime.now(),
+      lastMessage: _buildPreview(lastMessageSource),
+      lastMessageTime: _parseTimestamp(lastMessageTimeSource),
       landlordName: map['landlordName'],
       tenantName: map['tenantName'],
       relatedInvitationId: map['relatedInvitationId'],

@@ -258,6 +258,16 @@ class _HeaderBar extends StatelessWidget {
   final VoidCallback onClose;
   final WidgetRef ref;
   const _HeaderBar({required this.onClose, required this.ref});
+
+  void _handleBack(BuildContext context) {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    } else {
+      onClose();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -271,6 +281,16 @@ class _HeaderBar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            onPressed: () => _handleBack(context),
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 18,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(width: 4),
           Icon(Icons.notifications, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Text('Notifications',

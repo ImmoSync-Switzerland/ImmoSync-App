@@ -125,21 +125,6 @@ class ChatService {
         'Failed to load conversations: ${response.statusCode} - ${response.body}');
   }
 
-  Future<List<Conversation>> getConversations() async {
-    // Fallback method - this should be replaced with user-specific calls
-    final response = await http.get(
-      Uri.parse(
-          '$_apiUrl/conversations/user/current'), // Will need current user ID
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Conversation.fromMap(json)).toList();
-    }
-    return []; // Return empty list instead of throwing
-  }
-
   /// Ensure Matrix client is initialized, logged in, and syncing for the given user
   /// Throws exception only if Matrix is required. On mobile, Matrix errors are logged but don't block chat.
   Future<void> ensureMatrixReady(
@@ -806,62 +791,6 @@ class ChatService {
 
     if (response.statusCode != 201) {
       throw Exception('Failed to send invitation');
-    }
-  } // Create a new conversation (now uses find-or-create to preserve history)
-
-  Future<String> createNewConversation({
-    required String otherUserId,
-    required String initialMessage,
-    String? currentUserId,
-  }) async {
-    try {
-      // Use provided currentUserId or fallback to a temp ID
-      final actualCurrentUserId = currentUserId ?? 'current-user-id';
-
-      // First try to find existing conversation to preserve history
-      try {
-        final existingConversationId = await findOrCreateConversation(
-          currentUserId: actualCurrentUserId,
-          otherUserId: otherUserId,
-        );
-
-        // If we found an existing conversation, send the initial message to it
-        await sendMessage(
-          conversationId: existingConversationId,
-          senderId: actualCurrentUserId,
-          receiverId: otherUserId,
-          content: initialMessage,
-        );
-
-        return existingConversationId;
-      } catch (e) {
-        // If find-or-create fails, fall back to creating a new conversation
-        print('Find-or-create failed, creating new conversation: $e');
-      }
-
-      // Fallback: create a completely new conversation
-      final response = await http.post(
-        Uri.parse('$_apiUrl/conversations'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'otherUserId': otherUserId,
-          'initialMessage': initialMessage,
-          'participants': [actualCurrentUserId, otherUserId],
-          'lastMessage': initialMessage,
-          'lastMessageTime': DateTime.now().toIso8601String(),
-          'createdAt': DateTime.now().toIso8601String(),
-        }),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        return data['conversationId'];
-      } else {
-        throw Exception('Failed to create conversation: ${response.body}');
-      }
-    } catch (e) {
-      print('Error creating conversation: $e');
-      throw Exception('Failed to create conversation: $e');
     }
   }
 
