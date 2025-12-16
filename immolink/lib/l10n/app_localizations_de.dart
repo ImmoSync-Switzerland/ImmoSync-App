@@ -42,6 +42,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get theme => 'Theme';
 
   @override
+  String get dashboardDesign => 'Dashboard-Design';
+
+  @override
   String get currency => 'Währung';
 
   @override
@@ -87,6 +90,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get selectTheme => 'Theme auswählen';
 
   @override
+  String get selectDashboardDesign => 'Dashboard-Design wählen';
+
+  @override
   String get selectCurrency => 'Währung auswählen';
 
   @override
@@ -103,9 +109,20 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dashboardDesignChangedTo(Object design) {
+    return 'Dashboard-Design geändert zu $design';
+  }
+
+  @override
   String currencyChangedTo(Object currency) {
     return 'Währung geändert zu $currency';
   }
+
+  @override
+  String get dashboardDesignGlass => 'Glas (Modern)';
+
+  @override
+  String get dashboardDesignClassic => 'Klassisch (Standard)';
 
   @override
   String get welcome => 'Willkommen';

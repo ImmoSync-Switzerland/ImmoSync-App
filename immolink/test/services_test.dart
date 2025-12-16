@@ -52,7 +52,7 @@ void main() {
 
       // Verify that our key methods exist
       expect(chatService.findOrCreateConversation, isNotNull);
-      expect(chatService.createNewConversation, isNotNull);
+      expect(chatService.createConversation, isNotNull);
       expect(chatService.getConversationsForUser, isNotNull);
       expect(chatService.sendMessage, isNotNull);
     });

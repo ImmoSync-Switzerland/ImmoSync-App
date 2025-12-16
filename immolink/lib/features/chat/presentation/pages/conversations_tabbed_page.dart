@@ -14,7 +14,9 @@ import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../widgets/invitation_card.dart';
 import '../widgets/property_email_invite_dialog.dart';
 import '../../../../core/widgets/user_avatar.dart';
-import '../../../../core/widgets/app_top_bar.dart';
+import '../../../home/presentation/models/dashboard_design.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../settings/providers/settings_provider.dart';
 
 class ConversationsTabbedPage extends ConsumerStatefulWidget {
   const ConversationsTabbedPage({super.key});
@@ -81,290 +83,311 @@ class _ConversationsTabbedPageState
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
     final currentUser = ref.watch(currentUserProvider);
-    final isLandlord = currentUser?.role == 'landlord';
+    final bool isLandlord = (currentUser?.role ?? '') == 'landlord';
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
+    final bool glassMode = design == DashboardDesign.glass;
+
+    final Color refreshColor = glassMode ? Colors.white : colors.textPrimary;
+    final Color addressBookColor =
+        glassMode ? Colors.white : colors.primaryAccent;
+
+    final Widget refreshAction = IconButton(
+      icon: Icon(Icons.refresh_rounded, color: refreshColor),
+      tooltip: l10n.refresh,
+      onPressed: _handleRefresh,
+    );
+
+    final Widget addressBookAction = IconButton(
+      icon: Icon(Icons.contacts_outlined, color: addressBookColor),
+      tooltip: l10n.searchContacts,
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        context.push('/address-book');
+      },
+    );
+
+    final Widget? floatingActionButton = isLandlord && _tabController.index == 1
+        ? _buildInviteFab(glassMode: glassMode, l10n: l10n)
+        : null;
+
+    final body = _buildBody(glassMode: glassMode, l10n: l10n);
+
+    if (glassMode) {
+      return GlassPageScaffold(
+        title: l10n.messages,
+        actions: [
+          refreshAction,
+          addressBookAction,
+        ],
+        floatingActionButton: floatingActionButton,
+        body: body,
+      );
+    }
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      appBar: AppTopBar(
-        title: l10n.messages,
-        showNotification: false,
+      backgroundColor: colors.primaryBackground,
+      appBar: AppBar(
+        backgroundColor: colors.primaryBackground,
+        elevation: 0,
+        title: Text(
+          l10n.messages,
+          style: TextStyle(
+            color: colors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: l10n.refresh,
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: colors.textPrimary,
+            size: 20,
+          ),
           onPressed: () {
-            ref.invalidate(conversationsProvider);
-            ref.invalidate(userInvitationsProvider);
+            HapticFeedback.lightImpact();
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
           },
         ),
-      ),
-      bottomNavigationBar: const CommonBottomNav(),
-      floatingActionButton: isLandlord && _tabController.index == 1
-          ? Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colors.primaryAccent,
-                    colors.primaryAccent.withValues(alpha: 0.8),
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.primaryAccent.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: FloatingActionButton.extended(
-                onPressed: _showInviteTenantDialog,
-                backgroundColor: Colors.transparent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                icon: const Icon(Icons.person_add),
-                label: Text(l10n.addTenant),
-              ),
-            )
-          : null,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.primaryBackground,
-              colors.surfaceSecondary,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: AnimatedBuilder(
-            animation:
-                _animationController ?? const AlwaysStoppedAnimation(1.0),
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _slideAnimation?.value ?? 0.0),
-                child: Opacity(
-                  opacity: _fadeAnimation?.value ?? 1.0,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              decoration: BoxDecoration(
-                                color: colors.surfaceCards,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: colors.primaryAccent
-                                      .withValues(alpha: 0.1),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: TabBar(
-                                controller: _tabController,
-                                labelColor: Colors.white,
-                                unselectedLabelColor: colors.textSecondary,
-                                indicator: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      colors.primaryAccent,
-                                      colors.primaryAccent
-                                          .withValues(alpha: 0.8),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(14),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colors.primaryAccent
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                indicatorPadding: const EdgeInsets.all(4),
-                                dividerColor: Colors.transparent,
-                                labelStyle: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                  inherit: true,
-                                ),
-                                unselectedLabelStyle: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.2,
-                                  inherit: true,
-                                ),
-                                tabs: [
-                                  Tab(text: l10n.messages),
-                                  Tab(text: l10n.invitations),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(right: 20, left: 8),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  colors.surfaceCards,
-                                  colors.luxuryGradientStart
-                                      .withValues(alpha: 0.5),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colors.shadowColor,
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                  spreadRadius: 0,
-                                ),
-                                BoxShadow(
-                                  color: colors.primaryAccent
-                                      .withValues(alpha: 0.1),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 8),
-                                  spreadRadius: -4,
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.contacts_outlined,
-                                  color: colors.primaryAccent, size: 22),
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                context.push('/address-book');
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSearchBar(),
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            _buildMessagesTab(),
-                            _buildInvitationsTab(),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+        actions: [
+          refreshAction,
+          IconButton(
+            icon: Icon(
+              Icons.contacts_outlined,
+              color: colors.primaryAccent,
+            ),
+            tooltip: l10n.searchContacts,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              context.push('/address-book');
             },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    final colors = ref.watch(dynamicColorsProvider);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.5),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.primaryAccent.withValues(alpha: 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-            spreadRadius: -5,
           ),
         ],
       ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) {
-          setState(() {
-            _searchQuery = value.toLowerCase();
-          });
-        },
-        decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.searchConversationsHint,
-          hintStyle: TextStyle(
-            color: colors.textSecondary,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.1,
-            inherit: true,
+      bottomNavigationBar: const CommonBottomNav(),
+      floatingActionButton: floatingActionButton,
+      body: SafeArea(child: body),
+    );
+  }
+
+  Widget _buildBody({
+    required bool glassMode,
+    required AppLocalizations l10n,
+  }) {
+    final EdgeInsetsGeometry padding =
+        glassMode ? EdgeInsets.zero : const EdgeInsets.fromLTRB(20, 16, 20, 8);
+
+    final Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSearchBar(glassMode: glassMode, l10n: l10n),
+        const SizedBox(height: 16),
+        _buildTabSwitcher(glassMode: glassMode, l10n: l10n),
+        const SizedBox(height: 12),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            physics: const BouncingScrollPhysics(),
+            children: [
+              _buildMessagesTab(glassMode: glassMode, l10n: l10n),
+              _buildInvitationsTab(glassMode: glassMode, l10n: l10n),
+            ],
           ),
-          prefixIcon: Container(
-            padding: const EdgeInsets.all(12),
-            child: Icon(
-              Icons.search_outlined,
-              color: colors.primaryAccent,
-              size: 20,
+        ),
+      ],
+    );
+
+    return AnimatedBuilder(
+      animation: _animationController!,
+      builder: (context, child) {
+        final double opacity = _fadeAnimation?.value ?? 1.0;
+        final double translateY = _slideAnimation?.value ?? 0.0;
+        return Opacity(
+          opacity: opacity,
+          child: Transform.translate(
+            offset: Offset(0, translateY),
+            child: child,
+          ),
+        );
+      },
+      child: Padding(
+        padding: padding,
+        child: content,
+      ),
+    );
+  }
+
+  Widget _buildTabSwitcher({
+    required bool glassMode,
+    required AppLocalizations l10n,
+  }) {
+    final colors = ref.watch(dynamicColorsProvider);
+    final tabs = [
+      Tab(text: l10n.messages),
+      Tab(text: l10n.invitations),
+    ];
+    const labelStyle = TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 14,
+    );
+    const unselectedLabelStyle = TextStyle(
+      fontWeight: FontWeight.w600,
+      fontSize: 14,
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: DefaultTextStyle.merge(
+          style: const TextStyle(color: Colors.white),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              splashColor: Colors.white.withValues(alpha: 0.25),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              tabs: tabs,
+              indicatorSize: TabBarIndicatorSize.tab,
+              splashBorderRadius: BorderRadius.circular(14),
+              dividerColor: Colors.transparent,
+              labelStyle: labelStyle,
+              unselectedLabelStyle: unselectedLabelStyle,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                color: Colors.white.withValues(alpha: 0.28),
+              ),
             ),
           ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear,
-                    color: colors.textSecondary,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _searchQuery = '';
-                    });
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
-        style: TextStyle(
-          color: colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          letterSpacing: -0.1,
-          inherit: true,
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colors.surfaceWithElevation(1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: colors.primaryAccent.withValues(alpha: 0.1),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          tabs: tabs,
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: labelStyle,
+          unselectedLabelStyle: unselectedLabelStyle,
+          labelColor: colors.primaryAccent,
+          unselectedLabelColor: colors.textSecondary,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: colors.primaryAccent.withValues(alpha: 0.12),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMessagesTab() {
+  Widget _buildSearchBar({
+    required bool glassMode,
+    required AppLocalizations l10n,
+  }) {
+    final colors = ref.watch(dynamicColorsProvider);
+    final InputBorder border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide.none,
+    );
+
+    final Widget textField = TextField(
+      controller: _searchController,
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value.toLowerCase();
+        });
+      },
+      decoration: InputDecoration(
+        hintText: l10n.searchConversationsHint,
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          color: glassMode ? Colors.white : colors.primaryAccent,
+          size: 20,
+        ),
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  color: glassMode
+                      ? Colors.white.withValues(alpha: 0.8)
+                      : colors.textSecondary,
+                  size: 20,
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() {
+                    _searchQuery = '';
+                  });
+                },
+              )
+            : null,
+        border: border,
+        enabledBorder: border,
+        focusedBorder: border,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      style: TextStyle(
+        color: glassMode ? Colors.white : colors.textPrimary,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+        inherit: true,
+      ),
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: textField,
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceWithElevation(1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: textField,
+    );
+  }
+
+  Widget _buildMessagesTab({
+    required bool glassMode,
+    required AppLocalizations l10n,
+  }) {
     final conversationsAsync = ref.watch(conversationsProvider);
     final colors = ref.watch(dynamicColorsProvider);
 
@@ -372,11 +395,17 @@ class _ConversationsTabbedPageState
       data: (conversations) {
         final filteredConversations = _filterConversations(conversations);
         if (filteredConversations.isEmpty) {
-          return _buildEmptyState('No conversations yet',
-              'Start chatting with your tenants or landlord');
+          return _buildEmptyState(
+            title: l10n.noConversationsYet,
+            subtitle: l10n.startConversation,
+            glassMode: glassMode,
+          );
         }
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.only(
+            top: 4,
+            bottom: glassMode ? 160 : 120,
+          ),
           itemCount: filteredConversations.length,
           itemBuilder: (context, index) {
             final conversation = filteredConversations[index];
@@ -385,12 +414,17 @@ class _ConversationsTabbedPageState
                 conversation.getOtherParticipantId(currentUser?.id ?? '');
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(
+                bottom: 12,
+                left: glassMode ? 0 : 4,
+                right: glassMode ? 0 : 4,
+              ),
               child: _buildConversationTile(
                 context,
                 conversation,
                 otherUserId ?? '',
                 currentUser?.id ?? '',
+                glassMode: glassMode,
               ),
             );
           },
@@ -406,11 +440,14 @@ class _ConversationsTabbedPageState
           ),
         ),
       ),
-      error: (error, stack) => _buildErrorState(),
+      error: (error, stack) => _buildErrorState(glassMode: glassMode),
     );
   }
 
-  Widget _buildInvitationsTab() {
+  Widget _buildInvitationsTab({
+    required bool glassMode,
+    required AppLocalizations l10n,
+  }) {
     final currentUser = ref.watch(currentUserProvider);
     final invitationsAsync = ref.watch(userInvitationsProvider);
     final colors = ref.watch(dynamicColorsProvider);
@@ -427,23 +464,29 @@ class _ConversationsTabbedPageState
         }).toList();
 
         if (filteredInvitations.isEmpty) {
+          final bool landlord = currentUser?.role == 'landlord';
           return _buildEmptyState(
-            currentUser?.role == 'landlord'
-                ? 'No invitations sent'
-                : 'No invitations received',
-            currentUser?.role == 'landlord'
-                ? 'Send invitations to potential tenants'
-                : 'Wait for landlord invitations',
+            title: l10n.noResultsFound,
+            subtitle:
+                landlord ? l10n.inviteTenant : l10n.contactLandlordForAccess,
+            glassMode: glassMode,
           );
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.only(
+            top: 4,
+            bottom: glassMode ? 160 : 120,
+          ),
           itemCount: filteredInvitations.length,
           itemBuilder: (context, index) {
             final invitation = filteredInvitations[index];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(
+                bottom: 12,
+                left: glassMode ? 0 : 4,
+                right: glassMode ? 0 : 4,
+              ),
               child: InvitationCard(
                 invitation: invitation,
                 isLandlord: currentUser?.role == 'landlord',
@@ -462,14 +505,34 @@ class _ConversationsTabbedPageState
           ),
         ),
       ),
-      error: (error, stack) => _buildErrorState(),
+      error: (error, stack) => _buildErrorState(glassMode: glassMode),
     );
   }
 
-  Widget _buildConversationTile(BuildContext context, Conversation conversation,
-      String otherUserId, String currentUserId) {
+  Widget _buildConversationTile(
+    BuildContext context,
+    Conversation conversation,
+    String otherUserId,
+    String currentUserId, {
+    required bool glassMode,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
     final me = ref.watch(currentUserProvider);
+    if (me != null && otherUserId.isNotEmpty) {
+      ref.read(chatPreviewProvider.notifier).ensureWatching(
+            conversationId: conversation.id,
+            currentUserId: me.id,
+            otherUserId: otherUserId,
+            fallbackPreview: conversation.lastMessage,
+          );
+    }
+    final previews = ref.watch(chatPreviewProvider);
+    final override = previews[conversation.id]?.trim();
+    final fallback = conversation.lastMessage.trim();
+    final previewText = override != null && override.isNotEmpty
+        ? override
+        : (fallback.isNotEmpty ? fallback : l10n.noRecentMessages);
     final isBlocked =
         (me?.blockedUsers ?? const <String>[]).contains(otherUserId);
     final isReported =
@@ -478,7 +541,9 @@ class _ConversationsTabbedPageState
         ? colors.error
         : isBlocked
             ? colors.warning
-            : colors.borderLight.withValues(alpha: 0.5);
+            : glassMode
+                ? colors.borderLight.withValues(alpha: 0.5)
+                : colors.borderLight;
     final List<Widget> statusBadges = [];
     if (isBlocked) {
       statusBadges.add(
@@ -490,7 +555,7 @@ class _ConversationsTabbedPageState
             border: Border.all(color: colors.warning, width: 0.5),
           ),
           child: Text(
-            AppLocalizations.of(context)!.blockedLabel,
+            l10n.blockedLabel,
             style: TextStyle(
               color: colors.warning,
               fontSize: 11,
@@ -511,7 +576,7 @@ class _ConversationsTabbedPageState
             border: Border.all(color: colors.error, width: 0.5),
           ),
           child: Text(
-            AppLocalizations.of(context)!.reported,
+            l10n.reported,
             style: TextStyle(
               color: colors.error,
               fontSize: 11,
@@ -523,6 +588,51 @@ class _ConversationsTabbedPageState
       );
     }
 
+    final Color titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final Color subtitleColor =
+        glassMode ? Colors.white.withValues(alpha: 0.85) : colors.textSecondary;
+    final Color timeColor =
+        glassMode ? Colors.white.withValues(alpha: 0.75) : colors.textSecondary;
+    final BoxDecoration decoration = glassMode
+        ? BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.surfaceCards,
+                colors.luxuryGradientStart.withValues(alpha: 0.2),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadowColor,
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: colors.primaryAccent.withValues(alpha: 0.05),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+                spreadRadius: -5,
+              ),
+            ],
+            border: Border.all(color: borderColor, width: 1),
+          )
+        : BoxDecoration(
+            color: colors.surfaceWithElevation(1),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor.withValues(alpha: 0.8)),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadowColor.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          );
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -533,32 +643,7 @@ class _ConversationsTabbedPageState
       },
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceCards,
-              colors.luxuryGradientStart.withValues(alpha: 0.2),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colors.shadowColor,
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: colors.primaryAccent.withValues(alpha: 0.05),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-              spreadRadius: -5,
-            ),
-          ],
-          border: Border.all(color: borderColor, width: 1),
-        ),
+        decoration: decoration,
         child: Row(
           children: [
             UserAvatar(
@@ -579,7 +664,7 @@ class _ConversationsTabbedPageState
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: colors.textPrimary,
+                            color: titleColor,
                             letterSpacing: -0.2,
                             inherit: true,
                           ),
@@ -598,7 +683,7 @@ class _ConversationsTabbedPageState
                         _getTimeAgo(conversation.lastMessageTime),
                         style: TextStyle(
                           fontSize: 12,
-                          color: colors.textSecondary,
+                          color: timeColor,
                           fontWeight: FontWeight.w500,
                           inherit: true,
                         ),
@@ -606,37 +691,17 @@ class _ConversationsTabbedPageState
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Builder(builder: (context) {
-                    final me = ref.read(currentUserProvider);
-                    if (me != null && otherUserId.isNotEmpty) {
-                      ref.read(chatPreviewProvider.notifier).ensureWatching(
-                          conversationId: conversation.id,
-                          currentUserId: me.id,
-                          otherUserId: otherUserId,
-                          fallbackPreview: conversation.lastMessage);
-                    }
-                    return Text(
-                      (() {
-                        final previews = ref.watch(chatPreviewProvider);
-                        final override = previews[conversation.id];
-                        if (override != null && override.isNotEmpty) {
-                          return override;
-                        }
-                        if (conversation.lastMessage == '[encrypted]') {
-                          return 'Encrypted message';
-                        }
-                        return conversation.lastMessage;
-                      })(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                        letterSpacing: -0.1,
-                        inherit: true,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  }),
+                  Text(
+                    previewText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: subtitleColor,
+                      letterSpacing: -0.1,
+                      inherit: true,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -646,94 +711,140 @@ class _ConversationsTabbedPageState
     );
   }
 
-  Widget _buildEmptyState(String title, String subtitle) {
+  Widget _buildEmptyState({
+    required String title,
+    required String subtitle,
+    required bool glassMode,
+  }) {
     final colors = ref.watch(dynamicColorsProvider);
+    final Widget child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.chat_bubble_outline,
+          size: 56,
+          color: glassMode ? Colors.white : colors.primaryAccent,
+        ),
+        const SizedBox(height: 20),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: glassMode ? Colors.white : colors.textPrimary,
+            letterSpacing: -0.3,
+            inherit: true,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 14,
+            color: glassMode
+                ? Colors.white.withValues(alpha: 0.8)
+                : colors.textSecondary,
+            fontWeight: FontWeight.w500,
+            inherit: true,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return Center(
+        child: GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          child: child,
+        ),
+      );
+    }
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryAccent.withValues(alpha: 0.15),
-                  colors.primaryAccent.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primaryAccent.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        decoration: BoxDecoration(
+          color: colors.surfaceWithElevation(1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.borderLight),
+          boxShadow: [
+            BoxShadow(
+              color: colors.shadowColor.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
-            child: Icon(
-              Icons.chat_bubble_outline,
-              size: 56,
-              color: colors.primaryAccent,
-            ),
-          ),
-          const SizedBox(height: 28),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: colors.textPrimary,
-              letterSpacing: -0.5,
-              inherit: true,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 15,
-              color: colors.textSecondary,
-              fontWeight: FontWeight.w500,
-              inherit: true,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
+        child: child,
       ),
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState({required bool glassMode}) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
+
+    final Widget child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.error_outline,
+          size: 48,
+          color: glassMode ? Colors.white : colors.error,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          l10n.somethingWentWrong,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: glassMode ? Colors.white : colors.textPrimary,
+            inherit: true,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.pleaseTryAgainLater,
+          style: TextStyle(
+            fontSize: 14,
+            color: glassMode
+                ? Colors.white.withValues(alpha: 0.8)
+                : colors.textSecondary,
+            inherit: true,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return Center(
+        child: GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
+          child: child,
+        ),
+      );
+    }
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 48, color: colors.error),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.somethingWentWrong,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-              inherit: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
+        decoration: BoxDecoration(
+          color: colors.surfaceWithElevation(1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.borderLight),
+          boxShadow: [
+            BoxShadow(
+              color: colors.shadowColor.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.pleaseTryAgainLater,
-            style: TextStyle(
-              fontSize: 14,
-              color: colors.textSecondary,
-              inherit: true,
-            ),
-          ),
-        ],
+          ],
+        ),
+        child: child,
       ),
     );
   }
@@ -765,6 +876,35 @@ class _ConversationsTabbedPageState
     } else {
       return 'Just now';
     }
+  }
+
+  Widget _buildInviteFab({
+    required bool glassMode,
+    required AppLocalizations l10n,
+  }) {
+    final colors = ref.watch(dynamicColorsProvider);
+    final Color background =
+        glassMode ? Colors.white.withValues(alpha: 0.92) : colors.primaryAccent;
+    final Color foreground = glassMode ? Colors.black87 : colors.textOnAccent;
+
+    return FloatingActionButton.extended(
+      onPressed: _showInviteTenantDialog,
+      icon: const Icon(Icons.person_add_alt_1_rounded),
+      label: Text(
+        l10n.inviteTenant,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      backgroundColor: background,
+      foregroundColor: foreground,
+      elevation: glassMode ? 6 : 3,
+    );
+  }
+
+  Future<void> _handleRefresh() async {
+    HapticFeedback.lightImpact();
+    ref.invalidate(conversationsProvider);
+    ref.invalidate(userInvitationsProvider);
+    await Future.delayed(const Duration(milliseconds: 250));
   }
 
   void _showInviteTenantDialog() {

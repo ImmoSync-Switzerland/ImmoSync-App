@@ -168,6 +168,12 @@ abstract class AppLocalizations {
   /// **'Theme'**
   String get theme;
 
+  /// No description provided for @dashboardDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard Design'**
+  String get dashboardDesign;
+
   /// No description provided for @currency.
   ///
   /// In en, this message translates to:
@@ -258,6 +264,12 @@ abstract class AppLocalizations {
   /// **'Select Theme'**
   String get selectTheme;
 
+  /// No description provided for @selectDashboardDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Dashboard Design'**
+  String get selectDashboardDesign;
+
   /// No description provided for @selectCurrency.
   ///
   /// In en, this message translates to:
@@ -282,11 +294,29 @@ abstract class AppLocalizations {
   /// **'Theme changed to {theme}'**
   String themeChangedTo(Object theme);
 
+  /// No description provided for @dashboardDesignChangedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard design changed to {design}'**
+  String dashboardDesignChangedTo(Object design);
+
   /// No description provided for @currencyChangedTo.
   ///
   /// In en, this message translates to:
   /// **'Currency changed to {currency}'**
   String currencyChangedTo(Object currency);
+
+  /// No description provided for @dashboardDesignGlass.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass (Modern)'**
+  String get dashboardDesignGlass;
+
+  /// No description provided for @dashboardDesignClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic (Standard)'**
+  String get dashboardDesignClassic;
 
   /// No description provided for @welcome.
   ///
