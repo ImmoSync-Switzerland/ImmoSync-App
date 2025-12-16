@@ -2,7 +2,6 @@ name: iOS IPA CI
 
 on:
   push:
-    branches: [ main ]
     paths-ignore:
       - 'public/downloads/**'
   workflow_dispatch:
@@ -364,7 +363,7 @@ EOF
     name: Push IPAs to site repository
     needs: build-ipa
     runs-on: ubuntu-latest
-    if: needs.build-ipa.result == 'success'
+    if: needs.build-ipa.result == 'success' && github.ref == 'refs/heads/main'
     steps:
       - name: Check if SITE_REPO_PAT is configured
         id: check_secret
