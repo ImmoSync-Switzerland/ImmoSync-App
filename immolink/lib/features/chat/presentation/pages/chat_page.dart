@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +25,9 @@ import '../../../../core/crypto/e2ee_service.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_chat_service.dart';
+import '../../../home/presentation/models/dashboard_design.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../settings/providers/settings_provider.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -208,110 +212,270 @@ class _ChatPageState extends ConsumerState<ChatPage>
       },
     );
 
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
+    final bool glassMode = design == DashboardDesign.glass;
+
+    final body = _buildPageBody(
+      context: context,
+      messagesAsync: messagesAsync,
+      currentUserId: currentUser?.id ?? '',
+      colors: colors,
+      glassMode: glassMode,
+    );
+
+    if (glassMode) {
+      return Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
+        appBar: _buildAppBar(glassMode: true),
+        body: Stack(
+          children: [
+            const GlassBackground(),
+            SafeArea(child: body),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          // Matrix initialization status banner
-          ValueListenableBuilder<MatrixClientState>(
-            valueListenable: ChatService.clientState,
-            builder: (context, state, _) {
-              if (state == MatrixClientState.ready) {
-                return const SizedBox.shrink();
-              }
-              String text;
-              bool busy = true;
-              switch (state) {
-                case MatrixClientState.starting:
-                  text = 'Matrix wird initialisiert …';
-                  break;
-                case MatrixClientState.ensuringCrypto:
-                  text = 'Ende-zu-Ende-Verschlüsselung wird vorbereitet …';
-                  break;
-                case MatrixClientState.ensuringRoom:
-                  text = 'Chat-Verbindung wird erstellt …';
-                  break;
-                case MatrixClientState.error:
-                  text = 'Matrix-Fehler – bitte später erneut versuchen.';
-                  busy = false;
-                  break;
-                default:
-                  text = 'Matrix wird initialisiert …';
-              }
-              return Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                color: Colors.amber.withValues(alpha: 0.15),
-                child: Row(
-                  children: [
-                    if (busy)
-                      const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2)),
-                    if (busy) const SizedBox(width: 8),
-                    Expanded(child: Text(text)),
-                    if (state == MatrixClientState.error)
-                      TextButton(
-                        onPressed: () async {
-                          final me = ref.read(currentUserProvider)?.id ?? '';
-                          if (me.isNotEmpty) {
-                            await ref
-                                .read(chat_providers.chatServiceProvider)
-                                .ensureMatrixReady(userId: me);
-                          }
-                        },
-                        child: const Text('Erneut verbinden'),
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-          Expanded(
-            child: messagesAsync.when(
-              data: (messages) =>
-                  _buildMessagesList(messages, currentUser?.id ?? ''),
-              loading: () => Center(
-                child: CircularProgressIndicator(
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-                ),
-              ),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 48, color: colors.error),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.failedToLoadMessages,
-                      style: AppTypography.subhead.copyWith(
-                        color: colors.error,
-                        inherit: true,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(
-                          conversationMessagesProvider(widget.conversationId)),
-                      child: Text(AppLocalizations.of(context)!.retry),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          _buildMessageInput(currentUser?.id ?? ''),
-        ],
-      ),
+      body: body,
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  Widget _buildPageBody({
+    required BuildContext context,
+    required AsyncValue<List<ChatMessage>> messagesAsync,
+    required String currentUserId,
+    required DynamicAppColors colors,
+    required bool glassMode,
+  }) {
+    return Column(
+      children: [
+        ValueListenableBuilder<MatrixClientState>(
+          valueListenable: ChatService.clientState,
+          builder: (context, state, _) {
+            if (state == MatrixClientState.ready) {
+              return const SizedBox.shrink();
+            }
+            String text;
+            bool busy = true;
+            switch (state) {
+              case MatrixClientState.starting:
+                text = 'Initializing secure chat...';
+                break;
+              case MatrixClientState.ensuringCrypto:
+                text = 'Preparing end-to-end encryption...';
+                break;
+              case MatrixClientState.ensuringRoom:
+                text = 'Establishing chat room...';
+                break;
+              case MatrixClientState.error:
+                text = 'Matrix error - please try again later.';
+                busy = false;
+                break;
+              default:
+                text = 'Initializing secure chat...';
+            }
+
+            final banner = Row(
+              children: [
+                if (busy)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                if (busy) const SizedBox(width: 8),
+                Expanded(child: Text(text)),
+                if (state == MatrixClientState.error)
+                  TextButton(
+                    onPressed: () async {
+                      final me = ref.read(currentUserProvider)?.id ?? '';
+                      if (me.isNotEmpty) {
+                        await ref
+                            .read(chat_providers.chatServiceProvider)
+                            .ensureMatrixReady(userId: me);
+                      }
+                    },
+                    child: const Text('Reconnect'),
+                  ),
+              ],
+            );
+
+            if (glassMode) {
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: GlassContainer(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: banner,
+                ),
+              );
+            }
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              color: Colors.amber.withValues(alpha: 0.15),
+              child: banner,
+            );
+          },
+        ),
+        Expanded(
+          child: messagesAsync.when(
+            data: (messages) => _buildMessagesList(
+              context,
+              messages,
+              currentUserId,
+              colors,
+              glassMode,
+            ),
+            loading: () => Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  glassMode ? Colors.white : colors.primaryAccent,
+                ),
+              ),
+            ),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: colors.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.failedToLoadMessages,
+                    style: AppTypography.subhead.copyWith(
+                      color: colors.error,
+                      inherit: true,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(
+                        conversationMessagesProvider(widget.conversationId)),
+                    child: Text(AppLocalizations.of(context)!.retry),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        _buildMessageInput(
+          currentUserId,
+          glassMode: glassMode,
+        ),
+      ],
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar({bool glassMode = false}) {
     final colors = ref.watch(dynamicColorsProvider);
+
+    if (glassMode) {
+      return PreferredSize(
+        preferredSize: const Size.fromHeight(92),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          child: GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                UserAvatar(
+                  imageRef: widget.otherUserAvatar,
+                  name: widget.otherUserName,
+                  size: 40,
+                  fallbackToCurrentUser: false,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.otherUserName,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      if (_otherTyping)
+                        Text(
+                          'typing...',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        )
+                      else
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(right: 4),
+                              decoration: BoxDecoration(
+                                color: _otherOnline
+                                    ? Colors.greenAccent
+                                    : Colors.white.withValues(alpha: 0.4),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Text(
+                              _otherOnline ? 'Online' : _formatLastSeen(),
+                              style: GoogleFonts.poppins(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _initiateVoiceCall();
+                  },
+                  icon: const Icon(Icons.call_outlined, color: Colors.white),
+                ),
+                IconButton(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _showChatOptions();
+                  },
+                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return AppBar(
       backgroundColor: colors.primaryBackground,
@@ -413,9 +577,19 @@ class _ChatPageState extends ConsumerState<ChatPage>
     return 'vor ${diff.inDays} Tg';
   }
 
-  Widget _buildMessagesList(List<ChatMessage> messages, String currentUserId) {
+  Widget _buildMessagesList(
+    BuildContext context,
+    List<ChatMessage> messages,
+    String currentUserId,
+    DynamicAppColors colors,
+    bool glassMode,
+  ) {
     if (messages.isEmpty) {
-      return _buildEmptyMessagesState();
+      return _buildEmptyMessagesState(
+        context,
+        colors,
+        glassMode: glassMode,
+      );
     }
 
     return AnimatedBuilder(
@@ -437,10 +611,16 @@ class _ChatPageState extends ConsumerState<ChatPage>
 
               return Column(
                 children: [
-                  if (showDate) _buildDateSeparator(message.timestamp),
+                  if (showDate)
+                    _buildDateSeparator(
+                      context,
+                      message.timestamp,
+                      colors,
+                      glassMode: glassMode,
+                    ),
                   _MessageVisibilityWrapper(
                     key: _messageKeys[message.id],
-                    child: _buildMessageBubble(message, isMe),
+                    child: _buildMessageBubble(message, isMe, glassMode),
                   ),
                 ],
               );
@@ -451,75 +631,129 @@ class _ChatPageState extends ConsumerState<ChatPage>
     );
   }
 
-  Widget _buildEmptyMessagesState() {
+  Widget _buildEmptyMessagesState(
+    BuildContext context,
+    DynamicAppColors colors, {
+    required bool glassMode,
+  }) {
+    const title = 'No messages yet';
+    final subtitle = 'Start the conversation with ${widget.otherUserName}';
+    final iconColor = glassMode ? Colors.white : colors.primaryAccent;
+    final titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final subtitleColor =
+        glassMode ? Colors.white.withValues(alpha: 0.85) : colors.textSecondary;
+
+    final child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.chat_bubble_outline, size: 48, color: iconColor),
+        const SizedBox(height: 24),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: titleColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            color: subtitleColor,
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return Center(
+        child: GlassContainer(
+          padding: const EdgeInsets.all(24),
+          child: child,
+        ),
+      );
+    }
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primaryAccent.withValues(alpha: 0.1),
-                  AppColors.primaryAccent.withValues(alpha: 0.05),
-                ],
-              ),
-              shape: BoxShape.circle,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: colors.surfaceWithElevation(1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.borderLight),
+          boxShadow: [
+            BoxShadow(
+              color: colors.shadowColor.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-            child: const Icon(
-              Icons.chat_bubble_outline,
-              size: 48,
-              color: AppColors.primaryAccent,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No messages yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start the conversation with ${widget.otherUserName}',
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+          ],
+        ),
+        child: child,
       ),
     );
   }
 
-  Widget _buildDateSeparator(DateTime date) {
+  Widget _buildDateSeparator(
+    BuildContext context,
+    DateTime date,
+    DynamicAppColors colors, {
+    required bool glassMode,
+  }) {
+    final textColor =
+        glassMode ? Colors.white.withValues(alpha: 0.85) : colors.textSecondary;
+
+    final child = Text(
+      _formatDate(date),
+      style: AppTypography.caption.copyWith(color: textColor),
+    );
+
+    if (glassMode) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          child: Center(child: child),
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.surfaceCards,
+            color: colors.surfaceWithElevation(1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(
-            _formatDate(date),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
+          child: child,
         ),
       ),
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message, bool isMe) {
+  Widget _buildMessageBubble(
+    ChatMessage message,
+    bool isMe,
+    bool glassMode,
+  ) {
     final colors = ref.watch(dynamicColorsProvider);
+    final Color glassMeColor = const Color(0xFF3B82F6).withValues(alpha: 0.65);
+    final Color timeColor = glassMode
+        ? Colors.white.withValues(alpha: isMe ? 0.9 : 0.75)
+        : (isMe ? Colors.white.withValues(alpha: 0.75) : colors.textTertiary);
+    final Color statusColor = glassMode
+        ? Colors.white.withValues(alpha: 0.85)
+        : (message.readAt != null
+            ? Colors.white.withValues(alpha: 0.95)
+            : (message.deliveredAt != null
+                ? Colors.white.withValues(alpha: 0.75)
+                : Colors.white.withValues(alpha: 0.5)));
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -540,22 +774,35 @@ class _ChatPageState extends ConsumerState<ChatPage>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                gradient: isMe
-                    ? const LinearGradient(
+                gradient: glassMode || !isMe
+                    ? null
+                    : const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xF23B82F6), // Blue #3B82F6 @ 95%
-                          Color(0xD98B5CF6), // Purple #8B5CF6 @ 85%
+                          Color(0xF23B82F6),
+                          Color(0xD98B5CF6),
                         ],
+                      ),
+                color: glassMode
+                    ? (isMe
+                        ? glassMeColor
+                        : Colors.white.withValues(alpha: 0.18))
+                    : (isMe ? null : Colors.white.withValues(alpha: 0.95)),
+                border: glassMode
+                    ? Border.all(
+                        color:
+                            Colors.white.withValues(alpha: isMe ? 0.4 : 0.28),
+                        width: 0.8,
                       )
                     : null,
-                color: isMe ? null : Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 12,
+                    color: glassMode
+                        ? Colors.black.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.15),
+                    blurRadius: glassMode ? 8 : 12,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -568,47 +815,47 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     children: [
                       // Matrix-only chat: DM rooms are E2EE by design. Show lock when
                       // encryption is ready or the message explicitly marks encrypted.
-                      if (_encryptionReady && message.messageType == 'text' ||
+                      if ((_encryptionReady && message.messageType == 'text') ||
                           message.isEncrypted) ...[
                         Icon(Icons.lock,
                             size: 14,
-                            color: isMe
+                            color: isMe && !glassMode
                                 ? Colors.white.withValues(alpha: 0.75)
                                 : colors.textSecondary),
                         const SizedBox(width: 4),
                       ],
                       Expanded(
-                          child: _buildMessageContent(message, isMe, colors)),
+                          child: _buildMessageContent(
+                              message, isMe, colors, glassMode)),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    _formatTime(message.timestamp),
-                    style: TextStyle(
-                      color: isMe
-                          ? Colors.white.withValues(alpha: 0.75)
-                          : colors.textTertiary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      inherit: true,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _formatTime(message.timestamp),
+                        style: TextStyle(
+                          color: timeColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          inherit: true,
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          message.readAt != null
+                              ? Icons.done_all
+                              : (message.deliveredAt != null
+                                  ? Icons.check
+                                  : Icons.access_time),
+                          size: 14,
+                          color: statusColor,
+                        ),
+                      ],
+                    ],
                   ),
-                  if (isMe) ...[
-                    const SizedBox(width: 4),
-                    Icon(
-                      message.readAt != null
-                          ? Icons.done_all
-                          : (message.deliveredAt != null
-                              ? Icons.check
-                              : Icons.access_time),
-                      size: 14,
-                      color: message.readAt != null
-                          ? Colors.white.withValues(alpha: 0.95)
-                          : (message.deliveredAt != null
-                              ? Colors.white.withValues(alpha: 0.75)
-                              : Colors.white.withValues(alpha: 0.5)),
-                    )
-                  ]
                 ],
               ),
             ),
@@ -622,7 +869,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
     );
   }
 
-  Widget _buildMessageContent(ChatMessage message, bool isMe, dynamic colors) {
+  Widget _buildMessageContent(
+    ChatMessage message,
+    bool isMe,
+    DynamicAppColors colors,
+    bool glassMode,
+  ) {
     // Basic handling for image/file types (no preview yet)
     if (message.messageType == 'image') {
       final name = message.metadata?['fileName'] ?? message.content;
@@ -652,12 +904,17 @@ class _ChatPageState extends ConsumerState<ChatPage>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(Icons.image,
-                size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
+                size: 18,
+                color: glassMode
+                    ? colors.primaryAccent
+                    : (isMe ? Colors.white70 : colors.primaryAccent)),
             const SizedBox(width: 6),
             Expanded(
               child: Text(name,
                   style: AppTypography.body.copyWith(
-                      color: isMe ? Colors.white : colors.textPrimary,
+                      color: glassMode
+                          ? colors.textPrimary
+                          : (isMe ? Colors.white : colors.textPrimary),
                       inherit: true)),
             ),
           ],
@@ -695,32 +952,267 @@ class _ChatPageState extends ConsumerState<ChatPage>
         },
         child: Row(children: [
           Icon(Icons.insert_drive_file,
-              size: 18, color: isMe ? Colors.white70 : colors.primaryAccent),
+              size: 18,
+              color: glassMode
+                  ? colors.primaryAccent
+                  : (isMe ? Colors.white70 : colors.primaryAccent)),
           const SizedBox(width: 6),
           Expanded(
-              child: Text(name,
-                  style: AppTypography.body.copyWith(
-                      color: isMe ? Colors.white : colors.textPrimary,
-                      inherit: true))),
+              child: Text(
+            name,
+            style: AppTypography.body.copyWith(
+              color: glassMode
+                  ? colors.textPrimary
+                  : (isMe ? Colors.white : colors.textPrimary),
+              inherit: true,
+            ),
+          )),
         ]),
       );
     }
     return Text(
       message.content,
       style: AppTypography.body.copyWith(
-        color: isMe ? Colors.white : colors.textPrimary,
+        color: glassMode
+            ? (isMe ? Colors.white : colors.textPrimary)
+            : (isMe ? Colors.white : colors.textPrimary),
         inherit: true,
       ),
     );
   }
 
-  Widget _buildMessageInput(String currentUserId) {
+  Widget _buildMessageInput(
+    String currentUserId, {
+    required bool glassMode,
+  }) {
     final colors = ref.watch(dynamicColorsProvider);
 
     return ValueListenableBuilder<MatrixClientState>(
       valueListenable: ChatService.clientState,
       builder: (context, state, _) {
         final matrixReady = state == MatrixClientState.ready;
+        final content = SafeArea(
+          child: Column(
+            children: [
+              if (_pendingImage != null || _pendingFile != null) ...[
+                _buildAttachmentPreview(),
+                const SizedBox(height: 8),
+              ],
+              Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: glassMode
+                          ? Colors.white.withValues(alpha: 0.18)
+                          : Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.attach_file,
+                        color: colors.textSecondary,
+                        size: 22,
+                      ),
+                      onPressed: _showAttachmentOptions,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: glassMode
+                          ? Colors.white.withValues(alpha: 0.18)
+                          : Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: colors.textSecondary,
+                        size: 22,
+                      ),
+                      onPressed: _showEmojiPicker,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      decoration: BoxDecoration(
+                        color: glassMode
+                            ? Colors.white.withValues(alpha: 0.18)
+                            : Colors.white.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _messageController,
+                        enabled: matrixReady,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          inherit: true,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: matrixReady
+                              ? AppLocalizations.of(context)!.typeAMessage
+                              : 'Waiting for Matrix...',
+                          hintStyle: TextStyle(
+                            color: colors.textTertiary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            inherit: true,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md),
+                        ),
+                        maxLines: null,
+                        textCapitalization: TextCapitalization.sentences,
+                        onChanged: (text) {
+                          setState(() {
+                            _isTyping = text.isNotEmpty;
+                            final convId = _currentConversationId;
+                            if (convId != null && convId != 'new') {
+                              ref.read(presenceWsServiceProvider).sendTyping(
+                                  conversationId: convId, isTyping: true);
+                              Future.delayed(const Duration(seconds: 2), () {
+                                if (mounted && _isTyping == false) {
+                                  ref
+                                      .read(presenceWsServiceProvider)
+                                      .sendTyping(
+                                          conversationId: convId,
+                                          isTyping: false);
+                                }
+                              });
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  GestureDetector(
+                    onTap: () {
+                      if (!matrixReady) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Initializing secure chat...')),
+                        );
+                        return;
+                      }
+                      if (_sendingAttachment) return;
+                      if (!_encryptionReady &&
+                          widget.otherUserId != null &&
+                          (_currentConversationId ?? widget.conversationId) !=
+                              'new') {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(AppLocalizations.of(context)!
+                                .encryptionKeyNotReady)));
+                        return;
+                      }
+                      if (_pendingImage != null || _pendingFile != null) {
+                        _sendPendingAttachment(currentUserId);
+                      } else if (_messageController.text.trim().isNotEmpty) {
+                        _sendMessage(currentUserId);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: _sendingAttachment
+                            ? LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  colors.textTertiary,
+                                  colors.textTertiary.withValues(alpha: 0.8),
+                                ],
+                              )
+                            : const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xF23B82F6),
+                                  Color(0xD98B5CF6),
+                                ],
+                              ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                const Color(0x4D3B82F6).withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: _sendingAttachment
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white)),
+                            )
+                          : (!_encryptionReady &&
+                                  widget.otherUserId != null &&
+                                  (_currentConversationId ??
+                                          widget.conversationId) !=
+                                      'new')
+                              ? const Icon(Icons.lock_clock,
+                                  color: Colors.white, size: 20)
+                              : Icon(
+                                  _pendingImage != null || _pendingFile != null
+                                      ? Icons.cloud_upload
+                                      : Icons.send,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_uploadProgress != null) ...[
+                const SizedBox(height: 6),
+                LinearProgressIndicator(value: _uploadProgress, minHeight: 4),
+              ],
+            ],
+          ),
+        );
+
+        if (glassMode) {
+          return Padding(
+            padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
+            child: GlassContainer(
+              padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
+              child: content,
+            ),
+          );
+        }
+
         return Container(
           padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
           decoration: BoxDecoration(
@@ -733,215 +1225,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
               ),
             ],
           ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                if (_pendingImage != null || _pendingFile != null) ...[
-                  _buildAttachmentPreview(),
-                  const SizedBox(height: 8),
-                ],
-                Row(
-                  children: [
-                    // Attachment button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.attach_file,
-                          color: colors.textSecondary,
-                          size: 22,
-                        ),
-                        onPressed: _showAttachmentOptions,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Emoji button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.emoji_emotions_outlined,
-                          color: colors.textSecondary,
-                          size: 22,
-                        ),
-                        onPressed: _showEmojiPicker,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _messageController,
-                          enabled: matrixReady,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            inherit: true,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: matrixReady
-                                ? AppLocalizations.of(context)!.typeAMessage
-                                : 'Warte auf Matrix …',
-                            hintStyle: TextStyle(
-                              color: colors.textTertiary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              inherit: true,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: AppSpacing.md),
-                          ),
-                          maxLines: null,
-                          textCapitalization: TextCapitalization.sentences,
-                          onChanged: (text) {
-                            setState(() {
-                              _isTyping = text.isNotEmpty;
-                              final convId = _currentConversationId;
-                              if (convId != null && convId != 'new') {
-                                ref.read(presenceWsServiceProvider).sendTyping(
-                                    conversationId: convId, isTyping: true);
-                                // Schedule stop typing after debounce
-                                Future.delayed(const Duration(seconds: 2), () {
-                                  if (mounted && _isTyping == false) {
-                                    ref
-                                        .read(presenceWsServiceProvider)
-                                        .sendTyping(
-                                            conversationId: convId,
-                                            isTyping: false);
-                                  }
-                                });
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    GestureDetector(
-                      onTap: () {
-                        if (!matrixReady) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Matrix wird initialisiert …')),
-                          );
-                          return;
-                        }
-                        if (_sendingAttachment) return; // busy
-                        if (!_encryptionReady &&
-                            widget.otherUserId != null &&
-                            (_currentConversationId ?? widget.conversationId) !=
-                                'new') {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(AppLocalizations.of(context)!
-                                  .encryptionKeyNotReady)));
-                          return;
-                        }
-                        if (_pendingImage != null || _pendingFile != null) {
-                          _sendPendingAttachment(currentUserId);
-                        } else if (_messageController.text.trim().isNotEmpty) {
-                          _sendMessage(currentUserId);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: _sendingAttachment
-                              ? LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    colors.textTertiary,
-                                    colors.textTertiary.withValues(alpha: 0.8),
-                                  ],
-                                )
-                              : const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xF23B82F6), // Blue #3B82F6 @ 95%
-                                    Color(0xD98B5CF6), // Purple #8B5CF6 @ 85%
-                                  ],
-                                ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0x4D3B82F6)
-                                  .withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: _sendingAttachment
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white)),
-                              )
-                            : (!_encryptionReady &&
-                                    widget.otherUserId != null &&
-                                    (_currentConversationId ??
-                                            widget.conversationId) !=
-                                        'new')
-                                ? const Icon(Icons.lock_clock,
-                                    color: Colors.white, size: 20)
-                                : Icon(
-                                    _pendingImage != null ||
-                                            _pendingFile != null
-                                        ? Icons.cloud_upload
-                                        : Icons.send,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_uploadProgress != null) ...[
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(value: _uploadProgress, minHeight: 4),
-                ],
-              ],
-            ),
-          ),
+          child: content,
         );
       },
     );

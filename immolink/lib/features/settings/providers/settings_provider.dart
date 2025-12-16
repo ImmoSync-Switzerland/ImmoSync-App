@@ -8,6 +8,7 @@ import '../../../core/providers/theme_provider.dart';
 class AppSettings {
   final String language;
   final String theme;
+  final String dashboardDesign;
   final String currency;
   final bool emailNotifications;
   final bool pushNotifications;
@@ -16,6 +17,7 @@ class AppSettings {
   AppSettings({
     this.language = 'en',
     this.theme = 'light',
+    this.dashboardDesign = 'glass',
     this.currency = 'CHF',
     this.emailNotifications = true,
     this.pushNotifications = true,
@@ -25,6 +27,7 @@ class AppSettings {
   AppSettings copyWith({
     String? language,
     String? theme,
+    String? dashboardDesign,
     String? currency,
     bool? emailNotifications,
     bool? pushNotifications,
@@ -33,6 +36,7 @@ class AppSettings {
     return AppSettings(
       language: language ?? this.language,
       theme: theme ?? this.theme,
+      dashboardDesign: dashboardDesign ?? this.dashboardDesign,
       currency: currency ?? this.currency,
       emailNotifications: emailNotifications ?? this.emailNotifications,
       pushNotifications: pushNotifications ?? this.pushNotifications,
@@ -44,6 +48,7 @@ class AppSettings {
     return {
       'language': language,
       'theme': theme,
+      'dashboardDesign': dashboardDesign,
       'currency': currency,
       'emailNotifications': emailNotifications,
       'pushNotifications': pushNotifications,
@@ -55,6 +60,7 @@ class AppSettings {
     return AppSettings(
       language: map['language'] ?? 'en',
       theme: map['theme'] ?? 'light',
+      dashboardDesign: map['dashboardDesign'] ?? 'glass',
       currency: map['currency'] ?? 'CHF',
       emailNotifications: map['emailNotifications'] ?? true,
       pushNotifications: map['pushNotifications'] ?? true,
@@ -76,6 +82,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       final prefs = await SharedPreferences.getInstance();
       final language = prefs.getString('language') ?? 'en';
       final theme = prefs.getString('theme') ?? 'light';
+      final dashboardDesign = prefs.getString('dashboardDesign') ?? 'glass';
       final currency = prefs.getString('currency') ?? 'CHF';
       final emailNotifications = prefs.getBool('emailNotifications') ?? true;
       final pushNotifications = prefs.getBool('pushNotifications') ?? true;
@@ -84,6 +91,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       state = AppSettings(
         language: language,
         theme: theme,
+        dashboardDesign: dashboardDesign,
         currency: currency,
         emailNotifications: emailNotifications,
         pushNotifications: pushNotifications,
@@ -114,6 +122,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('language', state.language);
       await prefs.setString('theme', state.theme);
+      await prefs.setString('dashboardDesign', state.dashboardDesign);
       await prefs.setString('currency', state.currency);
       await prefs.setBool('emailNotifications', state.emailNotifications);
       await prefs.setBool('pushNotifications', state.pushNotifications);
@@ -133,6 +142,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(theme: theme);
     await _saveSettings();
     ref.read(themeModeProvider.notifier).updateTheme(theme);
+  }
+
+  Future<void> updateDashboardDesign(String design) async {
+    state = state.copyWith(dashboardDesign: design);
+    await _saveSettings();
   }
 
   Future<void> updateCurrency(String currency) async {

@@ -1,1588 +1,458 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:immosync/core/widgets/app_top_bar.dart';
-import '../../../../../l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
-import '../../../../core/widgets/common_bottom_nav.dart';
-import '../../../../core/providers/navigation_provider.dart';
-import '../../../../core/providers/currency_provider.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../property/presentation/providers/property_providers.dart';
-import '../../../property/domain/models/property.dart';
-import '../../../chat/presentation/providers/invitation_provider.dart';
-import '../../../chat/presentation/widgets/invitation_card.dart';
-import '../providers/activity_provider.dart';
-import '../../domain/models/activity.dart';
+import 'package:immosync/core/widgets/common_bottom_nav.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/home/presentation/models/dashboard_design.dart';
+import 'package:immosync/features/home/presentation/pages/classic_dashboard_shared.dart';
+import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart';
+import 'package:immosync/features/settings/providers/settings_provider.dart';
 
-class TenantDashboard extends ConsumerStatefulWidget {
+const String _tenantHeaderTitle = 'Tenant Dashboard';
+const String _tenantSearchHint = 'Search homes, payments...';
+const String _tenantRevenueLabel = "CHF 3'250.00";
+const String _tenantRevenueSubtitle = 'Upcoming Payments';
+const String _tenantOutstandingLabel = '1 Ticket';
+const String _tenantOutstandingSubtitle = 'Maintenance';
+const String _tenantPrimaryActionLabel = 'Pay Rent';
+const IconData _tenantPrimaryActionIcon = Icons.payments_outlined;
+const String _tenantPrimaryActionRoute = '/payments/make';
+const bool _tenantPrimaryActionUsePush = true;
+
+const List<QuickActionItem> _tenantQuickActions = [
+  QuickActionItem(
+    icon: Icons.folder_open_rounded,
+    label: 'Documents',
+    route: '/documents',
+  ),
+  QuickActionItem(
+    icon: Icons.credit_card_rounded,
+    label: 'Payments',
+    route: '/payments/history',
+  ),
+  QuickActionItem(
+    icon: Icons.build_circle_outlined,
+    label: 'Maintenance',
+    route: '/tenant/maintenance',
+  ),
+  QuickActionItem(
+    icon: Icons.support_agent,
+    label: 'Support',
+    route: '/contact-support',
+  ),
+];
+
+const DashboardConfig _tenantGlassConfig = DashboardConfig(
+  headerTitle: _tenantHeaderTitle,
+  searchHint: _tenantSearchHint,
+  revenueLabel: _tenantRevenueLabel,
+  revenueSubtitle: _tenantRevenueSubtitle,
+  revenueAction: QuickActionItem(
+    icon: Icons.credit_card_rounded,
+    label: 'Payments',
+    route: '/payments/history',
+  ),
+  outstandingLabel: _tenantOutstandingLabel,
+  outstandingSubtitle: _tenantOutstandingSubtitle,
+  outstandingAction: QuickActionItem(
+    icon: Icons.build_circle_outlined,
+    label: 'Maintenance',
+    route: '/tenant/maintenance',
+  ),
+  primaryActionLabel: _tenantPrimaryActionLabel,
+  primaryActionIcon: _tenantPrimaryActionIcon,
+  primaryActionRoute: _tenantPrimaryActionRoute,
+  primaryActionUsePush: _tenantPrimaryActionUsePush,
+  quickActions: _tenantQuickActions,
+);
+
+class TenantDashboard extends ConsumerWidget {
   const TenantDashboard({super.key});
 
   @override
-  ConsumerState<TenantDashboard> createState() => _TenantDashboardState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
+
+    switch (design) {
+      case DashboardDesign.classic:
+        return const _TenantDashboardClassic();
+      case DashboardDesign.glass:
+        return const _TenantDashboardGlass();
+    }
+  }
 }
 
-class _TenantDashboardState extends ConsumerState<TenantDashboard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-
-  // Helper method for responsive font sizes
-  double _getResponsiveFontSize(BuildContext context, double baseFontSize) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) {
-      return baseFontSize * 0.85; // Smaller phones
-    } else if (screenWidth < 400) {
-      return baseFontSize * 0.9; // Medium phones
-    }
-    return baseFontSize; // Tablets and larger
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Set navigation index to Dashboard (0) when this page is loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(routeAwareNavigationProvider.notifier).setIndex(0);
-      // Refresh data when returning to dashboard
-      ref.invalidate(tenantPropertiesProvider);
-    });
-
-    _setupAnimations();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh data when dependencies change (e.g., when returning to this page)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.invalidate(tenantPropertiesProvider);
-    });
-  }
-
-  void _setupAnimations() {
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
-
-    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
-
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  String _getGreeting(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return l10n.goodMorning;
-    } else if (hour < 17) {
-      return l10n.goodAfternoon;
-    }
-    return l10n.goodEvening;
-  }
-
-  String _formatCurrency(double amount, String currency) {
-    final format = NumberFormat.currency(
-      symbol: _getCurrencySymbol(currency),
-      decimalDigits: 0,
-    );
-    return format.format(amount);
-  }
-
-  String _getCurrencySymbol(String currency) {
-    switch (currency.toUpperCase()) {
-      case 'USD':
-        return '\$';
-      case 'EUR':
-        return '€';
-      case 'CHF':
-        return 'CHF ';
-      default:
-        return '\$';
-    }
-  }
+class _TenantDashboardGlass extends StatelessWidget {
+  const _TenantDashboardGlass();
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = ref.watch(currentUserProvider);
-    final propertiesAsync = ref.watch(tenantPropertiesProvider);
-    final currency = ref.watch(currencyProvider);
-    final colors = ref.watch(dynamicColorsProvider);
+    return const GlassDashboardScaffold(config: _tenantGlassConfig);
+  }
+}
+
+class _TenantDashboardClassic extends ConsumerWidget {
+  const _TenantDashboardClassic();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final user = ref.watch(currentUserProvider);
+    final rawName = (user?.fullName ?? '').trim();
+    final greetingName = rawName.isEmpty ? 'Tenant' : rawName;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      appBar: const AppTopBar(title: null),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.primaryBackground,
-              colors.surfaceSecondary,
-            ],
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: theme.colorScheme.surface,
+        title: Text(
+          'Dashboard',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
           ),
         ),
-        child: SafeArea(
-          child: propertiesAsync.when(
-            data: (properties) {
-              return AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _slideAnimation.value),
-                    child: Opacity(
-                      opacity: _fadeAnimation.value,
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          HapticFeedback.lightImpact();
-                          ref.invalidate(tenantPropertiesProvider);
-                          await Future.delayed(const Duration(seconds: 1));
-                        },
-                        color: colors.primaryAccent,
-                        backgroundColor: Colors.white,
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildWelcomeSection(
-                                  currentUser?.fullName ??
-                                      AppLocalizations.of(context)!.tenant,
-                                  colors),
-                              const SizedBox(height: 24),
-                              _buildSearchBar(colors),
-                              const SizedBox(height: 24),
-                              _buildInvitationsSection(colors),
-                              const SizedBox(height: 24),
-                              if (properties.isNotEmpty)
-                                _buildPropertyCard(
-                                    properties.first, currency, colors)
-                              else
-                                _buildNoPropertyCard(colors),
-                              const SizedBox(height: 24),
-                              _buildQuickActions(colors),
-                              const SizedBox(height: 24),
-                              _buildRecentActivity(colors),
-                              const SizedBox(
-                                  height:
-                                      100), // Increased padding for bottom nav
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-            loading: () => Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colors.surfaceCards,
-                    colors.surfaceSecondary,
-                  ],
-                ),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceCards.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colors.borderLight,
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colors.shadowColor,
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  colors.primaryAccent),
-                              strokeWidth: 3,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            AppLocalizations.of(context)!.loading,
-                            style: TextStyle(
-                              color: colors.textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              inherit: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            error: (error, stackTrace) {
-              print('Tenant Dashboard Error: $error');
-              print('Stack trace: $stackTrace');
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.surfaceCards,
-                      colors.surfaceSecondary,
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: Container(
-                    margin: const EdgeInsets.all(20),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: colors.surfaceCards.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: colors.borderLight,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.shadowColor,
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: colors.error.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(Icons.error_outline,
-                              size: 48, color: colors.error),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)!.errorLoadingProperties,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: colors.textPrimary,
-                            inherit: true,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          error.toString(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colors.textSecondary,
-                            inherit: true,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colors.primaryAccent,
-                                colors.primaryAccent.withValues(alpha: 0.8),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              ref.invalidate(tenantPropertiesProvider);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context)!.retry,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded),
+            onPressed: () => context.go('/notifications'),
           ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _navigateToRoute(
+          context,
+          route: _tenantPrimaryActionRoute,
+          usePush: _tenantPrimaryActionUsePush,
         ),
+        icon: const Icon(_tenantPrimaryActionIcon),
+        label: const Text(_tenantPrimaryActionLabel),
       ),
       bottomNavigationBar: const CommonBottomNav(),
-    );
-  }
-
-  // Removed legacy _buildAppBar (now using AppTopBar)
-
-  Widget _buildWelcomeSection(String userName, DynamicAppColors colors) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final bool isSmall = screenWidth < 360;
-    final bool isMedium = !isSmall && screenWidth < 400;
-    final double cardPadding = isSmall ? 20 : (isMedium ? 24 : 32);
-    final double iconSize = isSmall ? 20 : (isMedium ? 22 : 24);
-    final double greetingFont = isSmall ? 12 : (isMedium ? 13 : 14);
-    final double badgeHPad = isSmall ? 10 : 12;
-    final double badgeVPad = isSmall ? 5 : 6;
-    final double badgeText = isSmall ? 10 : 11;
-    final bool placeBadgeBelow = screenWidth < 380;
-
-    return Container(
-      padding: EdgeInsets.all(cardPadding),
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!placeBadgeBelow)
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3B82F6),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.waving_hand_rounded,
-                    color: Colors.white,
-                    size: iconSize,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(context),
-                        style: TextStyle(
-                          fontSize: greetingFont,
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: -0.1,
-                          inherit: true,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontSize: _getResponsiveFontSize(context, 32),
-                          fontWeight: FontWeight.w800,
-                          color: colors.textPrimary,
-                          letterSpacing: -0.8,
-                          height: 1.1,
-                          inherit: true,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: badgeHPad, vertical: badgeVPad),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        AppLocalizations.of(context)!.statusActiveUpper,
-                        style: TextStyle(
-                          fontSize: badgeText,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF10B981),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          else ...[
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3B82F6),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.waving_hand_rounded,
-                    color: Colors.white,
-                    size: iconSize,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(context),
-                        style: TextStyle(
-                          fontSize: greetingFont,
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: -0.1,
-                          inherit: true,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontSize: _getResponsiveFontSize(context, 32),
-                          fontWeight: FontWeight.w800,
-                          color: colors.textPrimary,
-                          letterSpacing: -0.8,
-                          height: 1.1,
-                          inherit: true,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: badgeHPad, vertical: badgeVPad),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      AppLocalizations.of(context)!.statusActiveUpper,
-                      style: TextStyle(
-                        fontSize: badgeText,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF10B981),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.home_outlined,
-                  color: Color(0xFF3B82F6),
-                  size: 20,
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Your rental space awaits',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF3B82F6),
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.2,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(DynamicAppColors colors) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: TextField(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          context.push('/search');
-        },
-        decoration: InputDecoration(
-          hintText:
-              AppLocalizations.of(context)!.searchPropertiesTenantsMessages,
-          hintStyle: TextStyle(
-            color: colors.textSecondary,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.1,
-            inherit: true,
-          ),
-          prefixIcon: Container(
-            padding: const EdgeInsets.all(12),
-            child: Icon(
-              Icons.search_outlined,
-              color: colors.textSecondary,
-              size: 20,
-            ),
-          ),
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        ),
-        style: TextStyle(
-          color: colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          letterSpacing: -0.1,
-          inherit: true,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPropertyCard(
-      Property property, String currency, DynamicAppColors colors) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        context.push('/property/${property.id}');
-      },
-      child: Container(
-        padding: const EdgeInsets.all(24.0),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF3B82F6).withValues(alpha: 0.95),
-              const Color(0xFF8B5CF6).withValues(alpha: 0.85),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 140),
           children: [
-            // Centered Icon and Title
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.home_outlined,
-                color: Colors.white,
-                size: 32,
-              ),
+            ClassicGreetingCard(
+              name: greetingName,
+              headline: 'Welcome back',
+              buttonLabel: 'Review upcoming rent',
+              onTap: () => context.go('/payments/history'),
             ),
-            const SizedBox(height: 16),
-            Builder(builder: (context) {
-              final l10n = AppLocalizations.of(context)!;
-              return Text(
-                l10n.yourProperty,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.6,
-                ),
-                textAlign: TextAlign.center,
-              );
-            }),
-            const SizedBox(height: 8),
-            Builder(builder: (context) {
-              final l10n = AppLocalizations.of(context)!;
-              return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  l10n.statusActiveUpper,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              );
-            }),
-            const SizedBox(height: 24),
-            // Property Details Card
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colors.primaryAccent.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.location_on_outlined,
-                          size: 20,
-                          color: colors.primaryAccent,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              property.address.street,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: colors.textPrimary,
-                                letterSpacing: -0.3,
-                                inherit: true,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${property.address.city}, ${property.address.postalCode}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: colors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: -0.1,
-                                inherit: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)!.monthlyRent,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textTertiary,
-                                letterSpacing: 0.5,
-                                inherit: true,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '${_formatCurrency(property.rentAmount, currency)}/${AppLocalizations.of(context)!.monthlyInterval}',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: colors.success,
-                                letterSpacing: -0.6,
-                                inherit: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)!.sizeLabel,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textTertiary,
-                                letterSpacing: 0.5,
-                                inherit: true,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '${property.details.size} ${AppLocalizations.of(context)!.squareMeters}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: colors.textPrimary,
-                                letterSpacing: -0.4,
-                                inherit: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoPropertyCard(DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(32.0),
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.warning.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.home_work_outlined,
-              color: colors.warning,
-              size: 48,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.noPropertiesAssigned,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: colors.textPrimary,
-              letterSpacing: -0.6,
-              inherit: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.contactLandlordForAccess,
-            style: TextStyle(
-              fontSize: 15,
-              color: colors.textSecondary,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.1,
-              inherit: true,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFEA580C).withValues(alpha: 0.95),
-            const Color(0xFFDC2626).withValues(alpha: 0.85),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFEA580C).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Centered Icon and Title
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.flash_on_outlined,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.quickActions,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.6,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          // Action buttons in white cards
-          _buildActionCard(
-            AppLocalizations.of(context)!.maintenance,
-            Icons.build_circle_outlined,
-            colors.error,
-            () {
-              HapticFeedback.mediumImpact();
-              context.push('/tenant/maintenance');
-            },
-            colors,
-            isFullWidth: true,
-          ),
-          const SizedBox(height: 12),
-          _buildActionCard(
-            AppLocalizations.of(context)!.messages,
-            Icons.chat_bubble_outline,
-            colors.success,
-            () {
-              HapticFeedback.mediumImpact();
-              context.push('/conversations');
-            },
-            colors,
-            isFullWidth: true,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  'Pay Rent',
-                  Icons.payment_outlined,
-                  colors.primaryAccent,
-                  () async {
-                    HapticFeedback.mediumImpact();
-                    // Get tenant's property
-                    final tenantPropertiesAsync =
-                        ref.read(tenantPropertiesProvider);
-                    tenantPropertiesAsync.when(
-                      data: (properties) {
-                        if (properties.isNotEmpty) {
-                          context.push('/payments/tenant',
-                              extra: properties.first);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('No property assigned')),
-                          );
-                        }
-                      },
-                      loading: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Loading...')),
-                        );
-                      },
-                      error: (err, _) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $err')),
-                        );
-                      },
-                    );
-                  },
-                  colors,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionCard(
-                  AppLocalizations.of(context)!.services,
-                  Icons.room_service_outlined,
-                  colors.info,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/tenant/services');
-                  },
-                  colors,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  AppLocalizations.of(context)!.paymentHistory,
-                  Icons.history_outlined,
-                  colors.warning,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/payments/history');
-                  },
-                  colors,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionCard(
-                  AppLocalizations.of(context)!.settings,
-                  Icons.settings_outlined,
-                  colors.luxuryGold,
-                  () {
-                    HapticFeedback.mediumImpact();
-                    context.push('/settings');
-                  },
-                  colors,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildActionCard(
-            AppLocalizations.of(context)!.supportRequests,
-            Icons.support_agent_outlined,
-            colors.info,
-            () {
-              HapticFeedback.mediumImpact();
-              context.push('/support-requests');
-            },
-            colors,
-            isFullWidth: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionCard(String title, IconData icon, Color iconColor,
-      VoidCallback onTap, DynamicAppColors colors,
-      {bool isFullWidth = false}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: isFullWidth ? 16 : 16,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: isFullWidth
-            ? Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 28,
-                      color: iconColor,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: colors.textPrimary,
-                        letterSpacing: -0.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 18,
-                    color: colors.textSecondary,
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 28,
-                      color: iconColor,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: colors.textPrimary,
-                      letterSpacing: -0.2,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
-  Widget _buildRecentActivity(DynamicAppColors colors) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Builder(builder: (context) {
-              final l10n = AppLocalizations.of(context)!;
-              return Text(
-                l10n.recentActivity,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.6,
-                  inherit: true,
-                ),
-              );
-            }),
             const SizedBox(height: 20),
-            Consumer(
-              builder: (context, ref, child) {
-                final activitiesAsync = ref.watch(recentActivitiesProvider);
-
-                return activitiesAsync.when(
-                  data: (activities) {
-                    if (activities.isEmpty) {
-                      return _buildEmptyActivityState(colors);
-                    }
-
-                    return Column(
-                      children: activities
-                          .take(3)
-                          .map((activity) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: _buildActivityItem(activity, colors),
-                              ))
-                          .toList(),
-                    );
-                  },
-                  loading: () => Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                  error: (error, stack) => _buildEmptyActivityState(colors),
-                );
-              },
+            const ClassicSearchField(
+              hint: 'Search homes, payments, maintenance...',
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyActivityState(DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.textSecondary.withValues(alpha: 0.1),
-            colors.textSecondary.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.textSecondary.withValues(alpha: 0.15),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.textSecondary.withValues(alpha: 0.15),
-                  colors.textSecondary.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colors.textSecondary.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              Icons.history_rounded,
-              size: 32,
-              color: colors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No Recent Activity',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colors.textSecondary,
-              inherit: true,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Your recent activities will appear here',
-            style: TextStyle(
-              fontSize: 14,
-              color: colors.textSecondary.withValues(alpha: 0.8),
-              fontWeight: FontWeight.w500,
-              inherit: true,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem(Activity activity, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  _getActivityColor(activity.type, colors)
-                      .withValues(alpha: 0.15),
-                  _getActivityColor(activity.type, colors)
-                      .withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _getActivityColor(activity.type, colors)
-                    .withValues(alpha: 0.1),
-                width: 1.5,
-              ),
-            ),
-            child: Icon(
-              _getActivityIcon(activity.type),
-              color: _getActivityColor(activity.type, colors),
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity.title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.2,
-                    inherit: true,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  activity.description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.1,
-                    inherit: true,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+            const SizedBox(height: 20),
+            ClassicGradientCard(
+              colors: const [
+                Color(0xFF6A88FF),
+                Color(0xFF9EA7FF),
               ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: colors.textSecondary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              activity.timeAgo,
-              style: TextStyle(
-                fontSize: 12,
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.1,
-                inherit: true,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getActivityColor(String type, DynamicAppColors colors) {
-    switch (type.toLowerCase()) {
-      case 'payment':
-        return colors.success;
-      case 'maintenance':
-        return colors.warning;
-      case 'message':
-        return colors.info;
-      case 'service':
-        return colors.primaryAccent;
-      case 'property':
-        return colors.luxuryGold;
-      default:
-        return colors.textSecondary;
-    }
-  }
-
-  IconData _getActivityIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'payment':
-        return Icons.payment_rounded;
-      case 'maintenance':
-        return Icons.build_rounded;
-      case 'message':
-        return Icons.chat_bubble_rounded;
-      case 'service':
-        return Icons.room_service_rounded;
-      case 'property':
-        return Icons.home_rounded;
-      default:
-        return Icons.notifications_rounded;
-    }
-  }
-
-  Widget _buildInvitationsSection(DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    final pendingInvitations = ref.watch(pendingInvitationsProvider);
-
-    return pendingInvitations.when(
-      data: (invitations) {
-        if (invitations.isEmpty) {
-          return const SizedBox
-              .shrink(); // Don't show anything if no invitations
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: colors.surfaceCards,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadowColor,
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+              icon: Icons.payments_rounded,
+              title: 'Payments Overview',
+              subtitle: 'Stay on top of rent and utilities',
+              child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colors.primaryAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.mail_outline,
-                      color: colors.primaryAccent,
-                      size: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    l10n.invitations,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: colors.textPrimary,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: colors.primaryAccent,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${invitations.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: ClassicMetricChip(
+                          icon: Icons.calendar_month_rounded,
+                          label: 'Due This Month',
+                          value: _tenantRevenueLabel,
+                        ),
                       ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: ClassicMetricChip(
+                          icon: Icons.alarm_rounded,
+                          label: 'Next Payment',
+                          value: 'Due in 5 days',
+                          valueColor: Color(0xFFFFF5D1),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ClassicActionTextButton(
+                    label: 'Pay rent now',
+                    onTap: () => _navigateToRoute(
+                      context,
+                      route: _tenantPrimaryActionRoute,
+                      usePush: _tenantPrimaryActionUsePush,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              ...invitations
-                  .map(
-                    (invitation) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: InvitationCard(
-                        invitation: invitation,
-                        isLandlord: false,
+            ),
+            const SizedBox(height: 20),
+            ClassicGradientCard(
+              colors: const [
+                Color(0xFFFF9F7C),
+                Color(0xFFFFC28D),
+              ],
+              icon: Icons.flash_on_rounded,
+              title: 'Quick Actions',
+              subtitle: 'Jump back into frequent tasks',
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: _tenantQuickActions
+                    .map(
+                      (item) => ClassicQuickActionButton(
+                        icon: item.icon,
+                        label: item.label,
+                        onTap: () => _navigateToRoute(
+                          context,
+                          route: item.route,
+                          usePush: item.usePush,
+                          queryParameters: item.queryParameters,
+                        ),
                       ),
+                    )
+                    .toList(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ClassicGradientCard(
+              colors: const [
+                Color(0xFF5AC8FA),
+                Color(0xFF4FC0E8),
+              ],
+              icon: Icons.chat_bubble_outline_rounded,
+              title: 'Latest Messages',
+              subtitle: 'Never miss an update from your landlord',
+              child: Column(
+                children: [
+                  ..._tenantMessages.map(
+                    (message) => ClassicListTile(
+                      leadingIcon: Icons.mark_chat_unread_rounded,
+                      leadingColor: message.color,
+                      title: message.sender,
+                      subtitle: message.preview,
+                      trailingSecondaryText: message.time,
+                      onTap: () => context.go('/conversations'),
                     ),
-                  )
-                  .toList(),
-            ],
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (error, stack) => const SizedBox.shrink(),
+                  ),
+                  ClassicActionTextButton(
+                    label: 'Open inbox',
+                    onTap: () => context.go('/conversations'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            ClassicGradientCard(
+              colors: const [
+                Color(0xFF34D399),
+                Color(0xFF3AA58C),
+              ],
+              icon: Icons.handyman_rounded,
+              title: 'Maintenance Tracker',
+              subtitle: 'Track progress on your requests',
+              child: Column(
+                children: [
+                  ..._tenantMaintenance.map(
+                    (item) => ClassicListTile(
+                      leadingIcon: item.icon,
+                      leadingColor: item.iconColor,
+                      title: item.title,
+                      subtitle: item.location,
+                      trailingBadgeLabel: item.status,
+                      trailingBadgeColor: item.statusColor,
+                      trailingSecondaryText: item.updated,
+                      onTap: () => context.go('/tenant/maintenance'),
+                    ),
+                  ),
+                  ClassicActionTextButton(
+                    label: 'View all requests',
+                    onTap: () => context.go('/tenant/maintenance'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            ClassicGradientCard(
+              colors: const [
+                Color(0xFF8B5CF6),
+                Color(0xFFA78BFA),
+              ],
+              icon: Icons.folder_open_rounded,
+              title: 'Documents & Leases',
+              subtitle: 'Access your files anytime',
+              child: Column(
+                children: [
+                  ..._tenantDocuments.map(
+                    (doc) => ClassicListTile(
+                      leadingIcon: doc.icon,
+                      leadingColor: doc.iconColor,
+                      title: doc.title,
+                      subtitle: doc.description,
+                      trailingBadgeLabel: doc.tag,
+                      trailingBadgeColor: doc.tagColor,
+                      onTap: () => context.go('/documents'),
+                    ),
+                  ),
+                  ClassicActionTextButton(
+                    label: 'View all documents',
+                    onTap: () => context.go('/documents'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+}
+
+class _TenantMessageItem {
+  const _TenantMessageItem({
+    required this.sender,
+    required this.preview,
+    required this.time,
+    required this.color,
+  });
+
+  final String sender;
+  final String preview;
+  final String time;
+  final Color color;
+}
+
+class _TenantMaintenanceItem {
+  const _TenantMaintenanceItem({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.location,
+    required this.status,
+    required this.statusColor,
+    required this.updated,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String location;
+  final String status;
+  final Color statusColor;
+  final String updated;
+}
+
+class _TenantDocumentItem {
+  const _TenantDocumentItem({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.description,
+    required this.tag,
+    required this.tagColor,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String description;
+  final String tag;
+  final Color tagColor;
+}
+
+const List<_TenantMessageItem> _tenantMessages = [
+  _TenantMessageItem(
+    sender: 'Property Services',
+    preview: 'Your rent receipt for December is now available.',
+    time: '1h ago',
+    color: Color(0xFFB4E4FF),
+  ),
+  _TenantMessageItem(
+    sender: 'Landlord',
+    preview: 'Maintenance visit confirmed for Friday, 10:00.',
+    time: 'Yesterday',
+    color: Color(0xFFD7F5FF),
+  ),
+];
+
+const List<_TenantMaintenanceItem> _tenantMaintenance = [
+  _TenantMaintenanceItem(
+    icon: Icons.water_damage_outlined,
+    iconColor: Color(0xFFB3E5FC),
+    title: 'Bathroom sink leak',
+    location: 'Unit 3A • Bathroom',
+    status: 'In progress',
+    statusColor: Color(0xFFFFD166),
+    updated: 'Updated 2h ago',
+  ),
+  _TenantMaintenanceItem(
+    icon: Icons.bolt_rounded,
+    iconColor: Color(0xFFFFDAD6),
+    title: 'Kitchen power outlet',
+    location: 'Unit 3A • Kitchen',
+    status: 'Scheduled',
+    statusColor: Color(0xFF60A5FA),
+    updated: 'Technician arrives Thu',
+  ),
+];
+
+const List<_TenantDocumentItem> _tenantDocuments = [
+  _TenantDocumentItem(
+    icon: Icons.description_rounded,
+    iconColor: Color(0xFFD7C4FF),
+    title: 'Lease Agreement',
+    description: 'Signed • Expires Dec 2025',
+    tag: 'Signed',
+    tagColor: Color(0xFF34D399),
+  ),
+  _TenantDocumentItem(
+    icon: Icons.shield_outlined,
+    iconColor: Color(0xFFCCE7FF),
+    title: 'Insurance Certificate',
+    description: 'Updated • Valid through 2024',
+    tag: 'New',
+    tagColor: Color(0xFFFF8A65),
+  ),
+  _TenantDocumentItem(
+    icon: Icons.sticky_note_2_outlined,
+    iconColor: Color(0xFFFFF4CC),
+    title: 'Move-in Checklist',
+    description: 'Completed • September 2023',
+    tag: 'Archive',
+    tagColor: Color(0xFFCBD5F5),
+  ),
+];
+
+void _navigateToRoute(
+  BuildContext context, {
+  required String route,
+  bool usePush = false,
+  Map<String, String>? queryParameters,
+}) {
+  final targetRoute = _buildRouteWithQuery(route, queryParameters);
+  if (usePush) {
+    context.push(targetRoute);
+  } else {
+    context.go(targetRoute);
+  }
+}
+
+String _buildRouteWithQuery(
+  String route,
+  Map<String, String>? queryParameters,
+) {
+  if (queryParameters == null || queryParameters.isEmpty) {
+    return route;
+  }
+
+  final queryString = queryParameters.entries
+      .map(
+        (entry) =>
+            '${Uri.encodeComponent(entry.key)}=${Uri.encodeComponent(entry.value)}',
+      )
+      .join('&');
+
+  return route.contains('?') ? '$route&$queryString' : '$route?$queryString';
 }

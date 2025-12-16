@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../domain/models/property.dart';
 import '../providers/property_providers.dart';
@@ -13,6 +14,9 @@ import '../../../auth/presentation/providers/user_role_provider.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../../../../core/widgets/mongo_image.dart';
 import '../../../../core/utils/image_resolver.dart';
+import '../../../home/presentation/models/dashboard_design.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../settings/providers/settings_provider.dart';
 
 class PropertyListPage extends ConsumerStatefulWidget {
   const PropertyListPage({super.key});
@@ -46,11 +50,23 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
-    ;
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
     final userRole = ref.watch(userRoleProvider);
     final propertiesAsync = userRole == 'tenant'
         ? ref.watch(tenantPropertiesProvider)
         : ref.watch(landlordPropertiesProvider);
+
+    if (design == DashboardDesign.glass) {
+      return _buildGlassScaffold(
+        context: context,
+        l10n: l10n,
+        userRole: userRole,
+        propertiesAsync: propertiesAsync,
+      );
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       appBar: _buildAppBar(l10n),
@@ -61,8 +77,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             _buildSearchAndFilter(l10n),
             Expanded(
               child: propertiesAsync.when(
-                data: (properties) =>
-                    _buildPropertyList(_filterProperties(properties), l10n),
+                data: (properties) => _buildPropertyList(
+                  _filterProperties(properties),
+                  l10n,
+                  userRole,
+                ),
                 loading: () => Center(
                   child: CircularProgressIndicator(
                     valueColor:
@@ -77,6 +96,74 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       ),
       // Only show FAB for landlords
       floatingActionButton: userRole == 'landlord' ? _buildFAB() : null,
+    );
+  }
+
+  Widget _buildGlassScaffold({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String userRole,
+    required AsyncValue<List<Property>> propertiesAsync,
+  }) {
+    final colors = ref.watch(dynamicColorsProvider);
+    return GlassPageScaffold(
+      title: l10n.myProperties,
+      onBack: () {
+        HapticFeedback.lightImpact();
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/home');
+        }
+      },
+      floatingActionButton: userRole == 'landlord' ? _buildFAB() : null,
+      body: Column(
+        children: [
+          _buildGlassSearchAndFilter(l10n),
+          const SizedBox(height: 20),
+          Expanded(
+            child: propertiesAsync.when(
+              data: (properties) {
+                final filtered = _filterProperties(properties);
+                if (filtered.isEmpty) {
+                  return _buildGlassEmptyState(l10n, userRole);
+                }
+                return RefreshIndicator(
+                  color: Colors.white,
+                  backgroundColor: Colors.white.withValues(alpha: 0.12),
+                  onRefresh: () async {
+                    HapticFeedback.lightImpact();
+                    if (userRole == 'landlord') {
+                      ref.invalidate(landlordPropertiesProvider);
+                    } else {
+                      ref.invalidate(tenantPropertiesProvider);
+                    }
+                    await Future.delayed(const Duration(milliseconds: 400));
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 140, top: 4),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildGlassPropertyCard(
+                        context,
+                        filtered[index],
+                        colors,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              error: (error, _) => _buildGlassErrorState(error, l10n),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -109,6 +196,382 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         },
       ),
     );
+  }
+
+  Widget _buildGlassSearchAndFilter(AppLocalizations l10n) {
+    return Column(
+      children: [
+        GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: TextFormField(
+            initialValue: _searchQuery,
+            onChanged: (value) => setState(() => _searchQuery = value),
+            style: GoogleFonts.poppins(
+              color: Colors.black87,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
+              icon: const Icon(Icons.search_rounded, color: Colors.black54),
+              hintText: l10n.searchProperties,
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        SizedBox(
+          height: 48,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _buildGlassFilterChip(_capitalizeFilter(l10n.all), 'all'),
+              _buildGlassFilterChip(
+                  _capitalizeFilter(l10n.available), 'available'),
+              _buildGlassFilterChip(_capitalizeFilter(l10n.rented), 'rented'),
+              _buildGlassFilterChip(
+                  _capitalizeFilter(l10n.maintenance), 'maintenance'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGlassFilterChip(String label, String value) {
+    final bool isSelected = _statusFilter == value;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() => _statusFilter = value);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected
+                ? Colors.white.withValues(alpha: 0.85)
+                : Colors.white.withValues(alpha: 0.4),
+            width: 1.2,
+          ),
+          color: isSelected
+              ? Colors.white.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.12),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassPropertyCard(
+    BuildContext context,
+    Property property,
+    DynamicAppColors colors,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final textPrimary = Colors.black.withValues(alpha: 0.85);
+    final textSecondary = Colors.black.withValues(alpha: 0.6);
+    final statusColor = _statusAccentColor(property.status);
+    final rentText =
+        ref.read(currencyProvider.notifier).formatAmount(property.rentAmount);
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push('/property/${property.id}');
+      },
+      child: GlassContainer(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    width: 78,
+                    height: 78,
+                    child: property.imageUrls.isNotEmpty
+                        ? _buildPropertyImage(property.imageUrls.first)
+                        : Container(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            child: const Icon(
+                              Icons.home_outlined,
+                              size: 30,
+                              color: Colors.black54,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        property.address.street,
+                        style: GoogleFonts.poppins(
+                          color: textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '${property.address.city}, ${property.address.postalCode}',
+                              style: GoogleFonts.poppins(
+                                color: textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.6),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    _getLocalizedStatus(property.status, l10n),
+                    style: GoogleFonts.poppins(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildGlassMetric(
+                    icon: Icons.attach_money,
+                    label: l10n.monthlyRent,
+                    value: rentText,
+                    color: colors.success,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildGlassMetric(
+                    icon: Icons.square_foot,
+                    label: l10n.size,
+                    value: '${property.details.size.toStringAsFixed(0)}㎡',
+                    color: colors.primaryAccent,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildGlassMetric(
+                    icon: Icons.meeting_room,
+                    label: l10n.rooms,
+                    value: '${property.details.rooms}',
+                    color: colors.warning,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassMetric({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              color: Colors.black.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label.toUpperCase(),
+            style: GoogleFonts.poppins(
+              color: Colors.black.withValues(alpha: 0.6),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassEmptyState(AppLocalizations l10n, String userRole) {
+    final bool isTenant = userRole == 'tenant';
+    final headline =
+        isTenant ? l10n.noPropertiesAssigned : l10n.noPropertiesFound;
+    final subline =
+        isTenant ? l10n.contactLandlordForAccess : l10n.addFirstProperty;
+
+    return Center(
+      child: GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.home_work_outlined, size: 52, color: Colors.white),
+            const SizedBox(height: 18),
+            Text(
+              headline,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subline,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassErrorState(Object error, AppLocalizations l10n) {
+    return Center(
+      child: GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.white),
+            const SizedBox(height: 12),
+            Text(
+              l10n.somethingWentWrong,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                ref.invalidate(landlordPropertiesProvider);
+                ref.invalidate(tenantPropertiesProvider);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.25),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                l10n.retry,
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _statusAccentColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'rented':
+        return const Color(0xFF34D399);
+      case 'available':
+        return const Color(0xFF60A5FA);
+      case 'maintenance':
+        return const Color(0xFFF59E0B);
+      default:
+        return Colors.white.withValues(alpha: 0.8);
+    }
   }
 
   Widget _buildSearchAndFilter(AppLocalizations l10n) {
@@ -295,17 +758,25 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     return filtered;
   }
 
-  Widget _buildPropertyList(List<Property> properties, AppLocalizations l10n) {
+  Widget _buildPropertyList(
+    List<Property> properties,
+    AppLocalizations l10n,
+    String userRole,
+  ) {
     final colors = ref.watch(dynamicColorsProvider);
     if (properties.isEmpty) {
-      return _buildEmptyState(l10n);
+      return _buildEmptyState(l10n, userRole: userRole);
     }
 
     return RefreshIndicator(
       onRefresh: () async {
         HapticFeedback.lightImpact();
-        ref.invalidate(landlordPropertiesProvider);
-        await Future.delayed(const Duration(seconds: 1));
+        if (userRole == 'landlord') {
+          ref.invalidate(landlordPropertiesProvider);
+        } else {
+          ref.invalidate(tenantPropertiesProvider);
+        }
+        await Future.delayed(const Duration(milliseconds: 400));
       },
       color: colors.primaryAccent,
       child: ListView.builder(
@@ -568,8 +1039,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n) {
-    final userRole = ref.watch(userRoleProvider);
+  Widget _buildEmptyState(
+    AppLocalizations l10n, {
+    String? userRole,
+  }) {
+    final role = userRole ?? ref.watch(userRoleProvider);
     final colors = ref.watch(dynamicColorsProvider);
 
     return Center(
@@ -583,7 +1057,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            userRole == 'tenant'
+            role == 'tenant'
                 ? l10n.noPropertiesAssigned
                 : l10n.noPropertiesFound,
             style: TextStyle(
@@ -595,7 +1069,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            userRole == 'tenant'
+            role == 'tenant'
                 ? l10n.contactLandlordForAccess
                 : l10n.addFirstProperty,
             style: TextStyle(
@@ -606,7 +1080,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           ),
           const SizedBox(height: 24),
           // Only show add property button for landlords
-          if (userRole == 'landlord')
+          if (role == 'landlord')
             Consumer(
               builder: (context, ref, child) {
                 final subscriptionAsync = ref.watch(userSubscriptionProvider);

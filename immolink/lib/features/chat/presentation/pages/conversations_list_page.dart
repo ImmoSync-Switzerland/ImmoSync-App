@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/chat_preview_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:immosync/l10n/app_localizations.dart';
+import '../providers/chat_preview_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../../domain/models/conversation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -12,6 +13,9 @@ import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/user_avatar.dart';
 import '../../../../core/config/db_config.dart';
+import '../../../home/presentation/models/dashboard_design.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../settings/providers/settings_provider.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -44,7 +48,18 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
     final conversationsAsync = ref.watch(conversationsProvider);
+
+    if (design == DashboardDesign.glass) {
+      return _buildGlassScaffold(
+        context: context,
+        l10n: l10n,
+        conversationsAsync: conversationsAsync,
+      );
+    }
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -82,56 +97,45 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       bottomNavigationBar: const CommonBottomNav(),
       body: Column(
         children: [
-          _buildSearchBar(),
+          _buildSearchBar(l10n: l10n),
           Expanded(
-            child: conversationsAsync.when(
-              data: (conversations) {
-                final filteredConversations =
-                    _filterConversations(conversations);
-                if (filteredConversations.isEmpty) {
-                  return _buildEmptyState();
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: filteredConversations.length,
-                  itemBuilder: (context, index) {
-                    final conversation = filteredConversations[index];
-                    final currentUser = ref.watch(currentUserProvider);
-                    final otherUserId = conversation
-                        .getOtherParticipantId(currentUser?.id ?? '');
+            child: _buildConversationList(conversationsAsync),
+          ),
+        ],
+      ),
+    );
+  }
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildConversationTile(
-                        context,
-                        conversation,
-                        otherUserId ?? '',
-                        currentUser?.id ?? '',
-                      ),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) {
-                final colors = ref.watch(dynamicColorsProvider);
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: colors.error),
-                      const SizedBox(height: 16),
-                      Text(
-                          '${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => ref.invalidate(conversationsProvider),
-                        child: Text(AppLocalizations.of(context)!.retry),
-                      ),
-                    ],
-                  ),
-                );
-              },
+  Widget _buildGlassScaffold({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required AsyncValue<List<Conversation>> conversationsAsync,
+  }) {
+    return GlassPageScaffold(
+      title: l10n.messages,
+      onBack: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/home');
+        }
+      },
+      actions: [
+        IconButton(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            context.push('/address-book');
+          },
+          icon: const Icon(Icons.contacts_outlined, color: Colors.white),
+        ),
+      ],
+      body: Column(
+        children: [
+          _buildSearchBar(l10n: l10n, glassMode: true),
+          Expanded(
+            child: _buildConversationList(
+              conversationsAsync,
+              glassMode: true,
             ),
           ),
         ],
@@ -139,8 +143,35 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar({
+    required AppLocalizations l10n,
+    bool glassMode = false,
+  }) {
     final colors = ref.watch(dynamicColorsProvider);
+
+    if (glassMode) {
+      return GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        child: TextFormField(
+          initialValue: _searchQuery,
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value;
+            });
+          },
+          style: GoogleFonts.poppins(
+            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            icon: const Icon(Icons.search, color: Colors.black54),
+            hintText: l10n.searchConversationsHint,
+            border: InputBorder.none,
+          ),
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.all(20),
@@ -172,7 +203,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
-          hintText: 'Search conversations...',
+          hintText: l10n.searchConversationsHint,
           hintStyle: TextStyle(
             color: colors.textTertiary,
             fontSize: 15,
@@ -209,6 +240,104 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     );
   }
 
+  Widget _buildConversationList(
+    AsyncValue<List<Conversation>> conversationsAsync, {
+    bool glassMode = false,
+  }) {
+    final colors = ref.watch(dynamicColorsProvider);
+    return conversationsAsync.when(
+      data: (conversations) {
+        final filteredConversations = _filterConversations(conversations);
+        if (filteredConversations.isEmpty) {
+          return _buildEmptyState(glassMode: glassMode);
+        }
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: glassMode ? 12 : 20),
+          itemCount: filteredConversations.length,
+          itemBuilder: (context, index) {
+            final conversation = filteredConversations[index];
+            final currentUser = ref.watch(currentUserProvider);
+            final otherUserId =
+                conversation.getOtherParticipantId(currentUser?.id ?? '');
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildConversationTile(
+                context,
+                conversation,
+                otherUserId ?? '',
+                currentUser?.id ?? '',
+                glassMode: glassMode,
+              ),
+            );
+          },
+        );
+      },
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(
+            glassMode ? Colors.white : colors.primaryAccent,
+          ),
+        ),
+      ),
+      error: (error, _) {
+        final colors = ref.watch(dynamicColorsProvider);
+        if (glassMode) {
+          return Center(
+            child: GlassContainer(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline,
+                      size: 48, color: Colors.white),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${AppLocalizations.of(context)!.errorLoadingConversations}: $error',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(conversationsProvider),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.25),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.retry,
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: colors.error),
+              const SizedBox(height: 16),
+              Text(
+                  '${AppLocalizations.of(context)!.errorLoadingConversations}: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(conversationsProvider),
+                child: Text(AppLocalizations.of(context)!.retry),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   List<Conversation> _filterConversations(List<Conversation> conversations) {
     if (_searchQuery.isEmpty) {
       return conversations;
@@ -240,8 +369,53 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     }).toList();
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState({bool glassMode = false}) {
     final colors = ref.watch(dynamicColorsProvider);
+
+    if (glassMode) {
+      return Center(
+        child: GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.chat_bubble_outline,
+                    size: 48, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                _searchQuery.isNotEmpty
+                    ? 'No conversations found'
+                    : 'No conversations yet',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                _searchQuery.isNotEmpty
+                    ? AppLocalizations.of(context)!.searchConversationsHint
+                    : 'Start a conversation with your properties',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Center(
       child: Column(
@@ -296,8 +470,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
     BuildContext context,
     Conversation conversation,
     String otherUserId,
-    String currentUserId,
-  ) {
+    String currentUserId, {
+    bool glassMode = false,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final isLandlord = currentUser?.role == 'landlord';
 
@@ -305,6 +481,22 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
       currentUserId,
       isLandlord: isLandlord,
     );
+
+    if (currentUser != null && otherUserId.isNotEmpty) {
+      ref.read(chatPreviewProvider.notifier).ensureWatching(
+            conversationId: conversation.id,
+            currentUserId: currentUser.id,
+            otherUserId: otherUserId,
+            fallbackPreview: conversation.lastMessage,
+          );
+    }
+
+    final previews = ref.watch(chatPreviewProvider);
+    final override = previews[conversation.id]?.trim();
+    final fallback = conversation.lastMessage.trim();
+    final previewText = override != null && override.isNotEmpty
+        ? override
+        : (fallback.isNotEmpty ? fallback : l10n.noRecentMessages);
 
     final isBlocked =
         (currentUser?.blockedUsers ?? const <String>[]).contains(otherUserId);
@@ -321,7 +513,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            AppLocalizations.of(context)!.blockedLabel,
+            l10n.blockedLabel,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 11,
@@ -345,7 +537,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             ),
           ),
           child: Text(
-            AppLocalizations.of(context)!.reported,
+            l10n.reported,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 11,
@@ -356,6 +548,101 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         ),
       );
     }
+    if (glassMode) {
+      final textPrimary = Colors.black.withValues(alpha: 0.85);
+      final textSecondary = Colors.black.withValues(alpha: 0.65);
+      return GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            final avatar = conversation.getOtherParticipantAvatarRef() ??
+                (otherUserId.isNotEmpty
+                    ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image'
+                    : '');
+            context.push(
+                '/chat/${conversation.id}?otherUserId=$otherUserId&otherUser=${Uri.encodeComponent(otherUserName)}&otherAvatar=${Uri.encodeComponent(avatar)}');
+          },
+          child: Row(
+            children: [
+              UserAvatar(
+                imageRef: conversation.getOtherParticipantAvatarRef() ??
+                    (otherUserId.isNotEmpty
+                        ? '${DbConfig.apiUrl}/users/$otherUserId/profile-image'
+                        : null),
+                name: otherUserName,
+                size: 48,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            otherUserName,
+                            style: GoogleFonts.poppins(
+                              color: textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          conversation.lastMessageTime.toString(),
+                          style: GoogleFonts.poppins(
+                            color: textSecondary,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (statusBadges.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: statusBadges,
+                      ),
+                    ],
+                    const SizedBox(height: 6),
+                    if (conversation.propertyAddress != 'Unknown Property')
+                      Text(
+                        conversation.propertyAddress,
+                        style: GoogleFonts.poppins(
+                          color: textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const SizedBox(height: 6),
+                    Text(
+                      previewText,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.black54),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -429,27 +716,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
             ],
             const SizedBox(height: 4),
             Text(
-              (() {
-                // Ensure preview watcher for this conversation is active (Matrix timelines)
-                final me = ref.read(currentUserProvider);
-                if (me != null && otherUserId.isNotEmpty) {
-                  // fire-and-forget
-                  ref.read(chatPreviewProvider.notifier).ensureWatching(
-                      conversationId: conversation.id,
-                      currentUserId: me.id,
-                      otherUserId: otherUserId,
-                      fallbackPreview: conversation.lastMessage);
-                }
-                final previews = ref.watch(chatPreviewProvider);
-                final override = previews[conversation.id];
-                if (override != null && override.isNotEmpty) return override;
-                // Treat empty content from aggregation as encrypted/no-preview
-                final lm = (conversation.lastMessage).toString().trim();
-                if (lm.isEmpty || lm == '[encrypted]') {
-                  return 'Encrypted message';
-                }
-                return lm;
-              })(),
+              previewText,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.75),
                 fontSize: 13,
