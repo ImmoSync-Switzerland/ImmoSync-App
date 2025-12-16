@@ -6,6 +6,9 @@ import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
+import '../../../home/presentation/models/dashboard_design.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../documents/presentation/providers/document_providers.dart';
 import '../../../documents/presentation/widgets/document_card.dart';
@@ -74,11 +77,91 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     final documentsAsync = ref.watch(tenantDocumentsProvider);
     final recentDocuments = ref.watch(recentDocumentsProvider);
     final documentStats = ref.watch(documentStatsProvider);
+    final design = dashboardDesignFromId(
+      ref.watch(settingsProvider).dashboardDesign,
+    );
+    final bool glassMode = design == DashboardDesign.glass;
+    final List<Widget> actions = [
+      IconButton(
+        icon: const Icon(Icons.more_horiz),
+        tooltip: 'More',
+        onPressed: _showComingSoonDialog,
+        color: glassMode ? Colors.white : colors.textPrimary,
+      ),
+    ];
+
+    final Widget content = FadeTransition(
+      opacity: _fadeAnimation,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.read(tenantDocumentsProvider.notifier).refresh();
+        },
+        color: glassMode ? Colors.white : colors.primaryAccent,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: glassMode
+              ? const EdgeInsets.fromLTRB(16, 18, 16, 120)
+              : const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildWelcomeSection(
+                currentUser?.fullName ?? '',
+                l10n,
+                colors,
+                glassMode: glassMode,
+              ),
+              const SizedBox(height: 24),
+              _buildDocumentStats(
+                documentStats,
+                colors,
+                glassMode: glassMode,
+              ),
+              const SizedBox(height: 32),
+              _buildDocumentCategories(
+                l10n,
+                colors,
+                glassMode: glassMode,
+              ),
+              const SizedBox(height: 24),
+              _buildQuickActions(
+                l10n,
+                colors,
+                glassMode: glassMode,
+              ),
+              const SizedBox(height: 24),
+              _buildRecentDocuments(
+                recentDocuments,
+                l10n,
+                colors,
+                glassMode: glassMode,
+              ),
+              const SizedBox(height: 24),
+              _buildAllDocuments(
+                documentsAsync,
+                l10n,
+                colors,
+                glassMode: glassMode,
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (glassMode) {
+      return GlassPageScaffold(
+        title: l10n.myDocuments,
+        actions: actions,
+        body: content,
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(l10n, colors),
+      appBar: _buildAppBar(l10n, colors, actions: actions),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -91,37 +174,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           ),
         ),
         child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: RefreshIndicator(
-              onRefresh: () async {
-                ref.read(tenantDocumentsProvider.notifier).refresh();
-              },
-              color: colors.primaryAccent,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWelcomeSection(
-                        currentUser?.fullName ?? '', l10n, colors),
-                    const SizedBox(height: 24),
-                    _buildDocumentStats(documentStats, colors),
-                    const SizedBox(height: 32),
-                    _buildDocumentCategories(l10n, colors),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(l10n, colors),
-                    const SizedBox(height: 24),
-                    _buildRecentDocuments(recentDocuments, l10n, colors),
-                    const SizedBox(height: 24),
-                    _buildAllDocuments(documentsAsync, l10n, colors),
-                    const SizedBox(height: 100), // Space for bottom nav
-                  ],
-                ),
-              ),
-            ),
-          ),
+          child: content,
         ),
       ),
       bottomNavigationBar: const CommonBottomNav(),
@@ -129,7 +182,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   }
 
   PreferredSizeWidget _buildAppBar(
-      AppLocalizations l10n, DynamicAppColors colors) {
+      AppLocalizations l10n, DynamicAppColors colors,
+      {required List<Widget> actions}) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -141,19 +195,76 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           fontSize: 24,
         ),
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.more_horiz),
-          tooltip: 'More',
-          onPressed: _showComingSoonDialog,
-          color: colors.textPrimary,
-        ),
-      ],
+      actions: actions,
     );
   }
 
   Widget _buildWelcomeSection(
-      String userName, AppLocalizations l10n, DynamicAppColors colors) {
+      String userName, AppLocalizations l10n, DynamicAppColors colors,
+      {bool glassMode = false}) {
+    final Widget child = Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2196F3),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.folder_special,
+            color: Colors.white,
+            size: 32,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome,',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: glassMode
+                      ? Colors.white.withValues(alpha: 0.85)
+                      : colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                userName.isEmpty ? 'User' : userName,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: glassMode ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.tenantDocumentsIntro,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: glassMode
+                      ? Colors.white.withValues(alpha: 0.85)
+                      : colors.textSecondary,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        child: child,
+      );
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -162,8 +273,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFE3F2FD), // Light blue
-            Color(0xFFBBDEFB), // Lighter blue
+            Color(0xFFE3F2FD),
+            Color(0xFFBBDEFB),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -175,76 +286,30 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2196F3), // Blue
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.folder_special,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome,',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  (userName).isEmpty ? 'User' : userName,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.tenantDocumentsIntro,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colors.textSecondary,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: child,
     );
   }
 
-  Widget _buildQuickActions(AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildQuickActions(AppLocalizations l10n, DynamicAppColors colors,
+      {required bool glassMode}) {
     return Column(
       children: [
         _buildActionButton(
           l10n.upload,
           Icons.cloud_upload,
-          const Color(0xFF2196F3), // Blue
+          const Color(0xFF2196F3),
           _uploadDocument,
           colors,
+          glassMode: glassMode,
         ),
         const SizedBox(height: 12),
         _buildActionButton(
           l10n.contactSupport,
           Icons.support_agent,
-          const Color(0xFFFF9800), // Orange
+          const Color(0xFFFF9800),
           () => context.push('/contact-support'),
           colors,
+          glassMode: glassMode,
         ),
       ],
     );
@@ -263,7 +328,8 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
   }
 
   Widget _buildDocumentCategories(
-      AppLocalizations l10n, DynamicAppColors colors) {
+      AppLocalizations l10n, DynamicAppColors colors,
+      {required bool glassMode}) {
     final categories = [
       {
         'title': l10n.leaseAgreement,
@@ -307,153 +373,186 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
       },
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.documentCategories,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-              ),
-            ),
-            if (_selectedCategory != null)
-              TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _selectedCategory = null;
-                  });
-                },
-                icon: const Icon(Icons.clear, size: 18),
-                label: Text(l10n.viewAll),
-                style: TextButton.styleFrom(
-                  foregroundColor: colors.primaryAccent,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    final titleColor = _primaryTextColor(colors, glassMode);
+    final subtitleColor = _secondaryTextColor(colors, glassMode);
+    final resetColor = glassMode ? Colors.white : colors.primaryAccent;
+
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.documentCategories,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: titleColor,
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final screenWidth = constraints.maxWidth;
-            final crossAxisCount = screenWidth > 600 ? 3 : 2;
-            const crossAxisSpacing = 12.0;
-            const mainAxisSpacing = 12.0;
-            final itemWidth =
-                (screenWidth - (crossAxisSpacing * (crossAxisCount - 1))) /
-                    crossAxisCount;
-            final childAspectRatio = itemWidth / 120;
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: crossAxisSpacing,
-                mainAxisSpacing: mainAxisSpacing,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                final categoryKey = _getCategoryKey(
-                    index); // 'Mietvertrag', 'Nebenkosten', etc.
-                final isSelected = _selectedCategory == categoryKey;
-
-                return GestureDetector(
-                  onTap: () {
+              if (_selectedCategory != null)
+                TextButton.icon(
+                  onPressed: () {
                     setState(() {
-                      // Toggle selection: if already selected, deselect (show all)
-                      _selectedCategory = isSelected ? null : categoryKey;
+                      _selectedCategory = null;
                     });
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? (category['color'] as Color).withValues(alpha: 0.15)
-                          : colors.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected
-                            ? (category['color'] as Color)
-                            : colors.borderLight,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.shadowColor,
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                  icon: Icon(Icons.clear,
+                      size: 18, color: resetColor.withValues(alpha: 0.85)),
+                  label: Text(
+                    l10n.viewAll,
+                    style: TextStyle(color: resetColor),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: resetColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final crossAxisCount = screenWidth > 600 ? 3 : 2;
+              const crossAxisSpacing = 14.0;
+              const mainAxisSpacing = 14.0;
+              final itemWidth =
+                  (screenWidth - (crossAxisSpacing * (crossAxisCount - 1))) /
+                      crossAxisCount;
+              final childAspectRatio = itemWidth / 122;
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: crossAxisSpacing,
+                  mainAxisSpacing: mainAxisSpacing,
+                  childAspectRatio: childAspectRatio,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  final categoryKey = _getCategoryKey(index);
+                  final bool isSelected = _selectedCategory == categoryKey;
+                  final Color accent = category['color'] as Color;
+                  final Color background = isSelected
+                      ? accent.withValues(alpha: glassMode ? 0.26 : 0.15)
+                      : glassMode
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : colors.surfaceSecondary;
+                  final Color borderColor = isSelected
+                      ? (glassMode
+                          ? Colors.white.withValues(alpha: 0.45)
+                          : accent)
+                      : glassMode
+                          ? Colors.white.withValues(alpha: 0.18)
+                          : colors.borderLight;
+
+                  return Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(glassMode ? 22 : 16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(glassMode ? 22 : 16),
+                      onTap: () {
+                        setState(() {
+                          _selectedCategory = isSelected ? null : categoryKey;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: background,
+                          borderRadius:
+                              BorderRadius.circular(glassMode ? 22 : 16),
+                          border: Border.all(
+                            color: borderColor,
+                            width: isSelected ? 1.8 : 1.2,
+                          ),
+                          boxShadow: glassMode
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: colors.shadowColor,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: (category['color'] as Color)
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                category['icon'] as IconData,
-                                color: category['color'] as Color,
-                                size: 20,
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: accent.withValues(
+                                      alpha: glassMode ? 0.24 : 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                        glassMode ? 14 : 10),
+                                  ),
+                                  child: Icon(
+                                    category['icon'] as IconData,
+                                    color: glassMode ? Colors.white : accent,
+                                    size: 20,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  category['count'] as String,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: glassMode ? Colors.white : accent,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            const Spacer(),
+                            const SizedBox(height: 14),
                             Text(
-                              category['count'] as String,
+                              category['title'] as String,
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: category['color'] as Color,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: titleColor,
                               ),
                               overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              category['subtitle'] as String,
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.3,
+                                color: subtitleColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          category['title'] as String,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: colors.textPrimary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          category['subtitle'] as String,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colors.textSecondary,
-                            height: 1.2,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -462,79 +561,107 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     IconData icon,
     Color accentColor,
     VoidCallback onTap,
-    DynamicAppColors colors,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colors.surfaceCards,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: colors.shadowColor,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    DynamicAppColors colors, {
+    required bool glassMode,
+  }) {
+    final borderRadius = BorderRadius.circular(glassMode ? 24 : 16);
+    final Color titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final Color arrowColor =
+        glassMode ? Colors.white.withValues(alpha: 0.8) : colors.textSecondary;
+    final Color iconBackground = glassMode
+        ? Colors.white.withValues(alpha: 0.16)
+        : accentColor.withValues(alpha: 0.12);
+
+    final Widget child = Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: iconBackground,
+            borderRadius: BorderRadius.circular(glassMode ? 16 : 12),
+          ),
+          child: Icon(
+            icon,
+            color: glassMode ? Colors.white : accentColor,
+            size: 28,
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: accentColor,
-                size: 28,
-              ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: titleColor,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
+          ),
+        ),
+        Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: arrowColor,
+        ),
+      ],
+    );
+
+    void handleTap() {
+      HapticFeedback.lightImpact();
+      onTap();
+    }
+
+    if (glassMode) {
+      return Material(
+        color: Colors.transparent,
+        borderRadius: borderRadius,
+        child: InkWell(
+          borderRadius: borderRadius,
+          onTap: handleTap,
+          child: GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            child: child,
+          ),
+        ),
+      );
+    }
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: borderRadius,
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: handleTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colors.surfaceCards,
+            borderRadius: borderRadius,
+            border: Border.all(color: colors.borderLight),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadowColor,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: colors.textSecondary,
-            ),
-          ],
+            ],
+          ),
+          child: child,
         ),
       ),
     );
   }
 
-  Widget _buildDocumentStats(Map<String, int> stats, DynamicAppColors colors) {
+  Widget _buildDocumentStats(Map<String, int> stats, DynamicAppColors colors,
+      {required bool glassMode}) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surfaceCards,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    final dividerColor = glassMode
+        ? Colors.white.withValues(alpha: 0.25)
+        : colors.dividerSeparator;
+
+    return _sectionCard(
+      colors: colors,
+      glassMode: glassMode,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
       child: Row(
         children: [
           Expanded(
@@ -542,28 +669,31 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
               l10n.total,
               '${stats['total'] ?? 0}',
               Icons.folder,
-              colors.primaryAccent,
+              glassMode ? Colors.white : colors.primaryAccent,
               colors,
+              glassMode: glassMode,
             ),
           ),
-          Container(width: 1, height: 40, color: colors.dividerSeparator),
+          Container(width: 1, height: 46, color: dividerColor),
           Expanded(
             child: _buildStatItem(
               l10n.expiring,
               '${stats['expiring'] ?? 0}',
-              Icons.warning,
-              Colors.orange,
+              Icons.warning_rounded,
+              glassMode ? Colors.amberAccent : Colors.orange,
               colors,
+              glassMode: glassMode,
             ),
           ),
-          Container(width: 1, height: 40, color: colors.dividerSeparator),
+          Container(width: 1, height: 46, color: dividerColor),
           Expanded(
             child: _buildStatItem(
               l10n.expired,
               '${stats['expired'] ?? 0}',
-              Icons.error,
-              Colors.red,
+              Icons.error_rounded,
+              glassMode ? Colors.redAccent.shade100 : Colors.red,
               colors,
+              glassMode: glassMode,
             ),
           ),
         ],
@@ -571,34 +701,55 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color,
-      DynamicAppColors colors) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    DynamicAppColors colors, {
+    required bool glassMode,
+  }) {
+    final textColor = _primaryTextColor(colors, glassMode);
+    final hintColor = _secondaryTextColor(colors, glassMode);
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 8),
+        Icon(icon, color: color, size: 26),
+        const SizedBox(height: 10),
         Text(
           value,
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: colors.textPrimary,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: textColor,
           ),
         ),
+        const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: colors.textSecondary,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: hintColor,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRecentDocuments(List<DocumentModel> documents,
-      AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildRecentDocuments(
+    List<DocumentModel> documents,
+    AppLocalizations l10n,
+    DynamicAppColors colors, {
+    required bool glassMode,
+  }) {
     final filteredDocuments = _filterDocumentsByCategory(documents);
+    final titleColor = _primaryTextColor(colors, glassMode);
+    final actionColor = glassMode ? Colors.white : colors.primaryAccent;
+    final emptyIconColor =
+        glassMode ? Colors.white.withValues(alpha: 0.6) : colors.textSecondary;
+    final emptyTextColor = _secondaryTextColor(colors, glassMode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -611,7 +762,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
+                color: titleColor,
               ),
             ),
             if (filteredDocuments.isNotEmpty)
@@ -621,56 +772,72 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                 },
                 child: Text(
                   l10n.viewAll,
-                  style: TextStyle(color: colors.primaryAccent),
+                  style: TextStyle(color: actionColor),
                 ),
               ),
           ],
         ),
         const SizedBox(height: 16),
         if (filteredDocuments.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.folder_open,
-                    size: 48,
-                    color: colors.textSecondary,
+          _sectionCard(
+            colors: colors,
+            glassMode: glassMode,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.folder_open,
+                  size: 56,
+                  color: emptyIconColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.noRecentDocuments,
+                  style: TextStyle(
+                    color: emptyTextColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.noRecentDocuments,
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 16,
-                    ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.documentsSharedByLandlord,
+                  style: TextStyle(
+                    color: emptyTextColor,
+                    fontSize: 13,
                   ),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           )
         else
-          ...filteredDocuments.take(3).map((document) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: DocumentCard(
-                  document: document,
-                  onTap: () => _viewDocument(document),
-                  onDownload: () => _downloadDocument(document),
-                  onDelete: null, // Tenants can't delete documents
-                  showActions: true,
+          ...filteredDocuments.take(3).map(
+                (document) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DocumentCard(
+                    document: document,
+                    onTap: () => _viewDocument(document),
+                    onDownload: () => _downloadDocument(document),
+                    onDelete: null,
+                    showActions: true,
+                    glassMode: glassMode,
+                  ),
                 ),
-              )),
+              ),
       ],
     );
   }
 
-  Widget _buildAllDocuments(AsyncValue<List<DocumentModel>> documentsAsync,
-      AppLocalizations l10n, DynamicAppColors colors) {
+  Widget _buildAllDocuments(
+    AsyncValue<List<DocumentModel>> documentsAsync,
+    AppLocalizations l10n,
+    DynamicAppColors colors, {
+    required bool glassMode,
+  }) {
+    final headerColor = _primaryTextColor(colors, glassMode);
+    final secondary = _secondaryTextColor(colors, glassMode);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -679,7 +846,7 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: colors.textPrimary,
+            color: headerColor,
           ),
         ),
         const SizedBox(height: 16),
@@ -688,40 +855,38 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
             final filteredDocuments = _filterDocumentsByCategory(documents);
 
             if (filteredDocuments.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: colors.surfaceCards,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.folder_open,
-                        size: 64,
-                        color: colors.textSecondary,
+              return _sectionCard(
+                colors: colors,
+                glassMode: glassMode,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.folder_open,
+                      size: 68,
+                      color: secondary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.noDocumentsAvailable,
+                      style: TextStyle(
+                        color: headerColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        l10n.noDocumentsAvailable,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.documentsSharedByLandlord,
+                      style: TextStyle(
+                        color: secondary,
+                        fontSize: 14,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.documentsSharedByLandlord,
-                        style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               );
             }
@@ -734,53 +899,79 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                           document: document,
                           onTap: () => _viewDocument(document),
                           onDownload: () => _downloadDocument(document),
-                          onDelete: null, // Tenants can't delete documents
+                          onDelete: null,
                           showActions: true,
+                          glassMode: glassMode,
                         ),
                       ))
                   .toList(),
             );
           },
-          loading: () => Center(
-            child: Column(
-              children: [
-                CircularProgressIndicator(color: colors.primaryAccent),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.loadingDocuments,
-                  style: TextStyle(color: colors.textSecondary),
-                ),
-              ],
+          loading: () => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: glassMode
+                  ? const GlassContainer(
+                      padding: EdgeInsets.all(28),
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: colors.primaryAccent),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.loadingDocuments,
+                          style: TextStyle(color: colors.textSecondary),
+                        ),
+                      ],
+                    ),
             ),
           ),
-          error: (error, stack) => Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: colors.errorLight,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
+          error: (error, stack) {
+            final Color background = glassMode
+                ? Colors.redAccent.withValues(alpha: 0.18)
+                : colors.errorLight;
+            final Color errorColor = glassMode ? Colors.white : colors.error;
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: glassMode
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : colors.error.withValues(alpha: 0.4),
+                ),
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error,
-                    size: 48,
-                    color: colors.error,
-                  ),
+                  Icon(Icons.error_outline, size: 48, color: errorColor),
                   const SizedBox(height: 16),
                   Text(
                     l10n.errorLoadingDocuments,
                     style: TextStyle(
-                      color: colors.error,
+                      color: errorColor,
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     error.toString(),
                     style: TextStyle(
-                      color: colors.error,
+                      color: errorColor.withValues(alpha: 0.8),
                       fontSize: 12,
                     ),
                     textAlign: TextAlign.center,
@@ -790,19 +981,64 @@ class _TenantDocumentsPageState extends ConsumerState<TenantDocumentsPage>
                     onPressed: () =>
                         ref.read(tenantDocumentsProvider.notifier).refresh(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.error,
-                      foregroundColor: colors.textOnAccent,
+                      backgroundColor: glassMode ? Colors.white : colors.error,
+                      foregroundColor:
+                          glassMode ? Colors.black87 : colors.textOnAccent,
                     ),
                     child: Text(l10n.retry),
                   ),
                 ],
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );
   }
+
+  Widget _sectionCard({
+    required DynamicAppColors colors,
+    required Widget child,
+    required bool glassMode,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(20),
+  }) {
+    if (glassMode) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: GlassContainer(
+          width: double.infinity,
+          padding: padding,
+          child: child,
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: colors.surfaceCards,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: padding,
+        child: child,
+      ),
+    );
+  }
+
+  Color _primaryTextColor(DynamicAppColors colors, bool glassMode) =>
+      glassMode ? Colors.white : colors.textPrimary;
+
+  Color _secondaryTextColor(DynamicAppColors colors, bool glassMode) =>
+      glassMode ? Colors.white.withValues(alpha: 0.8) : colors.textSecondary;
 
   void _viewDocument(DocumentModel document) {
     Navigator.of(context).push(
