@@ -239,33 +239,33 @@ jobs:
               echo 'Failed to resolve provisioning profile metadata for export options' >&2
               exit 1
             fi
-            cat > export-options.plist <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>method</key>
-  <string>${METHOD}</string>
-  <key>compileBitcode</key>
-  <false/>
-  <key>provisioningProfiles</key>
-  <dict>
-    <key>${BUNDLE_ID}</key>
-    <string>${PROFILE_NAME}</string>
-  </dict>
-  <key>signingCertificate</key>
-  <string>Apple Distribution</string>
-  <key>signingStyle</key>
-  <string>manual</string>
-  <key>stripSwiftSymbols</key>
-  <true/>
-  <key>teamID</key>
-  <string>${TEAM_ID}</string>
-  <key>uploadSymbols</key>
-  <true/>
-</dict>
-</plist>
-EOF
+            {
+              printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>'
+              printf '%s\n' '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+              printf '%s\n' '<plist version="1.0">'
+              printf '%s\n' '<dict>'
+              printf '%s\n' '  <key>method</key>'
+              printf '  <string>%s</string>\n' "$METHOD"
+              printf '%s\n' '  <key>compileBitcode</key>'
+              printf '%s\n' '  <false/>'
+              printf '%s\n' '  <key>provisioningProfiles</key>'
+              printf '%s\n' '  <dict>'
+              printf '    <key>%s</key>\n' "$BUNDLE_ID"
+              printf '    <string>%s</string>\n' "$PROFILE_NAME"
+              printf '%s\n' '  </dict>'
+              printf '%s\n' '  <key>signingCertificate</key>'
+              printf '%s\n' '  <string>Apple Distribution</string>'
+              printf '%s\n' '  <key>signingStyle</key>'
+              printf '%s\n' '  <string>manual</string>'
+              printf '%s\n' '  <key>stripSwiftSymbols</key>'
+              printf '%s\n' '  <true/>'
+              printf '%s\n' '  <key>teamID</key>'
+              printf '  <string>%s</string>\n' "$TEAM_ID"
+              printf '%s\n' '  <key>uploadSymbols</key>'
+              printf '%s\n' '  <true/>'
+              printf '%s\n' '</dict>'
+              printf '%s\n' '</plist>'
+            } > export-options.plist
           fi
           plutil -lint export-options.plist
 
