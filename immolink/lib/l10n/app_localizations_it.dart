@@ -125,6 +125,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboardDesignClassic => 'Classico (standard)';
 
   @override
+  String get dashboardDesignPromptDescription =>
+      'Scegli lo stile dell\'interfaccia che preferisci. Potrai cambiarlo in seguito nelle impostazioni.';
+
+  @override
+  String get dashboardDesignGlassDescription =>
+      'Aspetto moderno effetto vetro con gradienti intensi.';
+
+  @override
+  String get dashboardDesignClassicDescription =>
+      'Card luminose con un layout professionale pulito.';
+
+  @override
+  String get messageStatusSending => 'Invio in corso...';
+
+  @override
+  String messageStatusDeliveredAt(Object time) {
+    return 'Consegnato alle $time';
+  }
+
+  @override
+  String messageStatusReadAt(Object time) {
+    return 'Letto alle $time';
+  }
+
+  @override
   String get welcome => 'Benvenuto';
 
   @override

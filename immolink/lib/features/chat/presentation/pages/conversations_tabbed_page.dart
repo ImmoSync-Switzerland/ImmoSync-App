@@ -295,6 +295,7 @@ class _ConversationsTabbedPageState
           unselectedLabelStyle: unselectedLabelStyle,
           labelColor: colors.primaryAccent,
           unselectedLabelColor: colors.textSecondary,
+          dividerColor: Colors.transparent,
           indicator: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: colors.primaryAccent.withValues(alpha: 0.12),
@@ -314,6 +315,11 @@ class _ConversationsTabbedPageState
       borderSide: BorderSide.none,
     );
 
+    final Color prefixColor =
+        glassMode ? Colors.white.withValues(alpha: 0.88) : colors.primaryAccent;
+    final Color hintColor =
+        glassMode ? Colors.white.withValues(alpha: 0.75) : colors.textSecondary;
+
     final Widget textField = TextField(
       controller: _searchController,
       onChanged: (value) {
@@ -323,9 +329,14 @@ class _ConversationsTabbedPageState
       },
       decoration: InputDecoration(
         hintText: l10n.searchConversationsHint,
+        hintStyle: TextStyle(
+          color: hintColor,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
         prefixIcon: Icon(
           Icons.search_rounded,
-          color: glassMode ? Colors.white : colors.primaryAccent,
+          color: prefixColor,
           size: 20,
         ),
         suffixIcon: _searchQuery.isNotEmpty
@@ -348,6 +359,10 @@ class _ConversationsTabbedPageState
         border: border,
         enabledBorder: border,
         focusedBorder: border,
+        filled: glassMode,
+        fillColor: glassMode
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.transparent,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
@@ -362,8 +377,16 @@ class _ConversationsTabbedPageState
 
     if (glassMode) {
       return GlassContainer(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: textField,
+        padding: EdgeInsets.zero,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: textField,
+        ),
       );
     }
 
@@ -490,6 +513,7 @@ class _ConversationsTabbedPageState
               child: InvitationCard(
                 invitation: invitation,
                 isLandlord: currentUser?.role == 'landlord',
+                glassMode: glassMode,
               ),
             );
           },
@@ -537,27 +561,45 @@ class _ConversationsTabbedPageState
         (me?.blockedUsers ?? const <String>[]).contains(otherUserId);
     final isReported =
         (me?.reportedUsers ?? const <String>[]).contains(otherUserId);
-    final borderColor = isReported
-        ? colors.error
-        : isBlocked
-            ? colors.warning
-            : glassMode
-                ? colors.borderLight.withValues(alpha: 0.5)
-                : colors.borderLight;
+    final Color borderColor = () {
+      if (glassMode) {
+        if (isReported) {
+          return colors.error.withValues(alpha: 0.65);
+        }
+        if (isBlocked) {
+          return colors.warning.withValues(alpha: 0.6);
+        }
+        return Colors.white.withValues(alpha: 0.32);
+      }
+      if (isReported) {
+        return colors.error;
+      }
+      if (isBlocked) {
+        return colors.warning;
+      }
+      return colors.borderLight;
+    }();
+
     final List<Widget> statusBadges = [];
     if (isBlocked) {
+      final Color badgeBg = glassMode
+          ? colors.warning.withValues(alpha: 0.28)
+          : colors.warning.withValues(alpha: 0.12);
+      final Color badgeBorder =
+          glassMode ? Colors.white.withValues(alpha: 0.35) : colors.warning;
+      final Color badgeText = glassMode ? Colors.white : colors.warning;
       statusBadges.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: colors.warning.withValues(alpha: 0.12),
+            color: badgeBg,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: colors.warning, width: 0.5),
+            border: Border.all(color: badgeBorder, width: 0.6),
           ),
           child: Text(
             l10n.blockedLabel,
             style: TextStyle(
-              color: colors.warning,
+              color: badgeText,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               inherit: true,
@@ -567,18 +609,24 @@ class _ConversationsTabbedPageState
       );
     }
     if (isReported) {
+      final Color badgeBg = glassMode
+          ? colors.error.withValues(alpha: 0.28)
+          : colors.error.withValues(alpha: 0.12);
+      final Color badgeBorder =
+          glassMode ? Colors.white.withValues(alpha: 0.35) : colors.error;
+      final Color badgeText = glassMode ? Colors.white : colors.error;
       statusBadges.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: colors.error.withValues(alpha: 0.12),
+            color: badgeBg,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: colors.error, width: 0.5),
+            border: Border.all(color: badgeBorder, width: 0.6),
           ),
           child: Text(
             l10n.reported,
             style: TextStyle(
-              color: colors.error,
+              color: badgeText,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               inherit: true,
@@ -590,48 +638,103 @@ class _ConversationsTabbedPageState
 
     final Color titleColor = glassMode ? Colors.white : colors.textPrimary;
     final Color subtitleColor =
-        glassMode ? Colors.white.withValues(alpha: 0.85) : colors.textSecondary;
+        glassMode ? Colors.white.withValues(alpha: 0.82) : colors.textSecondary;
     final Color timeColor =
-        glassMode ? Colors.white.withValues(alpha: 0.75) : colors.textSecondary;
-    final BoxDecoration decoration = glassMode
-        ? BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.surfaceCards,
-                colors.luxuryGradientStart.withValues(alpha: 0.2),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadowColor,
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-                spreadRadius: 0,
+        glassMode ? Colors.white.withValues(alpha: 0.72) : colors.textSecondary;
+
+    final Widget content = Row(
+      children: [
+        UserAvatar(
+          imageRef: conversation.otherParticipantAvatar,
+          name: conversation.otherParticipantName,
+          size: 56,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      conversation.otherParticipantName ?? 'Unknown User',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: titleColor,
+                        letterSpacing: -0.2,
+                        inherit: true,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (statusBadges.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: statusBadges,
+                    ),
+                  ],
+                  Text(
+                    _getTimeAgo(conversation.lastMessageTime),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: timeColor,
+                      fontWeight: FontWeight.w500,
+                      inherit: true,
+                    ),
+                  ),
+                ],
               ),
-              BoxShadow(
-                color: colors.primaryAccent.withValues(alpha: 0.05),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-                spreadRadius: -5,
+              const SizedBox(height: 6),
+              Text(
+                previewText,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: subtitleColor,
+                  letterSpacing: -0.1,
+                  inherit: true,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
-            border: Border.all(color: borderColor, width: 1),
-          )
-        : BoxDecoration(
-            color: colors.surfaceWithElevation(1),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: borderColor.withValues(alpha: 0.8)),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadowColor.withValues(alpha: 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          );
+          ),
+        ),
+      ],
+    );
+
+    final Widget tile = Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surfaceWithElevation(1),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowColor.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: content,
+    );
+
+    final Widget glassTile = GlassContainer(
+      padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.32),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: borderColor),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: content,
+      ),
+    );
 
     return GestureDetector(
       onTap: () {
@@ -641,73 +744,7 @@ class _ConversationsTabbedPageState
           '/chat/${conversation.id}?otherUser=${Uri.encodeComponent(conversation.otherParticipantName ?? 'Unknown User')}&otherUserId=$otherUserId&otherAvatar=${Uri.encodeComponent(avatar)}',
         );
       },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: decoration,
-        child: Row(
-          children: [
-            UserAvatar(
-              imageRef: conversation.otherParticipantAvatar,
-              name: conversation.otherParticipantName,
-              size: 56,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          conversation.otherParticipantName ?? 'Unknown User',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: titleColor,
-                            letterSpacing: -0.2,
-                            inherit: true,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (statusBadges.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: statusBadges,
-                        ),
-                      ],
-                      Text(
-                        _getTimeAgo(conversation.lastMessageTime),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: timeColor,
-                          fontWeight: FontWeight.w500,
-                          inherit: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    previewText,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: subtitleColor,
-                      letterSpacing: -0.1,
-                      inherit: true,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: glassMode ? glassTile : tile,
     );
   }
 

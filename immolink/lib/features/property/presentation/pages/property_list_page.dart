@@ -202,19 +202,44 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     return Column(
       children: [
         GlassContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: TextFormField(
-            initialValue: _searchQuery,
-            onChanged: (value) => setState(() => _searchQuery = value),
-            style: GoogleFonts.poppins(
-              color: Colors.black87,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+          padding: EdgeInsets.zero,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.32),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.45),
+              ),
             ),
-            decoration: InputDecoration(
-              icon: const Icon(Icons.search_rounded, color: Colors.black54),
-              hintText: l10n.searchProperties,
-              border: InputBorder.none,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: TextFormField(
+              initialValue: _searchQuery,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              cursorColor: Colors.white,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: InputDecoration(
+                icon: Icon(
+                  Icons.search_rounded,
+                  color: Colors.white.withValues(alpha: 0.92),
+                ),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.08),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
+                hintText: l10n.searchProperties,
+                hintStyle: GoogleFonts.poppins(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                border: InputBorder.none,
+              ),
             ),
           ),
         ),
@@ -279,9 +304,8 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     DynamicAppColors colors,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final textPrimary = Colors.black.withValues(alpha: 0.85);
-    final textSecondary = Colors.black.withValues(alpha: 0.6);
-    final statusColor = _statusAccentColor(property.status);
+    const textPrimary = Colors.white;
+    final textSecondary = Colors.white.withValues(alpha: 0.75);
     final rentText =
         ref.read(currencyProvider.notifier).formatAmount(property.rentAmount);
 
@@ -306,11 +330,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     child: property.imageUrls.isNotEmpty
                         ? _buildPropertyImage(property.imageUrls.first)
                         : Container(
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: Colors.black.withValues(alpha: 0.35),
                             child: const Icon(
                               Icons.home_outlined,
                               size: 30,
-                              color: Colors.black54,
+                              color: Colors.white70,
                             ),
                           ),
                   ),
@@ -362,17 +386,17 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.18),
+                    color: Colors.black.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: statusColor.withValues(alpha: 0.6),
+                      color: Colors.white.withValues(alpha: 0.35),
                       width: 0.8,
                     ),
                   ),
                   child: Text(
                     _getLocalizedStatus(property.status, l10n),
                     style: GoogleFonts.poppins(
-                      color: statusColor,
+                      color: Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.4,
@@ -397,7 +421,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                   child: _buildGlassMetric(
                     icon: Icons.square_foot,
                     label: l10n.size,
-                    value: '${property.details.size.toStringAsFixed(0)}㎡',
+                    value: '${property.details.size.toStringAsFixed(0)} m2',
                     color: colors.primaryAccent,
                   ),
                 ),
@@ -427,10 +451,10 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: Colors.black.withValues(alpha: 0.28),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
+          color: Colors.white.withValues(alpha: 0.28),
           width: 0.8,
         ),
       ),
@@ -440,16 +464,16 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
+              color: color.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 16, color: color),
+            child: Icon(icon, size: 16, color: Colors.white),
           ),
           const SizedBox(height: 10),
           Text(
             value,
             style: GoogleFonts.poppins(
-              color: Colors.black.withValues(alpha: 0.85),
+              color: Colors.white,
               fontWeight: FontWeight.w700,
               fontSize: 14,
             ),
@@ -458,7 +482,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
           Text(
             label.toUpperCase(),
             style: GoogleFonts.poppins(
-              color: Colors.black.withValues(alpha: 0.6),
+              color: Colors.white.withValues(alpha: 0.65),
               fontSize: 10,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -559,19 +583,6 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
         ),
       ),
     );
-  }
-
-  Color _statusAccentColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'rented':
-        return const Color(0xFF34D399);
-      case 'available':
-        return const Color(0xFF60A5FA);
-      case 'maintenance':
-        return const Color(0xFFF59E0B);
-      default:
-        return Colors.white.withValues(alpha: 0.8);
-    }
   }
 
   Widget _buildSearchAndFilter(AppLocalizations l10n) {
@@ -957,7 +968,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     child: _buildDetailColumn(
                       icon: Icons.square_foot,
                       label: l10n.size,
-                      value: '${property.details.size.toStringAsFixed(0)} m²',
+                      value: '${property.details.size.toStringAsFixed(0)} m2',
                       iconColor: colors.primaryAccent,
                       colors: colors,
                     ),

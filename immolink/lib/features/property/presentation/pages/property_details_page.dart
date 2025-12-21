@@ -1,96 +1,393 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:immosync/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:immosync/features/property/presentation/widgets/email_invite_tenant_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:immosync/core/providers/currency_provider.dart';
+import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/core/theme/app_spacing.dart';
+import 'package:immosync/core/utils/image_resolver.dart';
 import 'package:immosync/core/widgets/mongo_image.dart';
-import '../../domain/models/property.dart';
-import '../providers/property_providers.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
-import '../../../../core/utils/image_resolver.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/providers/currency_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/home/presentation/models/dashboard_design.dart';
+import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/property/presentation/widgets/email_invite_tenant_dialog.dart';
+import 'package:immosync/features/settings/providers/settings_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class PropertyDetailsPage extends ConsumerWidget {
-  final String propertyId;
-
   const PropertyDetailsPage({required this.propertyId, super.key});
+
+  final String propertyId;
 
   String _getImageUrl(String imageIdOrPath) =>
       resolvePropertyImage(imageIdOrPath);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = ref.watch(dynamicColorsProvider);
+    final design =
+        dashboardDesignFromId(ref.watch(settingsProvider).dashboardDesign);
+    final glassMode = design == DashboardDesign.glass;
     final propertyAsync = ref.watch(propertyProvider(propertyId));
+
+    return propertyAsync.when(
+      data: (property) {
+        return glassMode
+            ? _buildGlassPage(context, ref, property, colors, l10n)
+            : _buildClassicPage(context, ref, property, colors, l10n);
+      },
+      loading: () => glassMode
+          ? GlassPageScaffold(
+              title: l10n.propertyDetails,
+              showBottomNav: false,
+              body: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    colors.primaryAccent,
+                  ),
+                ),
+              ),
+            )
+          : Scaffold(
+              backgroundColor: colors.primaryBackground,
+              body: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    colors.primaryAccent,
+                  ),
+                ),
+              ),
+            ),
+      error: (error, stack) {
+        final errorBody = _buildErrorState(context, colors, l10n, error,
+            glassMode: glassMode);
+        return glassMode
+            ? GlassPageScaffold(
+                title: l10n.propertyDetails,
+                showBottomNav: false,
+                body: errorBody,
+              )
+            : Scaffold(
+                backgroundColor: colors.primaryBackground,
+                body: errorBody,
+              );
+      },
+    );
+  }
+
+  Widget _buildClassicPage(
+    BuildContext context,
+    WidgetRef ref,
+    Property property,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
     return Scaffold(
-      body: propertyAsync.when(
-        data: (property) => CustomScrollView(
-          slivers: [
-            _buildAppBar(property, ref),
-            SliverToBoxAdapter(
+      backgroundColor: colors.primaryBackground,
+      body: CustomScrollView(
+        slivers: [
+          _buildClassicAppBar(context, ref, property, colors),
+          SliverToBoxAdapter(
+            child: Container(
+              color: colors.primaryBackground,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context, property, ref),
+                  _buildHeader(context, property, ref, colors, l10n),
                   const SizedBox(height: 16),
-                  _buildStats(context, property, ref),
+                  _buildStats(
+                    context,
+                    property,
+                    ref,
+                    colors,
+                    l10n,
+                    glassMode: false,
+                  ),
                   const SizedBox(height: 24),
-                  _buildDescription(context, property),
+                  _buildDescription(
+                    context,
+                    property,
+                    colors,
+                    l10n,
+                    glassMode: false,
+                  ),
+                  if (property.details.amenities.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    _buildAmenities(
+                      context,
+                      property,
+                      ref,
+                      colors,
+                      l10n,
+                      glassMode: false,
+                    ),
+                  ],
                   const SizedBox(height: 24),
-                  _buildAmenities(context, property, ref),
+                  _buildLocation(
+                    context,
+                    property,
+                    ref,
+                    colors,
+                    l10n,
+                    glassMode: false,
+                  ),
                   const SizedBox(height: 24),
-                  _buildLocation(context, property, ref),
-                  const SizedBox(height: 24),
-                  _buildFinancialDetails(context, property, ref),
+                  _buildFinancialDetails(
+                    context,
+                    property,
+                    ref,
+                    colors,
+                    l10n,
+                    glassMode: false,
+                  ),
                   const SizedBox(height: 100),
                 ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+      floatingActionButton: _buildContactButton(
+        context,
+        property,
+        ref,
+        colors,
+        l10n,
+        glassMode: false,
+      ),
+    );
+  }
+
+  Widget _buildGlassPage(
+    BuildContext context,
+    WidgetRef ref,
+    Property property,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
+    final currentUser = ref.watch(currentUserProvider);
+    final actions = <Widget>[];
+    if (currentUser?.role == 'landlord') {
+      actions.add(
+        IconButton(
+          icon: const Icon(Icons.edit, color: Colors.white),
+          onPressed: () {
+            GoRouter.of(context).push('/add-property', extra: property);
+          },
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Text(
-              // Fallback generic error message key (adjust if specific key exists)
-              AppLocalizations.of(context)!.error,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.red),
+      );
+    }
+
+    return GlassPageScaffold(
+      title: l10n.propertyDetails,
+      showBottomNav: false,
+      actions: actions.isEmpty ? null : actions,
+      floatingActionButton: _buildContactButton(
+        context,
+        property,
+        ref,
+        colors,
+        l10n,
+        glassMode: true,
+      ),
+      body: _buildGlassBody(context, ref, property, colors, l10n),
+    );
+  }
+
+  Widget _buildGlassBody(
+    BuildContext context,
+    WidgetRef ref,
+    Property property,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 140),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildGlassHeader(context, property, ref, colors, l10n),
+          const SizedBox(height: 20),
+          _buildStats(
+            context,
+            property,
+            ref,
+            colors,
+            l10n,
+            glassMode: true,
+          ),
+          const SizedBox(height: 20),
+          _buildDescription(
+            context,
+            property,
+            colors,
+            l10n,
+            glassMode: true,
+          ),
+          if (property.details.amenities.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _buildAmenities(
+              context,
+              property,
+              ref,
+              colors,
+              l10n,
+              glassMode: true,
+            ),
+          ],
+          const SizedBox(height: 20),
+          _buildLocation(
+            context,
+            property,
+            ref,
+            colors,
+            l10n,
+            glassMode: true,
+          ),
+          const SizedBox(height: 20),
+          _buildFinancialDetails(
+            context,
+            property,
+            ref,
+            colors,
+            l10n,
+            glassMode: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassHeader(
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
+    final rentText =
+        ref.read(currencyProvider.notifier).formatAmount(property.rentAmount);
+    final subtitle = _locationSubtitle(property);
+    final subtitleColor = Colors.white.withValues(alpha: 0.78);
+
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: SizedBox(
+              height: 220,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _buildImageCarousel(property, colors),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.55),
+                          Colors.black.withValues(alpha: 0.25),
+                          Colors.black.withValues(alpha: 0.68),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-      floatingActionButton: propertyAsync.when(
-        data: (property) => _buildContactButton(context, property, ref),
-        loading: () => null,
-        error: (_, __) => null,
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStatusChip(
+                    context,
+                    status: property.status,
+                    colors: colors,
+                    glassMode: true,
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    _primaryTitle(property, l10n),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: subtitleColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.payments_outlined,
+                        size: 20,
+                        color: colors.luxuryGold,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$rentText/${l10n.monthlyInterval}',
+                        style: TextStyle(
+                          color: colors.luxuryGold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  void _showInviteTenantDialog(BuildContext context, Property property) {
-    showDialog(
-      context: context,
-      builder: (ctx) => EmailInviteTenantDialog(propertyId: property.id),
-    );
-  }
+  Widget _buildHeader(
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
+    final rentText =
+        ref.read(currencyProvider.notifier).formatAmount(property.rentAmount);
+    final subtitle = _locationSubtitle(property);
 
-  Widget _buildHeader(BuildContext context, Property property, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
-    final street = property.address.street.trim();
-    final cityPostal =
-        '${property.address.city}, ${property.address.postalCode}';
-    final hasStreet = street.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -101,37 +398,25 @@ class PropertyDetailsPage extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  hasStreet ? street : cityPostal,
+                  _primaryTitle(property, l10n),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colors.textPrimary,
                       ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(property.status),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _getStatusText(context, property.status),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              _buildStatusChip(
+                context,
+                status: property.status,
+                colors: colors,
+                glassMode: false,
               ),
             ],
           ),
-          if (hasStreet) ...[
+          if (subtitle != null) ...[
             const SizedBox(height: 8),
             Text(
-              cityPostal,
+              subtitle,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -139,9 +424,9 @@ class PropertyDetailsPage extends ConsumerWidget {
           ],
           const SizedBox(height: 16),
           Text(
-            '${ref.read(currencyProvider.notifier).formatAmount(property.rentAmount)}/${AppLocalizations.of(context)!.monthlyInterval}',
+            '$rentText/${l10n.monthlyInterval}',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: ref.read(dynamicColorsProvider).primaryAccent,
+                  color: colors.primaryAccent,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -150,88 +435,118 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStats(BuildContext context, Property property, WidgetRef ref) {
+  Widget _buildStats(
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final sizeText = '${property.details.size.toStringAsFixed(0)} m2';
+    final roomsText = property.details.rooms.toString();
+    final tenantsText = property.tenantIds.length.toString();
+
+    final row = Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            context,
+            icon: Icons.square_foot,
+            value: sizeText,
+            label: l10n.size,
+            colors: colors,
+            glassMode: glassMode,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            icon: Icons.meeting_room,
+            value: roomsText,
+            label: l10n.rooms,
+            colors: colors,
+            glassMode: glassMode,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            icon: Icons.people_alt_outlined,
+            value: tenantsText,
+            label: l10n.tenants,
+            colors: colors,
+            glassMode: glassMode,
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(child: row);
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              context,
-              Icons.square_foot,
-              '${property.details.size} m²',
-              AppLocalizations.of(context)!.sizeLabel,
-              ref,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              context,
-              Icons.bed,
-              '${property.details.rooms}',
-              AppLocalizations.of(context)!.rooms,
-              ref,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              context,
-              Icons.home,
-              property.tenantIds.length.toString(),
-              AppLocalizations.of(context)!.tenants,
-              ref,
-            ),
-          ),
-        ],
-      ),
+      child: row,
     );
   }
 
   Widget _buildStatCard(
-    BuildContext context,
-    IconData icon,
-    String value,
-    String label,
-    WidgetRef ref,
-  ) {
-    final colors = ref.read(dynamicColorsProvider);
+    BuildContext context, {
+    required IconData icon,
+    required String value,
+    required String label,
+    required DynamicAppColors colors,
+    required bool glassMode,
+  }) {
+    final textPrimary = glassMode ? Colors.white : colors.textPrimary;
+    final textSecondary =
+        glassMode ? Colors.white.withValues(alpha: 0.75) : colors.textSecondary;
+    final iconColor = glassMode ? Colors.white : colors.primaryAccent;
+    final backgroundColor =
+        glassMode ? Colors.black.withValues(alpha: 0.25) : colors.surfaceCards;
+    final borderColor =
+        glassMode ? Colors.white.withValues(alpha: 0.35) : colors.borderLight;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surfaceSecondary,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-            spreadRadius: 0,
-          ),
-        ],
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+        boxShadow: glassMode
+            ? null
+            : [
+                BoxShadow(
+                  color: colors.shadowColor,
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: colors.primaryAccent, size: 24),
-          const SizedBox(height: 8),
+          Icon(
+            icon,
+            color: iconColor,
+            size: 24,
+          ),
+          const SizedBox(height: 10),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
+                  color: textPrimary,
                 ),
           ),
+          const SizedBox(height: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.textSecondary,
+                  color: textSecondary,
                 ),
           ),
         ],
@@ -239,246 +554,693 @@ class PropertyDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDescription(BuildContext context, Property property) {
+  Widget _buildDescription(
+    BuildContext context,
+    Property property,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final bodyColor =
+        glassMode ? Colors.white.withValues(alpha: 0.82) : colors.textSecondary;
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.description,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: titleColor,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Spacious ${property.details.rooms}-room property with ${property.details.size.toStringAsFixed(0)} m2 in ${property.address.city}.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: bodyColor,
+                height: 1.5,
+              ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: content,
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.description,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Beautiful property located in ${property.address.city}. This spacious ${property.details.rooms}-room apartment offers ${property.details.size} m² of living space.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[700],
-                  height: 1.5,
-                ),
-          ),
-        ],
-      ),
+      child: content,
     );
   }
 
   Widget _buildAmenities(
-      BuildContext context, Property property, WidgetRef ref) {
-    if (property.details.amenities.isEmpty) return const SizedBox.shrink();
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final chipTextColor = glassMode ? Colors.white : colors.primaryAccent;
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.amenities,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: titleColor,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: property.details.amenities.map((amenity) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: glassMode
+                    ? Colors.black.withValues(alpha: 0.24)
+                    : colors.primaryAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: glassMode
+                    ? Border.all(color: Colors.white.withValues(alpha: 0.35))
+                    : Border.all(
+                        color: colors.primaryAccent.withValues(alpha: 0.25),
+                      ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _getAmenityIcon(amenity),
+                    size: 16,
+                    color: glassMode ? Colors.white : colors.primaryAccent,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    amenity,
+                    style: TextStyle(
+                      color: chipTextColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: content,
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.amenities,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+      child: content,
+    );
+  }
+
+  Widget _buildLocation(
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final addressText = _locationSubtitle(property) ?? '';
+    final borderColor =
+        glassMode ? Colors.white.withValues(alpha: 0.32) : colors.borderLight;
+    final backgroundColor =
+        glassMode ? Colors.black.withValues(alpha: 0.28) : colors.surfaceCards;
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.location,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: titleColor,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+            color: backgroundColor,
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: property.details.amenities.map((amenity) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: ref
-                      .read(dynamicColorsProvider)
-                      .primaryAccent
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getAmenityIcon(amenity),
-                      size: 16,
-                      color: ref.read(dynamicColorsProvider).primaryAccent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: FutureBuilder<LatLng?>(
+              future: _getLocationFromAddress(property.address),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _buildMapLoading(colors);
+                } else if (snapshot.hasError || !snapshot.hasData) {
+                  return _buildMapPlaceholder(
+                    context,
+                    colors,
+                    property,
+                    l10n,
+                    glassMode: glassMode,
+                  );
+                } else {
+                  final location = snapshot.data!;
+                  return GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: location,
+                      zoom: 15.0,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      amenity,
-                      style: TextStyle(
-                        color: ref.read(dynamicColorsProvider).primaryAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        inherit: true,
+                    markers: {
+                      Marker(
+                        markerId: const MarkerId('property'),
+                        position: location,
+                        infoWindow: InfoWindow(
+                          title: property.address.street,
+                          snippet: addressText,
+                        ),
                       ),
+                    },
+                    zoomControlsEnabled: false,
+                    mapToolbarEnabled: false,
+                    myLocationButtonEnabled: false,
+                    onTap: (_) => _openMapsApp(location),
+                  );
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: () async {
+            final location = await _getLocationFromAddress(property.address);
+            if (location != null) {
+              _openMapsApp(location);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colors.primaryAccent.withValues(
+                alpha: glassMode ? 0.25 : 0.1,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: colors.primaryAccent.withValues(
+                  alpha: glassMode ? 0.45 : 0.3,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.directions,
+                  color: colors.primaryAccent,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.getDirections,
+                        style: TextStyle(
+                          color: colors.primaryAccent,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        addressText,
+                        style: TextStyle(
+                          color: glassMode
+                              ? Colors.white.withValues(alpha: 0.78)
+                              : colors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.open_in_new,
+                  color: colors.primaryAccent,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.26),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: content,
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: content,
+    );
+  }
+
+  Widget _buildFinancialDetails(
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final rent =
+        ref.read(currencyProvider.notifier).formatAmount(property.rentAmount);
+    final outstanding = ref
+        .read(currencyProvider.notifier)
+        .formatAmount(property.outstandingPayments);
+    final titleColor = glassMode ? Colors.white : colors.textPrimary;
+    final labelColor =
+        glassMode ? Colors.white.withValues(alpha: 0.78) : colors.textSecondary;
+    final valueColor = glassMode ? Colors.white : colors.textPrimary;
+    final outstandingColor =
+        property.outstandingPayments > 0 ? colors.error : colors.success;
+    final cardBackgroundColor =
+        glassMode ? Colors.black.withValues(alpha: 0.38) : Colors.white;
+    final cardBorderColor = glassMode
+        ? Colors.white.withValues(alpha: 0.38)
+        : colors.borderLight.withValues(alpha: 0.7);
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.financialDetails,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: titleColor,
+              ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: cardBackgroundColor,
+            borderRadius: BorderRadius.circular(16),
+            border:
+                Border.all(color: cardBorderColor, width: glassMode ? 1.2 : 1),
+            boxShadow: glassMode
+                ? null
+                : [
+                    BoxShadow(
+                      color: colors.shadowColor.withValues(alpha: 0.12),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ],
-                ),
-              );
-            }).toList(),
+          ),
+          child: Column(
+            children: [
+              _buildFinancialRow(
+                label: l10n.monthlyRent,
+                value: rent,
+                labelColor: labelColor,
+                valueColor: valueColor,
+              ),
+              Divider(
+                color: glassMode
+                    ? Colors.white.withValues(alpha: 0.12)
+                    : colors.borderLight.withValues(alpha: 0.5),
+                thickness: 1,
+                height: 0,
+              ),
+              _buildFinancialRow(
+                label: l10n.outstandingPayments,
+                value: outstanding,
+                labelColor: labelColor,
+                valueColor: outstandingColor,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return GlassContainer(
+        padding: const EdgeInsets.all(18),
+        child: content,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: content,
+    );
+  }
+
+  Widget _buildFinancialRow({
+    required String label,
+    required String value,
+    required Color labelColor,
+    required Color valueColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: labelColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLocation(
-      BuildContext context, Property property, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildErrorState(
+    BuildContext context,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+    Object error, {
+    required bool glassMode,
+  }) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.error_outline,
+          size: 48,
+          color: glassMode ? Colors.white : colors.error,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.somethingWentWrong,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: glassMode ? Colors.white : colors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          error.toString(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13,
+            color: glassMode
+                ? Colors.white.withValues(alpha: 0.85)
+                : colors.textSecondary,
+          ),
+        ),
+      ],
+    );
+
+    if (glassMode) {
+      return Center(
+        child: GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+          child: content,
+        ),
+      );
+    }
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: BoxDecoration(
+          color: colors.surfaceCards,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: colors.shadowColor,
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: content,
+      ),
+    );
+  }
+
+  SliverAppBar _buildClassicAppBar(
+    BuildContext context,
+    WidgetRef ref,
+    Property property,
+    DynamicAppColors colors,
+  ) {
+    final currentUser = ref.watch(currentUserProvider);
+    final isLandlord = currentUser?.role == 'landlord';
+
+    return SliverAppBar(
+      expandedHeight: 320,
+      pinned: true,
+      backgroundColor: colors.surfaceCards,
+      surfaceTintColor: colors.surfaceCards,
+      iconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: FlexibleSpaceBar(
+        background: _buildImageCarousel(property, colors),
+      ),
+      actions: isLandlord
+          ? [
+              Padding(
+                padding: const EdgeInsets.only(right: 16, top: 12),
+                child: _buildEditAction(context, property),
+              ),
+            ]
+          : null,
+    );
+  }
+
+  Widget _buildEditAction(BuildContext context, Property property) {
+    return Material(
+      color: Colors.black.withValues(alpha: 0.3),
+      borderRadius: BorderRadius.circular(20),
+      child: IconButton(
+        icon: const Icon(Icons.edit, color: Colors.white),
+        onPressed: () {
+          GoRouter.of(context).push('/add-property', extra: property);
+        },
+      ),
+    );
+  }
+
+  Widget? _buildContactButton(
+    BuildContext context,
+    Property property,
+    WidgetRef ref,
+    DynamicAppColors colors,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final currentUser = ref.watch(currentUserProvider);
+    final isLandlord = currentUser?.role == 'landlord';
+
+    if (isLandlord && property.status == 'available') {
+      return FloatingActionButton.extended(
+        onPressed: () => _showInviteTenantDialog(context, property),
+        backgroundColor: colors.primaryAccent,
+        foregroundColor: colors.textOnAccent,
+        icon: const Icon(Icons.person_add),
+        label: Text(l10n.inviteTenant),
+      );
+    }
+
+    return null;
+  }
+
+  void _showInviteTenantDialog(BuildContext context, Property property) {
+    showDialog(
+      context: context,
+      builder: (ctx) => EmailInviteTenantDialog(propertyId: property.id),
+    );
+  }
+
+  Widget _buildStatusChip(
+    BuildContext context, {
+    required String status,
+    required DynamicAppColors colors,
+    required bool glassMode,
+  }) {
+    final statusColor = _getStatusColor(status, colors);
+    final label = _getStatusText(context, status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: glassMode ? Colors.black.withValues(alpha: 0.42) : statusColor,
+        borderRadius: BorderRadius.circular(20),
+        border: glassMode
+            ? Border.all(color: Colors.white.withValues(alpha: 0.35))
+            : null,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: glassMode ? Colors.white : colors.textOnAccent,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageCarousel(Property property, DynamicAppColors colors) {
+    if (property.imageUrls.isEmpty) {
+      return _buildImageFallback(colors);
+    }
+
+    return PageView.builder(
+      itemCount: property.imageUrls.length,
+      itemBuilder: (context, index) {
+        final source = property.imageUrls[index];
+        final resolved = _getImageUrl(source);
+
+        if (resolved.isEmpty) {
+          return _buildImageFallback(colors);
+        }
+
+        return MongoImage(
+          imageId: resolved,
+          fit: BoxFit.cover,
+          loadingWidget: _buildImagePlaceholder(colors),
+          errorWidget: _buildImageFallback(colors),
+        );
+      },
+    );
+  }
+
+  Widget _buildImagePlaceholder(DynamicAppColors colors) {
+    return Container(
+      color: colors.surfaceSecondary,
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageFallback(DynamicAppColors colors) {
+    return Container(
+      color: colors.surfaceSecondary,
+      child: Icon(
+        Icons.home,
+        size: 64,
+        color: colors.textTertiary,
+      ),
+    );
+  }
+
+  Widget _buildMapLoading(DynamicAppColors colors) {
+    return Container(
+      color: colors.surfaceSecondary,
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMapPlaceholder(
+    BuildContext context,
+    DynamicAppColors colors,
+    Property property,
+    AppLocalizations l10n, {
+    required bool glassMode,
+  }) {
+    final textColor =
+        glassMode ? Colors.black.withValues(alpha: 0.6) : colors.textSecondary;
+    final background = glassMode
+        ? Colors.white.withValues(alpha: 0.08)
+        : colors.surfaceSecondary;
+
+    return Container(
+      color: background,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Icon(
+            Icons.location_off,
+            size: 48,
+            color: textColor,
+          ),
+          const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.location,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: FutureBuilder<LatLng?>(
-                future: _getLocationFromAddress(property.address),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container(
-                      color: Colors.grey[100],
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  } else if (snapshot.hasError || !snapshot.hasData) {
-                    return Container(
-                      color: Colors.grey[100],
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.map,
-                            size: 48,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(context)!.location,
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              '${property.address.street}\n${property.address.city}, ${property.address.postalCode}\n${property.address.country}',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    final location = snapshot.data!;
-                    return GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: location,
-                        zoom: 15.0,
-                      ),
-                      markers: {
-                        Marker(
-                          markerId: const MarkerId('property'),
-                          position: location,
-                          infoWindow: InfoWindow(
-                            title: property.address.street,
-                            snippet:
-                                '${property.address.city}, ${property.address.postalCode}',
-                          ),
-                        ),
-                      },
-                      zoomControlsEnabled: false,
-                      mapToolbarEnabled: false,
-                      myLocationButtonEnabled: false,
-                      onTap: (_) => _openMapsApp(location),
-                    );
-                  }
-                },
-              ),
+            l10n.location,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () async {
-              final location = await _getLocationFromAddress(property.address);
-              if (location != null) {
-                _openMapsApp(location);
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: ref
-                    .read(dynamicColorsProvider)
-                    .primaryAccent
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: ref
-                      .read(dynamicColorsProvider)
-                      .primaryAccent
-                      .withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.directions,
-                    color: ref.read(dynamicColorsProvider).primaryAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.getDirections,
-                          style: TextStyle(
-                            color:
-                                ref.read(dynamicColorsProvider).primaryAccent,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            inherit: true,
-                          ),
-                        ),
-                        Text(
-                          '${property.address.street}, ${property.address.city}',
-                          style: TextStyle(
-                            color:
-                                ref.read(dynamicColorsProvider).textSecondary,
-                            fontSize: 12,
-                            inherit: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.open_in_new,
-                    color: ref.read(dynamicColorsProvider).primaryAccent,
-                    size: 16,
-                  ),
-                ],
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              '${property.address.street}\n${property.address.city}, ${property.address.postalCode}',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 12,
               ),
             ),
           ),
@@ -489,33 +1251,21 @@ class PropertyDetailsPage extends ConsumerWidget {
 
   Future<LatLng?> _getLocationFromAddress(Address address) async {
     try {
-      debugPrint(
-          'Trying to geocode: ${address.street}, ${address.city}, ${address.postalCode}, ${address.country}');
-
-      // First try Google Maps Geocoding API directly
       final googleLocation = await _tryGoogleGeocodingAPI(address);
       if (googleLocation != null) {
-        debugPrint(
-            'Google Geocoding successful: ${googleLocation.latitude}, ${googleLocation.longitude}');
         return googleLocation;
       }
 
-      // Then try the built-in geocoding service
       final location = await _tryBuiltInGeocoding(address);
       if (location != null) {
-        debugPrint(
-            'Built-in geocoding successful: ${location.latitude}, ${location.longitude}');
         return location;
       }
 
-      // Fallback: Use approximate coordinates for Swiss cities
       final fallbackLocation = _getSwissCityCoordinates(address.city);
       if (fallbackLocation != null) {
-        debugPrint('Using fallback coordinates for ${address.city}');
         return fallbackLocation;
       }
 
-      debugPrint('Geocoding failed, returning null');
       return null;
     } catch (e) {
       debugPrint('Error getting location: $e');
@@ -523,16 +1273,14 @@ class PropertyDetailsPage extends ConsumerWidget {
     }
   }
 
-  // Try Google Maps Geocoding API directly
   Future<LatLng?> _tryGoogleGeocodingAPI(Address address) async {
     try {
       const apiKey = 'AIzaSyBn2DBnF5XDD-X4JkrT0XKDJSAZwydyNY4';
       final query = Uri.encodeComponent(
-          '${address.street}, ${address.city}, ${address.postalCode}, ${address.country}');
+        '${address.street}, ${address.city}, ${address.postalCode}, ${address.country}',
+      );
       final url =
           'https://maps.googleapis.com/maps/api/geocode/json?address=$query&key=$apiKey';
-
-      debugPrint('Trying Google Geocoding API: $url');
 
       final response = await http.get(Uri.parse(url));
 
@@ -542,41 +1290,31 @@ class PropertyDetailsPage extends ConsumerWidget {
         if (data['status'] == 'OK' && data['results'].isNotEmpty) {
           final location = data['results'][0]['geometry']['location'];
           return LatLng(location['lat'].toDouble(), location['lng'].toDouble());
-        } else {
-          debugPrint(
-              'Google Geocoding API error: ${data['status']} - ${data['error_message'] ?? 'No error message'}');
         }
-      } else {
-        debugPrint('Google Geocoding API HTTP error: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Google Geocoding API exception: $e');
     }
     return null;
-  } // Fallback coordinates for common Swiss cities and specific addresses
+  }
 
   LatLng? _getSwissCityCoordinates(String city) {
     final coordinates = {
-      'Therwil':
-          const LatLng(47.4976342, 7.5536007), // Updated with exact coordinates
-      'Hinterkirchweg 78, Therwil': const LatLng(
-          47.4976342, 7.5536007), // Exact coordinates from Google API
+      'Therwil': const LatLng(47.4976342, 7.5536007),
+      'Hinterkirchweg 78, Therwil': const LatLng(47.4976342, 7.5536007),
       'Basel': const LatLng(47.5596, 7.5886),
-      'Zürich': const LatLng(47.3769, 8.5417),
+      'Zurich': const LatLng(47.3769, 8.5417),
       'Bern': const LatLng(46.9481, 7.4474),
       'Geneva': const LatLng(46.2044, 6.1432),
       'Lausanne': const LatLng(46.5197, 6.6323),
       'Winterthur': const LatLng(47.4979, 8.7240),
       'Lucerne': const LatLng(47.0502, 8.3093),
-      // Add more cities as needed
     };
 
-    // Try exact match first
     if (coordinates.containsKey(city)) {
       return coordinates[city];
     }
 
-    // Try case-insensitive match
     final cityLower = city.toLowerCase();
     for (final entry in coordinates.entries) {
       if (entry.key.toLowerCase() == cityLower) {
@@ -598,17 +1336,12 @@ class PropertyDetailsPage extends ConsumerWidget {
 
       for (final query in queries) {
         try {
-          debugPrint('Trying geocoding query: $query');
           final locations = await locationFromAddress(query);
-
           if (locations.isNotEmpty) {
             final location = locations.first;
-            debugPrint(
-                'Found location: ${location.latitude}, ${location.longitude}');
             return LatLng(location.latitude, location.longitude);
           }
         } catch (e) {
-          debugPrint('Query "$query" failed: $e');
           continue;
         }
       }
@@ -626,249 +1359,21 @@ class PropertyDetailsPage extends ConsumerWidget {
     }
   }
 
-  Widget _buildFinancialDetails(
-      BuildContext context, Property property, WidgetRef ref) {
-    final colors = ref.watch(dynamicColorsProvider);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.financialDetails,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colors.textPrimary,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.monthlyRent,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                    ),
-                    Text(
-                      ref
-                          .read(currencyProvider.notifier)
-                          .formatAmount(property.rentAmount),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colors.textPrimary,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.outstandingPayments,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                    ),
-                    Text(
-                      ref
-                          .read(currencyProvider.notifier)
-                          .formatAmount(property.outstandingPayments),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: property.outstandingPayments > 0
-                                ? colors.error
-                                : colors.success,
-                          ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(Property property, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
-    final isLandlord = currentUser?.role == 'landlord';
-
-    return SliverAppBar(
-      expandedHeight: 300,
-      pinned: true,
-      backgroundColor: Colors.white,
-      iconTheme: const IconThemeData(color: Colors.white),
-      actions: isLandlord
-          ? [
-              Container(
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.white),
-                  onPressed: () {
-                    GoRouter.of(ref.context)
-                        .push('/add-property', extra: property);
-                  },
-                ),
-              ),
-            ]
-          : null,
-      flexibleSpace: FlexibleSpaceBar(
-        background: property.imageUrls.isNotEmpty
-            ? PageView.builder(
-                itemCount: property.imageUrls.length,
-                itemBuilder: (context, index) {
-                  final imageIdOrPath = property.imageUrls[index];
-
-                  // Check if it's a MongoDB ObjectId (24 hex characters)
-                  if (imageIdOrPath.length == 24 &&
-                      RegExp(r'^[a-fA-F0-9]+$').hasMatch(imageIdOrPath)) {
-                    // Pass the ObjectId directly to MongoImage, it will handle URL construction
-                    return MongoImage(
-                      imageId: imageIdOrPath,
-                      fit: BoxFit.cover,
-                      loadingWidget: Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      errorWidget: Container(
-                        color: Colors.grey[300],
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              AppLocalizations.of(context)!.failedToLoadImage,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    // Fallback for old image paths - use MongoImage for authentication
-                    final imageUrl = _getImageUrl(imageIdOrPath);
-                    if (imageUrl.isEmpty) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(Icons.image_not_supported,
-                              size: 48, color: Colors.grey),
-                        ),
-                      );
-                    }
-                    // Use MongoImage instead of Image.network to get auth headers
-                    return MongoImage(
-                      imageId: imageUrl,
-                      fit: BoxFit.cover,
-                      loadingWidget: Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      errorWidget: Container(
-                        color: Colors.grey[300],
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.broken_image,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              AppLocalizations.of(context)!.failedToLoadImage,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                },
-              )
-            : Container(
-                color: Colors.grey[300],
-                child: const Icon(
-                  Icons.home,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildContactButton(
-      BuildContext context, Property property, WidgetRef ref) {
-    final currentUser = ref.watch(currentUserProvider);
-
-    if (currentUser?.role == 'landlord' && property.status == 'available') {
-      return FloatingActionButton.extended(
-        onPressed: () => _showInviteTenantDialog(context, property),
-        backgroundColor: ref.read(dynamicColorsProvider).primaryAccent,
-        icon: const Icon(Icons.person_add, color: Colors.white),
-        label: Text(
-          AppLocalizations.of(context)!.inviteTenant,
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
-    }
-
-    // Return empty container instead of message button
-    return const SizedBox.shrink();
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
+  Color _getStatusColor(String status, DynamicAppColors colors) {
+    switch (status.toLowerCase()) {
       case 'available':
-        return Colors.green;
+        return colors.success;
       case 'rented':
-        return Colors.blue;
+        return colors.info;
       case 'maintenance':
-        return Colors.orange;
+        return colors.warning;
       default:
-        return Colors.grey;
+        return colors.textTertiary;
     }
   }
 
   String _getStatusText(BuildContext context, String status) {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'available':
         return AppLocalizations.of(context)!.available;
       case 'rented':
@@ -897,5 +1402,40 @@ class PropertyDetailsPage extends ConsumerWidget {
       default:
         return Icons.check_circle;
     }
+  }
+
+  String _primaryTitle(Property property, AppLocalizations l10n) {
+    final street = property.address.street.trim();
+    if (street.isNotEmpty) {
+      return street;
+    }
+
+    final city = property.address.city.trim();
+    final postal = property.address.postalCode.trim();
+    if (city.isNotEmpty && postal.isNotEmpty) {
+      return '$city, $postal';
+    }
+    if (city.isNotEmpty) {
+      return city;
+    }
+    if (postal.isNotEmpty) {
+      return postal;
+    }
+    return l10n.propertyDetails;
+  }
+
+  String? _locationSubtitle(Property property) {
+    final city = property.address.city.trim();
+    final postal = property.address.postalCode.trim();
+    if (city.isEmpty && postal.isEmpty) {
+      return null;
+    }
+    if (city.isNotEmpty && postal.isNotEmpty) {
+      return '$city, $postal';
+    }
+    if (city.isNotEmpty) {
+      return city;
+    }
+    return postal;
   }
 }

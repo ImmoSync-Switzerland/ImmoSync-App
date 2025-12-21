@@ -36,6 +36,22 @@
   "currencyChangedTo": "Devise changée en {currency}",
   "dashboardDesignGlass": "Verre (moderne)",
   "dashboardDesignClassic": "Classique (standard)",
+  "dashboardDesignPromptDescription": "Choisissez le style d'interface que vous préférez. Vous pourrez le modifier plus tard dans les paramètres.",
+  "dashboardDesignGlassDescription": "Apparence moderne effet verre dépoli avec de riches dégradés.",
+  "dashboardDesignClassicDescription": "Cartes lumineuses avec une mise en page professionnelle épurée.",
+  "messageStatusSending": "Envoi en cours...",
+  "messageStatusDeliveredAt": "Distribué à {time}",
+  "@messageStatusDeliveredAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "messageStatusReadAt": "Lu à {time}",
+  "@messageStatusReadAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "welcome": "Bienvenue",
   "totalProperties": "Total des propriétés",
   "monthlyRevenue": "Revenus mensuels",

@@ -149,23 +149,33 @@ class ClassicGradientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final adjustedColors = colors.map((color) {
+      final hsl = HSLColor.fromColor(color);
+      final num clampedLightness = (hsl.lightness * 0.7).clamp(0.0, 0.7);
+      return hsl.withLightness(clampedLightness.toDouble()).toColor();
+    }).toList();
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: colors,
+          colors: adjustedColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: colors.last.withValues(alpha: 0.35),
-            blurRadius: 30,
-            offset: const Offset(0, 18),
+            color: adjustedColors.last.withValues(alpha: 0.28),
+            blurRadius: 26,
+            offset: const Offset(0, 16),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(26),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -219,11 +229,22 @@ class ClassicMetricChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color background = Colors.white.withValues(alpha: 0.18);
+    final Color borderColor = Colors.white.withValues(alpha: 0.3);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.22),
+        color: background,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,11 +255,14 @@ class ClassicMetricChip extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
               ),
             ],
           ),
@@ -249,7 +273,11 @@ class ClassicMetricChip extends StatelessWidget {
               color: valueColor ?? Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
           ),
         ],
       ),
@@ -281,9 +309,16 @@ class ClassicQuickActionButton extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.25),
+            color: Colors.white.withValues(alpha: 0.3),
             width: 1.2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -292,7 +327,7 @@ class ClassicQuickActionButton extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.25),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: Colors.white, size: 22),
@@ -301,8 +336,8 @@ class ClassicQuickActionButton extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.95),
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -344,6 +379,14 @@ class ClassicListTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: ListTile(
         onTap: onTap,

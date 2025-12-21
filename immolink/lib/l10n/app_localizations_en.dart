@@ -125,6 +125,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardDesignClassic => 'Classic (Standard)';
 
   @override
+  String get dashboardDesignPromptDescription =>
+      'Choose the interface style you prefer. You can change this later in Settings.';
+
+  @override
+  String get dashboardDesignGlassDescription =>
+      'Modern frosted look with rich gradients.';
+
+  @override
+  String get dashboardDesignClassicDescription =>
+      'Bright cards with a clean business layout.';
+
+  @override
+  String get messageStatusSending => 'Sending...';
+
+  @override
+  String messageStatusDeliveredAt(Object time) {
+    return 'Delivered at $time';
+  }
+
+  @override
+  String messageStatusReadAt(Object time) {
+    return 'Read at $time';
+  }
+
+  @override
   String get welcome => 'Welcome';
 
   @override
@@ -812,100 +837,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String get propertyManagementGuide => 'Managing properties in ImmoSync:';
 
   @override
-  String get propertyManagementTip1 => '• Add property details and photos';
+  String get propertyManagementTip1 => '- Add property details and photos';
 
   @override
-  String get propertyManagementTip2 => '• Set rental prices and terms';
+  String get propertyManagementTip2 => '- Set rental prices and terms';
 
   @override
-  String get propertyManagementTip3 => '• Invite tenants to view or rent';
+  String get propertyManagementTip3 => '- Invite tenants to view or rent';
 
   @override
-  String get propertyManagementTip4 => '• Track maintenance requests';
+  String get propertyManagementTip4 => '- Track maintenance requests';
 
   @override
-  String get propertyManagementTip5 => '• Monitor payment status';
+  String get propertyManagementTip5 => '- Monitor payment status';
 
   @override
   String get paymentsGuide => 'Understanding payments in ImmoSync:';
 
   @override
-  String get paymentsTip1 => '• View payment history and status';
+  String get paymentsTip1 => '- View payment history and status';
 
   @override
-  String get paymentsTip2 => '• Set up automatic payment reminders';
+  String get paymentsTip2 => '- Set up automatic payment reminders';
 
   @override
-  String get paymentsTip3 => '• Track outstanding payments';
+  String get paymentsTip3 => '- Track outstanding payments';
 
   @override
-  String get paymentsTip4 => '• Generate payment reports';
+  String get paymentsTip4 => '- Generate payment reports';
 
   @override
-  String get paymentsTip5 => '• Export payment data';
+  String get paymentsTip5 => '- Export payment data';
 
   @override
   String get landlordGuideContent => 'Complete guide for landlords:';
 
   @override
-  String get landlordTip1 => '• Property portfolio management';
+  String get landlordTip1 => '- Property portfolio management';
 
   @override
-  String get landlordTip2 => '• Tenant screening and onboarding';
+  String get landlordTip2 => '- Tenant screening and onboarding';
 
   @override
-  String get landlordTip3 => '• Rent collection and tracking';
+  String get landlordTip3 => '- Rent collection and tracking';
 
   @override
-  String get landlordTip4 => '• Maintenance request handling';
+  String get landlordTip4 => '- Maintenance request handling';
 
   @override
-  String get landlordTip5 => '• Financial reporting and analytics';
+  String get landlordTip5 => '- Financial reporting and analytics';
 
   @override
-  String get landlordTip6 => '• Legal compliance and documentation';
+  String get landlordTip6 => '- Legal compliance and documentation';
 
   @override
   String get tenantGuideContent => 'Complete guide for tenants:';
 
   @override
-  String get tenantTip1 => '• Property search and viewing';
+  String get tenantTip1 => '- Property search and viewing';
 
   @override
-  String get tenantTip2 => '• Rental application process';
+  String get tenantTip2 => '- Rental application process';
 
   @override
-  String get tenantTip3 => '• Lease agreements and documentation';
+  String get tenantTip3 => '- Lease agreements and documentation';
 
   @override
-  String get tenantTip4 => '• Rent payment and history';
+  String get tenantTip4 => '- Rent payment and history';
 
   @override
-  String get tenantTip5 => '• Maintenance request submission';
+  String get tenantTip5 => '- Maintenance request submission';
 
   @override
-  String get tenantTip6 => '• Communication with landlords';
+  String get tenantTip6 => '- Communication with landlords';
 
   @override
   String get securityGuideContent => 'Keep your account secure:';
 
   @override
-  String get securityTip1 => '• Use a strong, unique password';
+  String get securityTip1 => '- Use a strong, unique password';
 
   @override
-  String get securityTip2 => '• Enable two-factor authentication';
+  String get securityTip2 => '- Enable two-factor authentication';
 
   @override
-  String get securityTip3 => '• Review privacy settings regularly';
+  String get securityTip3 => '- Review privacy settings regularly';
 
   @override
-  String get securityTip4 => '• Be cautious with shared information';
+  String get securityTip4 => '- Be cautious with shared information';
 
   @override
-  String get securityTip5 => '• Report suspicious activity immediately';
+  String get securityTip5 => '- Report suspicious activity immediately';
 
   @override
-  String get securityTip6 => '• Keep the app updated';
+  String get securityTip6 => '- Keep the app updated';
 
   @override
   String get weAreHereToHelp => 'We\'re Here to Help';
@@ -1592,19 +1617,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'This will permanently delete all your data, including:';
 
   @override
-  String get allProperties => '• All properties';
+  String get allProperties => '- All properties';
 
   @override
-  String get allConversations => '• All conversations';
+  String get allConversations => '- All conversations';
 
   @override
-  String get allDocuments => '• All documents';
+  String get allDocuments => '- All documents';
 
   @override
-  String get allPaymentHistory => '• All payment history';
+  String get allPaymentHistory => '- All payment history';
 
   @override
-  String get profileInformation => '• Profile information';
+  String get profileInformation => '- Profile information';
 
   @override
   String get requestDeletion => 'Request Deletion';
@@ -2940,7 +2965,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String toTenant(Object tenantName, Object propertyAddress) {
-    return 'To $tenantName • $propertyAddress';
+    return 'To $tenantName - $propertyAddress';
   }
 
   @override

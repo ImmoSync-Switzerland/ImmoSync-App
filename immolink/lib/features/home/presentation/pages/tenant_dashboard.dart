@@ -7,6 +7,7 @@ import 'package:immosync/features/home/presentation/models/dashboard_design.dart
 import 'package:immosync/features/home/presentation/pages/classic_dashboard_shared.dart';
 import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart';
 import 'package:immosync/features/settings/providers/settings_provider.dart';
+import 'package:immosync/features/home/presentation/widgets/dashboard_design_prompt.dart';
 
 const String _tenantHeaderTitle = 'Tenant Dashboard';
 const String _tenantSearchHint = 'Search homes, payments...';
@@ -66,11 +67,26 @@ const DashboardConfig _tenantGlassConfig = DashboardConfig(
   quickActions: _tenantQuickActions,
 );
 
-class TenantDashboard extends ConsumerWidget {
+class TenantDashboard extends ConsumerStatefulWidget {
   const TenantDashboard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TenantDashboard> createState() => _TenantDashboardState();
+}
+
+class _TenantDashboardState extends ConsumerState<TenantDashboard> {
+  bool _promptScheduled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_promptScheduled) {
+      _promptScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        maybeShowDashboardDesignPrompt(context, ref);
+      });
+    }
+
     final design = dashboardDesignFromId(
       ref.watch(settingsProvider).dashboardDesign,
     );
@@ -382,7 +398,7 @@ const List<_TenantMaintenanceItem> _tenantMaintenance = [
     icon: Icons.water_damage_outlined,
     iconColor: Color(0xFFB3E5FC),
     title: 'Bathroom sink leak',
-    location: 'Unit 3A • Bathroom',
+    location: 'Unit 3A - Bathroom',
     status: 'In progress',
     statusColor: Color(0xFFFFD166),
     updated: 'Updated 2h ago',
@@ -391,7 +407,7 @@ const List<_TenantMaintenanceItem> _tenantMaintenance = [
     icon: Icons.bolt_rounded,
     iconColor: Color(0xFFFFDAD6),
     title: 'Kitchen power outlet',
-    location: 'Unit 3A • Kitchen',
+    location: 'Unit 3A - Kitchen',
     status: 'Scheduled',
     statusColor: Color(0xFF60A5FA),
     updated: 'Technician arrives Thu',
@@ -403,7 +419,7 @@ const List<_TenantDocumentItem> _tenantDocuments = [
     icon: Icons.description_rounded,
     iconColor: Color(0xFFD7C4FF),
     title: 'Lease Agreement',
-    description: 'Signed • Expires Dec 2025',
+    description: 'Signed - Expires Dec 2025',
     tag: 'Signed',
     tagColor: Color(0xFF34D399),
   ),
@@ -411,7 +427,7 @@ const List<_TenantDocumentItem> _tenantDocuments = [
     icon: Icons.shield_outlined,
     iconColor: Color(0xFFCCE7FF),
     title: 'Insurance Certificate',
-    description: 'Updated • Valid through 2024',
+    description: 'Updated - Valid through 2024',
     tag: 'New',
     tagColor: Color(0xFFFF8A65),
   ),
@@ -419,7 +435,7 @@ const List<_TenantDocumentItem> _tenantDocuments = [
     icon: Icons.sticky_note_2_outlined,
     iconColor: Color(0xFFFFF4CC),
     title: 'Move-in Checklist',
-    description: 'Completed • September 2023',
+    description: 'Completed - September 2023',
     tag: 'Archive',
     tagColor: Color(0xFFCBD5F5),
   ),

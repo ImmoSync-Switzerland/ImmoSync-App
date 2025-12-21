@@ -36,6 +36,22 @@
   "currencyChangedTo": "Währung geändert zu {currency}",
   "dashboardDesignGlass": "Glas (Modern)",
   "dashboardDesignClassic": "Klassisch (Standard)",
+  "dashboardDesignPromptDescription": "Wähle deinen bevorzugten Stil. Du kannst dies später in den Einstellungen ändern.",
+  "dashboardDesignGlassDescription": "Modernes, mattes Design mit kräftigen Farbverläufen.",
+  "dashboardDesignClassicDescription": "Helle Karten mit einer klaren Business-Struktur.",
+  "messageStatusSending": "Wird gesendet...",
+  "messageStatusDeliveredAt": "Zugestellt um {time}",
+  "@messageStatusDeliveredAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "messageStatusReadAt": "Gelesen um {time}",
+  "@messageStatusReadAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "welcome": "Willkommen",
   "totalProperties": "Gesamte Immobilien",
   "monthlyRevenue": "Monatliche Einnahmen",

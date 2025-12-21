@@ -7,6 +7,7 @@ import 'package:immosync/features/home/presentation/models/dashboard_design.dart
 import 'package:immosync/features/home/presentation/pages/classic_dashboard_shared.dart';
 import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart';
 import 'package:immosync/features/settings/providers/settings_provider.dart';
+import 'package:immosync/features/home/presentation/widgets/dashboard_design_prompt.dart';
 
 const String _landlordHeaderTitle = 'Landlord Dashboard';
 const String _landlordSearchHint = 'Search properties, tenants...';
@@ -92,11 +93,26 @@ const DashboardConfig _landlordGlassConfig = DashboardConfig(
   quickActions: _landlordQuickActions,
 );
 
-class LandlordDashboard extends ConsumerWidget {
+class LandlordDashboard extends ConsumerStatefulWidget {
   const LandlordDashboard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LandlordDashboard> createState() => _LandlordDashboardState();
+}
+
+class _LandlordDashboardState extends ConsumerState<LandlordDashboard> {
+  bool _promptScheduled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_promptScheduled) {
+      _promptScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        maybeShowDashboardDesignPrompt(context, ref);
+      });
+    }
+
     final design = dashboardDesignFromId(
       ref.watch(settingsProvider).dashboardDesign,
     );
@@ -407,7 +423,7 @@ const List<_ClassicPropertyItem> _sampleProperties = [
     icon: Icons.house_rounded,
     iconColor: Color(0xFFB6E6FF),
     title: 'Bahnhofstrasse 87',
-    location: 'Zürich, CH',
+    location: 'Zurich, CH',
     amount: "CHF 4'550.00 / mo",
     status: 'Rented',
     statusColor: Color(0xFF3DD598),

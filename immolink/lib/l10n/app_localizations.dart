@@ -318,6 +318,42 @@ abstract class AppLocalizations {
   /// **'Classic (Standard)'**
   String get dashboardDesignClassic;
 
+  /// No description provided for @dashboardDesignPromptDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the interface style you prefer. You can change this later in Settings.'**
+  String get dashboardDesignPromptDescription;
+
+  /// No description provided for @dashboardDesignGlassDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern frosted look with rich gradients.'**
+  String get dashboardDesignGlassDescription;
+
+  /// No description provided for @dashboardDesignClassicDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Bright cards with a clean business layout.'**
+  String get dashboardDesignClassicDescription;
+
+  /// No description provided for @messageStatusSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get messageStatusSending;
+
+  /// No description provided for @messageStatusDeliveredAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered at {time}'**
+  String messageStatusDeliveredAt(Object time);
+
+  /// No description provided for @messageStatusReadAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Read at {time}'**
+  String messageStatusReadAt(Object time);
+
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
@@ -1647,31 +1683,31 @@ abstract class AppLocalizations {
   /// No description provided for @propertyManagementTip1.
   ///
   /// In en, this message translates to:
-  /// **'• Add property details and photos'**
+  /// **'- Add property details and photos'**
   String get propertyManagementTip1;
 
   /// No description provided for @propertyManagementTip2.
   ///
   /// In en, this message translates to:
-  /// **'• Set rental prices and terms'**
+  /// **'- Set rental prices and terms'**
   String get propertyManagementTip2;
 
   /// No description provided for @propertyManagementTip3.
   ///
   /// In en, this message translates to:
-  /// **'• Invite tenants to view or rent'**
+  /// **'- Invite tenants to view or rent'**
   String get propertyManagementTip3;
 
   /// No description provided for @propertyManagementTip4.
   ///
   /// In en, this message translates to:
-  /// **'• Track maintenance requests'**
+  /// **'- Track maintenance requests'**
   String get propertyManagementTip4;
 
   /// No description provided for @propertyManagementTip5.
   ///
   /// In en, this message translates to:
-  /// **'• Monitor payment status'**
+  /// **'- Monitor payment status'**
   String get propertyManagementTip5;
 
   /// No description provided for @paymentsGuide.
@@ -1683,31 +1719,31 @@ abstract class AppLocalizations {
   /// No description provided for @paymentsTip1.
   ///
   /// In en, this message translates to:
-  /// **'• View payment history and status'**
+  /// **'- View payment history and status'**
   String get paymentsTip1;
 
   /// No description provided for @paymentsTip2.
   ///
   /// In en, this message translates to:
-  /// **'• Set up automatic payment reminders'**
+  /// **'- Set up automatic payment reminders'**
   String get paymentsTip2;
 
   /// No description provided for @paymentsTip3.
   ///
   /// In en, this message translates to:
-  /// **'• Track outstanding payments'**
+  /// **'- Track outstanding payments'**
   String get paymentsTip3;
 
   /// No description provided for @paymentsTip4.
   ///
   /// In en, this message translates to:
-  /// **'• Generate payment reports'**
+  /// **'- Generate payment reports'**
   String get paymentsTip4;
 
   /// No description provided for @paymentsTip5.
   ///
   /// In en, this message translates to:
-  /// **'• Export payment data'**
+  /// **'- Export payment data'**
   String get paymentsTip5;
 
   /// No description provided for @landlordGuideContent.
@@ -1719,37 +1755,37 @@ abstract class AppLocalizations {
   /// No description provided for @landlordTip1.
   ///
   /// In en, this message translates to:
-  /// **'• Property portfolio management'**
+  /// **'- Property portfolio management'**
   String get landlordTip1;
 
   /// No description provided for @landlordTip2.
   ///
   /// In en, this message translates to:
-  /// **'• Tenant screening and onboarding'**
+  /// **'- Tenant screening and onboarding'**
   String get landlordTip2;
 
   /// No description provided for @landlordTip3.
   ///
   /// In en, this message translates to:
-  /// **'• Rent collection and tracking'**
+  /// **'- Rent collection and tracking'**
   String get landlordTip3;
 
   /// No description provided for @landlordTip4.
   ///
   /// In en, this message translates to:
-  /// **'• Maintenance request handling'**
+  /// **'- Maintenance request handling'**
   String get landlordTip4;
 
   /// No description provided for @landlordTip5.
   ///
   /// In en, this message translates to:
-  /// **'• Financial reporting and analytics'**
+  /// **'- Financial reporting and analytics'**
   String get landlordTip5;
 
   /// No description provided for @landlordTip6.
   ///
   /// In en, this message translates to:
-  /// **'• Legal compliance and documentation'**
+  /// **'- Legal compliance and documentation'**
   String get landlordTip6;
 
   /// No description provided for @tenantGuideContent.
@@ -1761,37 +1797,37 @@ abstract class AppLocalizations {
   /// No description provided for @tenantTip1.
   ///
   /// In en, this message translates to:
-  /// **'• Property search and viewing'**
+  /// **'- Property search and viewing'**
   String get tenantTip1;
 
   /// No description provided for @tenantTip2.
   ///
   /// In en, this message translates to:
-  /// **'• Rental application process'**
+  /// **'- Rental application process'**
   String get tenantTip2;
 
   /// No description provided for @tenantTip3.
   ///
   /// In en, this message translates to:
-  /// **'• Lease agreements and documentation'**
+  /// **'- Lease agreements and documentation'**
   String get tenantTip3;
 
   /// No description provided for @tenantTip4.
   ///
   /// In en, this message translates to:
-  /// **'• Rent payment and history'**
+  /// **'- Rent payment and history'**
   String get tenantTip4;
 
   /// No description provided for @tenantTip5.
   ///
   /// In en, this message translates to:
-  /// **'• Maintenance request submission'**
+  /// **'- Maintenance request submission'**
   String get tenantTip5;
 
   /// No description provided for @tenantTip6.
   ///
   /// In en, this message translates to:
-  /// **'• Communication with landlords'**
+  /// **'- Communication with landlords'**
   String get tenantTip6;
 
   /// No description provided for @securityGuideContent.
@@ -1803,37 +1839,37 @@ abstract class AppLocalizations {
   /// No description provided for @securityTip1.
   ///
   /// In en, this message translates to:
-  /// **'• Use a strong, unique password'**
+  /// **'- Use a strong, unique password'**
   String get securityTip1;
 
   /// No description provided for @securityTip2.
   ///
   /// In en, this message translates to:
-  /// **'• Enable two-factor authentication'**
+  /// **'- Enable two-factor authentication'**
   String get securityTip2;
 
   /// No description provided for @securityTip3.
   ///
   /// In en, this message translates to:
-  /// **'• Review privacy settings regularly'**
+  /// **'- Review privacy settings regularly'**
   String get securityTip3;
 
   /// No description provided for @securityTip4.
   ///
   /// In en, this message translates to:
-  /// **'• Be cautious with shared information'**
+  /// **'- Be cautious with shared information'**
   String get securityTip4;
 
   /// No description provided for @securityTip5.
   ///
   /// In en, this message translates to:
-  /// **'• Report suspicious activity immediately'**
+  /// **'- Report suspicious activity immediately'**
   String get securityTip5;
 
   /// No description provided for @securityTip6.
   ///
   /// In en, this message translates to:
-  /// **'• Keep the app updated'**
+  /// **'- Keep the app updated'**
   String get securityTip6;
 
   /// No description provided for @weAreHereToHelp.
@@ -3129,31 +3165,31 @@ abstract class AppLocalizations {
   /// No description provided for @allProperties.
   ///
   /// In en, this message translates to:
-  /// **'• All properties'**
+  /// **'- All properties'**
   String get allProperties;
 
   /// No description provided for @allConversations.
   ///
   /// In en, this message translates to:
-  /// **'• All conversations'**
+  /// **'- All conversations'**
   String get allConversations;
 
   /// No description provided for @allDocuments.
   ///
   /// In en, this message translates to:
-  /// **'• All documents'**
+  /// **'- All documents'**
   String get allDocuments;
 
   /// No description provided for @allPaymentHistory.
   ///
   /// In en, this message translates to:
-  /// **'• All payment history'**
+  /// **'- All payment history'**
   String get allPaymentHistory;
 
   /// No description provided for @profileInformation.
   ///
   /// In en, this message translates to:
-  /// **'• Profile information'**
+  /// **'- Profile information'**
   String get profileInformation;
 
   /// No description provided for @requestDeletion.
@@ -5517,7 +5553,7 @@ abstract class AppLocalizations {
   /// No description provided for @toTenant.
   ///
   /// In en, this message translates to:
-  /// **'To {tenantName} • {propertyAddress}'**
+  /// **'To {tenantName} - {propertyAddress}'**
   String toTenant(Object tenantName, Object propertyAddress);
 
   /// No description provided for @fromLandlord.

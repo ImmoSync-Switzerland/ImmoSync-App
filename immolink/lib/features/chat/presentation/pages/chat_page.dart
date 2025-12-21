@@ -742,18 +742,36 @@ class _ChatPageState extends ConsumerState<ChatPage>
     bool isMe,
     bool glassMode,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = ref.watch(dynamicColorsProvider);
     final Color glassMeColor = const Color(0xFF3B82F6).withValues(alpha: 0.65);
     final Color timeColor = glassMode
         ? Colors.white.withValues(alpha: isMe ? 0.9 : 0.75)
         : (isMe ? Colors.white.withValues(alpha: 0.75) : colors.textTertiary);
-    final Color statusColor = glassMode
-        ? Colors.white.withValues(alpha: 0.85)
-        : (message.readAt != null
-            ? Colors.white.withValues(alpha: 0.95)
-            : (message.deliveredAt != null
-                ? Colors.white.withValues(alpha: 0.75)
-                : Colors.white.withValues(alpha: 0.5)));
+    final bool hasRead = message.readAt != null;
+    final bool hasDelivered = message.deliveredAt != null;
+    final IconData statusIcon = hasRead
+        ? Icons.done_all
+        : (hasDelivered ? Icons.done_all : Icons.access_time);
+    final Color statusIconColor;
+    if (hasRead) {
+      statusIconColor = glassMode
+          ? Colors.white
+          : colors.primaryAccent.withValues(alpha: 0.95);
+    } else if (hasDelivered) {
+      statusIconColor =
+          glassMode ? Colors.white.withValues(alpha: 0.85) : Colors.white;
+    } else {
+      statusIconColor = glassMode
+          ? Colors.white.withValues(alpha: 0.6)
+          : Colors.white.withValues(alpha: 0.7);
+    }
+    final String statusLabel = _messageStatusLabel(message, l10n);
+    final Color statusTextColor = glassMode
+        ? Colors.white.withValues(alpha: 0.75)
+        : (hasRead
+            ? colors.primaryAccent.withValues(alpha: 0.9)
+            : Colors.white.withValues(alpha: 0.8));
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -844,14 +862,15 @@ class _ChatPageState extends ConsumerState<ChatPage>
                       ),
                       if (isMe) ...[
                         const SizedBox(width: 6),
-                        Icon(
-                          message.readAt != null
-                              ? Icons.done_all
-                              : (message.deliveredAt != null
-                                  ? Icons.check
-                                  : Icons.access_time),
-                          size: 14,
-                          color: statusColor,
+                        Icon(statusIcon, size: 16, color: statusIconColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          statusLabel,
+                          style: TextStyle(
+                            color: statusTextColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ],
@@ -2223,6 +2242,16 @@ class _ChatPageState extends ConsumerState<ChatPage>
     return date1.year == date2.year &&
         date1.month == date2.month &&
         date1.day == date2.day;
+  }
+
+  String _messageStatusLabel(ChatMessage message, AppLocalizations l10n) {
+    if (message.readAt != null) {
+      return l10n.messageStatusReadAt(_formatTime(message.readAt!));
+    }
+    if (message.deliveredAt != null) {
+      return l10n.messageStatusDeliveredAt(_formatTime(message.deliveredAt!));
+    }
+    return l10n.messageStatusSending;
   }
 
   String _formatDate(DateTime date) {
