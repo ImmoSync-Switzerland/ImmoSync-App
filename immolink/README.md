@@ -43,6 +43,15 @@ ImmoLink ist eine umfassende Immobilienverwaltungs-App für Android und Windows 
 - Firebase-Projekt mit konfiguriertem `google-services.json`
 - Node.js (für Backend-Entwicklung)
 
+### iOS CI Signing (GitHub Actions)
+
+Der Workflow `.github/workflows/ios_build.yml` erwartet diese Secrets:
+- `IOS_CERT_P12_B64`: base64 der iOS Signing Certificate `.p12`
+- `IOS_CERT_PASSWORD`: Passwort der `.p12`
+- `IOS_PROVISIONING_PROFILE_B64`: base64 der `.mobileprovision`
+
+Wenn der Import mit `SecKeychainItemImport: MAC verification failed during PKCS12 import` fehlschlaegt, ist meist `IOS_CERT_PASSWORD` falsch oder `IOS_CERT_P12_B64` ist nicht die vollstaendige base64 der binaeren `.p12`.
+
 ## 🔧 Installation & Setup
 
 ### 1. Repository klonen
@@ -79,6 +88,10 @@ Platzieren Sie `google-services.json` in `android/app/`:
   ...
 }
 ```
+
+Fuer iOS platzieren Sie `GoogleService-Info.plist` in `ios/Runner/` (nicht ins Repo committen).
+
+CI (GitHub Actions) verwendet Secrets und schreibt die Datei waehrend des Builds nach `immolink/ios/Runner/GoogleService-Info.plist`.
 
 ### 5. App starten
 

@@ -63,9 +63,16 @@ void main() async {
         debugPrint(
             '[Startup][INFO] Firebase initialization skipped on Windows platform');
       } else {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
+        final useNativePlist = !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.iOS ||
+                defaultTargetPlatform == TargetPlatform.macOS);
+        if (useNativePlist) {
+          await Firebase.initializeApp();
+        } else {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+        }
         debugPrint('[Startup] Firebase initialized');
       }
     } catch (e, st) {
