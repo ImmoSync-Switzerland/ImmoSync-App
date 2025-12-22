@@ -42,6 +42,14 @@ post_install do |installer|
     pods_project.targets.map { |t| t.respond_to?(:platform_name) ? t.platform_name : nil }.compact.first || :ios
   end unless installer.respond_to?(:platform_name)
 
+  # CocoaPods 1.16+ also removes installer.deployment_target; provide a shim for Flutter's podhelper.
+  installer.define_singleton_method(:deployment_target) do
+    # Prefer the Podfile platform if available, else fall back to 15.0 (our declared platform)
+    platform = installer.podfile.target_definition_list.map(&:platform).compact.first
+    version_string = platform&.last&.to_s || '15.0'
+    Pod::Version.new(version_string)
+  end unless installer.respond_to?(:deployment_target)
+
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
