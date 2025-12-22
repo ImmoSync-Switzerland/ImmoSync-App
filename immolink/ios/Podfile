@@ -1,15 +1,10 @@
 platform :ios, '15.0'
 
+# Explicitly load installer types to avoid CocoaPods 1.16+ NameError on Ruby 3.3 runners
+require 'cocoapods/installer/installation_options'
+
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
-
-module Pod
-  class Installer
-    def platform_name
-      :ios
-    end unless method_defined?(:platform_name)
-  end
-end
 
 project 'Runner', {
   'Debug' => :debug,
