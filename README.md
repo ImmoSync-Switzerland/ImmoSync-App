@@ -188,6 +188,14 @@ See [`.github/TESTING_GUIDE.md`](.github/TESTING_GUIDE.md) for comprehensive tes
 | Flutter build (dart-define) | `STRIPE_PUBLISHABLE_KEY`                               | Stripe publishable key                        |
 | Flutter build (dart-define) | `GOOGLE_CLIENT_ID`                                     | Google Sign-In / oAuth usage                  |
 | GitHub Actions Secret       | `GOOGLE_SERVICES_JSON` or `GOOGLE_SERVICES_JSON_B64` | Android `google-services.json` provisioning |
+| GitHub Actions Secret       | `GOOGLE_SERVICE_INFO_PLIST` or `GOOGLE_SERVICE_INFO_PLIST_B64` | iOS `GoogleService-Info.plist` provisioning |
+| GitHub Actions Secret       | `IOS_CERT_P12_B64`                                      | Base64 `.p12` signing cert (with private key) |
+| GitHub Actions Secret       | `IOS_CERT_PASSWORD`                                     | Password for the `.p12`                      |
+| GitHub Actions Secret       | `IOS_PROVISIONING_PROFILE_B64`                          | Base64 `.mobileprovision` profile            |
+| GitHub Actions Secret       | `IOS_DEVELOPMENT_TEAM`                                  | Apple team ID (must match provisioning profile) |
+| GitHub Actions Secret       | `IOS_BUNDLE_IDENTIFIER`                                 | Bundle identifier (must match provisioning profile) |
+| GitHub Actions Secret       | `IOS_EXPORT_OPTIONS_PLIST` (optional)                   | Full `export-options.plist` override for `xcodebuild -exportArchive` |
+| GitHub Actions Secret       | `IOS_EXPORT_METHOD` (optional)                          | Export method override (`app-store`, `ad-hoc`, `enterprise`, `development`) |
 | GitHub Actions Secret       | `SITE_REPO_PAT`                                        | Token to push generated APKs to website repo  |
 | Backend config              | `MONGODB_URI`                                          | Mongo connection string                       |
 | Backend config              | `MONGODB_DB_NAME`                                      | Mongo database name                           |
