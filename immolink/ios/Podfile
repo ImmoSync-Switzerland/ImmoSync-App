@@ -37,6 +37,11 @@ target 'Runner' do
 end
 
 post_install do |installer|
+  # CocoaPods 1.16+ drops installer.platform_name; provide a safe shim to keep older hooks working.
+  installer.define_singleton_method(:platform_name) do
+    pods_project.targets.map { |t| t.respond_to?(:platform_name) ? t.platform_name : nil }.compact.first || :ios
+  end unless installer.respond_to?(:platform_name)
+
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
