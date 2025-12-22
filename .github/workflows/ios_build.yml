@@ -173,7 +173,24 @@ jobs:
           fi
           if ! security import signing_cert.p12 -f pkcs12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security; then
             echo 'Initial PKCS12 import failed; attempting to re-pack .p12 into legacy format for macOS Keychain import...' >&2
-            openssl pkcs12 -in signing_cert.p12 -passin pass:"$CERT_PASSWORD" -export -out signing_cert_legacy.p12 -passout pass:"$CERT_PASSWORD" -legacy >/dev/null 2>&1 || true
+            echo "OpenSSL: $(openssl version)" >&2
+
+            repack_err="$(mktemp)"
+            repack_pem="$(mktemp)"
+            # Re-pack using older algorithms that Keychain commonly accepts (works even when OpenSSL lacks `-legacy`).
+            if ! openssl pkcs12 -in signing_cert.p12 -passin pass:"$CERT_PASSWORD" -nodes -out "$repack_pem" >/dev/null 2>"$repack_err"; then
+              echo 'Failed to unpack PKCS12 for repack; OpenSSL output:' >&2
+              sed -n '1,60p' "$repack_err" >&2 || true
+              rm -f "$repack_err" "$repack_pem"
+              exit 1
+            fi
+            if ! openssl pkcs12 -export -in "$repack_pem" -out signing_cert_legacy.p12 -passout pass:"$CERT_PASSWORD" -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1 >/dev/null 2>"$repack_err"; then
+              echo 'Failed to re-pack PKCS12 into legacy algorithms; OpenSSL output:' >&2
+              sed -n '1,60p' "$repack_err" >&2 || true
+              rm -f "$repack_err" "$repack_pem"
+              exit 1
+            fi
+            rm -f "$repack_err" "$repack_pem"
             if [ ! -s signing_cert_legacy.p12 ]; then
               echo 'Failed to generate legacy PKCS12; re-export the .p12 from Keychain Access (must include the private key) and re-upload secrets.' >&2
               exit 1
