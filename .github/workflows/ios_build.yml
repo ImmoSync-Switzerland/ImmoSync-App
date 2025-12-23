@@ -259,6 +259,15 @@ jobs:
           fi
           plutil -lint GoogleService-Info.plist
 
+      - name: Install CocoaPods dependencies (clean)
+        if: steps.prereqs.outputs.ready == 'true'
+        working-directory: immolink/ios
+        run: |
+          set -euo pipefail
+          rm -rf Pods Podfile.lock
+          pod --version
+          pod install --repo-update
+
       - name: Prepare signing assets
         id: signing
         if: steps.prereqs.outputs.ready == 'true'
