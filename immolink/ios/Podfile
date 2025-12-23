@@ -46,7 +46,11 @@ post_install do |installer|
   installer.define_singleton_method(:deployment_target) do
     # Prefer the Podfile platform if available, else fall back to 15.0 (our declared platform)
     platform = installer.podfile.target_definition_list.map(&:platform).compact.first
-    version_string = platform&.last&.to_s || '15.0'
+    version_string = if platform.respond_to?(:deployment_target)
+      platform.deployment_target.to_s
+    else
+      '15.0'
+    end
     Pod::Version.new(version_string)
   end unless installer.respond_to?(:deployment_target)
 
