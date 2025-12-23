@@ -5,6 +5,8 @@ require 'cocoapods/installer/installation_options'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+# Some pods (e.g., Stripe) can fail when shallow-cloned on CI runners; force full clones to avoid tag lookup errors.
+ENV['COCOAPODS_DISABLE_GIT_DEPTH'] = 'true'
 
 project 'Runner', {
   'Debug' => :debug,
