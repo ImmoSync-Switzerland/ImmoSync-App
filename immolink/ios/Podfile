@@ -61,4 +61,11 @@ post_install do |installer|
     end
     flutter_additional_ios_build_settings(target)
   end
+
+  # Patch FirebaseDataEncoder.swift to avoid invalid "-> sending Any" return type on CI Swift toolchains.
+  Dir.glob(File.join(installer.sandbox.root, '**', 'FirebaseDataEncoder.swift')).each do |path|
+    contents = File.read(path)
+    fixed = contents.gsub('-> sending Any', '-> Any')
+    File.write(path, fixed) if fixed != contents
+  end
 end
