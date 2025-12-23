@@ -474,6 +474,8 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.signing.outputs.keychain_path }}
         run: |
           set -euo pipefail
+          LOG_PATH="$GITHUB_WORKSPACE/ios_workflow.log"
+          : > "$LOG_PATH"
           for var in API_URL STRIPE_PUBLISHABLE_KEY GOOGLE_CLIENT_ID IOS_DEVELOPMENT_TEAM IOS_BUNDLE_IDENTIFIER; do
             if [ -z "${!var:-}" ]; then
               echo "Missing required secret: $var" >&2
@@ -489,7 +491,7 @@ jobs:
             --dart-define=API_URL=$API_URL \
             --dart-define=STRIPE_PUBLISHABLE_KEY=$STRIPE_PUBLISHABLE_KEY \
             --dart-define=GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
-            --verbose
+            --verbose 2>&1 | tee "$LOG_PATH"
 
           ARCHIVE_PATH="build/ios/archive/Runner.xcarchive"
           if [ ! -d "$ARCHIVE_PATH" ]; then
@@ -505,12 +507,13 @@ jobs:
             -archivePath "$ARCHIVE_PATH" \
             -exportOptionsPlist export-options.plist \
             -exportPath "$EXPORT_PATH" \
-            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" 2>&1 | tee -a "$LOG_PATH"
 
       - name: Collect IPA artifacts
         if: steps.signing.outputs.ready == 'true'
         run: |
           set -euo pipefail
+          LOG_PATH="$GITHUB_WORKSPACE/ios_workflow.log"
           IPA_ROOT="immolink/build/ios/ipa"
           if [ ! -d "$IPA_ROOT" ]; then
             echo "IPA directory not found: $IPA_ROOT" >&2
@@ -544,6 +547,11 @@ jobs:
           }
           hash_file "artifacts/immosync-ios-${VERSION}.ipa" > "artifacts/immosync-ios-${VERSION}.ipa.sha256"
           hash_file artifacts/immosync-ios-latest.ipa > artifacts/immosync-ios-latest.ipa.sha256
+          if [ -f "$LOG_PATH" ]; then
+            cp "$LOG_PATH" artifacts/ios_workflow.log
+          else
+            echo "Workflow log not found at $LOG_PATH" >&2
+          fi
           {
             echo "version=${VERSION}";
             echo -n "primary="; basename "artifacts/immosync-ios-${VERSION}.ipa";
