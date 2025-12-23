@@ -66,7 +66,8 @@ post_install do |installer|
   patches = [
     { file: 'FirebaseDataEncoder.swift', from: '-> sending Any', to: '-> Any' },
     { file: 'UnfairLock.swift', from: /\bsending\s+/, to: '' },
-    { file: 'HeartbeatsPayload.swift', from: /^package\s+import/, to: 'import' }
+    { file: 'HeartbeatsPayload.swift', from: /^(internal|package)\s+import/, to: 'import' },
+    { file: 'UnfairLock.swift', from: /^(private|package)\s+import/, to: 'import' }
   ]
 
   patches.each do |patch|

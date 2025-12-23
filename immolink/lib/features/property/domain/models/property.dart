@@ -24,13 +24,18 @@ class Property {
   factory Property.fromMap(Map<String, dynamic> map) {
     // Defensive parsing with fallbacks to prevent runtime type errors from incomplete/legacy documents
     try {
-      final rawAddress = map['address'] ?? const {};
-      final rawDetails = map['details'] ?? const {};
+      final rawAddress = (map['address'] is Map) ? map['address'] : const {};
+      final rawDetails = (map['details'] is Map) ? map['details'] : const {};
+      final statusValue =
+          (map['status'] is String && (map['status'] as String).isNotEmpty)
+              ? map['status'].toString()
+              : 'unknown';
+
       return Property(
         id: (map['_id'] ?? map['id'] ?? '').toString(),
         landlordId: (map['landlordId'] ?? '').toString(),
         address: Address.fromMap(Map<String, dynamic>.from(rawAddress)),
-        status: (map['status'] ?? 'available').toString(),
+        status: statusValue,
         rentAmount: _asDouble(map['rentAmount']),
         details: PropertyDetails.fromMap(Map<String, dynamic>.from(rawDetails)),
         imageUrls: _stringList(map['imageUrls']),
