@@ -144,6 +144,77 @@ jobs:
 
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
+      - name: Validate iOS secrets (no values printed)
+        if: steps.prereqs.outputs.ready == 'true'
+        env:
+          API_URL: ${{ secrets.CLIENT_API_URL }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
+          IOS_CERT_P12_B64: ${{ secrets.IOS_CERT_P12_B64 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_B64 }}
+          IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          IOS_BUNDLE_IDENTIFIER: ${{ secrets.IOS_BUNDLE_IDENTIFIER }}
+        run: |
+          set -euo pipefail
+
+          status_ok() { echo "[ok] $1"; }
+          status_fail() { echo "[fail] $1"; exit 1; }
+
+          # Basic presence checks (already gated, but double-check without printing values)
+          for var in API_URL STRIPE_PUBLISHABLE_KEY GOOGLE_CLIENT_ID IOS_DEVELOPMENT_TEAM IOS_BUNDLE_IDENTIFIER; do
+            if [ -z "${!var:-}" ]; then
+              status_fail "$var is empty"
+            fi
+          done
+
+          # GoogleService-Info.plist validation (raw or base64)
+          gs_tmp=$(mktemp)
+          if [ -n "${GOOGLE_SERVICE_INFO_PLIST_B64:-}" ]; then
+            printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | tr -d '\r\n' | base64 --decode > "$gs_tmp" 2>/dev/null || \
+              printf '%s' "$GOOGLE_SERVICE_INFO_PLIST_B64" | tr -d '\r\n' | base64 -d > "$gs_tmp"
+          elif [ -n "${GOOGLE_SERVICE_INFO_PLIST:-}" ]; then
+            printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > "$gs_tmp"
+          else
+            status_fail "GoogleService-Info.plist secret missing"
+          fi
+          if ! plutil -lint "$gs_tmp" >/dev/null 2>&1; then
+            status_fail "GoogleService-Info.plist failed plutil lint"
+          fi
+          rm -f "$gs_tmp"
+          status_ok "GoogleService-Info.plist present and valid plist"
+
+          # P12 decode + password check
+          p12_tmp=$(mktemp)
+          printf '%s' "$IOS_CERT_P12_B64" | tr -d '\r\n' | base64 --decode > "$p12_tmp" 2>/dev/null || \
+            printf '%s' "$IOS_CERT_P12_B64" | tr -d '\r\n' | base64 -d > "$p12_tmp"
+          if ! openssl pkcs12 -in "$p12_tmp" -passin pass:"$IOS_CERT_PASSWORD" -info -nokeys >/dev/null 2>&1; then
+            status_fail "PKCS12 failed to open with provided password"
+          fi
+          rm -f "$p12_tmp"
+          status_ok "PKCS12 decodes and password accepted"
+
+          # Provisioning profile decode + plist parse
+          profile_tmp=$(mktemp)
+          printf '%s' "$IOS_PROVISIONING_PROFILE_B64" | tr -d '\r\n' | base64 --decode > "$profile_tmp" 2>/dev/null || \
+            printf '%s' "$IOS_PROVISIONING_PROFILE_B64" | tr -d '\r\n' | base64 -d > "$profile_tmp"
+          if ! security cms -D -i "$profile_tmp" >/dev/null 2>&1; then
+            status_fail "Provisioning profile failed CMS decode"
+          fi
+          status_ok "Provisioning profile decodes"
+          rm -f "$profile_tmp"
+
+          {
+            echo "## iOS secret validation"
+            echo "- API_URL / STRIPE_PUBLISHABLE_KEY / GOOGLE_CLIENT_ID: present"
+            echo "- GOOGLE_SERVICE_INFO_PLIST(_B64): valid plist"
+            echo "- IOS_CERT_P12_B64: decodes with password"
+            echo "- IOS_PROVISIONING_PROFILE_B64: CMS decode ok"
+            echo "- IOS_DEVELOPMENT_TEAM / IOS_BUNDLE_IDENTIFIER: present"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Create .env file from secrets
         if: steps.prereqs.outputs.ready == 'true'
         working-directory: immolink
