@@ -62,10 +62,18 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 
-  # Patch FirebaseDataEncoder.swift to avoid invalid "-> sending Any" return type on CI Swift toolchains.
-  Dir.glob(File.join(installer.sandbox.root, '**', 'FirebaseDataEncoder.swift')).each do |path|
-    contents = File.read(path)
-    fixed = contents.gsub('-> sending Any', '-> Any')
-    File.write(path, fixed) if fixed != contents
+  # Patch Firebase pods to strip Swift 6-only syntax that Xcode 15.4 cannot compile.
+  patches = [
+    { file: 'FirebaseDataEncoder.swift', from: '-> sending Any', to: '-> Any' },
+    { file: 'UnfairLock.swift', from: /\bsending\s+/, to: '' },
+    { file: 'HeartbeatsPayload.swift', from: /^package\s+import/, to: 'import' }
+  ]
+
+  patches.each do |patch|
+    Dir.glob(File.join(installer.sandbox.root, '**', patch[:file])).each do |path|
+      contents = File.read(path)
+      fixed = contents.gsub(patch[:from], patch[:to])
+      File.write(path, fixed) if fixed != contents
+    end
   end
 end
