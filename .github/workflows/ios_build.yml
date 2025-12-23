@@ -273,11 +273,29 @@ jobs:
         working-directory: immolink/ios
         run: |
           set -euo pipefail
-          if ! find Pods -type f -name 'GoogleUtilities_AppDelegateSwizzler.modulemap' | grep -q '.'; then
-            echo "Missing GoogleUtilities_AppDelegateSwizzler.modulemap after pod install" >&2
-            find Pods -maxdepth 5 -iname '*appdelegateswizzler*' -print || true
-            exit 1
+          # CocoaPods target support file names often use '-' even when the Swift module uses '_'.
+          # Verify by modulemap content and fall back to filename-based heuristics.
+          if grep -R --line-number --fixed-strings "module GoogleUtilities_AppDelegateSwizzler" "Pods/Target Support Files" "Pods" >/dev/null 2>&1; then
+            echo "Found module declaration for GoogleUtilities_AppDelegateSwizzler"
+            exit 0
           fi
+
+          candidates="$(find Pods -type f -iname '*appdelegateswizzler*.modulemap' -print || true)"
+          if [ -n "${candidates:-}" ]; then
+            echo "Found AppDelegateSwizzler modulemap candidate(s):"
+            echo "$candidates"
+            echo "Contents preview (first match):"
+            first="$(echo "$candidates" | head -n1)"
+            sed -n '1,80p' "$first" || true
+            exit 0
+          fi
+
+          echo "Missing GoogleUtilities AppDelegateSwizzler modulemap after pod install" >&2
+          echo "AppDelegateSwizzler-related files found under Pods/:" >&2
+          find Pods -maxdepth 6 -iname '*appdelegateswizzler*' -print || true
+          echo "Pods/Target Support Files listing (top-level):" >&2
+          find "Pods/Target Support Files" -maxdepth 2 -type f -name "*.modulemap" -print | head -n 50 || true
+          exit 1
 
       - name: Prepare signing assets
         id: signing
