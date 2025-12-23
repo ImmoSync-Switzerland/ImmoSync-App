@@ -35,6 +35,9 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  # Ensure FirebaseAuth dependency for app delegate swizzling is present
+  pod 'GoogleUtilities/AppDelegateSwizzler'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 

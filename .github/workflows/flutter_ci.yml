@@ -1,14 +1,6 @@
 name: Flutter CI
-
-'on':
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+on:
   workflow_dispatch:
-
-jobs:
-  test:
     name: Run Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30

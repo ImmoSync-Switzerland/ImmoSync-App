@@ -4,8 +4,7 @@ on:
   workflow_dispatch:  # Manual trigger only
 
 jobs:
-  cleanup:
-    name: Delete All Old Artifacts
+  workflow_dispatch:
     runs-on: ubuntu-latest
     permissions:
       actions: write

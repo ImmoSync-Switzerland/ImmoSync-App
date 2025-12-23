@@ -1,10 +1,6 @@
 name: Android APK CI
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - 'public/downloads/**'
   workflow_dispatch:
 
 jobs:
