@@ -82,22 +82,21 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 
-  # Ensure a modulemap exists for GoogleUtilities_AppDelegateSwizzler
+  # Ensure a modulemap exists for GoogleUtilities_AppDelegateSwizzler and bind it to the target support files.
   swizzler_header = File.join(installer.sandbox.root, 'GoogleUtilities', 'AppDelegateSwizzler', 'Private', 'GULAppDelegateSwizzler.h')
-  swizzler_module_dir = File.join(installer.sandbox.root, 'GoogleUtilities', 'AppDelegateSwizzler')
-  swizzler_modulemap = File.join(swizzler_module_dir, 'module.modulemap')
   if File.exist?(swizzler_header)
-    FileUtils.mkdir_p(swizzler_module_dir)
+    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler')
+    FileUtils.mkdir_p(ts_dir)
+    swizzler_modulemap = File.join(ts_dir, 'GoogleUtilities-AppDelegateSwizzler.modulemap')
     File.write(swizzler_modulemap, <<~MAP)
 module GoogleUtilities_AppDelegateSwizzler {
-  header "Private/GULAppDelegateSwizzler.h"
+  header "#{swizzler_header}"
   export *
 }
 MAP
-  end
 
-  installer.pods_project.targets.each do |target|
-    if target.name.include?('GoogleUtilities') && File.exist?(swizzler_modulemap)
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'GoogleUtilities-AppDelegateSwizzler'
       target.build_configurations.each do |config|
         config.build_settings['MODULEMAP_FILE'] = swizzler_modulemap
         config.build_settings['DEFINES_MODULE'] = 'YES'
