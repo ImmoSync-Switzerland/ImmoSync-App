@@ -97,9 +97,9 @@ MAP
   end
 
   installer.pods_project.targets.each do |target|
-    if target.name == 'GoogleUtilities-AppDelegateSwizzler'
+    if target.name.include?('GoogleUtilities') && File.exist?(swizzler_modulemap)
       target.build_configurations.each do |config|
-        config.build_settings['MODULEMAP_FILE'] = swizzler_modulemap if File.exist?(swizzler_modulemap)
+        config.build_settings['MODULEMAP_FILE'] = swizzler_modulemap
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
       end

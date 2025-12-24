@@ -22,6 +22,12 @@ runs:
         flutter-version: ${{ inputs.flutter-version }}
         cache: true
 
+    - name: Print Flutter cache dirs (debug)
+      shell: bash
+      run: |
+        echo "FLUTTER_ROOT=$FLUTTER_ROOT"
+        ls -la $HOME/hostedtoolcache/flutter || true
+
     - name: Flutter pub get
       shell: bash
       working-directory: ${{ inputs.project-dir }}
