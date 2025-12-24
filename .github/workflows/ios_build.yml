@@ -34,30 +34,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - name: Pod install (generate lock)
+        uses: ./.github/actions/pod-install-lock
         with:
           flutter-version: '3.35.5'
-          cache: true
-
-      - name: Flutter pub get
-        working-directory: immolink
-        run: flutter pub get
-
-      - name: Flutter precache iOS
-        working-directory: immolink
-        run: flutter precache --ios
-
-      - name: Install CocoaPods
-        run: sudo gem install cocoapods
-
-      - name: Run pod install (lock only)
-        working-directory: immolink/ios
-        run: |
-          set -euo pipefail
-          rm -rf Pods Podfile.lock
-          pod --version
-          pod install --repo-update
+          project-dir: immolink
+          ios-dir: immolink/ios
 
       - name: Upload Podfile.lock
         uses: actions/upload-artifact@v4

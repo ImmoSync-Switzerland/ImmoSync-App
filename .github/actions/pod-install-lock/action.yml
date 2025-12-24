@@ -1,0 +1,46 @@
+name: Pod Install and Lock
+description: Set up Flutter, precache iOS, run pod install to generate Podfile.lock
+inputs:
+  flutter-version:
+    description: Flutter version to install
+    default: '3.35.5'
+    required: false
+  project-dir:
+    description: Flutter project directory (contains pubspec.yaml)
+    default: immolink
+    required: false
+  ios-dir:
+    description: iOS directory containing Podfile
+    default: immolink/ios
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        cache: true
+
+    - name: Flutter pub get
+      shell: bash
+      working-directory: ${{ inputs.project-dir }}
+      run: flutter pub get
+
+    - name: Flutter precache iOS
+      shell: bash
+      working-directory: ${{ inputs.project-dir }}
+      run: flutter precache --ios
+
+    - name: Install CocoaPods
+      shell: bash
+      run: sudo gem install cocoapods
+
+    - name: Pod install
+      shell: bash
+      working-directory: ${{ inputs.ios-dir }}
+      run: |
+        set -euo pipefail
+        rm -rf Pods Podfile.lock
+        pod --version
+        pod install --repo-update
