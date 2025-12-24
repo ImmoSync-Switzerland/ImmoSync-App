@@ -273,10 +273,22 @@ jobs:
         working-directory: immolink/ios
         run: |
           set -euo pipefail
-          # CocoaPods target support file names often use '-' even when the Swift module uses '_'.
-          # Verify by modulemap content and fall back to filename-based heuristics.
+          # CocoaPods usually builds GoogleUtilities as a single module (GoogleUtilities) even when a
+          # subspec like AppDelegateSwizzler is explicitly requested. Some toolchains may also expose
+          # an underscore-style module name (GoogleUtilities_AppDelegateSwizzler), so accept either.
           if grep -R --line-number --fixed-strings "module GoogleUtilities_AppDelegateSwizzler" "Pods/Target Support Files" "Pods" >/dev/null 2>&1; then
             echo "Found module declaration for GoogleUtilities_AppDelegateSwizzler"
+            exit 0
+          fi
+
+          gu_modulemap="Pods/Target Support Files/GoogleUtilities/GoogleUtilities.modulemap"
+          if [ -f "$gu_modulemap" ] && grep -nE "GULAppDelegateSwizzler|AppDelegateSwizzler" "$gu_modulemap" >/dev/null 2>&1; then
+            echo "Found AppDelegateSwizzler references in $gu_modulemap"
+            exit 0
+          fi
+
+          if find Pods -type f -iname 'GULAppDelegateSwizzler*.h' -print -quit 2>/dev/null | grep -q .; then
+            echo "Found GULAppDelegateSwizzler header under Pods/"
             exit 0
           fi
 
