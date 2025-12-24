@@ -37,8 +37,14 @@ target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
-  # Ensure FirebaseAuth dependency for app delegate swizzling is present
-  pod 'GoogleUtilities/AppDelegateSwizzler'
+  # Ensure GoogleUtilities is built with a module and all required swizzler bits.
+  pod 'GoogleUtilities', '8.1.0', :subspecs => [
+    'AppDelegateSwizzler',
+    'MethodSwizzler',
+    'Network',
+    'Logger',
+    'UserDefaults'
+  ]
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -67,8 +73,8 @@ post_install do |installer|
       flags << '-enable-experimental-feature' << 'AccessLevelOnImport'
       config.build_settings['OTHER_SWIFT_FLAGS'] = flags
 
-      # FirebaseAuth imports GoogleUtilities_AppDelegateSwizzler; ensure the pod target defines a module.
-      if target.name.include?('GoogleUtilities') && target.name.include?('AppDelegateSwizzler')
+      # FirebaseAuth imports GoogleUtilities_AppDelegateSwizzler; ensure GoogleUtilities targets define a module.
+      if target.name.include?('GoogleUtilities')
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
       end
