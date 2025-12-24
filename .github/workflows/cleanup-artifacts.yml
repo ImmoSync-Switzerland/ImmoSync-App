@@ -5,6 +5,7 @@ on:
 
 jobs:
   workflow_dispatch:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       actions: write

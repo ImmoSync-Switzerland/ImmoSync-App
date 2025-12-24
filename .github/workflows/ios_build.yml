@@ -48,6 +48,15 @@ jobs:
           name: podfile-lock
           path: immolink/ios/Podfile.lock
 
+      - name: Upload swizzler module debug files
+        uses: actions/upload-artifact@v4
+        with:
+          name: pods-swizzler-debug
+          path: |
+            immolink/ios/Pods/GoogleUtilities/AppDelegateSwizzler/module.modulemap
+            immolink/ios/Pods/GoogleUtilities/AppDelegateSwizzler/Private/GULAppDelegateSwizzler.h
+            immolink/ios/Pods/Target Support Files/GoogleUtilities*/**/*.modulemap
+
   build-ipa:
     name: Build Release IPA
     runs-on: macos-14
