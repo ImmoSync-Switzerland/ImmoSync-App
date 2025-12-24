@@ -24,11 +24,40 @@ jobs:
           min_bytes: '0'
         continue-on-error: true
 
+  pod-install-lock:
+    name: Generate Podfile.lock
+    runs-on: macos-14
+    needs: cleanup-artifacts
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Run pod install (lock only)
+        working-directory: immolink/ios
+        run: |
+          set -euo pipefail
+          rm -rf Pods Podfile.lock
+          pod --version
+          pod install --repo-update
+
+      - name: Upload Podfile.lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: podfile-lock
+          path: immolink/ios/Podfile.lock
+
   build-ipa:
     name: Build Release IPA
     runs-on: macos-14
     timeout-minutes: 60
-    needs: cleanup-artifacts
+    needs:
+      - cleanup-artifacts
+      - pod-install-lock
     if: always()
     outputs:
       app_version: ${{ steps.extract_version.outputs.app_version }}
@@ -44,6 +73,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download Podfile.lock artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: podfile-lock
+          path: immolink/ios
+        continue-on-error: true
 
       - name: Set up Flutter
         id: flutter-setup
