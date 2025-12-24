@@ -9,6 +9,7 @@ on:
 jobs:
   cleanup-artifacts:
     name: Cleanup Old Artifacts
+    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -27,7 +28,7 @@ jobs:
   pod-install-lock:
     name: Generate Podfile.lock
     runs-on: macos-14
-    needs: cleanup-artifacts
+    # temporarily no cleanup dependency
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,7 +53,6 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 60
     needs:
-      - cleanup-artifacts
       - pod-install-lock
     if: always()
     outputs:
