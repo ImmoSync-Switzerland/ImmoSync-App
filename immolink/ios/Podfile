@@ -85,22 +85,30 @@ post_install do |installer|
   # Ensure a modulemap exists for GoogleUtilities_AppDelegateSwizzler and bind it to the target support files.
   swizzler_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULAppDelegateSwizzler.h')).first
   if swizzler_header && File.exist?(swizzler_header)
-    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler')
-    FileUtils.mkdir_p(ts_dir)
-    swizzler_modulemap = File.join(ts_dir, 'GoogleUtilities-AppDelegateSwizzler.modulemap')
-    File.write(swizzler_modulemap, <<~MAP)
+    gu_ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities')
+    gu_modulemap = File.join(gu_ts_dir, 'GoogleUtilities.modulemap')
+    FileUtils.mkdir_p(gu_ts_dir)
+
+    contents = File.exist?(gu_modulemap) ? File.read(gu_modulemap) : ""
+    unless contents.include?('module GoogleUtilities_AppDelegateSwizzler')
+      File.open(gu_modulemap, 'a') do |f|
+        f.write("
 module GoogleUtilities_AppDelegateSwizzler {
-  header "#{swizzler_header}"
+  header \"#{swizzler_header}\"
   export *
-}
-MAP
+}\n")
+      end
+    end
 
     installer.pods_project.targets.each do |target|
-      next unless target.name == 'GoogleUtilities-AppDelegateSwizzler'
+      next unless target.name.include?('GoogleUtilities')
       target.build_configurations.each do |config|
-        config.build_settings['MODULEMAP_FILE'] = swizzler_modulemap
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+        flag = "-fmodule-map-file=#{gu_modulemap}"
+        flags += ['-Xcc', flag] unless flags.include?(flag) || flags.include?('-Xcc') && flags.include?(flag)
+        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
       end
     end
   end
