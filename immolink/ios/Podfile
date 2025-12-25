@@ -82,9 +82,34 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 
-  # Ensure a modulemap exists for GoogleUtilities_AppDelegateSwizzler and bind it to the target support files.
+  # Ensure a dedicated modulemap exists for GoogleUtilities_AppDelegateSwizzler and avoid module cycles.
   swizzler_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULAppDelegateSwizzler.h')).first
   if swizzler_header && File.exist?(swizzler_header)
+    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler')
+    FileUtils.mkdir_p(ts_dir)
+    swizzler_modulemap = File.join(ts_dir, 'GoogleUtilities-AppDelegateSwizzler.modulemap')
+    File.write(swizzler_modulemap, <<~MAP)
+module GoogleUtilities_AppDelegateSwizzler {
+  header "#{swizzler_header}"
+  export *
+}
+MAP
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'GoogleUtilities-AppDelegateSwizzler'
+      target.build_configurations.each do |config|
+        config.build_settings['MODULEMAP_FILE'] = swizzler_modulemap
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+      end
+    end
+
+    gu_umbrella = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities', 'GoogleUtilities-umbrella.h')
+    if File.exist?(gu_umbrella)
+      filtered = File.read(gu_umbrella).lines.reject { |l| l.include?('GULAppDelegateSwizzler.h') || l.include?('GULSceneDelegateSwizzler.h') }
+      File.write(gu_umbrella, filtered.join)
+    end
+
     gu_ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities')
     gu_modulemap = File.join(gu_ts_dir, 'GoogleUtilities.modulemap')
     FileUtils.mkdir_p(gu_ts_dir)
