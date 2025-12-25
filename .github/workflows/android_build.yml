@@ -6,6 +6,7 @@ on:
 jobs:
   cleanup-artifacts:
     name: Cleanup Old Artifacts
+    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -25,7 +26,6 @@ jobs:
     name: Build Release APK
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    needs: cleanup-artifacts
     if: always()  # Run even if cleanup fails
     outputs:
       app_version: ${{ steps.extract_version.outputs.app_version }}
