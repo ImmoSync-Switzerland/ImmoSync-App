@@ -83,8 +83,8 @@ post_install do |installer|
   end
 
   # Ensure a modulemap exists for GoogleUtilities_AppDelegateSwizzler and bind it to the target support files.
-  swizzler_header = File.join(installer.sandbox.root, 'GoogleUtilities', 'AppDelegateSwizzler', 'Private', 'GULAppDelegateSwizzler.h')
-  if File.exist?(swizzler_header)
+  swizzler_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULAppDelegateSwizzler.h')).first
+  if swizzler_header && File.exist?(swizzler_header)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler')
     FileUtils.mkdir_p(ts_dir)
     swizzler_modulemap = File.join(ts_dir, 'GoogleUtilities-AppDelegateSwizzler.modulemap')
