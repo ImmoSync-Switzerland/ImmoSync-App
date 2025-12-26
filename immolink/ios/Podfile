@@ -133,6 +133,13 @@ MAP
     end
 
     installer.pods_project.targets.each do |target|
+      next unless target.name.start_with?('GoogleUtilities')
+      target.build_configurations.each do |config|
+        config.build_settings['MODULEMAP_FILE'] = gu_modulemap
+      end
+    end
+
+    installer.pods_project.targets.each do |target|
       next unless target.name.include?('GoogleUtilities')
       target.build_configurations.each do |config|
         flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
