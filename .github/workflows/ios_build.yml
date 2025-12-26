@@ -126,13 +126,6 @@ jobs:
 
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
-      - name: Download Podfile.lock artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: podfile-lock
-          path: immolink/ios
-        continue-on-error: true
-
       - name: Set up Flutter
         id: flutter-setup
         uses: subosito/flutter-action@v2
