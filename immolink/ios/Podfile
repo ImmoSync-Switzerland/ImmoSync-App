@@ -118,6 +118,31 @@ MAP
 
   end
 
+  # Ensure AppDelegateSwizzler modulemap is discoverable by Swift imports.
+  gu_ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities')
+  gu_modulemap = File.join(gu_ts_dir, 'GoogleUtilities.modulemap')
+  FileUtils.mkdir_p(gu_ts_dir)
+
+  swizzler_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULAppDelegateSwizzler.h')).first
+  if swizzler_header && File.exist?(swizzler_header)
+    contents = File.exist?(gu_modulemap) ? File.read(gu_modulemap) : ""
+    unless contents.include?('module GoogleUtilities_AppDelegateSwizzler')
+      File.open(gu_modulemap, 'a') do |f|
+        f.write("\nmodule GoogleUtilities_AppDelegateSwizzler {\n  header \"#{swizzler_header}\"\n  export *\n}\n")
+      end
+    end
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name.include?('GoogleUtilities')
+      target.build_configurations.each do |config|
+        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+        flag = "-fmodule-map-file=#{gu_modulemap}"
+        flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+      end
+    end
+  end
+
   gu_umbrella = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities', 'GoogleUtilities-umbrella.h')
   if File.exist?(gu_umbrella)
     filtered = File.read(gu_umbrella).lines.reject do |line|
