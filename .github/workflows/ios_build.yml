@@ -79,6 +79,53 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check iOS CI prerequisites
+        id: prereqs
+        env:
+          API_URL: ${{ secrets.CLIENT_API_URL }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
+          IOS_CERT_P12_B64: ${{ secrets.IOS_CERT_P12_B64 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_B64 }}
+          IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          IOS_BUNDLE_IDENTIFIER: ${{ secrets.IOS_BUNDLE_IDENTIFIER }}
+        run: |
+          set -euo pipefail
+          missing=()
+
+          for var in API_URL STRIPE_PUBLISHABLE_KEY GOOGLE_CLIENT_ID IOS_DEVELOPMENT_TEAM IOS_BUNDLE_IDENTIFIER; do
+            if [ -z "${!var:-}" ]; then
+              missing+=("$var")
+            fi
+          done
+
+          if [ -z "${GOOGLE_SERVICE_INFO_PLIST:-}" ] && [ -z "${GOOGLE_SERVICE_INFO_PLIST_B64:-}" ]; then
+            missing+=("GOOGLE_SERVICE_INFO_PLIST(_B64)")
+          fi
+
+          for var in IOS_CERT_P12_B64 IOS_CERT_PASSWORD IOS_PROVISIONING_PROFILE_B64; do
+            if [ -z "${!var:-}" ]; then
+              missing+=("$var")
+            fi
+          done
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            msg="Missing required iOS secrets: ${missing[*]}"
+            echo "$msg" >&2
+            {
+              echo "ready=false"
+              echo "reason=$msg"
+            } >> "$GITHUB_OUTPUT"
+            echo "### iOS Build Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "$msg" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
       - name: Download Podfile.lock artifact
         uses: actions/download-artifact@v4
         with:
@@ -130,60 +177,6 @@ jobs:
         working-directory: immolink
         run: |
           flutter analyze || true
-
-      - name: Check iOS CI prerequisites
-        id: prereqs
-        env:
-          API_URL: ${{ secrets.CLIENT_API_URL }}
-          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
-          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_B64 }}
-          IOS_CERT_P12_B64: ${{ secrets.IOS_CERT_P12_B64 }}
-          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
-          IOS_PROVISIONING_PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_B64 }}
-          IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
-          IOS_BUNDLE_IDENTIFIER: ${{ secrets.IOS_BUNDLE_IDENTIFIER }}
-        run: |
-          set -euo pipefail
-          ON_MAIN="false"
-          if [ "${GITHUB_REF:-}" = "refs/heads/main" ]; then
-            ON_MAIN="true"
-          fi
-
-          missing=()
-          for var in API_URL STRIPE_PUBLISHABLE_KEY GOOGLE_CLIENT_ID IOS_DEVELOPMENT_TEAM IOS_BUNDLE_IDENTIFIER; do
-            if [ -z "${!var:-}" ]; then
-              missing+=("$var")
-            fi
-          done
-
-          if [ -z "${GOOGLE_SERVICE_INFO_PLIST:-}" ] && [ -z "${GOOGLE_SERVICE_INFO_PLIST_B64:-}" ]; then
-            missing+=("GOOGLE_SERVICE_INFO_PLIST(_B64)")
-          fi
-
-          for var in IOS_CERT_P12_B64 IOS_CERT_PASSWORD IOS_PROVISIONING_PROFILE_B64; do
-            if [ -z "${!var:-}" ]; then
-              missing+=("$var")
-            fi
-          done
-
-          if [ ${#missing[@]} -gt 0 ]; then
-            msg="Missing required iOS secrets: ${missing[*]}"
-            echo "$msg" >&2
-            {
-              echo "ready=false"
-              echo "reason=$msg"
-            } >> "$GITHUB_OUTPUT"
-            echo "### iOS Build Skipped" >> "$GITHUB_STEP_SUMMARY"
-            echo "$msg" >> "$GITHUB_STEP_SUMMARY"
-            if [ "$ON_MAIN" = "true" ]; then
-              exit 1
-            fi
-            exit 0
-          fi
-
-          echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Validate iOS secrets (no values printed)
         if: steps.prereqs.outputs.ready == 'true'

@@ -41,6 +41,7 @@ target 'Runner' do
   pod 'GoogleUtilities', '8.1.0', :subspecs => [
     'AppDelegateSwizzler',
     'MethodSwizzler',
+    'Environment',
     'Network',
     'Logger',
     'UserDefaults'
