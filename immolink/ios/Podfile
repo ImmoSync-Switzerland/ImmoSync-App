@@ -7,6 +7,7 @@ require 'cocoapods/installer/installation_options'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 # Some pods (e.g., Stripe) can fail when shallow-cloned on CI runners; force full clones to avoid tag lookup errors.
 ENV['COCOAPODS_DISABLE_GIT_DEPTH'] = 'true'
+require 'shellwords'
 
 project 'Runner', {
   'Debug' => :debug,
@@ -143,7 +144,7 @@ MAP
       next unless target.name.include?('GoogleUtilities')
       target.build_configurations.each do |config|
         flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-        flag = "-fmodule-map-file=#{gu_modulemap}"
+        flag = "-fmodule-map-file=#{Shellwords.escape(gu_modulemap)}"
         flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
         config.build_settings['OTHER_SWIFT_FLAGS'] = flags
       end
@@ -169,7 +170,7 @@ MAP
 
     target.build_configurations.each do |config|
       flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-      flag = "-fmodule-map-file=#{gu_modulemap}"
+      flag = "-fmodule-map-file=#{Shellwords.escape(gu_modulemap)}"
       # Add as an Xcc flag to ensure the Swift frontend forwards it to Clang.
       unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
         flags += ['-Xcc', flag]
