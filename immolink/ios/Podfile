@@ -150,6 +150,17 @@ MAP
     end
   end
 
+  # Ensure Environment module is declared alongside AppDelegateSwizzler for Swift imports.
+  env_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULEnvironment.h')).first
+  if env_header && File.exist?(env_header)
+    contents = File.exist?(gu_modulemap) ? File.read(gu_modulemap) : ""
+    unless contents.include?('module GoogleUtilities_Environment')
+      File.open(gu_modulemap, 'a') do |f|
+        f.write("\nmodule GoogleUtilities_Environment {\n  header \"#{env_header}\"\n  export *\n}\n")
+      end
+    end
+  end
+
   gu_umbrella = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities', 'GoogleUtilities-umbrella.h')
   if File.exist?(gu_umbrella)
     filtered = File.read(gu_umbrella).lines.reject do |line|
