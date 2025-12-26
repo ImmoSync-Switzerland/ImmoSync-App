@@ -161,6 +161,23 @@ MAP
     end
   end
 
+  # Propagate the consolidated modulemap to downstream Swift consumers (e.g., FirebaseAuth) so
+  # imports like GoogleUtilities_Environment resolve even when the GoogleUtilities targets are
+  # built as static frameworks.
+  installer.pods_project.targets.each do |target|
+    next unless target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.start_with?('GoogleUtilities')
+
+    target.build_configurations.each do |config|
+      flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+      flag = "-fmodule-map-file=#{gu_modulemap}"
+      # Add as an Xcc flag to ensure the Swift frontend forwards it to Clang.
+      unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+        flags += ['-Xcc', flag]
+      end
+      config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+    end
+  end
+
   gu_umbrella = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities', 'GoogleUtilities-umbrella.h')
   if File.exist?(gu_umbrella)
     filtered = File.read(gu_umbrella).lines.reject do |line|
