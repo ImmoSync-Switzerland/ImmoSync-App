@@ -195,6 +195,22 @@ MAP
     end
   end
 
+  # Also surface the GTMSessionFetcher modulemap to Swift so imports like GTMSessionFetcherCore resolve.
+  gtm_modulemap = Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher', 'GTMSessionFetcher.modulemap')).first
+  if gtm_modulemap && File.exist?(gtm_modulemap)
+    installer.pods_project.targets.each do |target|
+      next unless target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GTMSessionFetcher')
+      target.build_configurations.each do |config|
+        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+        flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
+        unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+          flags += ['-Xcc', flag]
+        end
+        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+      end
+    end
+  end
+
   gu_umbrella = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities', 'GoogleUtilities-umbrella.h')
   if File.exist?(gu_umbrella)
     filtered = File.read(gu_umbrella).lines.reject do |line|
@@ -246,7 +262,8 @@ MAP
     { file: 'FirebaseDataEncoder.swift', from: '-> sending Any', to: '-> Any' },
     { file: 'UnfairLock.swift', from: /\bsending\s+/, to: '' },
     { file: 'HeartbeatsPayload.swift', from: /^(internal|package)\s+import/, to: 'import' },
-    { file: 'UnfairLock.swift', from: /^(private|package)\s+import/, to: 'import' }
+    { file: 'UnfairLock.swift', from: /^(private|package)\s+import/, to: 'import' },
+    { file: 'AuthAPNSTokenManager.swift', from: /\bsending\s+/, to: '' }
   ]
 
   patches.each do |patch|
