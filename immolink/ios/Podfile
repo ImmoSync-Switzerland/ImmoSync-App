@@ -231,6 +231,7 @@ MAP
     File.write(gtm_modulemap, <<~MAP)
 module GTMSessionFetcherCore {
   header "#{gtm_core_header}"
+  #{gtm_service_header && File.exist?(gtm_service_header) ? "header \"#{gtm_service_header}\"" : ''}
   export *
 }
 module GTMSessionFetcher {
