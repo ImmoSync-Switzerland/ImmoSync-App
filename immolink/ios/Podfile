@@ -44,6 +44,7 @@ target 'Runner' do
     'MethodSwizzler',
     'Environment',
     'Network',
+    'NSData+zlib',
     'Logger',
     'UserDefaults'
   ]
@@ -91,6 +92,7 @@ post_install do |installer|
     'MethodSwizzler' => 'GULSwizzler.h',
     'Logger' => 'GULLogger.h',
     'Network' => 'GULNetwork.h',
+    'NSData+zlib' => 'GULNSData+zlib.h',
     'UserDefaults' => 'GULUserDefaults.h'
   }
 
