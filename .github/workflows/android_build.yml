@@ -26,7 +26,8 @@ jobs:
     name: Build Release APK
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    if: always()  # Run even if cleanup fails
+    # Skip if commit message contains 'aab' (handled by the AAB workflow)
+    if: always() && (github.event_name != 'push' || !contains(github.event.head_commit.message || '', 'aab'))
     outputs:
       app_version: ${{ steps.extract_version.outputs.app_version }}
 
@@ -363,7 +364,7 @@ jobs:
     name: Publish GitHub Release
     needs: build-apk
     runs-on: ubuntu-latest
-    if: needs.build-apk.result == 'success'
+    if: needs.build-apk.result == 'success' && (github.event_name != 'push' || !contains(github.event.head_commit.message || '', 'aab'))
     permissions:
       contents: write
     steps:

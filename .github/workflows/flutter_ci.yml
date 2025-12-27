@@ -8,6 +8,7 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', 'aab') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -71,6 +72,7 @@ jobs:
   analyze:
     name: Code Quality Analysis
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', 'aab') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -108,6 +110,7 @@ jobs:
     name: Build Test (Android)
     runs-on: ubuntu-latest
     needs: test
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', 'aab') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -202,7 +202,7 @@ MAP
   gtm_modulemap = Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher', 'GTMSessionFetcher.modulemap')).first
   if gtm_modulemap && File.exist?(gtm_modulemap)
     installer.pods_project.targets.each do |target|
-      next unless target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GTMSessionFetcher')
+      next unless target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GTMSessionFetcher') || target.name.include?('GoogleSignIn')
       target.build_configurations.each do |config|
         flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
         flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
@@ -210,7 +210,7 @@ MAP
           flags += ['-Xcc', flag]
         end
         config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-        if target.name.include?('GTMSessionFetcher')
+        if target.name.include?('GTMSessionFetcher') || target.name.include?('GoogleSignIn')
           config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
           config.build_settings['DEFINES_MODULE'] = 'YES'
           config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
@@ -237,9 +237,9 @@ module GTMSessionFetcher {
 }
 MAP
     installer.pods_project.targets.each do |target|
-      next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
+      next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GoogleSignIn')
       target.build_configurations.each do |config|
-        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher')
+        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher') || target.name.include?('GoogleSignIn')
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
         flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup

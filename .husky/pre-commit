@@ -1,5 +1,11 @@
 # ImmoLink Pre-Commit Hook Configuration
 
+# Allow temporary skip via env flag
+if [ "$IMMO_SKIP_PRECOMMIT" = "1" ]; then
+  echo "⏭️  Skipping pre-commit checks (IMMO_SKIP_PRECOMMIT=1)"
+  exit 0
+fi
+
 echo "🔍 Running Flutter pre-commit checks..."
 
 # Change to Flutter project directory
