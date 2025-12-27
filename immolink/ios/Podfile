@@ -100,18 +100,19 @@ post_install do |installer|
     header_path = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', header_name)).first
     next unless header_path && File.exist?(header_path)
 
+    sanitized = subspec.gsub(/[^A-Za-z0-9_]/, '_')
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', "GoogleUtilities-#{subspec}")
     FileUtils.mkdir_p(ts_dir)
     modulemap = File.join(ts_dir, "GoogleUtilities-#{subspec}.modulemap")
     File.write(modulemap, <<~MAP)
-module GoogleUtilities_#{subspec} {
+module GoogleUtilities_#{sanitized} {
   header "#{header_path}"
   export *
 }
 MAP
 
     installer.pods_project.targets.each do |target|
-      next unless target.name == "GoogleUtilities-#{subspec}" || target.name == "GoogleUtilities_#{subspec}"
+      next unless target.name == "GoogleUtilities-#{subspec}" || target.name == "GoogleUtilities_#{subspec}" || target.name == "GoogleUtilities_#{sanitized}"
       target.build_configurations.each do |config|
         config.build_settings['MODULEMAP_FILE'] = modulemap
         config.build_settings['DEFINES_MODULE'] = 'YES'
@@ -149,7 +150,9 @@ module GoogleUtilities {
 MAP
 
   header_paths.each do |subspec, hdr|
-    modulemap_contents << "\nmodule GoogleUtilities_#{subspec} {\n  header \"#{hdr}\"\n  export *\n}\n"
+    # Module names must be valid identifiers; sanitize subspec names like "NSData+zlib".
+    mod_name = subspec.gsub(/[^A-Za-z0-9_]/, '_')
+    modulemap_contents << "\nmodule GoogleUtilities_#{mod_name} {\n  header \"#{hdr}\"\n  export *\n}\n"
   end
 
   File.write(gu_modulemap, modulemap_contents)
