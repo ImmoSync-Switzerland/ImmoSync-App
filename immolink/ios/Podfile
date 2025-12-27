@@ -162,6 +162,21 @@ MAP
     end
   end
 
+  # Ensure the umbrella header referenced by GoogleUtilities.modulemap actually exists, even if
+  # CocoaPods skipped generating it (has happened when we override modulemaps). We synthesize a
+  # minimal umbrella that pulls in the known GoogleUtilities headers.
+  gu_umbrella_path = File.join(gu_ts_dir, 'GoogleUtilities-umbrella.h')
+  unless File.exist?(gu_umbrella_path)
+    headers = gu_subspecs.values.map do |header_name|
+      Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', header_name)).first
+    end.compact
+    File.open(gu_umbrella_path, 'w') do |f|
+      f.puts '#ifdef __OBJC__'
+      headers.each { |hdr| f.puts "#import \"#{hdr}\"" }
+      f.puts '#endif'
+    end
+  end
+
   # Propagate the consolidated modulemap to downstream Swift consumers (e.g., FirebaseAuth) so
   # imports like GoogleUtilities_Environment resolve even when the GoogleUtilities targets are
   # built as static frameworks.
