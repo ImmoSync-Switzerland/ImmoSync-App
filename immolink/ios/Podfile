@@ -38,6 +38,9 @@ target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
+  # Force-install GTMSessionFetcher Core subspec so the GTMSessionFetcherCore module is available to FirebaseAuth.
+  pod 'GTMSessionFetcher/Core'
+
   # Ensure GoogleUtilities is built with a module and all required swizzler bits.
   pod 'GoogleUtilities', '8.1.0', :subspecs => [
     'AppDelegateSwizzler',
@@ -76,8 +79,8 @@ post_install do |installer|
       flags << '-enable-experimental-feature' << 'AccessLevelOnImport'
       config.build_settings['OTHER_SWIFT_FLAGS'] = flags
 
-      # FirebaseAuth imports GoogleUtilities_AppDelegateSwizzler; ensure GoogleUtilities targets define a module.
-      if target.name.include?('GoogleUtilities')
+      # Ensure modules are emitted for GoogleUtilities and GTMSessionFetcher pods.
+      if target.name.include?('GoogleUtilities') || target.name.include?('GTMSessionFetcher')
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
       end
@@ -207,6 +210,46 @@ MAP
           flags += ['-Xcc', flag]
         end
         config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+        if target.name.include?('GTMSessionFetcher')
+          config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+        end
+      end
+    end
+  end
+
+  # If CocoaPods did not generate a GTMSessionFetcher modulemap, synthesize one to expose GTMSessionFetcherCore.
+  unless gtm_modulemap && File.exist?(gtm_modulemap)
+    gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
+    gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first || gtm_header
+    if gtm_header && File.exist?(gtm_header)
+      ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
+      FileUtils.mkdir_p(ts_dir)
+      gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher.modulemap')
+      File.write(gtm_modulemap, <<~MAP)
+module GTMSessionFetcherCore {
+  header "#{gtm_core_header}"
+  export *
+}
+module GTMSessionFetcher {
+  header "#{gtm_header}"
+  export *
+}
+MAP
+      installer.pods_project.targets.each do |target|
+        next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
+        target.build_configurations.each do |config|
+          config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher')
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+          flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+          flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
+          unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+            flags += ['-Xcc', flag]
+          end
+          config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+        end
       end
     end
   end
