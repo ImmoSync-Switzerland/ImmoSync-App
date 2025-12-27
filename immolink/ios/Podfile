@@ -91,6 +91,7 @@ post_install do |installer|
   # Ensure dedicated modulemaps exist for GoogleUtilities subspecs Firebase imports with underscore modules.
   gu_subspecs = {
     'AppDelegateSwizzler' => ['GULAppDelegateSwizzler.h'],
+    'SceneDelegateSwizzler' => ['GULSceneDelegateSwizzler.h'],
     'Environment' => ['GULEnvironment.h', 'GULAppEnvironmentUtil.h', 'GULAppEnvironmentUtil_Private.h'],
     'MethodSwizzler' => ['GULSwizzler.h'],
     'Logger' => ['GULLogger.h'],
@@ -222,6 +223,7 @@ MAP
   # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
   gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
   gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first || gtm_header
+  gtm_service_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherService.h')).first
   if gtm_header && File.exist?(gtm_header)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
     FileUtils.mkdir_p(ts_dir)
@@ -233,6 +235,7 @@ module GTMSessionFetcherCore {
 }
 module GTMSessionFetcher {
   header "#{gtm_header}"
+  #{gtm_service_header && File.exist?(gtm_service_header) ? "header \"#{gtm_service_header}\"" : ''}
   export *
 }
 MAP
@@ -282,7 +285,7 @@ module GoogleUtilities_AppDelegateSwizzler {
 MAP
 
     installer.pods_project.targets.each do |target|
-      next unless target.name == 'GoogleUtilities-AppDelegateSwizzler'
+      next unless target.name == "GoogleUtilities-AppDelegateSwizzler" || target.name == "GoogleUtilities-SceneDelegateSwizzler"
       target.build_configurations.each do |config|
         config.build_settings['MODULEMAP_FILE'] = swizzler_modulemap
         config.build_settings['DEFINES_MODULE'] = 'YES'
@@ -296,6 +299,29 @@ MAP
       File.write(gu_umbrella, filtered.join)
     end
 
+  end
+
+  # Ensure a dedicated modulemap exists for GoogleUtilities_SceneDelegateSwizzler when present.
+  scene_swizzler_header = resolve_header.call(['GULSceneDelegateSwizzler.h'])
+  if scene_swizzler_header && File.exist?(scene_swizzler_header)
+    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-SceneDelegateSwizzler')
+    FileUtils.mkdir_p(ts_dir)
+    scene_swizzler_modulemap = File.join(ts_dir, 'GoogleUtilities-SceneDelegateSwizzler.modulemap')
+    File.write(scene_swizzler_modulemap, <<~MAP)
+module GoogleUtilities_SceneDelegateSwizzler {
+  header "#{scene_swizzler_header}"
+  export *
+}
+MAP
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'GoogleUtilities-SceneDelegateSwizzler'
+      target.build_configurations.each do |config|
+        config.build_settings['MODULEMAP_FILE'] = scene_swizzler_modulemap
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+      end
+    end
   end
 
   # Patch Firebase pods to strip Swift 6-only syntax that Xcode 15.4 cannot compile.

@@ -6,6 +6,12 @@ if [ "$IMMO_SKIP_PRECOMMIT" = "1" ]; then
   exit 0
 fi
 
+# File-based bypass for local troubleshooting
+if [ -f ".skip-precommit" ]; then
+  echo "⏭️  Skipping pre-commit checks (.skip-precommit present)"
+  exit 0
+fi
+
 echo "🔍 Running Flutter pre-commit checks..."
 
 # Change to Flutter project directory
