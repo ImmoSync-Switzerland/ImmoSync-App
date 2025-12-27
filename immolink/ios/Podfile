@@ -87,17 +87,25 @@ post_install do |installer|
 
   # Ensure dedicated modulemaps exist for GoogleUtilities subspecs Firebase imports with underscore modules.
   gu_subspecs = {
-    'AppDelegateSwizzler' => 'GULAppDelegateSwizzler.h',
-    'Environment' => 'GULEnvironment.h',
-    'MethodSwizzler' => 'GULSwizzler.h',
-    'Logger' => 'GULLogger.h',
-    'Network' => 'GULNetwork.h',
-    'NSData+zlib' => 'GULNSData+zlib.h',
-    'UserDefaults' => 'GULUserDefaults.h'
+    'AppDelegateSwizzler' => ['GULAppDelegateSwizzler.h'],
+    'Environment' => ['GULEnvironment.h', 'GULAppEnvironmentUtil.h', 'GULAppEnvironmentUtil_Private.h'],
+    'MethodSwizzler' => ['GULSwizzler.h'],
+    'Logger' => ['GULLogger.h'],
+    'Network' => ['GULNetwork.h'],
+    'NSData+zlib' => ['GULNSData+zlib.h'],
+    'UserDefaults' => ['GULUserDefaults.h']
   }
 
-  gu_subspecs.each do |subspec, header_name|
-    header_path = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', header_name)).first
+  resolve_header = lambda do |names|
+    Array(names).each do |name|
+      path = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', name)).first
+      return path if path && File.exist?(path)
+    end
+    nil
+  end
+
+  gu_subspecs.each do |subspec, header_names|
+    header_path = resolve_header.call(header_names)
     next unless header_path && File.exist?(header_path)
 
     sanitized = subspec.gsub(/[^A-Za-z0-9_]/, '_')
@@ -129,8 +137,8 @@ MAP
   FileUtils.mkdir_p(gu_ts_dir)
 
   header_paths = {}
-  gu_subspecs.each do |subspec, header_name|
-    header_path = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', header_name)).first
+  gu_subspecs.each do |subspec, header_names|
+    header_path = resolve_header.call(header_names)
     header_paths[subspec] = header_path if header_path && File.exist?(header_path)
   end
 
