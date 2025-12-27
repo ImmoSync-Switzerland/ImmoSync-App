@@ -119,61 +119,49 @@ MAP
 
   end
 
-  # Ensure AppDelegateSwizzler modulemap is discoverable by Swift imports.
+  # Build a canonical modulemap + umbrella header for all GoogleUtilities subspecs so Swift imports
+  # never depend on CocoaPods' generated files (which can be skipped when we override modulemaps).
   gu_ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities')
   gu_modulemap = File.join(gu_ts_dir, 'GoogleUtilities.modulemap')
   FileUtils.mkdir_p(gu_ts_dir)
 
-  swizzler_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULAppDelegateSwizzler.h')).first
-  if swizzler_header && File.exist?(swizzler_header)
-    contents = File.exist?(gu_modulemap) ? File.read(gu_modulemap) : ""
-    unless contents.include?('module GoogleUtilities_AppDelegateSwizzler')
-      File.open(gu_modulemap, 'a') do |f|
-        f.write("\nmodule GoogleUtilities_AppDelegateSwizzler {\n  header \"#{swizzler_header}\"\n  export *\n}\n")
-      end
-    end
-
-    installer.pods_project.targets.each do |target|
-      next unless target.name.start_with?('GoogleUtilities')
-      target.build_configurations.each do |config|
-        config.build_settings['MODULEMAP_FILE'] = gu_modulemap
-      end
-    end
-
-    installer.pods_project.targets.each do |target|
-      next unless target.name.include?('GoogleUtilities')
-      target.build_configurations.each do |config|
-        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-        flag = "-fmodule-map-file=#{Shellwords.escape(gu_modulemap)}"
-        flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-      end
-    end
+  header_paths = {}
+  gu_subspecs.each do |subspec, header_name|
+    header_path = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', header_name)).first
+    header_paths[subspec] = header_path if header_path && File.exist?(header_path)
   end
 
-  # Ensure Environment module is declared alongside AppDelegateSwizzler for Swift imports.
-  env_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULEnvironment.h')).first
-  if env_header && File.exist?(env_header)
-    contents = File.exist?(gu_modulemap) ? File.read(gu_modulemap) : ""
-    unless contents.include?('module GoogleUtilities_Environment')
-      File.open(gu_modulemap, 'a') do |f|
-        f.write("\nmodule GoogleUtilities_Environment {\n  header \"#{env_header}\"\n  export *\n}\n")
-      end
-    end
-  end
-
-  # Ensure the umbrella header referenced by GoogleUtilities.modulemap actually exists, even if
-  # CocoaPods skipped generating it (has happened when we override modulemaps). We synthesize a
-  # minimal umbrella that pulls in the known GoogleUtilities headers.
   gu_umbrella_path = File.join(gu_ts_dir, 'GoogleUtilities-umbrella.h')
-  unless File.exist?(gu_umbrella_path)
-    headers = gu_subspecs.values.map do |header_name|
-      Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', header_name)).first
-    end.compact
-    File.open(gu_umbrella_path, 'w') do |f|
-      f.puts '#ifdef __OBJC__'
-      headers.each { |hdr| f.puts "#import \"#{hdr}\"" }
-      f.puts '#endif'
+  File.open(gu_umbrella_path, 'w') do |f|
+    f.puts '#ifdef __OBJC__'
+    header_paths.values.compact.uniq.each { |hdr| f.puts "#import \"#{hdr}\"" }
+    f.puts '#endif'
+  end
+
+  modulemap_contents = <<~MAP
+module GoogleUtilities {
+  umbrella header "#{gu_umbrella_path}"
+  export *
+  module * { export * }
+}
+MAP
+
+  header_paths.each do |subspec, hdr|
+    modulemap_contents << "\nmodule GoogleUtilities_#{subspec} {\n  header \"#{hdr}\"\n  export *\n}\n"
+  end
+
+  File.write(gu_modulemap, modulemap_contents)
+
+  installer.pods_project.targets.each do |target|
+    next unless target.name.include?('GoogleUtilities')
+    target.build_configurations.each do |config|
+      config.build_settings['MODULEMAP_FILE'] = gu_modulemap
+      config.build_settings['DEFINES_MODULE'] = 'YES'
+      config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+      flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+      flag = "-fmodule-map-file=#{Shellwords.escape(gu_modulemap)}"
+      flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+      config.build_settings['OTHER_SWIFT_FLAGS'] = flags
     end
   end
 
