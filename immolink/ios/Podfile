@@ -219,15 +219,14 @@ MAP
     end
   end
 
-  # If CocoaPods did not generate a GTMSessionFetcher modulemap, synthesize one to expose GTMSessionFetcherCore.
-  unless gtm_modulemap && File.exist?(gtm_modulemap)
-    gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
-    gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first || gtm_header
-    if gtm_header && File.exist?(gtm_header)
-      ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
-      FileUtils.mkdir_p(ts_dir)
-      gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher.modulemap')
-      File.write(gtm_modulemap, <<~MAP)
+  # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
+  gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
+  gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first || gtm_header
+  if gtm_header && File.exist?(gtm_header)
+    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
+    FileUtils.mkdir_p(ts_dir)
+    gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher-override.modulemap')
+    File.write(gtm_modulemap, <<~MAP)
 module GTMSessionFetcherCore {
   header "#{gtm_core_header}"
   export *
@@ -237,19 +236,18 @@ module GTMSessionFetcher {
   export *
 }
 MAP
-      installer.pods_project.targets.each do |target|
-        next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
-        target.build_configurations.each do |config|
-          config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher')
-          config.build_settings['DEFINES_MODULE'] = 'YES'
-          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-          flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-          flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
-          unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-            flags += ['-Xcc', flag]
-          end
-          config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+    installer.pods_project.targets.each do |target|
+      next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
+      target.build_configurations.each do |config|
+        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher')
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+        flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
+        unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+          flags += ['-Xcc', flag]
         end
+        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
       end
     end
   end
