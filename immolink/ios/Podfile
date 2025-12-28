@@ -44,6 +44,7 @@ target 'Runner' do
   # Ensure GoogleUtilities is built with a module and all required swizzler bits.
   pod 'GoogleUtilities', '8.1.0', :subspecs => [
     'AppDelegateSwizzler',
+    'SceneDelegateSwizzler',
     'MethodSwizzler',
     'Environment',
     'Network',
