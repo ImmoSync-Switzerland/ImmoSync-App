@@ -244,7 +244,8 @@ MAP
     installer.pods_project.targets.each do |target|
       next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GoogleSignIn')
       target.build_configurations.each do |config|
-        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher') || target.name.include?('GoogleSignIn')
+        # Only force the modulemap on GTMSessionFetcher targets; GoogleSignIn should keep its own modulemap to avoid relocation warnings.
+        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher')
         config.build_settings['DEFINES_MODULE'] = 'YES'
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
         flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
