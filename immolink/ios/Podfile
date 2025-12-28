@@ -42,7 +42,8 @@ target 'Runner' do
   pod 'GTMSessionFetcher/Core'
 
   # Ensure GoogleUtilities is built with a module and all required swizzler bits.
-  pod 'GoogleUtilities', '8.1.0', :subspecs => [
+  # Use latest GoogleUtilities compatible with Firebase (removes missing subspec issues)
+  pod 'GoogleUtilities', :subspecs => [
     'AppDelegateSwizzler',
     'SceneDelegateSwizzler',
     'MethodSwizzler',
