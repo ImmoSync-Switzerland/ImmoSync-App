@@ -221,6 +221,8 @@ MAP
       end
     end
 
+  end
+
   # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
   gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
   gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first || gtm_header
