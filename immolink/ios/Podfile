@@ -329,6 +329,45 @@ MAP
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
       end
     end
+
+    # Ensure the consolidated GoogleUtilities modulemap/umbrella now includes the SceneDelegateSwizzler header (shim or real).
+    header_paths['SceneDelegateSwizzler'] = scene_swizzler_header
+    gu_umbrella_path = File.join(gu_ts_dir, 'GoogleUtilities-umbrella.h')
+    File.open(gu_umbrella_path, 'w') do |f|
+      f.puts '#ifdef __OBJC__'
+      header_paths.values.compact.uniq.each { |hdr| f.puts "#import \"#{hdr}\"" }
+      f.puts '#endif'
+    end
+
+    modulemap_contents = <<~MAP
+module GoogleUtilities {
+  umbrella header "#{gu_umbrella_path}"
+  export *
+  module * { export * }
+}
+MAP
+
+    header_paths.each do |subspec, hdr|
+      mod_name = subspec.gsub(/[^A-Za-z0-9_]/, '_')
+      modulemap_contents << "\nmodule GoogleUtilities_#{mod_name} {\n  header \"#{hdr}\"\n  export *\n}\n"
+    end
+
+    File.write(gu_modulemap, modulemap_contents)
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name.include?('GoogleUtilities') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
+      target.build_configurations.each do |config|
+        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+        flag = "-fmodule-map-file=#{Shellwords.escape(gu_modulemap)}"
+        flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+        if target.name.include?('GoogleUtilities')
+          config.build_settings['MODULEMAP_FILE'] = gu_modulemap
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+        end
+      end
+    end
   end
 
   # If the SceneDelegateSwizzler header (real or shim) exists, also expose it through the
