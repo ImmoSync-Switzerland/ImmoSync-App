@@ -292,8 +292,20 @@ MAP
 
   end
 
-  # Ensure a dedicated modulemap exists for GoogleUtilities_SceneDelegateSwizzler when present.
+  # Ensure a dedicated modulemap exists for GoogleUtilities_SceneDelegateSwizzler. If the header is missing (older GoogleUtilities), synthesize a shim.
   scene_swizzler_header = resolve_header.call(['GULSceneDelegateSwizzler.h'])
+  unless scene_swizzler_header && File.exist?(scene_swizzler_header)
+    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-SceneDelegateSwizzler')
+    FileUtils.mkdir_p(ts_dir)
+    scene_swizzler_header = File.join(ts_dir, 'GULSceneDelegateSwizzler.h')
+    File.write(scene_swizzler_header, <<~HDR)
+#import <Foundation/Foundation.h>
+// Shim header to satisfy FirebaseAuth when GoogleUtilities omits GULSceneDelegateSwizzler.
+@interface GULSceneDelegateSwizzler : NSObject
+@end
+HDR
+  end
+
   if scene_swizzler_header && File.exist?(scene_swizzler_header)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-SceneDelegateSwizzler')
     FileUtils.mkdir_p(ts_dir)
