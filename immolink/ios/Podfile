@@ -270,16 +270,20 @@ MAP
 
   # Ensure a dedicated modulemap exists for GoogleUtilities_AppDelegateSwizzler and avoid module cycles.
   swizzler_header = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULAppDelegateSwizzler.h')).first
+  # Grab SceneDelegateSwizzler header if present so the module exposes both symbols to Swift.
+  scene_swizzler_header_for_app_delegate = Dir.glob(File.join(installer.sandbox.root, 'GoogleUtilities', '**', 'GULSceneDelegateSwizzler.h')).first
   if swizzler_header && File.exist?(swizzler_header)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler')
     FileUtils.mkdir_p(ts_dir)
     swizzler_modulemap = File.join(ts_dir, 'GoogleUtilities-AppDelegateSwizzler.modulemap')
-    File.write(swizzler_modulemap, <<~MAP)
+    modulemap_body = <<~MAP
 module GoogleUtilities_AppDelegateSwizzler {
   header "#{swizzler_header}"
+  #{scene_swizzler_header_for_app_delegate && File.exist?(scene_swizzler_header_for_app_delegate) ? "header \"#{scene_swizzler_header_for_app_delegate}\"" : ''}
   export *
 }
 MAP
+    File.write(swizzler_modulemap, modulemap_body)
 
     installer.pods_project.targets.each do |target|
       next unless target.name == "GoogleUtilities-AppDelegateSwizzler" || target.name == "GoogleUtilities-SceneDelegateSwizzler"
@@ -325,6 +329,19 @@ MAP
         config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
       end
     end
+  end
+
+  # If the SceneDelegateSwizzler header (real or shim) exists, also expose it through the
+  # AppDelegateSwizzler modulemap so FirebaseAuth's Swift source can see the symbol.
+  app_delegate_modulemap = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler', 'GoogleUtilities-AppDelegateSwizzler.modulemap')
+  if swizzler_header && File.exist?(swizzler_header) && scene_swizzler_header && File.exist?(scene_swizzler_header) && File.exist?(app_delegate_modulemap)
+    File.write(app_delegate_modulemap, <<~MAP)
+module GoogleUtilities_AppDelegateSwizzler {
+  header "#{swizzler_header}"
+  header "#{scene_swizzler_header}"
+  export *
+}
+MAP
   end
 
   # Patch Firebase pods to strip Swift 6-only syntax that Xcode 15.4 cannot compile.
