@@ -296,6 +296,22 @@ jobs:
           pod --version
           pod install --repo-update
 
+      - name: Dump GoogleUtilities modulemaps (debug)
+        if: steps.prereqs.outputs.ready == 'true'
+        working-directory: immolink/ios
+        run: |
+          set -euo pipefail
+          echo "== GoogleUtilities.modulemap =="
+          cat Pods/Target\ Support\ Files/GoogleUtilities/GoogleUtilities.modulemap || true
+          echo "== SceneDelegateSwizzler modulemaps =="
+          find Pods/Target\ Support\ Files -iname '*SceneDelegateSwizzler*.modulemap' -print -exec cat {} \; || true
+          echo "== AppDelegateSwizzler modulemaps =="
+          find Pods/Target\ Support\ Files -iname '*AppDelegateSwizzler*.modulemap' -print -exec cat {} \; || true
+          echo "== Grep for GULSceneDelegateSwizzler across Target Support Files =="
+          grep -R "GULSceneDelegateSwizzler" "Pods/Target Support Files" -n || true
+          echo "== Grep for GULSceneDelegateSwizzler across Pods/GoogleUtilities =="
+          grep -R "GULSceneDelegateSwizzler" Pods/GoogleUtilities -n || true
+
       - name: Verify GoogleUtilities AppDelegateSwizzler module
         if: steps.prereqs.outputs.ready == 'true'
         working-directory: immolink/ios
