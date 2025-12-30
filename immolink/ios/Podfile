@@ -227,14 +227,15 @@ MAP
     gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher-override.modulemap')
     # Build modulemap: define only GTMSessionFetcher with headers; alias GTMSessionFetcherCore to it via export_as to avoid duplicate definitions.
     service_header = gtm_service_header if gtm_service_header && File.exist?(gtm_service_header)
+    # Compile headers only once via GTMSessionFetcherCore; GTMSessionFetcher just re-exports Core to avoid duplicate interface definitions.
     gtm_modulemap_body = <<~MAP
-module GTMSessionFetcher {
+module GTMSessionFetcherCore {
   header "#{gtm_header}"
   #{service_header ? "header \"#{service_header}\"" : ''}
   export *
 }
-module GTMSessionFetcherCore {
-  export GTMSessionFetcher
+module GTMSessionFetcher {
+  export GTMSessionFetcherCore
 }
 MAP
     File.write(gtm_modulemap, gtm_modulemap_body)
@@ -250,9 +251,14 @@ MAP
           config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
           config.build_settings['DEFINES_MODULE'] = 'YES'
           config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-          # Force all GTM-related targets (including Core subspec) to emit the same module name to avoid duplicate PCM/definitions.
-          config.build_settings['PRODUCT_MODULE_NAME'] = 'GTMSessionFetcher'
-          config.build_settings['SWIFT_MODULE_NAME'] = 'GTMSessionFetcher'
+          # Keep distinct module names so only Core builds headers; GTMSessionFetcher re-exports Core via modulemap.
+          if target.name.include?('Core')
+            config.build_settings['PRODUCT_MODULE_NAME'] = 'GTMSessionFetcherCore'
+            config.build_settings['SWIFT_MODULE_NAME'] = 'GTMSessionFetcherCore'
+          else
+            config.build_settings['PRODUCT_MODULE_NAME'] = 'GTMSessionFetcher'
+            config.build_settings['SWIFT_MODULE_NAME'] = 'GTMSessionFetcher'
+          end
         end
         if needs_flag
           flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
