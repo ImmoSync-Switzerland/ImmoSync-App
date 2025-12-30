@@ -353,58 +353,7 @@ module GoogleUtilities_AppDelegateSwizzler {
 MAP
   end
 
-  # Inject minimal modulemaps for FirebaseAuth Swift sources.
-  # SceneDelegateSwizzler: ensure a header (real or shim) and pass a modulemap to consumers.
-  scene_header = resolve_header.call(['GULSceneDelegateSwizzler.h'])
-  ts_scene = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-SceneDelegateSwizzler')
-  FileUtils.mkdir_p(ts_scene)
-  scene_header ||= File.join(ts_scene, 'GULSceneDelegateSwizzler.h')
-  unless File.exist?(scene_header)
-    File.write(scene_header, <<~HDR)
-@import Foundation;
-@interface GULSceneDelegateSwizzler : NSObject
-@end
-HDR
-  end
-  scene_modulemap = File.join(ts_scene, 'GoogleUtilities-SceneDelegateSwizzler.modulemap')
-  File.write(scene_modulemap, <<~MAP)
-module GoogleUtilities_SceneDelegateSwizzler {
-  header "#{scene_header}"
-  export *
-}
-MAP
-
-  # GTMSessionFetcherCore alias modulemap so Swift can import Core as GTMSessionFetcher.
-  gtm_header_any = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
-  if gtm_header_any && File.exist?(gtm_header_any)
-    ts_gtm = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
-    FileUtils.mkdir_p(ts_gtm)
-    gtm_core_alias = File.join(ts_gtm, 'GTMSessionFetcherCore.alias.modulemap')
-    File.write(gtm_core_alias, <<~MAP)
-module GTMSessionFetcherCore {
-  export_as GTMSessionFetcher
-}
-MAP
-
-    installer.pods_project.targets.each do |target|
-      needs_scene = target.name.start_with?('Firebase') || target.name.start_with?('Pods-')
-      needs_gtm = target.name.start_with?('Firebase') || target.name.start_with?('Pods-') || target.name.include?('GTMSessionFetcher')
-      target.build_configurations.each do |config|
-        if needs_scene
-          flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-          flag = "-fmodule-map-file=#{Shellwords.escape(scene_modulemap)}"
-          flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-          config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-        end
-        if needs_gtm
-          flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-          flag = "-fmodule-map-file=#{Shellwords.escape(gtm_core_alias)}"
-          flags += ['-Xcc', flag] unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-          config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-        end
-      end
-    end
-  end
+  # (SceneDelegateSwizzler and GTMSessionFetcherCore modulemap shims removed)
 
   # Patch Firebase pods to strip Swift 6-only syntax that Xcode 15.4 cannot compile.
   patches = [
