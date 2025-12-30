@@ -234,7 +234,7 @@ module GTMSessionFetcher {
   export *
 }
 module GTMSessionFetcherCore {
-  export_as GTMSessionFetcher
+  export GTMSessionFetcher
 }
 MAP
     File.write(gtm_modulemap, gtm_modulemap_body)
