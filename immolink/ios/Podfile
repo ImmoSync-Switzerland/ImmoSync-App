@@ -200,27 +200,17 @@ MAP
     end
   end
 
-  # Also surface the GTMSessionFetcher modulemap to Swift so imports like GTMSessionFetcherCore resolve.
+  # Keep the GTMSessionFetcher modulemap scoped to GTM targets only to avoid duplicate imports.
   gtm_modulemap = Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher', 'GTMSessionFetcher.modulemap')).first
   if gtm_modulemap && File.exist?(gtm_modulemap)
     installer.pods_project.targets.each do |target|
-      # Only propagate the GTM modulemap to Pods-/Firebase/GTMSessionFetcher; leave GoogleSignIn untouched to avoid relocation warnings.
-      next unless target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GTMSessionFetcher')
+      next unless target.name.include?('GTMSessionFetcher')
       target.build_configurations.each do |config|
-        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-        flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
-        unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-          flags += ['-Xcc', flag]
-        end
-        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-        if target.name.include?('GTMSessionFetcher')
-          config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
-          config.build_settings['DEFINES_MODULE'] = 'YES'
-          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-        end
+        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
       end
     end
-
   end
 
   # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
@@ -246,16 +236,18 @@ MAP
     installer.pods_project.targets.each do |target|
       next unless target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase') || target.name.include?('GoogleSignIn')
       target.build_configurations.each do |config|
-        # Only force the modulemap on GTMSessionFetcher targets; GoogleSignIn should keep its own modulemap to avoid relocation warnings.
-        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap if target.name.include?('GTMSessionFetcher')
-        config.build_settings['DEFINES_MODULE'] = 'YES'
-        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-        flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
-        unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-          flags += ['-Xcc', flag]
+        # Only force the modulemap on GTMSessionFetcher targets; do not inject into unrelated targets to avoid duplicate headers.
+        if target.name.include?('GTMSessionFetcher')
+          config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+          flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+          flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
+          unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+            flags += ['-Xcc', flag]
+          end
+          config.build_settings['OTHER_SWIFT_FLAGS'] = flags
         end
-        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
       end
     end
   end
