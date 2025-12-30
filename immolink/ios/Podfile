@@ -38,8 +38,8 @@ target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
-  # Force-install GTMSessionFetcher Core subspec so the GTMSessionFetcherCore module is available to FirebaseAuth.
-  pod 'GTMSessionFetcher/Core'
+  # Use GTMSessionFetcher default pod (no custom modulemap overrides).
+  pod 'GTMSessionFetcher'
 
   # Ensure GoogleUtilities is built with a module and all required swizzler bits.
   # Use latest GoogleUtilities compatible with Firebase (removes missing subspec issues)
@@ -200,69 +200,7 @@ MAP
     end
   end
 
-  # Disable CocoaPods' auto modulemap for GTMSessionFetcher to avoid double includes; we'll set ours below.
-  installer.pods_project.targets.each do |target|
-    next unless target.name.include?('GTMSessionFetcher')
-    target.build_configurations.each do |config|
-      config.build_settings['MODULEMAP_FILE'] = '$(SRCROOT)/nonexistent' # neutralize default
-    end
-  end
-
-  # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
-  gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
-  # Prefer the public header paths first (CocoaPods exposes this reliably to downstream targets)
-  gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'Headers', 'Public', 'GTMSessionFetcher', 'GTMSessionFetcherCore.h')).first
-  gtm_service_header = Dir.glob(File.join(installer.sandbox.root, 'Headers', 'Public', 'GTMSessionFetcher', 'GTMSessionFetcherService.h')).first
-  # Otherwise try the source path
-  gtm_core_header ||= Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first
-  gtm_service_header ||= Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherService.h')).first
-  # If still missing, try sibling of GTMSessionFetcher.h
-  if (!gtm_core_header || !File.exist?(gtm_core_header)) && gtm_header
-    candidate = gtm_header.sub('GTMSessionFetcher.h', 'GTMSessionFetcherCore.h')
-    gtm_core_header = candidate if File.exist?(candidate)
-  end
-  if gtm_header && File.exist?(gtm_header)
-    ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
-    FileUtils.mkdir_p(ts_dir)
-    gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher-override.modulemap')
-    # Build modulemap: define only GTMSessionFetcher with headers; alias GTMSessionFetcherCore to it via export_as to avoid duplicate definitions.
-    service_header = gtm_service_header if gtm_service_header && File.exist?(gtm_service_header)
-    # Single module only to avoid duplicate interfaces. Both targets will emit the same module name.
-    gtm_modulemap_body = <<~MAP
-module GTMSessionFetcher {
-  header "#{gtm_header}"
-  #{service_header ? "header \"#{service_header}\"" : ''}
-  export *
-}
-MAP
-    File.write(gtm_modulemap, gtm_modulemap_body)
-
-    # Overwrite the default CocoaPods modulemap too, so any fallback uses the same single-module definition.
-    default_gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher.modulemap')
-    File.write(default_gtm_modulemap, gtm_modulemap_body)
-    # Make the override modulemap visible to GTM and to Swift consumers that import GTMSessionFetcherCore (e.g., FirebaseAuth)
-    installer.pods_project.targets.each do |target|
-      needs_flag = target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
-      target.build_configurations.each do |config|
-        if target.name.include?('GTMSessionFetcher')
-          config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
-          config.build_settings['DEFINES_MODULE'] = 'YES'
-          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-          # Force all GTM targets (including Core) to the single module name.
-          config.build_settings['PRODUCT_MODULE_NAME'] = 'GTMSessionFetcher'
-          config.build_settings['SWIFT_MODULE_NAME'] = 'GTMSessionFetcher'
-        end
-        if needs_flag
-          flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
-          flag = "-fmodule-map-file=#{Shellwords.escape(gtm_modulemap)}"
-          unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
-            flags += ['-Xcc', flag]
-          end
-          config.build_settings['OTHER_SWIFT_FLAGS'] = flags
-        end
-      end
-    end
-  end
+  # GTMSessionFetcher: use upstream modulemaps without overrides.
 
   installer.pods_project.targets.each do |target|
     next unless target.name.include?('GoogleUtilities')
