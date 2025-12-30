@@ -200,19 +200,18 @@ MAP
     end
   end
 
-  # Provide a lightweight alias modulemap for GTMSessionFetcherCore so Swift imports resolve without
-  # touching the upstream GTMSessionFetcher modulemap (avoids duplicate header compilations).
-  gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
-  if gtm_header && File.exist?(gtm_header)
+  # Provide an alias modulemap so Swift imports of GTMSessionFetcherCore resolve to GTMSessionFetcher without touching upstream modulemaps.
+  gtm_header_any = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
+  if gtm_header_any && File.exist?(gtm_header_any)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
     FileUtils.mkdir_p(ts_dir)
-    gtm_core_alias = File.join(ts_dir, 'GTMSessionFetcherCore.modulemap')
+    gtm_core_alias = File.join(ts_dir, 'GTMSessionFetcherCore.alias.modulemap')
     File.write(gtm_core_alias, <<~MAP)
 module GTMSessionFetcherCore {
   export_as GTMSessionFetcher
 }
 MAP
-    # Make the alias modulemap visible to consumers that import GTMSessionFetcherCore.
+
     installer.pods_project.targets.each do |target|
       needs_flag = target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
       next unless needs_flag
@@ -226,6 +225,8 @@ MAP
       end
     end
   end
+
+  # (legacy alias block removed)
 
   # GTMSessionFetcher: use upstream modulemaps without overrides.
 
