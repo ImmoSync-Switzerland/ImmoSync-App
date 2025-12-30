@@ -200,14 +200,21 @@ MAP
     end
   end
 
-  # Provide an alias modulemap so Swift imports of GTMSessionFetcherCore resolve to GTMSessionFetcher without touching upstream modulemaps.
+  # Provide a real alias modulemap so Swift imports of GTMSessionFetcherCore see the same headers as GTMSessionFetcher.
   gtm_header_any = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
   if gtm_header_any && File.exist?(gtm_header_any)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
     FileUtils.mkdir_p(ts_dir)
+
+    # Prefer the generated umbrella header so the module exposes the full surface area.
+    gtm_umbrella = Dir.glob(File.join(ts_dir, 'GTMSessionFetcher-umbrella.h')).first
+    gtm_header = gtm_umbrella || gtm_header_any
+
     gtm_core_alias = File.join(ts_dir, 'GTMSessionFetcherCore.alias.modulemap')
     File.write(gtm_core_alias, <<~MAP)
 module GTMSessionFetcherCore {
+  header "#{gtm_header}"
+  export *
   export_as GTMSessionFetcher
 }
 MAP
