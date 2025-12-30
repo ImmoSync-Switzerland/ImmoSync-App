@@ -364,6 +364,27 @@ MAP
 
   # (SceneDelegateSwizzler and GTMSessionFetcherCore modulemap shims removed)
 
+  # Inject a Swift-side shim for GULSceneDelegateSwizzler if the module is not available at compile time.
+  auth_swift = Dir.glob(File.join(installer.sandbox.root, 'FirebaseAuth', '**', 'Auth.swift')).first
+  if auth_swift && File.exist?(auth_swift)
+    auth_contents = File.read(auth_swift)
+    marker = '// [Podfile] GULSceneDelegateSwizzler shim'
+    unless auth_contents.include?(marker)
+      shim = <<~SWIFT
+#{marker}
+#if canImport(GoogleUtilities_SceneDelegateSwizzler)
+import GoogleUtilities_SceneDelegateSwizzler
+#else
+class GULSceneDelegateSwizzler {
+  static func swizzleIfPossible() {}
+}
+#endif
+SWIFT
+      auth_contents = auth_contents.sub("import Foundation\n", "import Foundation\n#{shim}\n")
+      File.write(auth_swift, auth_contents)
+    end
+  end
+
   # Patch Firebase pods to strip Swift 6-only syntax that Xcode 15.4 cannot compile.
   patches = [
     { file: 'FirebaseDataEncoder.swift', from: '-> sending Any', to: '-> Any' },
