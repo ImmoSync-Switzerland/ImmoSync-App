@@ -227,7 +227,7 @@ MAP
     gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher-override.modulemap')
     # Build modulemap: define only GTMSessionFetcher with headers; alias GTMSessionFetcherCore to it via export_as to avoid duplicate definitions.
     service_header = gtm_service_header if gtm_service_header && File.exist?(gtm_service_header)
-    File.write(gtm_modulemap, <<~MAP)
+    gtm_modulemap_body = <<~MAP
 module GTMSessionFetcher {
   header "#{gtm_header}"
   #{service_header ? "header \"#{service_header}\"" : ''}
@@ -237,6 +237,11 @@ module GTMSessionFetcherCore {
   export_as GTMSessionFetcher
 }
 MAP
+    File.write(gtm_modulemap, gtm_modulemap_body)
+
+    # Overwrite the default CocoaPods modulemap too, so any fallback uses the same single-module definition.
+    default_gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher.modulemap')
+    File.write(default_gtm_modulemap, gtm_modulemap_body)
     # Make the override modulemap visible to GTM and to Swift consumers that import GTMSessionFetcherCore (e.g., FirebaseAuth)
     installer.pods_project.targets.each do |target|
       needs_flag = target.name.include?('GTMSessionFetcher') || target.name.start_with?('Pods-') || target.name.start_with?('Firebase')
