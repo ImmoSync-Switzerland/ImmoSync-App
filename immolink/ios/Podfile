@@ -200,16 +200,11 @@ MAP
     end
   end
 
-  # Keep the GTMSessionFetcher modulemap scoped to GTM targets only to avoid duplicate imports.
-  gtm_modulemap = Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher', 'GTMSessionFetcher.modulemap')).first
-  if gtm_modulemap && File.exist?(gtm_modulemap)
-    installer.pods_project.targets.each do |target|
-      next unless target.name.include?('GTMSessionFetcher')
-      target.build_configurations.each do |config|
-        config.build_settings['MODULEMAP_FILE'] = gtm_modulemap
-        config.build_settings['DEFINES_MODULE'] = 'YES'
-        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
-      end
+  # Disable CocoaPods' auto modulemap for GTMSessionFetcher to avoid double includes; we'll set ours below.
+  installer.pods_project.targets.each do |target|
+    next unless target.name.include?('GTMSessionFetcher')
+    target.build_configurations.each do |config|
+      config.build_settings['MODULEMAP_FILE'] = '$(SRCROOT)/nonexistent' # neutralize default
     end
   end
 
