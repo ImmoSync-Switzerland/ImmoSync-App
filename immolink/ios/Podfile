@@ -225,19 +225,16 @@ MAP
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
     FileUtils.mkdir_p(ts_dir)
     gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher-override.modulemap')
-    # Build modulemap: Core uses only Core/Service headers; GTMSessionFetcher uses the main header.
-    core_header = gtm_core_header if gtm_core_header && File.exist?(gtm_core_header)
+    # Build modulemap: expose GTMSessionFetcher with main + service headers; Core simply re-exports it to avoid duplicate definitions.
     service_header = gtm_service_header if gtm_service_header && File.exist?(gtm_service_header)
-    fallback_core = gtm_header if !core_header && gtm_header && File.exist?(gtm_header)
     File.write(gtm_modulemap, <<~MAP)
-module GTMSessionFetcherCore {
-  header "#{core_header || fallback_core}"
+module GTMSessionFetcher {
+  header "#{gtm_header}"
   #{service_header ? "header \"#{service_header}\"" : ''}
   export *
 }
-module GTMSessionFetcher {
-  header "#{gtm_header}"
-  export *
+module GTMSessionFetcherCore {
+  export GTMSessionFetcher
 }
 MAP
     # Make the override modulemap visible to GTM and to Swift consumers that import GTMSessionFetcherCore (e.g., FirebaseAuth)
