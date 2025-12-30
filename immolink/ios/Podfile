@@ -215,21 +215,18 @@ MAP
 
   # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
   gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
-  gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first || gtm_header
-  gtm_service_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherService.h')).first
+  gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first
   if gtm_header && File.exist?(gtm_header)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
     FileUtils.mkdir_p(ts_dir)
     gtm_modulemap = File.join(ts_dir, 'GTMSessionFetcher-override.modulemap')
     File.write(gtm_modulemap, <<~MAP)
 module GTMSessionFetcherCore {
-  header "#{gtm_core_header}"
-  #{gtm_service_header && File.exist?(gtm_service_header) ? "header \"#{gtm_service_header}\"" : ''}
+  header "#{gtm_core_header || gtm_header}"
   export *
 }
 module GTMSessionFetcher {
   header "#{gtm_header}"
-  #{gtm_service_header && File.exist?(gtm_service_header) ? "header \"#{gtm_service_header}\"" : ''}
   export *
 }
 MAP
