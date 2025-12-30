@@ -347,6 +347,46 @@ MAP
     end
   end
 
+  # Provide a standalone shim modulemap for FirebaseAuth even if the SceneDelegateSwizzler target is missing.
+  begin
+    gen_dir = File.join(installer.sandbox.root, 'GeneratedModulemaps')
+    FileUtils.mkdir_p(gen_dir)
+    shim_header_path = File.join(gen_dir, 'GULSceneDelegateSwizzler.h')
+    source_header = scene_swizzler_header if scene_swizzler_header && File.exist?(scene_swizzler_header)
+    if source_header
+      File.write(shim_header_path, File.read(source_header))
+    else
+      File.write(shim_header_path, <<~HDR)
+@import Foundation;
+@interface GULSceneDelegateSwizzler : NSObject
+@end
+HDR
+    end
+
+    shim_modulemap = File.join(gen_dir, 'scene.modulemap')
+    File.write(shim_modulemap, <<~MAP)
+module GoogleUtilities_SceneDelegateSwizzler {
+  header "#{shim_header_path}"
+  export *
+}
+MAP
+
+    installer.pods_project.targets.each do |target|
+      needs_flag = target.name.include?('FirebaseAuth') || target.name.start_with?('Pods-') || target.name.start_with?('GoogleUtilities')
+      next unless needs_flag
+      target.build_configurations.each do |config|
+        flags = Array(config.build_settings['OTHER_SWIFT_FLAGS']).dup
+        flag = "-fmodule-map-file=#{Shellwords.escape(shim_modulemap)}"
+        unless flags.include?(flag) || (flags.include?('-Xcc') && flags.include?(flag))
+          flags += ['-Xcc', flag]
+        end
+        config.build_settings['OTHER_SWIFT_FLAGS'] = flags
+      end
+    end
+  rescue => e
+    puts "[Podfile] Failed to install SceneDelegateSwizzler shim: #{e}"
+  end
+
   # If the SceneDelegateSwizzler header (real or shim) exists, also expose it through the
   # AppDelegateSwizzler modulemap so FirebaseAuth's Swift source can see the symbol.
   app_delegate_modulemap = File.join(installer.sandbox.root, 'Target Support Files', 'GoogleUtilities-AppDelegateSwizzler', 'GoogleUtilities-AppDelegateSwizzler.modulemap')
