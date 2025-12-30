@@ -45,6 +45,7 @@ target 'Runner' do
   # Use latest GoogleUtilities compatible with Firebase (removes missing subspec issues)
   pod 'GoogleUtilities', :subspecs => [
     'AppDelegateSwizzler',
+    'SceneDelegateSwizzler',
     'MethodSwizzler',
     'Environment',
     'Network',
