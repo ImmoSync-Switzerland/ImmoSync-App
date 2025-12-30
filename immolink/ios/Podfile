@@ -216,6 +216,11 @@ MAP
   # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
   gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
   gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first
+  # If the explicit Core header was not found (some pods ship only GTMSessionFetcher.h), try constructing the path next to the main header.
+  if (!gtm_core_header || !File.exist?(gtm_core_header)) && gtm_header
+    candidate = gtm_header.sub('GTMSessionFetcher.h', 'GTMSessionFetcherCore.h')
+    gtm_core_header = candidate if File.exist?(candidate)
+  end
   if gtm_header && File.exist?(gtm_header)
     ts_dir = File.join(installer.sandbox.root, 'Target Support Files', 'GTMSessionFetcher')
     FileUtils.mkdir_p(ts_dir)
