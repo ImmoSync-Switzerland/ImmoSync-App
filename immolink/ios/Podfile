@@ -215,10 +215,12 @@ MAP
 
   # Always synthesize an override modulemap that exposes both GTMSessionFetcher and GTMSessionFetcherCore.
   gtm_header = Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcher.h')).first
-  # Prefer the public header path first (CocoaPods exposes this reliably to downstream targets)
+  # Prefer the public header paths first (CocoaPods exposes this reliably to downstream targets)
   gtm_core_header = Dir.glob(File.join(installer.sandbox.root, 'Headers', 'Public', 'GTMSessionFetcher', 'GTMSessionFetcherCore.h')).first
+  gtm_service_header = Dir.glob(File.join(installer.sandbox.root, 'Headers', 'Public', 'GTMSessionFetcher', 'GTMSessionFetcherService.h')).first
   # Otherwise try the source path
   gtm_core_header ||= Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherCore.h')).first
+  gtm_service_header ||= Dir.glob(File.join(installer.sandbox.root, 'GTMSessionFetcher', '**', 'GTMSessionFetcherService.h')).first
   # If still missing, try sibling of GTMSessionFetcher.h
   if (!gtm_core_header || !File.exist?(gtm_core_header)) && gtm_header
     candidate = gtm_header.sub('GTMSessionFetcher.h', 'GTMSessionFetcherCore.h')
@@ -231,6 +233,7 @@ MAP
     File.write(gtm_modulemap, <<~MAP)
 module GTMSessionFetcherCore {
   header "#{gtm_core_header || gtm_header}"
+  #{gtm_service_header && File.exist?(gtm_service_header) ? "header \"#{gtm_service_header}\"" : ''}
   export *
 }
 module GTMSessionFetcher {
