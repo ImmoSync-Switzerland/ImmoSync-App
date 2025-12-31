@@ -779,10 +779,82 @@ jobs:
           echo "### Cross-Repo IPA Publish" >> $GITHUB_STEP_SUMMARY
           echo "Pushed immosync-ios-${VERSION}.ipa + latest alias to site repo" >> $GITHUB_STEP_SUMMARY
 
+  upload-testflight:
+    name: Upload IPA to App Store Connect (TestFlight)
+    needs: build-ipa
+    runs-on: macos-14
+    if: needs.build-ipa.result == 'success'
+    steps:
+      - name: Check App Store Connect API secrets
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [ -z "${ASC_KEY_ID:-}" ] && missing+=(APP_STORE_CONNECT_API_KEY_ID)
+          [ -z "${ASC_ISSUER_ID:-}" ] && missing+=(APP_STORE_CONNECT_API_ISSUER_ID)
+          [ -z "${ASC_KEY_B64:-}" ] && missing+=(APP_STORE_CONNECT_API_KEY_BASE64)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "Missing App Store Connect API secrets: ${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Download IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: immosync-ipa
+          path: ipa
+
+      - name: Select IPA
+        id: select_ipa
+        run: |
+          set -euo pipefail
+          IPA_PATH=$(find ipa -name '*.ipa' -print | head -n 1)
+          if [ -z "$IPA_PATH" ]; then
+            echo 'No IPA found in artifact download' >&2
+            find ipa -maxdepth 3 -type f -print || true
+            exit 1
+          fi
+          echo "Using IPA: $IPA_PATH"
+          echo "ipa_path=$IPA_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Write App Store Connect API key file
+        id: write_key
+        env:
+          ASC_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+          printf '%s' "$ASC_KEY_B64" | tr -d '\r\n' | base64 --decode > "$KEY_PATH" 2>/dev/null || \
+            printf '%s' "$ASC_KEY_B64" | tr -d '\r\n' | base64 -d > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to App Store Connect via altool
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          IPA_PATH="${{ steps.select_ipa.outputs.ipa_path }}"
+          KEY_PATH="${{ steps.write_key.outputs.key_path }}"
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "IPA not found at $IPA_PATH" >&2
+            exit 1
+          fi
+          if [ ! -f "$KEY_PATH" ]; then
+            echo "API key file missing at $KEY_PATH" >&2
+            exit 1
+          fi
+          xcrun altool --upload-app -t ios -f "$IPA_PATH" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" --verbose
+          echo "Upload submitted to App Store Connect (TestFlight pipeline)"
+
   final-cleanup:
     name: Cleanup Artifacts After Publish
     runs-on: ubuntu-latest
-    needs: [build-ipa, publish-to-site-repo]
+    needs: [build-ipa, publish-to-site-repo, upload-testflight]
     if: always()
     permissions:
       actions: write
