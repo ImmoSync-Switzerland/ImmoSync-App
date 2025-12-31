@@ -51,5 +51,7 @@
 	<string>Wir benötigen Zugriff auf die Fotomediathek, um vorhandene Objekt-, Schaden- oder Dokumentfotos in ImmoSync hochladen zu können.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Standort wird genutzt, um Objektadressen zu erleichtern und deine Nähe zu Objekten oder Terminen anzuzeigen.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
