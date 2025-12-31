@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Wir verwenden die Kamera, damit du Fotos von Objekten, Schäden oder Dokumenten direkt in ImmoSync erfassen kannst.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Wir benötigen Zugriff auf die Fotomediathek, um vorhandene Objekt-, Schaden- oder Dokumentfotos in ImmoSync hochladen zu können.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Standort wird genutzt, um Objektadressen zu erleichtern und deine Nähe zu Objekten oder Terminen anzuzeigen.</string>
 </dict>
 </plist>
