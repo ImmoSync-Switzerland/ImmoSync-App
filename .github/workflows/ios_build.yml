@@ -824,9 +824,12 @@ jobs:
         id: write_key
         env:
           ASC_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
         run: |
           set -euo pipefail
-          KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+          KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$KEY_DIR"
+          KEY_PATH="$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8"
           printf '%s' "$ASC_KEY_B64" | tr -d '\r\n' | base64 --decode > "$KEY_PATH" 2>/dev/null || \
             printf '%s' "$ASC_KEY_B64" | tr -d '\r\n' | base64 -d > "$KEY_PATH"
           chmod 600 "$KEY_PATH"
