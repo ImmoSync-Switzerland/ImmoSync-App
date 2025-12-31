@@ -387,12 +387,12 @@ SWIFT
 
   # Patch Firebase pods to strip Swift 6-only syntax that Xcode 15.4 cannot compile.
   patches = [
-    # Firestore Swift 6 attr/any keyword cleanup
-    { file: 'Firestore/Swift/Source', from: /@retroactive\s+/, to: '' },
-    { file: 'Firestore/Swift/Source', from: /: any Codable/, to: ': Codable' },
-    { file: 'Firestore/Swift/Source', from: /, any Codable/, to: ', Codable' },
-    { file: 'Firestore/Swift/Source', from: /: any Sendable/, to: ': Sendable' },
-    { file: 'Firestore/Swift/Source', from: /, any Sendable/, to: ', Sendable' },
+    # Firestore Swift 6 attr/any keyword cleanup (target all Swift files under Source)
+    { file: 'Firestore/Swift/Source/**/*.swift', from: /@retroactive\s+/, to: '' },
+    { file: 'Firestore/Swift/Source/**/*.swift', from: /: any Codable/, to: ': Codable' },
+    { file: 'Firestore/Swift/Source/**/*.swift', from: /, any Codable/, to: ', Codable' },
+    { file: 'Firestore/Swift/Source/**/*.swift', from: /: any Sendable/, to: ': Sendable' },
+    { file: 'Firestore/Swift/Source/**/*.swift', from: /, any Sendable/, to: ', Sendable' },
     { file: 'FirebaseDataEncoder.swift', from: '-> sending Any', to: '-> Any' },
     { file: 'UnfairLock.swift', from: /\bsending\s+/, to: '' },
     { file: 'HeartbeatsPayload.swift', from: /^(internal|package)\s+import/, to: 'import' },
@@ -402,6 +402,7 @@ SWIFT
 
   patches.each do |patch|
     Dir.glob(File.join(installer.sandbox.root, '**', patch[:file])).each do |path|
+      next unless File.file?(path)
       contents = File.read(path)
       fixed = contents.gsub(patch[:from], patch[:to])
       File.write(path, fixed) if fixed != contents
