@@ -24,6 +24,7 @@ Future<void> maybeShowDashboardDesignPrompt(
     context: context,
     isDismissible: false,
     enableDrag: false,
+    isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) => _DesignPreferenceSheet(
       initialDesign: currentDesign,
@@ -72,81 +73,90 @@ class _DesignPreferenceSheetState extends State<_DesignPreferenceSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 24,
-            offset: const Offset(0, -8),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.dashboardDesign,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.dashboardDesignPromptDescription,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.color
-                      ?.withValues(alpha: 0.75),
-                ),
-          ),
-          const SizedBox(height: 24),
-          _DesignOptionCard(
-            label: l10n.dashboardDesignGlass,
-            description: l10n.dashboardDesignGlassDescription,
-            icon: Icons.blur_on_rounded,
-            isSelected: _selection == 'glass',
-            onTap: () => setState(() => _selection = 'glass'),
-          ),
-          const SizedBox(height: 16),
-          _DesignOptionCard(
-            label: l10n.dashboardDesignClassic,
-            description: l10n.dashboardDesignClassicDescription,
-            icon: Icons.view_module_rounded,
-            isSelected: _selection == 'classic',
-            onTap: () => setState(() => _selection = 'classic'),
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(_selection),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 24,
+                offset: const Offset(0, -8),
               ),
-              child: Text(l10n.confirm),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 48,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  l10n.dashboardDesign,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.dashboardDesignPromptDescription,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withValues(alpha: 0.75),
+                      ),
+                ),
+                const SizedBox(height: 24),
+                _DesignOptionCard(
+                  label: l10n.dashboardDesignGlass,
+                  description: l10n.dashboardDesignGlassDescription,
+                  icon: Icons.blur_on_rounded,
+                  isSelected: _selection == 'glass',
+                  onTap: () => setState(() => _selection = 'glass'),
+                ),
+                const SizedBox(height: 16),
+                _DesignOptionCard(
+                  label: l10n.dashboardDesignClassic,
+                  description: l10n.dashboardDesignClassicDescription,
+                  icon: Icons.view_module_rounded,
+                  isSelected: _selection == 'classic',
+                  onTap: () => setState(() => _selection = 'classic'),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(_selection),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(l10n.confirm),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-        ],
+        ),
       ),
     );
   }

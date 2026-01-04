@@ -8,15 +8,27 @@ import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class LandlordPaymentsPage extends ConsumerStatefulWidget {
+import 'payments_screen.dart';
+
+class LandlordPaymentsPage extends StatelessWidget {
   const LandlordPaymentsPage({super.key});
 
   @override
-  ConsumerState<LandlordPaymentsPage> createState() =>
+  Widget build(BuildContext context) {
+    return const PaymentsScreen();
+  }
+}
+
+class LegacyLandlordPaymentsPage extends ConsumerStatefulWidget {
+  const LegacyLandlordPaymentsPage({super.key});
+
+  @override
+  ConsumerState<LegacyLandlordPaymentsPage> createState() =>
       _LandlordPaymentsPageState();
 }
 
-class _LandlordPaymentsPageState extends ConsumerState<LandlordPaymentsPage>
+class _LandlordPaymentsPageState
+    extends ConsumerState<LegacyLandlordPaymentsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isRequestingPayout = false;

@@ -8,6 +8,7 @@ import '../../../home/presentation/pages/glass_dashboard_shared.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../../services/domain/models/service.dart' as ServiceModel;
 import '../../../services/presentation/providers/service_providers.dart';
+import '../../../services/presentation/pages/services_screen.dart';
 
 // UI Service model for landlord booking
 class BookableService {
@@ -71,16 +72,25 @@ class BookableService {
   }
 }
 
-class LandlordServicesBookingPage extends ConsumerStatefulWidget {
+class LandlordServicesBookingPage extends StatelessWidget {
   const LandlordServicesBookingPage({super.key});
 
   @override
-  ConsumerState<LandlordServicesBookingPage> createState() =>
-      _LandlordServicesBookingPageState();
+  Widget build(BuildContext context) {
+    return const ServicesScreen();
+  }
 }
 
-class _LandlordServicesBookingPageState
-    extends ConsumerState<LandlordServicesBookingPage> {
+class LegacyLandlordServicesBookingPage extends ConsumerStatefulWidget {
+  const LegacyLandlordServicesBookingPage({super.key});
+
+  @override
+  ConsumerState<LegacyLandlordServicesBookingPage> createState() =>
+      _LegacyLandlordServicesBookingPageState();
+}
+
+class _LegacyLandlordServicesBookingPageState
+    extends ConsumerState<LegacyLandlordServicesBookingPage> {
   String _selectedCategory = 'all';
   String _searchQuery = '';
 

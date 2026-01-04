@@ -11,6 +11,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/providers/navigation_provider.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../widgets/invitation_card.dart';
 import '../widgets/property_email_invite_dialog.dart';
 import '../../../../core/widgets/user_avatar.dart';
@@ -133,11 +134,7 @@ class _ConversationsTabbedPageState
         elevation: 0,
         title: Text(
           l10n.messages,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTypography.pageTitle.copyWith(color: colors.textPrimary),
         ),
         leading: IconButton(
           icon: Icon(

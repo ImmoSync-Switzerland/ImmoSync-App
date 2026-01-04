@@ -9,3 +9,9 @@ backend/config.js
 # /immolink/android  <-- removed ignore to allow committing Android wrapper
 /immolink/native/matrix_bridge/target
 /node_modules
+.tmp
+.tmp/
+immolink/.tmp/
+
+# Flutter coverage output (generated)
+immolink/coverage/

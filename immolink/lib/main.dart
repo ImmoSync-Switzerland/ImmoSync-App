@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dotenv;
 import 'core/notifications/fcm_service.dart';
@@ -21,10 +22,11 @@ import 'package:immosync/core/config/db_config.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/infrastructure/matrix_frb_events_adapter.dart';
 import 'package:immosync/core/services/deep_link_service.dart';
+import 'package:immosync/core/widgets/app_gradient_background.dart';
 import 'package:immosync/frb_generated.dart';
 import 'package:immosync/features/chat/presentation/providers/matrix_bootstrap_provider.dart';
 
-void main() async {
+Future<void> main() async {
   bool _appStarted = false; // track if primary runApp already executed
   // Global Flutter error hooks for richer diagnostics
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -45,7 +47,9 @@ void main() async {
   runZonedGuarded(() async {
     final stopwatch = Stopwatch()..start();
     debugPrint('--- App startup sequence begin ---');
-    WidgetsFlutterBinding.ensureInitialized();
+    final WidgetsBinding widgetsBinding =
+        WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     debugPrint('[Startup] Widgets binding ensured');
 
     // Step 1: Load .env (optional) to allow runtime configuration on desktop/dev
@@ -244,6 +248,24 @@ class ImmoSync extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: appThemeMode,
       locale: currentLocale,
+      builder: (context, child) {
+        final theme = Theme.of(context);
+        return AppGradientBackground(
+          child: Theme(
+            data: theme.copyWith(
+              scaffoldBackgroundColor: Colors.transparent,
+              canvasColor: Colors.transparent,
+              appBarTheme: theme.appBarTheme.copyWith(
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          ),
+        );
+      },
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

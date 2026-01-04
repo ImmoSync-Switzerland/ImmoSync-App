@@ -3,6 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTypography {
   // Text Styles following the design specifications using Google Fonts Inter
+  static TextStyle pageTitle = GoogleFonts.inter(
+    fontSize: 24,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.2,
+    height: 32 / 24,
+  );
+
   static TextStyle heading1 = GoogleFonts.inter(
     fontSize: 24,
     fontWeight: FontWeight.w600, // Semibold

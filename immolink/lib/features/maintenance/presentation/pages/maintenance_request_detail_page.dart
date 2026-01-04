@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
+import 'package:immosync/features/maintenance/presentation/pages/maintenance_detail_screen.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
@@ -12,71 +13,77 @@ import '../../../../core/utils/category_utils.dart';
 
 class MaintenanceRequestDetailPage extends ConsumerWidget {
   final String requestId;
+  final MaintenanceRequest? initialRequest;
 
   const MaintenanceRequestDetailPage({
     super.key,
     required this.requestId,
+    this.initialRequest,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = ref.watch(dynamicColorsProvider);
-    final requestAsync = ref.watch(maintenanceRequestProvider(requestId));
+    final requestAsync = initialRequest != null
+        ? AsyncValue.data(initialRequest!)
+        : ref.watch(maintenanceRequestProvider(requestId));
 
-    return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      appBar: AppBar(
-        title: Text(l10n.maintenanceRequestDetails),
-        backgroundColor: colors.surfaceCards,
-        foregroundColor: colors.textPrimary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+    final _ = _buildRequestDetails;
+
+    void handleBack() {
+      if (context.canPop()) {
+        context.pop();
+        return;
+      }
+      context.go('/home');
+    }
+
+    return requestAsync.when(
+      data: (request) => MaintenanceDetailScreen(
+        onBack: handleBack,
+        data: _toDetailData(request),
       ),
-      body: requestAsync.when(
-        data: (request) =>
-            _buildRequestDetails(context, request, l10n, ref, colors),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: colors.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.errorLoadingMaintenanceRequest,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => context.pop(),
-                child: Text(l10n.goBack),
-              ),
-            ],
-          ),
-        ),
+      loading: () => MaintenanceDetailLoadingScreen(onBack: handleBack),
+      error: (error, stack) => MaintenanceDetailErrorScreen(
+        onBack: handleBack,
+        message: error.toString(),
       ),
     );
+  }
+
+  static MaintenanceDetailData _toDetailData(MaintenanceRequest request) {
+    final statusLabel = request.statusDisplayText;
+    final priorityLabel = switch (request.priority) {
+      'urgent' => 'Urgent',
+      'high' => 'High',
+      'medium' => 'Medium',
+      'low' => 'Low',
+      _ => request.priorityDisplayText,
+    };
+
+    return MaintenanceDetailData(
+      title: request.title.isNotEmpty ? request.title : 'Maintenance Request',
+      statusLabel: statusLabel,
+      priorityLabel: priorityLabel,
+      category: request.categoryDisplayText,
+      location: request.location.isNotEmpty ? request.location : '—',
+      reportedLabel: DateFormat('MMM d, yyyy').format(request.requestedDate),
+      tenant: _firstNonEmpty([
+        request.tenantName,
+        request.tenantEmail,
+        request.tenantId,
+      ]),
+      description: request.description.isNotEmpty
+          ? request.description
+          : 'No description provided.',
+    );
+  }
+
+  static String _firstNonEmpty(List<String?> values) {
+    for (final value in values) {
+      final v = value?.trim();
+      if (v != null && v.isNotEmpty) return v;
+    }
+    return '—';
   }
 
   Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request,

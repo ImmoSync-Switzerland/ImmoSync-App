@@ -1,672 +1,478 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../l10n/app_localizations.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../core/theme/app_typography.dart';
+
+const _bgTop = Color(0xFF0A1128);
+const _bgBottom = Colors.black;
+const _bentoCard = Color(0xFF1C1C1E);
+const _primaryBlue = Color(0xFF3B82F6);
+const _bentoBorderAlpha = 0.08;
 
 class HelpCenterPage extends ConsumerWidget {
   const HelpCenterPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return const HelpCenterScreen();
+  }
+}
+
+class HelpCenterScreen extends StatelessWidget {
+  const HelpCenterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colors = ref.watch(dynamicColorsProvider);
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      extendBodyBehindAppBar: true,
+      extendBody: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: colors.primaryBackground,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          l10n.helpCenter,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+        scrolledUnderElevation: 0,
+        flexibleSpace: const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [_bgTop, _bgBottom],
+            ),
           ),
         ),
+        title: Text(
+          l10n.helpCenter,
+          style: AppTypography.pageTitle.copyWith(color: Colors.white),
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+          icon:
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => context.pop(),
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [colors.primaryBackground, colors.surfaceCards],
+            colors: [_bgTop, _bgBottom],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.fromLTRB(16, topInset + 16, 16, 120),
           children: [
-            _buildWelcomeCard(l10n, colors),
-            const SizedBox(height: 24),
-            _buildQuickLinksSection(context, l10n, colors, ref),
-            const SizedBox(height: 24),
-            _buildFAQSection(context, l10n, colors),
-            const SizedBox(height: 24),
-            _buildGuidesSection(context, l10n, colors, ref),
-            const SizedBox(height: 24),
-            _buildContactSection(context, l10n, colors),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeCard(AppLocalizations l10n, DynamicAppColors colors) {
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.primaryAccent.withValues(alpha: 0.1),
-              colors.accentLight.withValues(alpha: 0.1),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.help_outline,
-                  color: colors.primaryAccent,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  l10n.welcomeToHelpCenter,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.helpCenterDescription,
-              style: TextStyle(
-                fontSize: 16,
-                color: colors.textSecondary,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickLinksSection(BuildContext context, AppLocalizations l10n,
-      DynamicAppColors colors, WidgetRef ref) {
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.quickLinks,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildQuickLinkItem(
-              context,
-              l10n.gettingStarted,
-              l10n.gettingStartedDescription,
-              Icons.play_circle_outline,
-              () => _showGettingStartedDialog(context, l10n, ref),
-              colors,
-            ),
-            _buildQuickLinkItem(
-              context,
-              l10n.accountSettings,
-              l10n.accountSettingsDescription,
-              Icons.settings,
-              () => context.push('/settings'),
-              colors,
-            ),
-            _buildQuickLinkItem(
-              context,
-              l10n.propertyManagement,
-              l10n.propertyManagementDescription,
-              Icons.home,
-              () => _showPropertyManagementDialog(context, l10n, ref),
-              colors,
-            ),
-            _buildQuickLinkItem(
-              context,
-              l10n.paymentsBilling,
-              l10n.paymentsBillingDescription,
-              Icons.payment,
-              () => _showPaymentsDialog(context, l10n, ref),
-              colors,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickLinkItem(
-      BuildContext context,
-      String title,
-      String subtitle,
-      IconData icon,
-      VoidCallback onTap,
-      DynamicAppColors colors) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: colors.primaryAccent.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: colors.primaryAccent),
-      ),
-      title: Text(title,
-          style: TextStyle(
-              color: colors.textPrimary, fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: TextStyle(color: colors.textSecondary)),
-      trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildFAQSection(
-      BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.frequentlyAskedQuestions,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildFAQItem(
-              l10n.howToAddProperty,
-              l10n.howToAddPropertyAnswer,
-              colors,
-            ),
-            _buildFAQItem(
-              l10n.howToInviteTenant,
-              l10n.howToInviteTenantAnswer,
-              colors,
-            ),
-            _buildFAQItem(
-              l10n.howToChangeCurrency,
-              l10n.howToChangeCurrencyAnswer,
-              colors,
-            ),
-            _buildFAQItem(
-              l10n.howToEnable2FA,
-              l10n.howToEnable2FAAnswer,
-              colors,
-            ),
-            _buildFAQItem(
-              l10n.howToExportData,
-              l10n.howToExportDataAnswer,
-              colors,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFAQItem(
-      String question, String answer, DynamicAppColors colors) {
-    return ExpansionTile(
-      title: Text(
-        question,
-        style: TextStyle(
-          color: colors.textPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Text(
-            answer,
-            style: TextStyle(
-              color: colors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGuidesSection(BuildContext context, AppLocalizations l10n,
-      DynamicAppColors colors, WidgetRef ref) {
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.userGuides,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildGuideItem(
-              l10n.landlordGuide,
-              l10n.landlordGuideDescription,
-              Icons.business,
-              () => _showLandlordGuideDialog(context, l10n, ref),
-              colors,
-            ),
-            _buildGuideItem(
-              l10n.tenantGuide,
-              l10n.tenantGuideDescription,
-              Icons.person,
-              () => _showTenantGuideDialog(context, l10n, ref),
-              colors,
-            ),
-            _buildGuideItem(
-              l10n.securityBestPractices,
-              l10n.securityBestPracticesDescription,
-              Icons.security,
-              () => _showSecurityGuideDialog(context, l10n, ref),
-              colors,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGuideItem(String title, String subtitle, IconData icon,
-      VoidCallback onTap, DynamicAppColors colors) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: colors.accentLight.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: colors.primaryAccent),
-      ),
-      title: Text(title,
-          style: TextStyle(
-              color: colors.textPrimary, fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: TextStyle(color: colors.textSecondary)),
-      trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildContactSection(
-      BuildContext context, AppLocalizations l10n, DynamicAppColors colors) {
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.needMoreHelp,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.needMoreHelpDescription,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.push('/contact-support'),
-                    icon: Icon(Icons.support_agent, color: colors.textOnAccent),
-                    label: Text(l10n.contactSupport,
-                        style: TextStyle(color: colors.textOnAccent)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+            _BentoCard(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _primaryBlue.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.help_outline,
+                        color: Colors.blue,
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Find answers to common questions and learn how to use the app effectively.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _BentoCard(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Quick Links',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GridView.count(
+                      primary: false,
+                      padding: EdgeInsets.zero,
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 2.5,
+                      children: const [
+                        _QuickLinkTile(
+                          icon: Icons.play_circle_outline,
+                          title: 'Getting Started',
+                        ),
+                        _QuickLinkTile(
+                          icon: Icons.settings,
+                          title: 'Account & Settings',
+                        ),
+                        _QuickLinkTile(
+                          icon: Icons.home_outlined,
+                          title: 'Property Management',
+                        ),
+                        _QuickLinkTile(
+                          icon: Icons.payment,
+                          title: 'Billing',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _BentoCard(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'FAQ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    _FaqTile(
+                      question: 'How do I add a property?',
+                      answer:
+                          'Go to Properties, tap Add, then fill in the required details and save.',
+                    ),
+                    _FaqTile(
+                      question: 'How do I invite a tenant?',
+                      answer:
+                          'Open a property, choose Tenants, then send an invitation using the tenant\'s email.',
+                    ),
+                    _FaqTile(
+                      question: 'How do I export data?',
+                      answer:
+                          'Open Settings → Privacy Settings → Data Management, then choose Export my data.',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _BentoCard(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'User Guides',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    _GuideRow(
+                      icon: Icons.business,
+                      title: 'Landlord Guide',
+                      subtitle: 'Learn how to manage properties and tenants.',
+                    ),
+                    _GuideRow(
+                      icon: Icons.person,
+                      title: 'Tenant Guide',
+                      subtitle:
+                          'Understand payments, requests, and communication.',
+                    ),
+                    _GuideRow(
+                      icon: Icons.security,
+                      title: 'Security Best Practices',
+                      subtitle: 'Keep your account secure and protected.',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Duplication fix: render this section exactly once.
+            _BentoCard(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Can't find what you're looking for?",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _GradientButton(
+                      label: 'Contact Support',
+                      onTap: () => context.push('/contact-support'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  void _showGettingStartedDialog(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
+class _BentoCard extends StatelessWidget {
+  const _BentoCard({required this.child});
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.gettingStarted,
-            style: TextStyle(color: colors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.gettingStartedWelcome,
-                  style: TextStyle(color: colors.textPrimary)),
-              const SizedBox(height: 16),
-              ...[
-                l10n.gettingStartedStep1,
-                l10n.gettingStartedStep2,
-                l10n.gettingStartedStep3,
-                l10n.gettingStartedStep4
-              ].map(
-                (step) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child:
-                      Text(step, style: TextStyle(color: colors.textSecondary)),
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _bentoCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: _bentoBorderAlpha),
+          width: 1,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _QuickLinkTile extends StatelessWidget {
+  const _QuickLinkTile({
+    required this.icon,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: _primaryBlue.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, color: Colors.blue, size: 16),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                textAlign: TextAlign.left,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FaqTile extends StatelessWidget {
+  const _FaqTile({required this.question, required this.answer});
+
+  final String question;
+  final String answer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        collapsedIconColor: Colors.white70,
+        iconColor: Colors.blue,
+        title: Text(
+          question,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Text(
+              answer,
+              style: const TextStyle(
+                color: Colors.grey,
+                height: 1.45,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  void _showPropertyManagementDialog(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
+class _GuideRow extends StatelessWidget {
+  const _GuideRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.propertyManagement,
-            style: TextStyle(color: colors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.propertyManagementGuide,
-                  style: TextStyle(color: colors.textPrimary)),
-              const SizedBox(height: 16),
-              ...[
-                l10n.propertyManagementTip1,
-                l10n.propertyManagementTip2,
-                l10n.propertyManagementTip3,
-                l10n.propertyManagementTip4,
-                l10n.propertyManagementTip5
-              ].map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child:
-                      Text(tip, style: TextStyle(color: colors.textSecondary)),
-                ),
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: _primaryBlue.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
+              alignment: Alignment.center,
+              child: Icon(icon, color: Colors.blue, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
-          ),
-        ],
       ),
     );
   }
+}
 
-  void _showPaymentsDialog(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({required this.label, required this.onTap});
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.paymentsBilling,
-            style: TextStyle(color: colors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.paymentsGuide,
-                  style: TextStyle(color: colors.textPrimary)),
-              const SizedBox(height: 16),
-              ...[
-                l10n.paymentsTip1,
-                l10n.paymentsTip2,
-                l10n.paymentsTip3,
-                l10n.paymentsTip4,
-                l10n.paymentsTip5
-              ].map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child:
-                      Text(tip, style: TextStyle(color: colors.textSecondary)),
-                ),
-              ),
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Color(0xFF2563EB),
+              Color(0xFF3B82F6),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showLandlordGuideDialog(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.landlordGuide,
-            style: TextStyle(color: colors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.landlordGuideContent,
-                  style: TextStyle(color: colors.textPrimary)),
-              const SizedBox(height: 16),
-              ...[
-                l10n.landlordTip1,
-                l10n.landlordTip2,
-                l10n.landlordTip3,
-                l10n.landlordTip4,
-                l10n.landlordTip5,
-                l10n.landlordTip6
-              ].map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child:
-                      Text(tip, style: TextStyle(color: colors.textSecondary)),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ],
+            ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showTenantGuideDialog(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title:
-            Text(l10n.tenantGuide, style: TextStyle(color: colors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.tenantGuideContent,
-                  style: TextStyle(color: colors.textPrimary)),
-              const SizedBox(height: 16),
-              ...[
-                l10n.tenantTip1,
-                l10n.tenantTip2,
-                l10n.tenantTip3,
-                l10n.tenantTip4,
-                l10n.tenantTip5,
-                l10n.tenantTip6
-              ].map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child:
-                      Text(tip, style: TextStyle(color: colors.textSecondary)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSecurityGuideDialog(
-      BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.securityBestPractices,
-            style: TextStyle(color: colors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.securityGuideContent,
-                  style: TextStyle(color: colors.textPrimary)),
-              const SizedBox(height: 16),
-              ...[
-                l10n.securityTip1,
-                l10n.securityTip2,
-                l10n.securityTip3,
-                l10n.securityTip4,
-                l10n.securityTip5,
-                l10n.securityTip6
-              ].map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child:
-                      Text(tip, style: TextStyle(color: colors.textSecondary)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                Text(l10n.gotIt, style: TextStyle(color: colors.primaryAccent)),
-          ),
-        ],
       ),
     );
   }

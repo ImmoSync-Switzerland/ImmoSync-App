@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/theme/app_colors.dart';
 import 'package:immosync/l10n/app_localizations.dart';
+import '../../../../core/theme/app_typography.dart';
+
+const _bgTop = Color(0xFF0A1128);
+const _bgBottom = Colors.black;
+const _bentoCard = Color(0xFF1C1C1E);
 
 class TermsOfServicePage extends ConsumerStatefulWidget {
   const TermsOfServicePage({super.key});
@@ -97,25 +101,43 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final body = l.termsOfServiceContent;
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
     _prepare(body);
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      extendBodyBehindAppBar: true,
+      extendBody: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(l.termsOfService,
-            style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w600)),
+        scrolledUnderElevation: 0,
+        flexibleSpace: const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [_bgTop, _bgBottom],
+            ),
+          ),
+        ),
+        title: Text(
+          l.termsOfService,
+          style: AppTypography.pageTitle.copyWith(color: Colors.white),
+        ),
         leading: IconButton(
-            icon:
-                const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.white),
             onPressed: () => context.pop()),
         actions: [
           IconButton(
             tooltip: l.copy,
-            icon: const Icon(Icons.copy),
+            icon: const Icon(Icons.copy, color: Colors.white),
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: body));
               if (context.mounted) {
@@ -126,42 +148,58 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
           )
         ],
       ),
-      body: ListView(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            elevation: 2,
-            color: AppColors.surfaceCards,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l.termsOfService,
-                      style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary)),
-                  const SizedBox(height: 6),
-                  Text(l.termsOfServiceLastUpdated,
-                      style: const TextStyle(
-                          fontSize: 14, color: AppColors.textSecondary)),
-                  const SizedBox(height: 20),
-                  if (_headings.isNotEmpty)
-                    _Toc(
-                        headings: _headings,
-                        title: l.tableOfContents,
-                        onTap: _scrollTo),
-                  const Divider(height: 32),
-                  ..._buildParagraphs(),
-                ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bgTop, _bgBottom],
+          ),
+        ),
+        child: ListView(
+          controller: _scrollController,
+          padding: EdgeInsets.fromLTRB(16, topInset + 16, 16, 24),
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: _bentoCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.termsOfService,
+                        style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                    const SizedBox(height: 6),
+                    Text(l.termsOfServiceLastUpdated,
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.white70)),
+                    const SizedBox(height: 20),
+                    if (_headings.isNotEmpty)
+                      _Toc(
+                          headings: _headings,
+                          title: l.tableOfContents,
+                          onTap: _scrollTo),
+                    Divider(
+                      height: 32,
+                      color: Colors.white.withValues(alpha: 0.10),
+                    ),
+                    ..._buildParagraphs(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -185,8 +223,16 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
         child: SelectableText(
           text,
           style: isHeading
-              ? const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
-              : const TextStyle(fontSize: 14, height: 1.5),
+              ? const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                )
+              : const TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Colors.white70,
+                ),
         ),
       ));
     }
@@ -206,7 +252,11 @@ class _Toc extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            )),
         const SizedBox(height: 8),
         Wrap(
           spacing: 12,
@@ -214,7 +264,11 @@ class _Toc extends StatelessWidget {
           children: [
             for (final h in headings)
               ActionChip(
-                label: Text(h, style: const TextStyle(fontSize: 12)),
+                label: Text(
+                  h,
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+                backgroundColor: _bentoCard,
                 onPressed: () => onTap(h.trim()),
               )
           ],

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../core/theme/app_typography.dart';
+
+const _bgTop = Color(0xFF0A1128);
+const _bgBottom = Colors.black;
+const _bentoCard = Color(0xFF1C1C1E);
+const _primaryBlue = Color(0xFF3B82F6);
+const _bentoBorderAlpha = 0.08;
 
 // Privacy settings state
 class PrivacySettings {
@@ -76,341 +83,339 @@ final privacySettingsProvider =
   return PrivacySettingsNotifier();
 });
 
-class PrivacySettingsPage extends ConsumerWidget {
+class PrivacySettingsPage extends StatelessWidget {
   const PrivacySettingsPage({super.key});
 
   @override
+  Widget build(BuildContext context) {
+    return const PrivacySettingsScreen();
+  }
+}
+
+class PrivacySettingsScreen extends ConsumerWidget {
+  const PrivacySettingsScreen({super.key});
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final privacySettings = ref.watch(privacySettingsProvider);
-    final colors = ref.watch(dynamicColorsProvider);
+    final settings = ref.watch(privacySettingsProvider);
     final l10n = AppLocalizations.of(context)!;
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      extendBodyBehindAppBar: true,
+      extendBody: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: colors.primaryBackground,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          l10n.privacySettingsTitle,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+        scrolledUnderElevation: 0,
+        flexibleSpace: const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [_bgTop, _bgBottom],
+            ),
           ),
         ),
+        title: Text(
+          l10n.privacySettingsTitle,
+          style: AppTypography.pageTitle.copyWith(color: Colors.white),
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+          icon:
+              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
           onPressed: () => context.pop(),
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [colors.primaryBackground, colors.surfaceCards],
+            colors: [_bgTop, _bgBottom],
           ),
         ),
         child: ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.fromLTRB(16, topInset + 16, 16, 120),
           children: [
-            _buildProfileVisibilitySection(
-                context, ref, privacySettings, colors),
+            _bentoContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionHeader(
+                      icon: Icons.visibility, title: 'Public Profile'),
+                  const SizedBox(height: 12),
+                  _toggleRow(
+                    title: 'Show profile to others',
+                    subtitle: 'Allow other users to view your profile.',
+                    value: settings.showProfile,
+                    onChanged: (value) => ref
+                        .read(privacySettingsProvider.notifier)
+                        .updateShowProfile(value),
+                  ),
+                  _divider(),
+                  _toggleRow(
+                    title: 'Show contact information',
+                    subtitle: 'Display your contact details on your profile.',
+                    value: settings.showContactInfo,
+                    onChanged: (value) => ref
+                        .read(privacySettingsProvider.notifier)
+                        .updateShowContactInfo(value),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildDataSharingSection(context, ref, privacySettings, colors),
+            _bentoContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionHeader(icon: Icons.share, title: 'Data Sharing'),
+                  const SizedBox(height: 12),
+                  _toggleRow(
+                    title: 'Allow property search',
+                    subtitle: 'Let properties be discoverable via search.',
+                    value: settings.allowPropertySearch,
+                    onChanged: (value) => ref
+                        .read(privacySettingsProvider.notifier)
+                        .updateAllowPropertySearch(value),
+                  ),
+                  _divider(),
+                  _toggleRow(
+                    title: 'Share usage analytics',
+                    subtitle:
+                        'Help improve the app by sharing anonymous usage data.',
+                    value: settings.shareAnalytics,
+                    onChanged: (value) => ref
+                        .read(privacySettingsProvider.notifier)
+                        .updateShareAnalytics(value),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildMarketingSection(context, ref, privacySettings, colors),
+            _bentoContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionHeader(
+                    icon: Icons.campaign,
+                    title: 'Marketing & Communications',
+                  ),
+                  const SizedBox(height: 12),
+                  _toggleRow(
+                    title: 'Receive marketing emails',
+                    subtitle: 'Get product updates and promotional emails.',
+                    value: settings.receiveMarketing,
+                    onChanged: (value) => ref
+                        .read(privacySettingsProvider.notifier)
+                        .updateReceiveMarketing(value),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildDataManagementSection(context, ref, privacySettings, colors),
+            _bentoContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionHeader(
+                    icon: Icons.folder_outlined,
+                    title: 'Data Management',
+                  ),
+                  const SizedBox(height: 12),
+                  _actionRow(
+                    title: 'Export my data',
+                    subtitle: 'Download a copy of your account data.',
+                    onTap: () => _showDataExportDialog(context, l10n),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => _showDeleteAccountDialog(context, l10n),
+                      child: const Text(
+                        'Delete Account',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileVisibilitySection(BuildContext context, WidgetRef ref,
-      PrivacySettings settings, DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+  Widget _bentoContainer({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _bentoCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: _bentoBorderAlpha),
+          width: 1,
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      padding: const EdgeInsets.all(16),
+      child: child,
+    );
+  }
+
+  // Overflow fix: Expanded + maxLines 2 + overflow visible to wrap instead of
+  // causing a right overflow.
+  Widget _sectionHeader({required IconData icon, required String title}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.blue),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.visible,
+            softWrap: true,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _toggleRow({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.visibility, color: colors.primaryAccent),
-                const SizedBox(width: 12),
                 Text(
-                  l10n.publicProfile,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white60,
+                    fontSize: 12,
+                    height: 1.25,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.privacySettingsIntro,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: Text(l10n.privacyProfileVisibilityTitle,
-                  style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.privacyProfileVisibilityDescription,
-                  style: TextStyle(color: colors.textSecondary)),
-              value: settings.showProfile,
-              onChanged: (value) {
-                ref
-                    .read(privacySettingsProvider.notifier)
-                    .updateShowProfile(value);
-              },
-              secondary: Icon(Icons.person, color: colors.primaryAccent),
-              activeThumbColor: colors.primaryAccent,
-            ),
-            Divider(color: colors.dividerSeparator),
-            SwitchListTile(
-              title: Text(l10n.privacyContactInfoTitle,
-                  style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.privacyContactInfoDescription,
-                  style: TextStyle(color: colors.textSecondary)),
-              value: settings.showContactInfo,
-              onChanged: (value) {
-                ref
-                    .read(privacySettingsProvider.notifier)
-                    .updateShowContactInfo(value);
-              },
-              secondary: Icon(Icons.contact_mail, color: colors.primaryAccent),
-              activeThumbColor: colors.primaryAccent,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: Colors.blue,
+            activeTrackColor: Colors.blue.withValues(alpha: 0.35),
+            inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDataSharingSection(BuildContext context, WidgetRef ref,
-      PrivacySettings settings, DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+  Widget _actionRow({
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(Icons.share, color: colors.primaryAccent),
-                const SizedBox(width: 12),
-                Text(
-                  l10n.privacyDataSharingSectionTitle,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.privacyDataSharingDescription,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: Text(l10n.privacyAllowPropertySearchTitle,
-                  style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.privacyAllowPropertySearchDescription,
-                  style: TextStyle(color: colors.textSecondary)),
-              value: settings.allowPropertySearch,
-              onChanged: (value) {
-                ref
-                    .read(privacySettingsProvider.notifier)
-                    .updateAllowPropertySearch(value);
-              },
-              secondary: Icon(Icons.search, color: colors.primaryAccent),
-              activeThumbColor: colors.primaryAccent,
-            ),
-            Divider(color: colors.dividerSeparator),
-            SwitchListTile(
-              title: Text(l10n.privacyUsageAnalyticsTitle,
-                  style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.privacyUsageAnalyticsDescription,
-                  style: TextStyle(color: colors.textSecondary)),
-              value: settings.shareAnalytics,
-              onChanged: (value) {
-                ref
-                    .read(privacySettingsProvider.notifier)
-                    .updateShareAnalytics(value);
-              },
-              secondary: Icon(Icons.analytics, color: colors.primaryAccent),
-              activeThumbColor: colors.primaryAccent,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white54),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMarketingSection(BuildContext context, WidgetRef ref,
-      PrivacySettings settings, DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.campaign, color: colors.primaryAccent),
-                const SizedBox(width: 12),
-                Text(
-                  l10n.privacyMarketingSectionTitle,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.privacyMarketingDescription,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: Text(l10n.privacyMarketingEmailsTitle,
-                  style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.privacyMarketingEmailsDescription,
-                  style: TextStyle(color: colors.textSecondary)),
-              value: settings.receiveMarketing,
-              onChanged: (value) {
-                ref
-                    .read(privacySettingsProvider.notifier)
-                    .updateReceiveMarketing(value);
-              },
-              secondary: Icon(Icons.email, color: colors.primaryAccent),
-              activeThumbColor: colors.primaryAccent,
-            ),
-          ],
-        ),
-      ),
+  Widget _divider() {
+    return Container(
+      height: 1,
+      color: Colors.white.withValues(alpha: 0.10),
     );
   }
 
-  Widget _buildDataManagementSection(BuildContext context, WidgetRef ref,
-      PrivacySettings settings, DynamicAppColors colors) {
-    final l10n = AppLocalizations.of(context)!;
-    return Card(
-      elevation: 4,
-      color: colors.surfaceCards,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.folder_outlined, color: colors.primaryAccent),
-                const SizedBox(width: 12),
-                Text(
-                  l10n.privacyDataManagementSectionTitle,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.privacyDataManagementDescription,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Icon(Icons.download, color: colors.primaryAccent),
-              title: Text(l10n.privacyExportDataTitle,
-                  style: TextStyle(color: colors.textPrimary)),
-              subtitle: Text(l10n.privacyExportDataSubtitle,
-                  style: TextStyle(color: colors.textSecondary)),
-              trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
-              onTap: () {
-                _showDataExportDialog(context, ref);
-              },
-            ),
-            Divider(color: colors.dividerSeparator),
-            ListTile(
-              leading: Icon(Icons.delete_forever, color: colors.error),
-              title: Text(l10n.privacyDeleteAccountTitle,
-                  style: TextStyle(color: colors.error)),
-              subtitle: Text(l10n.privacyDeleteAccountSubtitle,
-                  style: TextStyle(color: colors.textSecondary)),
-              trailing: Icon(Icons.chevron_right, color: colors.textTertiary),
-              onTap: () {
-                _showDeleteAccountDialog(context, ref);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDataExportDialog(BuildContext context, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
-    final l10n = AppLocalizations.of(context)!;
+  void _showDataExportDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.privacyExportDialogTitle,
-            style: TextStyle(color: colors.textPrimary)),
+        backgroundColor: _bentoCard,
+        title: Text(
+          l10n.privacyExportDialogTitle,
+          style: const TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.privacyExportDialogDescription,
-              style: TextStyle(color: colors.textPrimary),
+              style: const TextStyle(color: Colors.white70),
             ),
             const SizedBox(height: 16),
             ...[
@@ -418,15 +423,20 @@ class PrivacySettingsPage extends ConsumerWidget {
               l10n.privacyExportIncludesProperty,
               l10n.privacyExportIncludesMessages,
               l10n.privacyExportIncludesPayments,
-              l10n.privacyExportIncludesSettings
+              l10n.privacyExportIncludesSettings,
             ].map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.check, color: colors.primaryAccent, size: 16),
+                    const Icon(Icons.check, color: _primaryBlue, size: 16),
                     const SizedBox(width: 8),
-                    Text(item, style: TextStyle(color: colors.textSecondary)),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -434,57 +444,58 @@ class PrivacySettingsPage extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               l10n.privacyExportDialogNote,
-              style: TextStyle(color: colors.textSecondary, fontSize: 12),
+              style: const TextStyle(color: Colors.white60, fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel,
-                style: TextStyle(color: colors.textSecondary)),
+            child: Text(
+              l10n.cancel,
+              style: const TextStyle(color: Colors.white70),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.privacyExportSuccess),
-                ),
+                SnackBar(content: Text(l10n.privacyExportSuccess)),
               );
             },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: colors.primaryAccent),
-            child: Text(l10n.privacyExportButton,
-                style: TextStyle(color: colors.textOnAccent)),
+            style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue),
+            child: Text(
+              l10n.privacyExportButton,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context, WidgetRef ref) {
-    final colors = ref.read(dynamicColorsProvider);
-    final l10n = AppLocalizations.of(context)!;
+  void _showDeleteAccountDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: colors.surfaceCards,
-        title: Text(l10n.privacyDeleteDialogTitle,
-            style: TextStyle(color: colors.error)),
+        backgroundColor: _bentoCard,
+        title: Text(
+          l10n.privacyDeleteDialogTitle,
+          style: const TextStyle(color: Colors.redAccent),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.privacyDeleteDialogQuestion,
-              style: TextStyle(
-                  color: colors.textPrimary, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             Text(
               l10n.privacyDeleteDialogWarningTitle,
-              style: TextStyle(color: colors.textPrimary),
+              style: const TextStyle(color: Colors.white70),
             ),
             const SizedBox(height: 8),
             ...[
@@ -492,17 +503,22 @@ class PrivacySettingsPage extends ConsumerWidget {
               l10n.privacyDeleteDialogDeleteProperties,
               l10n.privacyDeleteDialogDeleteMessages,
               l10n.privacyDeleteDialogDeletePayments,
-              l10n.privacyDeleteDialogDeleteDocuments
+              l10n.privacyDeleteDialogDeleteDocuments,
             ].map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.warning, color: colors.error, size: 16),
+                    const Icon(Icons.warning,
+                        color: Colors.redAccent, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
-                        child: Text(item,
-                            style: TextStyle(color: colors.textSecondary))),
+                      child: Text(
+                        item,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -511,12 +527,12 @@ class PrivacySettingsPage extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colors.error.withValues(alpha: 0.1),
+                color: Colors.redAccent.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 l10n.privacyDeleteDialogIrreversible,
-                style: TextStyle(color: colors.error, fontSize: 12),
+                style: const TextStyle(color: Colors.redAccent, fontSize: 12),
               ),
             ),
           ],
@@ -525,20 +541,20 @@ class PrivacySettingsPage extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l10n.cancel,
-                style: TextStyle(color: colors.textSecondary)),
+                style: const TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.privacyDeleteRequestSubmitted),
-                ),
+                SnackBar(content: Text(l10n.privacyDeleteRequestSubmitted)),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: colors.error),
-            child: Text(l10n.privacyDeleteButton,
-                style: TextStyle(color: colors.textOnAccent)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            child: Text(
+              l10n.privacyDeleteButton,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

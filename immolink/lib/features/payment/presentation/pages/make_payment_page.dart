@@ -53,7 +53,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     final userProperties = ref.watch(tenantPropertiesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Make Payment',
@@ -63,7 +63,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: AppColors.surfaceCards,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(

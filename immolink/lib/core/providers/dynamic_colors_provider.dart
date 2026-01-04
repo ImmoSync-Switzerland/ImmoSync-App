@@ -17,8 +17,8 @@ class DynamicAppColors {
   DynamicAppColors({required this.isDark});
 
   // Primary colors
-  Color get primaryBackground =>
-      isDark ? AppColorsDark.primaryBackground : AppColors.primaryBackground;
+  /// Transparent so the global app gradient can show through.
+  Color get primaryBackground => Colors.transparent;
   Color get surfaceCards =>
       isDark ? AppColorsDark.surfaceCards : AppColors.surfaceCards;
   Color get surfaceSecondary =>

@@ -24,21 +24,28 @@ class CommonBottomNav extends ConsumerWidget {
           .updateFromRoute(currentRoute);
     });
 
+    final theme = Theme.of(context).bottomNavigationBarTheme;
+
     return Container(
       padding: const EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
-        color: colors.surfaceSecondary,
-        border: Border(top: BorderSide(color: colors.borderLight, width: 1)),
+        color: theme.backgroundColor ?? Colors.transparent,
+        border: Border(
+          top: BorderSide(
+            color: colors.borderLight.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColorMedium,
+            color: colors.shadowColorMedium.withValues(alpha: 0.4),
             blurRadius: 12,
             offset: const Offset(0, -2),
           ),
         ],
       ),
       child: BottomNavigationBar(
-        currentIndex: selectedIndex,
+        currentIndex: selectedIndex.clamp(0, 3),
         onTap: (index) {
           HapticFeedback.lightImpact();
           ref.read(routeAwareNavigationProvider.notifier).setIndex(index);
@@ -61,16 +68,13 @@ class CommonBottomNav extends ConsumerWidget {
             case 3: // Reports
               context.go('/reports');
               break;
-            case 4: // Profile
-              context.go('/profile');
-              break;
           }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        selectedItemColor: colors.primaryAccent,
-        unselectedItemColor: colors.textTertiary,
+        selectedItemColor: theme.selectedItemColor ?? colors.primaryAccent,
+        unselectedItemColor: theme.unselectedItemColor ?? colors.textTertiary,
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: _buildNavigationItems(context, userRole, selectedIndex, colors),
@@ -94,8 +98,6 @@ class CommonBottomNav extends ConsumerWidget {
           l10n.messages, 2, selectedIndex, colors),
       _buildBottomNavItem(Icons.analytics_outlined, Icons.analytics,
           l10n.reports, 3, selectedIndex, colors),
-      _buildBottomNavItem(Icons.person_outline, Icons.person, l10n.profile, 4,
-          selectedIndex, colors),
     ];
   }
 

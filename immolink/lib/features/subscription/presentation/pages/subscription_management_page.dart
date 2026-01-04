@@ -10,9 +10,19 @@ import 'package:immosync/features/settings/providers/settings_provider.dart';
 import 'package:immosync/features/subscription/presentation/providers/subscription_providers.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:immosync/features/subscription/presentation/pages/subscription_screen.dart';
 
-class SubscriptionManagementPage extends ConsumerWidget {
+class SubscriptionManagementPage extends StatelessWidget {
   const SubscriptionManagementPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SubscriptionScreen();
+  }
+}
+
+class LegacySubscriptionManagementPage extends ConsumerWidget {
+  const LegacySubscriptionManagementPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

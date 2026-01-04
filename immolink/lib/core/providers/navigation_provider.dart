@@ -20,8 +20,8 @@ int getNavigationIndexFromRoute(String route) {
     return 2; // Messages/Nachrichten
   } else if (route.startsWith('/reports') || route.startsWith('/maintenance')) {
     return 3; // Reports/Berichte
-  } else if (route.startsWith('/settings') || route.startsWith('/profile')) {
-    return 4; // Profile/Profil
+  } else if (route.startsWith('/profile') || route.startsWith('/settings')) {
+    return 4; // Profile/Settings
   }
   return 0; // Default to Dashboard
 }

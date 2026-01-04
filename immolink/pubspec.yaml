@@ -58,6 +58,7 @@ dependencies:
   mime: any
   flutter_dotenv: ^5.1.0
 
+  flutter_native_splash: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -73,6 +74,7 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
+    - assets/logo.png
     - assets/icon/
     - assets/fonts/
     - assets/images/

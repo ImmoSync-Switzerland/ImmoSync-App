@@ -13,16 +13,27 @@ import '../../../documents/presentation/pages/document_viewer_page.dart';
 import '../../../home/presentation/models/dashboard_design.dart';
 import '../../../home/presentation/pages/glass_dashboard_shared.dart';
 import '../../../settings/providers/settings_provider.dart';
+import '../../../documents/presentation/pages/documents_screen.dart';
 
-class LandlordDocumentsPage extends ConsumerStatefulWidget {
+class LandlordDocumentsPage extends StatelessWidget {
   const LandlordDocumentsPage({super.key});
 
   @override
-  ConsumerState<LandlordDocumentsPage> createState() =>
-      _LandlordDocumentsPageState();
+  Widget build(BuildContext context) {
+    return const DocumentsScreen();
+  }
 }
 
-class _LandlordDocumentsPageState extends ConsumerState<LandlordDocumentsPage>
+class LegacyLandlordDocumentsPage extends ConsumerStatefulWidget {
+  const LegacyLandlordDocumentsPage({super.key});
+
+  @override
+  ConsumerState<LegacyLandlordDocumentsPage> createState() =>
+      _LegacyLandlordDocumentsPageState();
+}
+
+class _LegacyLandlordDocumentsPageState
+    extends ConsumerState<LegacyLandlordDocumentsPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;

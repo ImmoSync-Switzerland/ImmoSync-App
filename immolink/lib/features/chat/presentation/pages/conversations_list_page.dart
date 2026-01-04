@@ -16,6 +16,7 @@ import '../../../../core/config/db_config.dart';
 import '../../../home/presentation/models/dashboard_design.dart';
 import '../../../home/presentation/pages/glass_dashboard_shared.dart';
 import '../../../settings/providers/settings_provider.dart';
+import '../../../../core/theme/app_typography.dart';
 
 class ConversationsListPage extends ConsumerStatefulWidget {
   const ConversationsListPage({super.key});
@@ -68,11 +69,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
         elevation: 0,
         title: Text(
           l10n.messages,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTypography.pageTitle.copyWith(color: colors.textPrimary),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),

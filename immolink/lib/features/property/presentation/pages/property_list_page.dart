@@ -202,43 +202,96 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     return Column(
       children: [
         GlassContainer(
-          padding: EdgeInsets.zero,
-          child: Container(
+          borderRadius: BorderRadius.circular(22),
+          blurSigma: 10,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.32),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.08),
+                  Colors.black.withValues(alpha: 0.18),
+                ],
+              ),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.45),
+                color: Colors.white.withValues(alpha: 0.14),
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 18,
+                  spreadRadius: -10,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  spreadRadius: -6,
+                  offset: const Offset(-2, -2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: TextFormField(
               initialValue: _searchQuery,
               onChanged: (value) => setState(() => _searchQuery = value),
-              cursorColor: Colors.white,
+              cursorColor: Colors.white.withValues(alpha: 0.9),
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
-                icon: Icon(
-                  Icons.search_rounded,
-                  color: Colors.white.withValues(alpha: 0.92),
-                ),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.08),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 14,
-                ),
                 hintText: l10n.searchProperties,
                 hintStyle: GoogleFonts.poppins(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
-                border: InputBorder.none,
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: Colors.white.withValues(alpha: 0.82),
+                  size: 22,
+                ),
+                suffixIcon: Container(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: IconButton(
+                    splashRadius: 20,
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _showFilterDialog(context, l10n);
+                    },
+                    icon: Icon(
+                      Icons.filter_list_rounded,
+                      color: Colors.white.withValues(alpha: 0.82),
+                      size: 18,
+                    ),
+                  ),
+                ),
+                filled: true,
+                fillColor: Colors.black.withValues(alpha: 0.16),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                isDense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
               ),
             ),
           ),
@@ -406,9 +459,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
               ],
             ),
             const SizedBox(height: 18),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
+                SizedBox(
+                  width: double.infinity,
                   child: _buildGlassMetric(
                     icon: Icons.attach_money,
                     label: l10n.monthlyRent,
@@ -416,8 +471,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     color: colors.success,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
                   child: _buildGlassMetric(
                     icon: Icons.square_foot,
                     label: l10n.size,
@@ -425,8 +481,9 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                     color: colors.primaryAccent,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
                   child: _buildGlassMetric(
                     icon: Icons.meeting_room,
                     label: l10n.rooms,
@@ -945,47 +1002,34 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
                 color: Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _buildDetailColumn(
-                      icon: Icons.attach_money,
-                      label: l10n.monthlyRent,
-                      value: ref
-                          .read(currencyProvider.notifier)
-                          .formatAmount(property.rentAmount),
-                      iconColor: colors.success,
-                      isPrice: true,
-                      colors: colors,
-                    ),
+                  _buildDetailColumn(
+                    icon: Icons.attach_money,
+                    label: l10n.monthlyRent,
+                    value: ref
+                        .read(currencyProvider.notifier)
+                        .formatAmount(property.rentAmount),
+                    iconColor: colors.success,
+                    isPrice: true,
+                    colors: colors,
                   ),
-                  Container(
-                    width: 1,
-                    height: 44, // Reduced from 50
-                    color: colors.borderLight,
+                  const SizedBox(height: 12),
+                  _buildDetailColumn(
+                    icon: Icons.square_foot,
+                    label: l10n.size,
+                    value: '${property.details.size.toStringAsFixed(0)} m2',
+                    iconColor: colors.primaryAccent,
+                    colors: colors,
                   ),
-                  Expanded(
-                    child: _buildDetailColumn(
-                      icon: Icons.square_foot,
-                      label: l10n.size,
-                      value: '${property.details.size.toStringAsFixed(0)} m2',
-                      iconColor: colors.primaryAccent,
-                      colors: colors,
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 44, // Reduced from 50
-                    color: colors.borderLight,
-                  ),
-                  Expanded(
-                    child: _buildDetailColumn(
-                      icon: Icons.meeting_room,
-                      label: l10n.rooms,
-                      value: '${property.details.rooms}',
-                      iconColor: colors.warning,
-                      colors: colors,
-                    ),
+                  const SizedBox(height: 12),
+                  _buildDetailColumn(
+                    icon: Icons.meeting_room,
+                    label: l10n.rooms,
+                    value: '${property.details.rooms}',
+                    iconColor: colors.warning,
+                    colors: colors,
                   ),
                 ],
               ),
@@ -1004,13 +1048,14 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     required DynamicAppColors colors,
     bool isPrice = false,
   }) {
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(6), // Reduced from 8
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6), // Reduced from 8
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
@@ -1018,33 +1063,36 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
             color: iconColor,
           ),
         ),
-        const SizedBox(height: 6), // Reduced from 8
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: isPrice ? 14 : 13, // Reduced from 16/15
-            fontWeight: FontWeight.w700,
-            color: colors.textPrimary,
-            letterSpacing: -0.2,
-            inherit: true,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 9, // Reduced from 10
-            fontWeight: FontWeight.w600,
-            color: colors.textSecondary,
-            letterSpacing: 0.5,
-            inherit: true,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: isPrice ? 14 : 13,
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary,
+                letterSpacing: -0.2,
+                inherit: true,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: colors.textSecondary,
+                letterSpacing: 0.4,
+                inherit: true,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ],
     );

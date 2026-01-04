@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:immosync/core/config/db_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/core/services/token_manager.dart';
 
 /// Service for handling Stripe Connect payments between tenants and landlords
 class StripeConnectPaymentService {
@@ -11,27 +12,65 @@ class StripeConnectPaymentService {
 
   StripeConnectPaymentService({Ref? ref}) : _ref = ref;
 
-  /// Get headers with authorization token if available
-  Map<String, String> _getHeaders() {
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    if (_ref != null) {
-      try {
-        final auth = _ref.read(authProvider);
-        final token = auth.sessionToken;
-        if (token != null && token.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $token';
-          print(
-              '[StripeConnect] Using auth token: ${token.substring(0, 20)}...');
-        } else {
-          print('[StripeConnect][WARN] No auth token available');
-        }
-      } catch (e) {
-        print('[StripeConnect][ERROR] Could not get auth token: $e');
-      }
-    } else {
-      print('[StripeConnect][WARN] No Ref provided, cannot include auth token');
+  Future<Map<String, String>> _getHeaders() async {
+    try {
+      return await TokenManager().getHeaders();
+    } catch (e) {
+      print('[StripeConnect][ERROR] TokenManager.getHeaders failed: $e');
     }
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (_ref == null) {
+      print('[StripeConnect][WARN] No Ref provided, cannot include auth token');
+      return headers;
+    }
+
+    try {
+      final auth = _ref.read(authProvider);
+      final token = auth.sessionToken;
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+        final preview = token.length > 20 ? token.substring(0, 20) : token;
+        print('[StripeConnect] Using auth token: $preview...');
+      } else {
+        print('[StripeConnect][WARN] No auth token available');
+      }
+    } catch (e) {
+      print('[StripeConnect][ERROR] Could not get auth token: $e');
+    }
+
     return headers;
+  }
+
+  Future<http.Response> _getWithRetry(Uri uri) async {
+    var headers = await _getHeaders();
+    var response = await http.get(uri, headers: headers);
+    if (response.statusCode != 401) return response;
+
+    print('[StripeConnect][WARN] 401 received, attempting token refresh...');
+    final refreshed = await TokenManager().refreshToken(_apiUrl);
+    if (!refreshed) return response;
+
+    headers = await _getHeaders();
+    response = await http.get(uri, headers: headers);
+    return response;
+  }
+
+  Future<http.Response> _postWithRetry(Uri uri, {Object? body}) async {
+    var headers = await _getHeaders();
+    var response = await http.post(uri, headers: headers, body: body);
+    if (response.statusCode != 401) return response;
+
+    print('[StripeConnect][WARN] 401 received, attempting token refresh...');
+    final refreshed = await TokenManager().refreshToken(_apiUrl);
+    if (!refreshed) return response;
+
+    headers = await _getHeaders();
+    response = await http.post(uri, headers: headers, body: body);
+    return response;
   }
 
   /// Create a Stripe Connect account for a landlord
@@ -47,9 +86,8 @@ class StripeConnectPaymentService {
       print(
           '[StripeConnect] Payload: landlordId=$landlordId, email=$email, businessType=${businessType ?? 'individual'}');
 
-      final response = await http.post(
+      final response = await _postWithRetry(
         Uri.parse(url),
-        headers: _getHeaders(),
         body: json.encode({
           'landlordId': landlordId,
           'email': email,
@@ -84,10 +122,7 @@ class StripeConnectPaymentService {
       final url = '$_apiUrl/connect/account/$landlordId';
       print('[StripeConnect] Getting account from: $url');
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: _getHeaders(),
-      );
+      final response = await _getWithRetry(Uri.parse(url));
 
       print(
           '[StripeConnect] Get account response status: ${response.statusCode}');
@@ -119,9 +154,8 @@ class StripeConnectPaymentService {
       print('[StripeConnect] Creating onboarding link at: $url');
       print('[StripeConnect] AccountId: $accountId');
 
-      final response = await http.post(
+      final response = await _postWithRetry(
         Uri.parse(url),
-        headers: _getHeaders(),
         body: json.encode({
           'accountId': accountId,
           'refreshUrl': refreshUrl ?? '${DbConfig.apiUrl}/refresh',
@@ -239,8 +273,7 @@ class StripeConnectPaymentService {
           .replace(queryParameters: queryParams);
 
       print('[StripeConnect] Request URL: $uri');
-      final headers = _getHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await _getWithRetry(uri);
 
       print('[StripeConnect] Response status: ${response.statusCode}');
 
@@ -273,8 +306,7 @@ class StripeConnectPaymentService {
       final uri = Uri.parse('$_apiUrl/connect/tenant-payments/$tenantId')
           .replace(queryParameters: queryParams);
 
-      final headers = _getHeaders();
-      final response = await http.get(uri, headers: headers);
+      final response = await _getWithRetry(uri);
 
       print(
           '[StripeConnect] Tenant payments response status: ${response.statusCode}');
@@ -299,10 +331,8 @@ class StripeConnectPaymentService {
   Future<AccountBalance> getAccountBalance(String landlordId) async {
     try {
       print('[StripeConnect] Fetching balance for landlord: $landlordId');
-      final headers = _getHeaders();
-      final response = await http.get(
+      final response = await _getWithRetry(
         Uri.parse('$_apiUrl/connect/balance/$landlordId'),
-        headers: headers,
       );
 
       print('[StripeConnect] Balance response status: ${response.statusCode}');
@@ -332,9 +362,8 @@ class StripeConnectPaymentService {
     String? description,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _postWithRetry(
         Uri.parse('$_apiUrl/connect/create-payout'),
-        headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'landlordId': landlordId,
           'amount': amount,
@@ -369,10 +398,7 @@ class StripeConnectPaymentService {
 
       print('[StripeConnectService.getPayouts] Fetching payouts from: $uri');
 
-      final response = await http.get(
-        uri,
-        headers: _getHeaders(),
-      );
+      final response = await _getWithRetry(uri);
 
       print(
           '[StripeConnectService.getPayouts] Response status: ${response.statusCode}');

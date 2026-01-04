@@ -2,28 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/pages/login_page.dart';
-import 'package:immosync/features/auth/presentation/pages/enhanced_register_page.dart';
 import 'package:immosync/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:immosync/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
-import 'package:immosync/features/chat/presentation/pages/chat_page.dart';
-import 'package:immosync/features/chat/presentation/pages/conversations_tabbed_page.dart';
+import 'package:immosync/features/chat/presentation/pages/chat_detail_screen.dart';
+import 'package:immosync/features/chat/presentation/pages/messages_screen.dart';
 import 'package:immosync/features/chat/presentation/pages/address_book_page.dart';
 import 'package:immosync/features/home/presentation/pages/home_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_management_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_request_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_request_detail_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/tenant_maintenance_requests_page.dart';
+import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immosync/features/payment/presentation/pages/make_payment_page.dart';
 import 'package:immosync/features/payment/presentation/pages/payment_history_page.dart';
 import 'package:immosync/features/payment/presentation/pages/auto_payment_setup_page.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
-import 'package:immosync/features/property/presentation/pages/add_property_page.dart';
+import 'package:immosync/features/property/presentation/pages/add_property_screen.dart';
 import 'package:immosync/features/property/presentation/pages/property_details_page.dart';
-import 'package:immosync/features/property/presentation/pages/property_list_page.dart';
-import 'package:immosync/features/tenant/presentation/pages/tenant_documents_page.dart';
+import 'package:immosync/features/home/presentation/pages/properties_screen.dart';
+import 'package:immosync/features/documents/presentation/pages/documents_screen.dart';
 import 'package:immosync/features/reports/presentation/pages/reports_page.dart';
-import 'package:immosync/features/settings/presentation/pages/settings_page.dart';
 import 'package:immosync/features/settings/presentation/pages/change_password_page.dart';
 import 'package:immosync/features/settings/presentation/pages/two_factor_auth_page.dart';
 import 'package:immosync/features/settings/presentation/pages/privacy_settings_page.dart';
@@ -31,19 +30,19 @@ import 'package:immosync/features/settings/presentation/pages/help_center_page.d
 import 'package:immosync/features/settings/presentation/pages/contact_support_page.dart';
 import 'package:immosync/features/settings/presentation/pages/terms_of_service_page.dart';
 import 'package:immosync/features/settings/presentation/pages/privacy_policy_page.dart';
+import 'package:immosync/features/settings/presentation/pages/settings_screen.dart';
 import 'package:immosync/features/profile/presentation/pages/edit_profile_page.dart';
-import 'package:immosync/features/profile/presentation/pages/profile_page.dart';
+import 'package:immosync/features/profile/presentation/pages/profile_screen.dart';
 import 'package:immosync/features/tenant/presentation/pages/tenants_page.dart';
-import 'package:immosync/features/search/presentation/pages/universal_search_page.dart';
+import 'package:immosync/features/search/presentation/pages/search_screen.dart';
 import 'package:immosync/features/tenant/presentation/pages/tenant_services_booking_page.dart';
-import 'package:immosync/features/landlord/presentation/pages/landlord_services_booking_page.dart';
-import 'package:immosync/features/landlord/presentation/pages/landlord_documents_page.dart';
+import 'package:immosync/features/services/presentation/pages/services_screen.dart';
 import 'package:immosync/features/landlord/presentation/pages/revenue_details_page.dart';
 import 'package:immosync/features/landlord/presentation/pages/outstanding_payments_page.dart';
-import 'package:immosync/features/payment/presentation/pages/landlord_payments_page.dart';
+import 'package:immosync/features/payment/presentation/pages/payments_screen.dart';
 import 'package:immosync/features/subscription/presentation/pages/landlord_subscription_page.dart';
 import 'package:immosync/features/subscription/presentation/pages/subscription_payment_page.dart';
-import 'package:immosync/features/subscription/presentation/pages/subscription_management_page.dart';
+import 'package:immosync/features/subscription/presentation/pages/subscription_screen.dart';
 import 'package:immosync/features/subscription/domain/models/subscription.dart';
 import 'package:immosync/features/payment/presentation/pages/tenant_payment_page.dart';
 import 'package:immosync/features/payment/presentation/pages/landlord_connect_setup_page.dart';
@@ -55,21 +54,26 @@ import 'package:immosync/features/support/presentation/pages/open_tickets_page.d
 import 'package:immosync/features/reports/presentation/pages/revenue_detail_page.dart';
 import 'package:immosync/features/debug/matrix_logs_viewer.dart';
 import 'package:immosync/features/debug/matrix_test_standalone.dart';
+import 'package:immosync/features/auth/presentation/pages/sign_up_screen.dart';
+import 'package:immosync/features/auth/presentation/pages/splash_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const _GermanOnly(child: LoginPage()),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) =>
-            const _GermanOnly(child: EnhancedRegisterPage()),
+        builder: (context, state) => const _GermanOnly(child: SignUpScreen()),
       ),
       GoRoute(
         path: '/complete-profile',
@@ -87,17 +91,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/add-property',
-        builder: (context, state) => AddPropertyPage(
+        builder: (context, state) => AddPropertyScreen(
           propertyToEdit: state.extra as Property?,
         ),
       ),
       GoRoute(
         path: '/properties',
-        builder: (context, state) => const PropertyListPage(),
+        builder: (context, state) => const PropertiesScreen(),
       ),
       GoRoute(
         path: '/documents',
-        builder: (context, state) => const TenantDocumentsPage(),
+        builder: (context, state) => const DocumentsScreen(),
       ),
       GoRoute(
         path: '/property/:id',
@@ -107,16 +111,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/chat/:conversationId',
-        builder: (context, state) => ChatPage(
+        builder: (context, state) => ChatDetailScreen(
           conversationId: state.pathParameters['conversationId']!,
-          otherUserName: state.uri.queryParameters['otherUser'] ?? 'User',
           otherUserId: state.uri.queryParameters['otherUserId'],
-          otherUserAvatar: state.uri.queryParameters['otherAvatar'],
+          title: state.uri.queryParameters['otherUser'] ?? 'User',
+          status: 'Online',
+          avatarUrl: state.uri.queryParameters['otherAvatar'],
         ),
       ),
       GoRoute(
         path: '/conversations',
-        builder: (context, state) => const ConversationsTabbedPage(),
+        builder: (context, state) => const MessagesScreen(),
       ),
       GoRoute(
         path: '/address-book',
@@ -141,6 +146,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/maintenance/:id',
         builder: (context, state) => MaintenanceRequestDetailPage(
           requestId: state.pathParameters['id']!,
+          initialRequest: state.extra is MaintenanceRequest
+              ? state.extra as MaintenanceRequest
+              : null,
         ),
       ),
       // Payment routes
@@ -167,12 +175,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Landlord services booking route
       GoRoute(
         path: '/landlord/services',
-        builder: (context, state) => const LandlordServicesBookingPage(),
+        builder: (context, state) => const ServicesScreen(),
       ),
       // Landlord documents management route
       GoRoute(
         path: '/landlord/documents',
-        builder: (context, state) => const LandlordDocumentsPage(),
+        builder: (context, state) => const DocumentsScreen(),
       ),
       // Landlord revenue details page
       GoRoute(
@@ -187,7 +195,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Landlord payments page (Stripe Connect)
       GoRoute(
         path: '/landlord/payments',
-        builder: (context, state) => const LandlordPaymentsPage(),
+        builder: (context, state) => const PaymentsScreen(),
       ),
       // Subscription routes
       GoRoute(
@@ -196,7 +204,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/subscription/management',
-        builder: (context, state) => const SubscriptionManagementPage(),
+        builder: (context, state) => const SubscriptionScreen(),
       ),
       GoRoute(
         path: '/subscription/payment',
@@ -246,7 +254,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Settings route
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsPage(),
+        builder: (context, state) => const SettingsScreen(),
       ),
       // Settings sub-routes
       GoRoute(
@@ -255,15 +263,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/privacy-settings',
-        builder: (context, state) => const PrivacySettingsPage(),
+        builder: (context, state) => const PrivacySettingsScreen(),
       ),
       GoRoute(
         path: '/help-center',
-        builder: (context, state) => const HelpCenterPage(),
+        builder: (context, state) => const HelpCenterScreen(),
       ),
       GoRoute(
         path: '/contact-support',
-        builder: (context, state) => const ContactSupportPage(),
+        builder: (context, state) => const ContactSupportScreen(),
       ),
       GoRoute(
         path: '/terms-of-service',
@@ -276,7 +284,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Change Password route
       GoRoute(
         path: '/change-password',
-        builder: (context, state) => const ChangePasswordPage(),
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       // Two-Factor Authentication route
       GoRoute(
@@ -286,22 +294,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Privacy Settings route
       GoRoute(
         path: '/privacy-settings',
-        builder: (context, state) => const PrivacySettingsPage(),
+        builder: (context, state) => const PrivacySettingsScreen(),
       ),
       // Help Center route
       GoRoute(
         path: '/help-center',
-        builder: (context, state) => const HelpCenterPage(),
+        builder: (context, state) => const HelpCenterScreen(),
       ),
       // Contact Support route
       GoRoute(
         path: '/contact-support',
-        builder: (context, state) => const ContactSupportPage(),
+        builder: (context, state) => const ContactSupportScreen(),
       ),
       // Contact Support route (alternative path)
       GoRoute(
         path: '/settings/contact-support',
-        builder: (context, state) => const ContactSupportPage(),
+        builder: (context, state) => const ContactSupportScreen(),
       ),
       // Debug Matrix Logs routes - always available
       GoRoute(
@@ -330,7 +338,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Profile route
       GoRoute(
         path: '/profile',
-        builder: (context, state) => const ProfilePage(),
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: '/notifications',
@@ -352,7 +360,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Search route
       GoRoute(
         path: '/search',
-        builder: (context, state) => const UniversalSearchPage(),
+        builder: (context, state) => SearchScreen(
+          initialQuery: state.uri.queryParameters['q'],
+        ),
       ),
       // Reports route
       GoRoute(
@@ -382,21 +392,24 @@ final routerProvider = Provider<GoRouter>((ref) {
             );
           }
 
-          return ChatPage(
+          return ChatDetailScreen(
             conversationId: 'new',
             otherUserId: otherUserId,
-            otherUserName: otherUserName,
+            title: otherUserName,
+            status: 'Online',
           );
         },
       ),
     ],
     redirect: (context, state) {
+      final isSplash = state.matchedLocation == '/splash';
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
       final isForgotPassword = state.matchedLocation == '/forgot-password';
       final isCompleting = state.matchedLocation == '/complete-profile';
 
       if (!authState.isAuthenticated &&
+          !isSplash &&
           !isLoggingIn &&
           !isRegistering &&
           !isForgotPassword) {
@@ -405,7 +418,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (authState.isAuthenticated &&
-          (isLoggingIn || isRegistering || isForgotPassword || isCompleting)) {
+          (isSplash ||
+              isLoggingIn ||
+              isRegistering ||
+              isForgotPassword ||
+              isCompleting)) {
         return '/home';
       }
 

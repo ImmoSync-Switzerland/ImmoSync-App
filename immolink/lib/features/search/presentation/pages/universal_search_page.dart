@@ -11,7 +11,9 @@ import '../../../chat/presentation/providers/conversations_provider.dart';
 import '../../../../core/widgets/user_avatar.dart';
 
 class UniversalSearchPage extends ConsumerStatefulWidget {
-  const UniversalSearchPage({super.key});
+  const UniversalSearchPage({super.key, this.initialQuery});
+
+  final String? initialQuery;
 
   @override
   ConsumerState<UniversalSearchPage> createState() =>
@@ -31,6 +33,15 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage>
     final tabCount =
         userRole == 'landlord' ? 5 : 4; // Landlords have 5 tabs, tenants have 4
     _tabController = TabController(length: tabCount, vsync: this);
+
+    final initial = widget.initialQuery?.trim() ?? '';
+    if (initial.isNotEmpty) {
+      _searchController.text = initial;
+      _searchController.selection = TextSelection.collapsed(
+        offset: initial.length,
+      );
+      _searchQuery = initial.toLowerCase();
+    }
   }
 
   @override

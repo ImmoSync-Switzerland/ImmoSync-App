@@ -22,17 +22,20 @@ class AppTheme {
       ),
 
       // Scaffold
-      scaffoldBackgroundColor: AppColors.primaryBackground,
+      scaffoldBackgroundColor: Colors.transparent,
 
       // App Bar Theme
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         toolbarHeight: AppSizes.topAppBarHeight,
-        titleTextStyle: AppTypography.subhead,
+        titleTextStyle: AppTypography.pageTitle.copyWith(
+          color: AppColors.textPrimary,
+        ),
         iconTheme: const IconThemeData(
           color: AppColors.textPrimary,
           size: AppSizes.iconMedium,
@@ -143,7 +146,7 @@ class AppTheme {
 
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: Colors.transparent,
         selectedItemColor: AppColors.primaryAccent,
         unselectedItemColor: AppColors.textPlaceholder,
         type: BottomNavigationBarType.fixed,
@@ -239,17 +242,18 @@ class AppTheme {
       ),
 
       // Scaffold
-      scaffoldBackgroundColor: AppColorsDark.primaryBackground,
+      scaffoldBackgroundColor: Colors.transparent,
 
       // App Bar Theme
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColorsDark.appBarBackground,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: AppColorsDark.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         toolbarHeight: AppSizes.topAppBarHeight,
-        titleTextStyle: AppTypography.subhead.copyWith(
+        titleTextStyle: AppTypography.pageTitle.copyWith(
           color: AppColorsDark.textPrimary,
         ),
         iconTheme: const IconThemeData(

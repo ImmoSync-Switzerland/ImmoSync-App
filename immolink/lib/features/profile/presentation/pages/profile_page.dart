@@ -6,10 +6,12 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/property/domain/models/property.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/common_bottom_nav.dart';
 import '../../../../core/widgets/user_avatar.dart';
 import '../../../home/presentation/models/dashboard_design.dart';
-import '../../../home/presentation/pages/glass_dashboard_shared.dart';
+import '../../../home/presentation/pages/glass_dashboard_shared.dart'
+    show GlassContainer, GlassPageScaffold;
 import '../../../settings/providers/settings_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -95,11 +97,7 @@ class ProfilePage extends ConsumerWidget {
         elevation: 0,
         title: Text(
           l10n.profile,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTypography.pageTitle.copyWith(color: colors.textPrimary),
         ),
         leading: IconButton(
           icon:

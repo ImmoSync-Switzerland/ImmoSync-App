@@ -116,9 +116,10 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
     final body = l.privacyPolicyContent;
     _prepare(body);
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBackground,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Text(l.privacyPolicy,
             style: const TextStyle(

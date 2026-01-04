@@ -115,9 +115,7 @@ class _AppTopBarState extends ConsumerState<AppTopBar> {
         Container(
           height: AppSizes.topAppBarHeight,
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColorsDark.appBarBackground
-                : AppColors.primaryBackground,
+            color: Colors.transparent,
             border: Border(
               bottom: BorderSide(
                 color: Theme.of(context).brightness == Brightness.dark

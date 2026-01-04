@@ -1,931 +1,753 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+
+import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
-import 'package:immosync/features/property/presentation/providers/property_providers.dart';
-import '../../../../../l10n/app_localizations.dart';
-import '../../../../core/providers/currency_provider.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
-import '../../../../core/providers/navigation_provider.dart';
-import '../../../../core/widgets/common_bottom_nav.dart';
-import '../../../home/presentation/models/dashboard_design.dart';
-import '../../../home/presentation/pages/glass_dashboard_shared.dart';
-import '../../../settings/providers/settings_provider.dart';
+import 'package:immosync/features/property/presentation/providers/properties_provider.dart';
+import 'package:immosync/core/theme/app_typography.dart';
 
-class ReportsPage extends ConsumerWidget {
+class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
 
   @override
+  Widget build(BuildContext context) => const ReportsScreen();
+}
+
+class ReportsScreen extends ConsumerWidget {
+  const ReportsScreen({super.key});
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = ref.watch(dynamicColorsProvider);
-    final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.watch(currentUserProvider);
-    final bool isLandlord = currentUser?.role == 'landlord';
-    final design = dashboardDesignFromId(
-      ref.watch(settingsProvider).dashboardDesign,
-    );
-    final bool glassMode = design == DashboardDesign.glass;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(routeAwareNavigationProvider.notifier).setIndex(3);
-    });
-
-    final content = _buildReportsContent(
-      ref: ref,
-      colors: colors,
-      l10n: l10n,
-      isLandlord: isLandlord,
-      glassMode: glassMode,
-    );
-
-    if (glassMode) {
-      return GlassPageScaffold(
-        title: l10n.analyticsAndReports,
-        onBack: () => context.go('/home'),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
-          child: content,
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: colors.primaryBackground,
-        elevation: 0,
-        title: Text(
-          l10n.analyticsAndReports,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: IconButton(
-          icon:
-              Icon(Icons.arrow_back_ios_new_rounded, color: colors.textPrimary),
-          onPressed: () => context.go('/home'),
-        ),
-      ),
-      bottomNavigationBar: const CommonBottomNav(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-          child: content,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportsContent({
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required bool isLandlord,
-    required bool glassMode,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildReportPeriod(
-          colors: colors,
-          l10n: l10n,
-          glassMode: glassMode,
-        ),
-        const SizedBox(height: 20),
-        if (isLandlord)
-          _buildLandlordReports(
-            ref: ref,
-            colors: colors,
-            l10n: l10n,
-            glassMode: glassMode,
-          )
-        else
-          _buildTenantReports(
-            ref: ref,
-            colors: colors,
-            l10n: l10n,
-            glassMode: glassMode,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildReportPeriod({
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final labelColor = _primaryTextColor(colors, glassMode);
-    final hintColor = _secondaryTextColor(colors, glassMode);
-
-    return _sectionCard(
-      colors: colors,
-      glassMode: glassMode,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.reportPeriod,
-            style: TextStyle(
-              color: labelColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: glassMode
-                  ? Colors.white.withValues(alpha: 0.12)
-                  : colors.surfaceWithElevation(2),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: glassMode
-                    ? Colors.white.withValues(alpha: 0.2)
-                    : colors.borderLight,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today_rounded,
-                  size: 18,
-                  color: glassMode ? Colors.white : colors.primaryAccent,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    l10n.thisMonth,
-                    style: TextStyle(
-                      color: labelColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: hintColor,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLandlordReports({
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final propertiesAsync = ref.watch(landlordPropertiesProvider);
     final paymentsAsync = ref.watch(landlordPaymentsProvider);
+    final propertiesAsync = ref.watch(landlordPropertiesProvider);
 
-    final properties = propertiesAsync.maybeWhen(
-      data: (value) => value,
-      orElse: () => const <Property>[],
-    );
-    final payments = paymentsAsync.maybeWhen(
-      data: (value) => value,
-      orElse: () => const <Payment>[],
-    );
-
-    final loadingProperties = propertiesAsync.isLoading && properties.isEmpty;
-    final loadingPayments = paymentsAsync.isLoading && payments.isEmpty;
-    final propertyError =
-        propertiesAsync.whenOrNull(error: (error, _) => error);
-    final paymentError = paymentsAsync.whenOrNull(error: (error, _) => error);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (propertyError != null || paymentError != null)
-          _buildErrorState(
-            colors: colors,
-            l10n: l10n,
-            error: propertyError ?? paymentError!,
-            glassMode: glassMode,
-          ),
-        _buildFinancialSummaryCard(
-          ref: ref,
-          colors: colors,
-          payments: payments,
-          properties: properties,
-          isLoading: loadingPayments,
-          l10n: l10n,
-          glassMode: glassMode,
-        ),
-        const SizedBox(height: 20),
-        _buildOccupancyCard(
-          colors: colors,
-          properties: properties,
-          isLoading: loadingProperties,
-          l10n: l10n,
-          glassMode: glassMode,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFinancialSummaryCard({
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required List<Payment> payments,
-    required List<Property> properties,
-    required bool isLoading,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final currencyNotifier = ref.read(currencyProvider.notifier);
-    final completedIncome = payments
-        .where((payment) => payment.status.toLowerCase() == 'completed')
-        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
-    final pendingIncome = payments
-        .where((payment) => payment.status.toLowerCase() == 'pending')
-        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
-    final outstandingBalance = properties.fold<double>(
-      0.0,
-      (sum, property) => sum + property.outstandingPayments,
-    );
-
-    return _sectionCard(
-      colors: colors,
-      glassMode: glassMode,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.financialSummary,
-                style: TextStyle(
-                  color: _primaryTextColor(colors, glassMode),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (isLoading)
-                SizedBox(
-                  width: 82,
-                  height: 4,
-                  child: LinearProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      glassMode ? Colors.white : colors.primaryAccent,
-                    ),
-                    backgroundColor:
-                        (glassMode ? Colors.white : colors.primaryAccent)
-                            .withValues(alpha: 0.15),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildMetricRow(
-            colors: colors,
-            glassMode: glassMode,
-            icon: Icons.trending_up_rounded,
-            iconColor: colors.success,
-            title: l10n.totalIncome,
-            value: currencyNotifier.formatAmount(completedIncome),
-          ),
-          const SizedBox(height: 12),
-          _buildMetricRow(
-            colors: colors,
-            glassMode: glassMode,
-            icon: Icons.timer_outlined,
-            iconColor: colors.warning,
-            title: l10n.outstandingPayments,
-            value: currencyNotifier.formatAmount(pendingIncome),
-          ),
-          const SizedBox(height: 12),
-          _buildMetricRow(
-            colors: colors,
-            glassMode: glassMode,
-            icon: Icons.warning_amber_rounded,
-            iconColor: colors.error,
-            title: l10n.totalOutstanding,
-            value: currencyNotifier.formatAmount(outstandingBalance),
-          ),
-        ],
+    return paymentsAsync.when(
+      loading: () => const _ReportsScaffold(body: _CenteredLoader()),
+      error: (e, st) => const _ReportsScaffold(
+        body: _ErrorState(message: 'Failed to load payments'),
       ),
-    );
-  }
-
-  Widget _buildOccupancyCard({
-    required DynamicAppColors colors,
-    required List<Property> properties,
-    required bool isLoading,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final total = properties.length;
-    final occupied = properties
-        .where((property) => property.status.toLowerCase() == 'rented')
-        .length;
-    final occupancyRate = total == 0 ? 0.0 : (occupied / total * 100);
-
-    return _sectionCard(
-      colors: colors,
-      glassMode: glassMode,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.occupancyRate,
-                style: TextStyle(
-                  color: _primaryTextColor(colors, glassMode),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (isLoading)
-                SizedBox(
-                  width: 82,
-                  height: 4,
-                  child: LinearProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      glassMode ? Colors.white : colors.primaryAccent,
-                    ),
-                    backgroundColor:
-                        (glassMode ? Colors.white : colors.primaryAccent)
-                            .withValues(alpha: 0.15),
-                  ),
-                ),
-            ],
+      data: (payments) {
+        return propertiesAsync.when(
+          loading: () => const _ReportsScaffold(body: _CenteredLoader()),
+          error: (e, st) => const _ReportsScaffold(
+            body: _ErrorState(message: 'Failed to load properties'),
           ),
-          const SizedBox(height: 12),
-          if (total == 0)
-            _buildEmptyState(
-              colors: colors,
-              message: l10n.noPropertiesFound,
-              icon: Icons.home_outlined,
-              glassMode: glassMode,
-            )
-          else
-            Row(
-              children: [
-                SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CircularProgressIndicator(
-                        value: occupancyRate / 100,
-                        strokeWidth: 8,
-                        backgroundColor: glassMode
-                            ? Colors.white.withValues(alpha: 0.2)
-                            : colors.borderLight,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          glassMode ? Colors.white : colors.success,
-                        ),
-                      ),
-                      Center(
-                        child: Text(
-                          '${occupancyRate.toStringAsFixed(0)}%',
-                          style: TextStyle(
-                            color: _primaryTextColor(colors, glassMode),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${l10n.rented}: $occupied',
-                        style: TextStyle(
-                          color: _primaryTextColor(colors, glassMode),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${l10n.numberOfProperties}: $total',
-                        style: TextStyle(
-                          color: _secondaryTextColor(colors, glassMode),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTenantReports({
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final paymentsAsync = ref.watch(tenantPaymentsProvider);
-    final payments = paymentsAsync.maybeWhen(
-      data: (value) => value,
-      orElse: () => const <Payment>[],
-    );
-    final isLoading = paymentsAsync.isLoading && payments.isEmpty;
-    final error = paymentsAsync.whenOrNull(error: (error, _) => error);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (error != null)
-          _buildErrorState(
-            colors: colors,
-            l10n: l10n,
-            error: error,
-            glassMode: glassMode,
-          ),
-        _buildTenantSummaryCard(
-          ref: ref,
-          colors: colors,
-          payments: payments,
-          isLoading: isLoading,
-          l10n: l10n,
-          glassMode: glassMode,
-        ),
-        const SizedBox(height: 20),
-        _buildPaymentHistory(
-          paymentsAsync: paymentsAsync,
-          ref: ref,
-          colors: colors,
-          l10n: l10n,
-          glassMode: glassMode,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTenantSummaryCard({
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required List<Payment> payments,
-    required bool isLoading,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final currencyNotifier = ref.read(currencyProvider.notifier);
-    final total =
-        payments.fold<double>(0.0, (sum, payment) => sum + payment.amount);
-    final completed = payments
-        .where((payment) => payment.status.toLowerCase() == 'completed')
-        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
-    final pending = payments
-        .where((payment) => payment.status.toLowerCase() == 'pending')
-        .fold<double>(0.0, (sum, payment) => sum + payment.amount);
-
-    return _sectionCard(
-      colors: colors,
-      glassMode: glassMode,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.paymentSummary,
-                style: TextStyle(
-                  color: _primaryTextColor(colors, glassMode),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (isLoading)
-                SizedBox(
-                  width: 82,
-                  height: 4,
-                  child: LinearProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      glassMode ? Colors.white : colors.primaryAccent,
-                    ),
-                    backgroundColor:
-                        (glassMode ? Colors.white : colors.primaryAccent)
-                            .withValues(alpha: 0.15),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildMetricRow(
-            colors: colors,
-            glassMode: glassMode,
-            icon: Icons.attach_money_rounded,
-            iconColor: colors.primaryAccent,
-            title: l10n.totalPayments,
-            value: currencyNotifier.formatAmount(total),
-          ),
-          const SizedBox(height: 12),
-          _buildMetricRow(
-            colors: colors,
-            glassMode: glassMode,
-            icon: Icons.check_circle_outline,
-            iconColor: colors.success,
-            title: l10n.completed,
-            value: currencyNotifier.formatAmount(completed),
-          ),
-          const SizedBox(height: 12),
-          _buildMetricRow(
-            colors: colors,
-            glassMode: glassMode,
-            icon: Icons.hourglass_bottom_rounded,
-            iconColor: colors.warning,
-            title: l10n.pending,
-            value: currencyNotifier.formatAmount(pending),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentHistory({
-    required AsyncValue<List<Payment>> paymentsAsync,
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    return _sectionCard(
-      colors: colors,
-      glassMode: glassMode,
-      child: paymentsAsync.when(
-        data: (payments) {
-          if (payments.isEmpty) {
-            return _buildEmptyState(
-              colors: colors,
-              message: l10n.noPaymentsFound,
-              icon: Icons.receipt_long_outlined,
-              glassMode: glassMode,
+          data: (properties) {
+            final derived =
+                _ReportData.from(payments: payments, properties: properties);
+            return _ReportsScaffold(
+              body: _ReportsBody(data: derived),
             );
-          }
+          },
+        );
+      },
+    );
+  }
+}
 
-          final sortedPayments = payments.toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
+class _ReportsScaffold extends StatelessWidget {
+  const _ReportsScaffold({required this.body});
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.recentPayments,
-                style: TextStyle(
-                  color: _primaryTextColor(colors, glassMode),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...sortedPayments.take(6).map(
-                    (payment) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: _buildPaymentHistoryRow(
-                        payment: payment,
-                        ref: ref,
-                        colors: colors,
-                        l10n: l10n,
-                        glassMode: glassMode,
-                      ),
-                    ),
-                  ),
-            ],
-          );
-        },
-        loading: () => Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-              glassMode ? Colors.white : colors.primaryAccent,
-            ),
-          ),
-        ),
-        error: (error, _) => _buildEmptyState(
-          colors: colors,
-          message: error.toString(),
-          icon: Icons.error_outline,
-          glassMode: glassMode,
-        ),
+  final Widget body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: Colors.transparent,
+      bottomNavigationBar: const AppGlassNavBar(),
+      body: Stack(
+        children: [
+          const _DeepNavyBackground(),
+          SafeArea(child: body),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildPaymentHistoryRow({
-    required Payment payment,
-    required WidgetRef ref,
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required bool glassMode,
-  }) {
-    final currencyNotifier = ref.read(currencyProvider.notifier);
-    final Color statusColor = _statusColor(payment.status, colors);
-    final String formattedDate = DateFormat.yMMMd().format(payment.date);
-    final String formattedType = _formatPaymentType(payment.type, l10n);
+class _ReportsBody extends StatelessWidget {
+  const _ReportsBody({required this.data});
 
+  final _ReportData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _Header(),
+          const SizedBox(height: 18),
+          _RevenueCard(data: data.revenue),
+          const SizedBox(height: 18),
+          _MetricsGrid(data: data.metrics),
+          const SizedBox(height: 18),
+          _OccupancyCard(data: data.occupancy),
+        ],
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: glassMode ? 0.25 : 0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            _statusIcon(payment.status),
-            color: statusColor,
-            size: 20,
+        Text(
+          'Analytics',
+          style: AppTypography.pageTitle.copyWith(color: Colors.white),
+        ),
+        const Spacer(),
+        const _BentoCard(
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.calendar_today, size: 16, color: Colors.white70),
+              SizedBox(width: 8),
+              Text(
+                'This Month',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+              SizedBox(width: 6),
+              Icon(Icons.keyboard_arrow_down, size: 18, color: Colors.white70),
+            ],
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      ],
+    );
+  }
+}
+
+class _RevenueCard extends StatelessWidget {
+  const _RevenueCard({required this.data});
+
+  final _RevenueData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final months = data.monthLabels;
+    final revenue = data.values;
+    final maxRevenue = revenue.isEmpty
+        ? 1.0
+        : revenue.reduce(math.max).clamp(1.0, double.infinity);
+
+    return _BentoCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                currencyNotifier.formatAmount(payment.amount),
+                'Revenue Trends',
                 style: TextStyle(
-                  color: _primaryTextColor(colors, glassMode),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
+              Icon(Icons.show_chart, color: Colors.white70),
+            ],
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            height: 230,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: List.generate(months.length, (index) {
+                final value = revenue[index];
+                final barHeight = (value / maxRevenue) * 180;
+
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: barHeight,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Color(0xFF22C55E),
+                                    Color(0xFF22D3EE)
+                                  ],
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 12,
+                                    offset: Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          months[index],
+                          style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricsGrid extends StatelessWidget {
+  const _MetricsGrid({required this.data});
+
+  final List<_MetricCardData> data;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      primary: false,
+      crossAxisCount: 2,
+      childAspectRatio: 1.6,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      children: data.map((metric) => _MetricCard(data: metric)).toList(),
+    );
+  }
+}
+
+class _MetricCardData {
+  const _MetricCardData({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+  final Color valueColor;
+}
+
+class _MetricCard extends StatelessWidget {
+  const _MetricCard({required this.data});
+
+  final _MetricCardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return _BentoCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: data.iconColor.withAlpha(28),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(5),
+            child: Icon(data.icon, color: data.iconColor, size: 14),
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              data.label,
+              style: const TextStyle(
+                  color: Colors.white70, fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(height: 3),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              data.value,
+              style: TextStyle(
+                color: data.valueColor,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OccupancyCard extends StatelessWidget {
+  const _OccupancyCard({required this.data});
+
+  final _OccupancyData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final occupancy = data.percent;
+
+    return _BentoCard(
+      padding: const EdgeInsets.all(18),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            height: 100,
+            child: _DonutChart(percent: occupancy),
+          ),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Occupancy Rate',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _OccupancyLine(
+                    label: 'Occupied',
+                    value: data.occupied.toString(),
+                    color: Colors.white),
+                const SizedBox(height: 8),
+                _OccupancyLine(
+                    label: 'Vacant',
+                    value: data.vacant.toString(),
+                    color: Colors.white70),
+                const SizedBox(height: 8),
+                _OccupancyLine(
+                    label: 'Total',
+                    value: data.total.toString(),
+                    color: Colors.white54),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OccupancyLine extends StatelessWidget {
+  const _OccupancyLine(
+      {required this.label, required this.value, required this.color});
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: const TextStyle(
+              color: Colors.white70, fontWeight: FontWeight.w600),
+        ),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DonutChart extends StatelessWidget {
+  const _DonutChart({required this.percent});
+
+  final double percent;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 100,
+      width: 100,
+      child: CustomPaint(
+        painter: _DonutPainter(percent: percent),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${(percent * 100).toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                '$formattedDate • $formattedType',
-                style: TextStyle(
-                  color: _secondaryTextColor(colors, glassMode),
-                  fontSize: 12,
-                ),
-              ),
+              const Text('Occupancy', style: TextStyle(color: Colors.white70)),
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: glassMode ? 0.25 : 0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            payment.status.toUpperCase(),
-            style: TextStyle(
-              color: statusColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
-          ),
-        ),
-      ],
+      ),
+    );
+  }
+}
+
+class _DonutPainter extends CustomPainter {
+  _DonutPainter({required this.percent});
+
+  final double percent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const stroke = 12.0;
+    final rect = Offset.zero & size;
+
+    final background = Paint()
+      ..color = Colors.white.withAlpha(20)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke;
+
+    const gradient = SweepGradient(
+      startAngle: -math.pi / 2,
+      endAngle: 3 * math.pi / 2,
+      colors: [Color(0xFF38BDF8), Color(0xFF22C55E), Color(0xFF38BDF8)],
+      stops: [0.0, 0.6, 1.0],
+    );
+
+    final foreground = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round;
+
+    final center = size.center(Offset.zero);
+    final radius = (size.shortestSide - stroke) / 2;
+
+    canvas.drawCircle(center, radius, background);
+    final sweep = 2 * math.pi * percent;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      sweep,
+      false,
+      foreground,
     );
   }
 
-  Widget _buildMetricRow({
-    required DynamicAppColors colors,
-    required bool glassMode,
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String value,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: glassMode
-                ? Colors.white.withValues(alpha: 0.2)
-                : iconColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: glassMode ? Colors.white : iconColor,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Text(
-            title,
-            style: TextStyle(
-              color: _secondaryTextColor(colors, glassMode),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: _primaryTextColor(colors, glassMode),
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
+  @override
+  bool shouldRepaint(covariant _DonutPainter oldDelegate) =>
+      oldDelegate.percent != percent;
+}
 
-  Widget _buildEmptyState({
-    required DynamicAppColors colors,
-    required String message,
-    required IconData icon,
-    required bool glassMode,
-  }) {
-    final child = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: glassMode ? Colors.white : colors.textSecondary,
-          size: 28,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: _secondaryTextColor(colors, glassMode),
-          ),
-        ),
-      ],
-    );
+class _ReportData {
+  _ReportData(
+      {required this.revenue, required this.metrics, required this.occupancy});
 
-    if (glassMode) {
-      return GlassContainer(
-        padding: const EdgeInsets.all(20),
-        child: child,
-      );
+  final _RevenueData revenue;
+  final List<_MetricCardData> metrics;
+  final _OccupancyData occupancy;
+
+  factory _ReportData.from(
+      {required List<Payment> payments, required List<Property> properties}) {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final now = DateTime.now();
+    final months = List<DateTime>.generate(
+      7,
+      (i) => DateTime(now.year, now.month - (6 - i), 1),
+    );
+    final monthKeys = <String, int>{
+      for (var i = 0; i < months.length; i++)
+        '${months[i].year}-${months[i].month}': i,
+    };
+
+    final revenueBuckets = List<double>.filled(months.length, 0);
+    double incomeTotal = 0;
+    double pendingTotal = 0;
+    for (final payment in payments) {
+      if (payment.status == 'completed') {
+        incomeTotal += payment.amount;
+        final key = '${payment.date.year}-${payment.date.month}';
+        final bucketIndex = monthKeys[key];
+        if (bucketIndex != null) {
+          revenueBuckets[bucketIndex] += payment.amount;
+        }
+      } else if (payment.status == 'pending') {
+        pendingTotal += payment.amount;
+      }
     }
 
+    final totalUnits = properties.length;
+    final occupiedUnits =
+        properties.where((p) => p.tenantIds.isNotEmpty).length;
+    final vacantUnits = math.max(0, totalUnits - occupiedUnits);
+    final occupancyPercent = totalUnits == 0 ? 0.0 : occupiedUnits / totalUnits;
+    final expensesTotal =
+        properties.fold<double>(0, (sum, p) => sum + p.outstandingPayments);
+
+    final revenueData = _RevenueData(
+      monthLabels: months.map((m) => monthNames[m.month - 1]).toList(),
+      values: revenueBuckets,
+    );
+
+    final metrics = <_MetricCardData>[
+      _MetricCardData(
+        icon: Icons.arrow_upward_rounded,
+        iconColor: const Color(0xFF22C55E),
+        label: 'Income',
+        value: _formatCurrency(incomeTotal),
+        valueColor: Colors.white,
+      ),
+      _MetricCardData(
+        icon: Icons.access_time_filled_rounded,
+        iconColor: const Color(0xFFF97316),
+        label: 'Pending',
+        value: _formatCurrency(pendingTotal),
+        valueColor: const Color(0xFFF97316),
+      ),
+      _MetricCardData(
+        icon: Icons.home_work_rounded,
+        iconColor: const Color(0xFF38BDF8),
+        label: 'Occupancy',
+        value: '${(occupancyPercent * 100).toStringAsFixed(0)}%',
+        valueColor: Colors.white,
+      ),
+      _MetricCardData(
+        icon: Icons.trending_down_rounded,
+        iconColor: const Color(0xFFEF4444),
+        label: 'Expenses',
+        value: _formatCurrency(expensesTotal),
+        valueColor: Colors.white,
+      ),
+    ];
+
+    final occupancy = _OccupancyData(
+      percent: occupancyPercent,
+      occupied: occupiedUnits,
+      vacant: vacantUnits,
+      total: totalUnits,
+    );
+
+    return _ReportData(
+        revenue: revenueData, metrics: metrics, occupancy: occupancy);
+  }
+}
+
+class _RevenueData {
+  _RevenueData({required this.monthLabels, required this.values});
+
+  final List<String> monthLabels;
+  final List<double> values;
+}
+
+class _OccupancyData {
+  _OccupancyData(
+      {required this.percent,
+      required this.occupied,
+      required this.vacant,
+      required this.total});
+
+  final double percent;
+  final int occupied;
+  final int vacant;
+  final int total;
+}
+
+class _CenteredLoader extends StatelessWidget {
+  const _CenteredLoader();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator());
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        message,
+        style:
+            const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+String _formatCurrency(double value) {
+  return NumberFormat.currency(
+          locale: 'de_CH', symbol: 'CHF ', decimalDigits: 0)
+      .format(value);
+}
+
+class _BentoCard extends StatelessWidget {
+  const _BentoCard({required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: padding ?? const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colors.surfaceWithElevation(1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.borderLight),
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          width: 1,
+          color: Colors.white.withAlpha(25),
+        ),
         boxShadow: [
           BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: Colors.black.withAlpha(80),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: child,
     );
   }
+}
 
-  Widget _buildErrorState({
-    required DynamicAppColors colors,
-    required AppLocalizations l10n,
-    required Object error,
-    required bool glassMode,
-  }) {
-    final child = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+class _DeepNavyBackground extends StatelessWidget {
+  const _DeepNavyBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        Icon(
-          Icons.error_outline,
-          color: glassMode ? Colors.white : colors.error,
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0A1128), Colors.black],
+            ),
+          ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.somethingWentWrong,
-                style: TextStyle(
-                  color: _primaryTextColor(colors, glassMode),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                error.toString(),
-                style: TextStyle(
-                  color: _secondaryTextColor(colors, glassMode),
-                  fontSize: 12,
-                ),
-              ),
-            ],
+        const _Glow(
+            color: Color(0xFF4F46E5),
+            size: 420,
+            alignment: Alignment(-0.75, -0.6),
+            opacity: 0.22),
+        const _Glow(
+            color: Color(0xFF0EA5E9),
+            size: 360,
+            alignment: Alignment(0.85, -0.1),
+            opacity: 0.16),
+        const _Glow(
+            color: Color(0xFFF97316),
+            size: 500,
+            alignment: Alignment(-0.5, 0.9),
+            opacity: 0.12),
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
+            child: const SizedBox.shrink(),
           ),
         ),
       ],
     );
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: _sectionCard(
-        colors: colors,
-        glassMode: glassMode,
-        child: child,
-      ),
-    );
   }
+}
 
-  IconData _statusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Icons.check_circle_outline;
-      case 'pending':
-        return Icons.hourglass_bottom_rounded;
-      case 'failed':
-        return Icons.error_outline;
-      case 'refunded':
-        return Icons.refresh_outlined;
-      default:
-        return Icons.help_outline;
-    }
-  }
+class _Glow extends StatelessWidget {
+  const _Glow({
+    required this.color,
+    required this.size,
+    required this.alignment,
+    this.opacity = 0.16,
+  });
 
-  Color _statusColor(String status, DynamicAppColors colors) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return colors.success;
-      case 'pending':
-        return colors.warning;
-      case 'failed':
-        return colors.error;
-      case 'refunded':
-        return colors.info;
-      default:
-        return colors.textSecondary;
-    }
-  }
+  final Color color;
+  final double size;
+  final Alignment alignment;
+  final double opacity;
 
-  String _formatPaymentType(String type, AppLocalizations l10n) {
-    if (type.isEmpty) {
-      return '-';
-    }
-    switch (type.toLowerCase()) {
-      case 'rent':
-        return l10n.rent;
-      default:
-        return type[0].toUpperCase() + type.substring(1);
-    }
-  }
-
-  Widget _sectionCard({
-    required DynamicAppColors colors,
-    required Widget child,
-    required bool glassMode,
-    EdgeInsets padding = const EdgeInsets.all(20),
-  }) {
-    if (glassMode) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: GlassContainer(
-          width: double.infinity,
-          padding: padding,
-          child: child,
-        ),
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: colors.surfaceWithElevation(1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignment,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              color.withValues(alpha: opacity),
+              color.withValues(alpha: 0.02),
+              Colors.transparent,
+            ],
+            stops: const [0, 0.45, 1],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: padding,
-        child: child,
+        ),
       ),
     );
   }
-
-  Color _primaryTextColor(DynamicAppColors colors, bool glassMode) =>
-      glassMode ? Colors.white : colors.textPrimary;
-
-  Color _secondaryTextColor(DynamicAppColors colors, bool glassMode) =>
-      glassMode ? Colors.white.withValues(alpha: 0.8) : colors.textSecondary;
 }

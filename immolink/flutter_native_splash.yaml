@@ -1,0 +1,10 @@
+flutter_native_splash:
+  color: "#0A1128" # Our Deep Navy Background
+  image: assets/logo.png # Ensure this asset exists or use a placeholder
+  branding: assets/logo.png
+  color_dark: "#0A1128"
+  image_dark: assets/logo.png
+
+  android_12:
+    image: assets/logo.png
+    color: "#0A1128"
