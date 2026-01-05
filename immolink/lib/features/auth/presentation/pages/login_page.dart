@@ -1,8 +1,16 @@
 import 'dart:ui';
+import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
+import 'package:immosync/core/config/db_config.dart';
 
 import '../providers/auth_provider.dart';
 
@@ -54,6 +62,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (mounted) {
           context.go('/home'); // Navigate when authenticated
         }
+      } else if (current.needsProfileCompletion && !current.isLoading) {
+        setState(() {
+          _currentError = null;
+        });
+        if (mounted) {
+          context.go('/complete-profile');
+        }
       } else if (current.error != null && !current.isLoading) {
         setState(() {
           _currentError = current.error;
@@ -80,6 +95,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     final authState = ref.watch(authProvider);
+    final bool showApple =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final bool showGoogle =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
     return Scaffold(
       extendBody: true,
@@ -210,6 +229,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           GradientButton(
                                             text: 'Sign In',
                                             onPressed: _handleSignIn,
+                                          ),
+                                        if (!authState.isLoading)
+                                          ..._buildSocialButtons(
+                                            showApple: showApple,
+                                            showGoogle: showGoogle,
                                           ),
                                       ],
                                     ),
@@ -386,6 +410,171 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
   }
 
+  List<Widget> _buildSocialButtons({
+    required bool showApple,
+    required bool showGoogle,
+  }) {
+    if (!showApple && !showGoogle) return const [];
+
+    return [
+      const SizedBox(height: 12),
+      if (showApple)
+        SocialButton(
+          text: 'Sign in with Apple',
+          icon: FontAwesomeIcons.apple,
+          onPressed: _handleAppleSignIn,
+        ),
+      if (showGoogle)
+        SocialButton(
+          text: 'Sign in with Google',
+          icon: FontAwesomeIcons.google,
+          onPressed: _handleGoogleSignIn,
+        ),
+    ];
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    _snackShownForThisError = false;
+
+    try {
+      final String googleClientId = DbConfig.googleClientId;
+      if (googleClientId.isEmpty) {
+        throw Exception(
+            'Google Sign-In is not configured. Set GOOGLE_CLIENT_ID (Web client ID) via .env or --dart-define.');
+      }
+
+      debugPrint(
+          '[LoginScreen] Starting Google Sign-In (clientId=${googleClientId.substring(0, 12)}...)');
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: const ['email', 'profile', 'openid'],
+        // For Android, this must be the Web client ID (OAuth 2.0 client ID)
+        // so that an ID token can be issued for backend verification.
+        serverClientId: googleClientId,
+      );
+
+      // Helps ensure account picker shows reliably and avoids stale sessions.
+      await googleSignIn.signOut();
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account == null) return; // user cancelled
+
+      debugPrint('[LoginScreen] GoogleSignIn account: ${account.email}');
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? idToken = auth.idToken;
+      debugPrint(
+          '[LoginScreen] GoogleSignIn returned idToken=${idToken != null && idToken.isNotEmpty}');
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception(
+            'Google Sign-In did not return an ID token. Verify GOOGLE_CLIENT_ID is the Web client ID and that the correct SHA-1/SHA-256 fingerprints are registered in Google/Firebase for this Android app.');
+      }
+
+      if (kDebugMode) {
+        final claims = _tryDecodeJwtClaims(idToken);
+        if (claims != null) {
+          debugPrint(
+              '[LoginScreen] Google idToken claims aud=${claims['aud']} iss=${claims['iss']} azp=${claims['azp']}');
+        }
+      }
+
+      debugPrint(
+          '[LoginScreen] Calling backend socialLogin(provider=google, tokenLen=${idToken.length})');
+      await ref.read(authProvider.notifier).socialLogin(
+            provider: 'google',
+            idToken: idToken,
+          );
+      debugPrint('[LoginScreen] socialLogin(provider=google) completed');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_formatErrorMessage(_formatGoogleSignInError(e))),
+          backgroundColor: Colors.red.withValues(alpha: 0.85),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  String _formatGoogleSignInError(Object error) {
+    if (error is PlatformException) {
+      final String message = error.message ?? error.toString();
+
+      // Common Google Sign-In Android errors:
+      // - ApiException: 10 => DEVELOPER_ERROR (wrong SHA1/SHA256 or wrong client id/package)
+      // - 12500 => sign in failed (often misconfigured OAuth client / SHA)
+      if (message.contains('ApiException: 10') || message.contains('12500')) {
+        return 'Google Sign-In ist nicht korrekt konfiguriert (OAuth/SHA-Fingerprints). Bitte prüfen: Android Paketname (ch.immosync.app), SHA-1/SHA-256 im Firebase/Google Console, und GOOGLE_CLIENT_ID = Web Client ID.';
+      }
+
+      if (error.code == 'sign_in_canceled') {
+        return 'Google Sign-In abgebrochen.';
+      }
+      return message;
+    }
+    return error.toString();
+  }
+
+  Map<String, dynamic>? _tryDecodeJwtClaims(String jwt) {
+    try {
+      final parts = jwt.split('.');
+      if (parts.length < 2) return null;
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final obj = jsonDecode(decoded);
+      if (obj is Map<String, dynamic>) return obj;
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    _snackShownForThisError = false;
+
+    try {
+      final AuthorizationCredentialAppleID credential =
+          await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final String? idToken = credential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Apple Sign-In failed: missing identity token');
+      }
+
+      await ref.read(authProvider.notifier).socialLogin(
+            provider: 'apple',
+            idToken: idToken,
+          );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      // If user cancels, don't show an error.
+      if (e.code == AuthorizationErrorCode.canceled) return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_formatErrorMessage(e.message)),
+          backgroundColor: Colors.red.withValues(alpha: 0.85),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_formatErrorMessage(e.toString())),
+          backgroundColor: Colors.red.withValues(alpha: 0.85),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   String _formatErrorMessage(String error) {
     // Remove "Exception: " prefix if present
     final String cleanError = error.replaceFirst('Exception: ', '');
@@ -508,6 +697,48 @@ class GradientButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class SocialButton extends StatelessWidget {
+  const SocialButton({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String text;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: LoginScreen._field,
+          foregroundColor: Colors.white,
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.10),
+            width: 1,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+            letterSpacing: 0.2,
+          ),
+        ),
+        icon: Icon(icon, size: 18),
+        label: Text(text),
       ),
     );
   }

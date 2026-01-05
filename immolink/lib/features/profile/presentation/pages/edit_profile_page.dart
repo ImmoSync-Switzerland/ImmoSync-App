@@ -26,6 +26,13 @@ class EditProfilePage extends ConsumerStatefulWidget {
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage>
     with TickerProviderStateMixin {
+  static const Color _bgTop = Color(0xFF0A1128);
+  static const Color _bgBottom = Colors.black;
+  static const Color _cardBg = Color(0xFF1C1C1E);
+  static const Color _fieldFill = Color(0xFF2C2C2E);
+  static const Color _blue = Color(0xFF3B82F6);
+  static const Color _cyan = Color(0xFF22D3EE);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -78,68 +85,57 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     final colors = ref.watch(dynamicColorsProvider);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      appBar: _buildAppBar(colors),
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(0, _slideAnimation.value),
-              child: Opacity(
-                opacity: _fadeAnimation.value,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeaderSection(colors),
-                      const SizedBox(height: 32),
-                      _buildProfileImageSection(currentUser, colors),
-                      const SizedBox(height: 32),
-                      _buildFormSection(colors),
-                      const SizedBox(height: 40),
-                      _buildActionButtons(colors),
-                      const SizedBox(height: 20),
-                    ],
+      backgroundColor: Colors.transparent,
+      appBar: _buildAppBar(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bgTop, _bgBottom],
+          ),
+        ),
+        child: SafeArea(
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, _slideAnimation.value),
+                child: Opacity(
+                  opacity: _fadeAnimation.value,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileHeaderCard(currentUser),
+                        const SizedBox(height: 20),
+                        _buildFormSection(),
+                        const SizedBox(height: 28),
+                        _buildActionButtons(colors),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(DynamicAppColors colors) {
+  PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: colors.surfaceCards,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: colors.borderLight,
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadowColor,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.arrow_back_ios_new,
-            color: colors.textPrimary,
-            size: 18,
-          ),
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colors.white,
+          size: 20,
         ),
         onPressed: () {
           HapticFeedback.lightImpact();
@@ -149,9 +145,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       title: Text(
         'Edit Profile',
         style: TextStyle(
-          color: colors.textPrimary,
+          color: Colors.white,
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
           letterSpacing: -0.3,
         ),
       ),
@@ -159,58 +155,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     );
   }
 
-  Widget _buildHeaderSection(DynamicAppColors colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Profile Information',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: colors.textPrimary,
-            letterSpacing: -0.7,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Update your personal information and account details',
-          style: TextStyle(
-            fontSize: 16,
-            color: colors.textTertiary,
-            fontWeight: FontWeight.w400,
-            letterSpacing: -0.2,
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildProfileHeaderCard(user) {
+    final roleRaw = (user?.role ?? '').toString().toLowerCase();
+    final bool isTenant = roleRaw == 'tenant';
+    final badgeColor = isTenant
+        ? const Color(0xFFF59E0B).withValues(alpha: 0.18)
+        : _blue.withValues(alpha: 0.18);
+    final badgeBorder = isTenant
+        ? const Color(0xFFF59E0B).withValues(alpha: 0.28)
+        : _blue.withValues(alpha: 0.28);
 
-  Widget _buildProfileImageSection(user, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+    return BentoCard(
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Stack(
@@ -218,31 +174,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.primaryAccent.withValues(alpha: 0.1),
-                      colors.luxuryGold.withValues(alpha: 0.1),
-                    ],
-                  ),
                   border: Border.all(
-                    color: colors.primaryAccent.withValues(alpha: 0.2),
-                    width: 2,
+                    color: Colors.white.withValues(alpha: 0.10),
+                    width: 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.shadowColor,
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: ClipOval(
                   child: SizedBox(
                     width: 80,
                     height: 80,
-                    child: _buildAvatarContent(user, colors),
+                    child: _buildAvatarContent(
+                        user, ref.read(dynamicColorsProvider)),
                   ),
                 ),
               ),
@@ -257,24 +199,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colors.primaryAccent,
-                          colors.primaryAccent.withValues(alpha: 0.8),
-                        ],
-                      ),
+                      color: _blue,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: colors.primaryBackground,
+                        color: _cardBg,
                         width: 2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: colors.primaryAccent.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          color: _blue.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -288,53 +223,45 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               ),
             ],
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   user?.fullName ?? 'User Name',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.3,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   user?.email ?? 'user@example.com',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colors.textTertiary,
-                    fontWeight: FontWeight.w400,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.white54,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        colors.luxuryGold.withValues(alpha: 0.1),
-                        colors.luxuryGold.withValues(alpha: 0.05),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colors.luxuryGold.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: badgeBorder, width: 1),
                   ),
                   child: Text(
-                    user?.role.toUpperCase() ?? 'USER',
-                    style: TextStyle(
+                    (user?.role ?? 'User').toString().toUpperCase(),
+                    style: const TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: colors.luxuryGold,
-                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white70,
+                      letterSpacing: 0.6,
                     ),
                   ),
                 ),
@@ -346,31 +273,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     );
   }
 
-  Widget _buildFormSection(DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.accentLight.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColorMedium,
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+  Widget _buildFormSection() {
+    return BentoCard(
+      padding: const EdgeInsets.all(20),
       child: Form(
         key: _formKey,
         child: Column(
@@ -381,39 +286,32 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colors.primaryAccent.withValues(alpha: 0.2),
-                        colors.primaryAccent.withValues(alpha: 0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
+                    color: _blue.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
                     border: Border.all(
-                      color: colors.primaryAccent.withValues(alpha: 0.3),
+                      color: _blue.withValues(alpha: 0.28),
                       width: 1,
                     ),
                   ),
-                  child: Icon(
-                    Icons.edit_outlined,
-                    color: colors.primaryAccent,
-                    size: 24,
+                  child: const Icon(
+                    Icons.person_outline,
+                    color: _blue,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 16),
-                Text(
+                const Text(
                   'Personal Details',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.5,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.4,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
             _buildInputField(
               controller: _nameController,
               label: 'Full Name',
@@ -427,7 +325,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                 }
                 return null;
               },
-              colors: colors,
             ),
             const SizedBox(height: 20),
             _buildInputField(
@@ -436,14 +333,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               icon: Icons.email_outlined,
               enabled: false,
               suffixIcon: Icons.lock_outline,
-              colors: colors,
             ),
             const SizedBox(height: 12),
-            Text(
+            const Text(
               'Email cannot be changed for security reasons',
               style: TextStyle(
                 fontSize: 13,
-                color: colors.textTertiary,
+                color: Colors.white54,
                 fontStyle: FontStyle.italic,
                 letterSpacing: -0.1,
               ),
@@ -462,7 +358,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                 }
                 return null;
               },
-              colors: colors,
             ),
           ],
         ),
@@ -478,7 +373,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     bool enabled = true,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
-    required DynamicAppColors colors,
   }) {
     return TextFormField(
       controller: controller,
@@ -486,7 +380,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       keyboardType: keyboardType,
       validator: validator,
       style: TextStyle(
-        color: enabled ? colors.textPrimary : colors.textTertiary,
+        color: enabled ? Colors.white : Colors.white54,
         fontSize: 16,
         fontWeight: FontWeight.w500,
         letterSpacing: -0.2,
@@ -494,7 +388,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: enabled ? colors.textSecondary : colors.textTertiary,
+          color: enabled ? Colors.white70 : Colors.white54,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -502,55 +396,34 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           padding: const EdgeInsets.all(12),
           child: Icon(
             icon,
-            color: enabled ? colors.primaryAccent : colors.textTertiary,
+            color: enabled ? _blue : Colors.white38,
             size: 20,
           ),
         ),
         suffixIcon: suffixIcon != null
             ? Icon(
                 suffixIcon,
-                color: colors.textTertiary,
+                color: enabled ? Colors.white70 : Colors.white24,
                 size: 18,
               )
             : null,
         filled: true,
-        fillColor: enabled
-            ? colors.primaryBackground
-            : colors.surfaceCards.withValues(alpha: 0.5),
+        fillColor: enabled ? _fieldFill : _fieldFill.withValues(alpha: 0.65),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colors.borderLight,
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colors.borderLight,
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colors.primaryAccent,
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colors.error,
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
         disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: colors.borderLight.withValues(alpha: 0.5),
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -569,14 +442,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colors.primaryAccent,
-                colors.primaryAccent.withValues(alpha: 0.8),
+                _blue,
+                _cyan,
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: colors.primaryAccent.withValues(alpha: 0.3),
+                color: _blue.withValues(alpha: 0.30),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -623,7 +496,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           ),
         ),
         const SizedBox(height: 16),
-        Container(
+        SizedBox(
           width: double.infinity,
           height: 56,
           child: OutlinedButton(
@@ -635,20 +508,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                   },
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: colors.borderMedium,
+                color: Colors.white.withValues(alpha: 0.18),
                 width: 1,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              backgroundColor: colors.surfaceCards,
+              backgroundColor: Colors.transparent,
             ),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(
-                color: colors.textSecondary,
+                color: Colors.white70,
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 letterSpacing: -0.1,
               ),
             ),
@@ -763,6 +636,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: _cardBg,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: const TextStyle(
+          color: Colors.white70,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
         title: const Text('Profile Picture'),
         content: const Text('Select profile picture source'),
         actions: [
@@ -771,14 +655,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               Navigator.of(context).pop();
               _pickImageFromGallery();
             },
-            child: const Text('Gallery'),
+            child: const Text('Gallery',
+                style: TextStyle(
+                    color: Colors.white70, fontWeight: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               _pickImageFromCamera();
             },
-            child: const Text('Camera'),
+            child: const Text('Camera',
+                style: TextStyle(
+                    color: Colors.white70, fontWeight: FontWeight.w700)),
           ),
           if (_uploadedImageIdOrUrl != null || _selectedImageFile != null)
             TextButton(
@@ -789,11 +677,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                 });
                 Navigator.of(context).pop();
               },
-              child: const Text('Remove'),
+              child: const Text('Remove',
+                  style: TextStyle(
+                      color: Color(0xFFEF4444), fontWeight: FontWeight.w800)),
             ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: const Text('Cancel',
+                style: TextStyle(
+                    color: Colors.white54, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -990,5 +882,28 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       content: Text(message),
       backgroundColor: colors.error,
     ));
+  }
+}
+
+class BentoCard extends StatelessWidget {
+  const BentoCard({super.key, required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding ?? const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _EditProfilePageState._cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+          width: 1,
+        ),
+      ),
+      child: child,
+    );
   }
 }

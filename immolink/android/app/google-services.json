@@ -12,7 +12,20 @@
           "package_name": "ch.immosync.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1044120916902-8h3jrls1hj3nui7vanr96atc7q804h17.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ch.immosync.app",
+            "certificate_hash": "cfbda068f9ae9e5d6ac230735aec694a079c1f48"
+          }
+        },
+        {
+          "client_id": "1044120916902-7s1ogvfc9mgcq71ngcdgqdjtk8l6oio1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCrMncC1bhwkcGvy5z2sKGh2yujjGZjJ_Y"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1044120916902-7s1ogvfc9mgcq71ngcdgqdjtk8l6oio1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1044120916902-cp432kpds3g474jp8pvqob1ho1efbngi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "ch.immosync.app"
+              }
+            }
+          ]
         }
       }
     }

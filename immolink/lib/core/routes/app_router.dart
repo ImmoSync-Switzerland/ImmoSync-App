@@ -12,7 +12,7 @@ import 'package:immosync/features/home/presentation/pages/home_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_management_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_request_page.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_request_detail_page.dart';
-import 'package:immosync/features/maintenance/presentation/pages/tenant_maintenance_requests_page.dart';
+import 'package:immosync/features/maintenance/presentation/pages/tenant_maintenance_screen.dart';
 import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immosync/features/payment/presentation/pages/make_payment_page.dart';
 import 'package:immosync/features/payment/presentation/pages/payment_history_page.dart';
@@ -130,7 +130,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Maintenance routes
       GoRoute(
         path: '/maintenance/request',
-        builder: (context, state) => MaintenanceRequestPage(
+        builder: (context, state) => NewRequestScreen(
           propertyId: state.uri.queryParameters['propertyId'],
         ),
       ),
@@ -140,7 +140,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/tenant/maintenance',
-        builder: (context, state) => const TenantMaintenanceRequestsPage(),
+        builder: (context, state) => const TenantMaintenanceScreen(),
       ),
       GoRoute(
         path: '/maintenance/:id',

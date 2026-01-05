@@ -705,19 +705,18 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       MaintenanceRequest request,
       DynamicAppColors colors,
       AppLocalizations l10n) {
-    // Only landlords and property managers can update maintenance request status
+    // Tenants may add notes, but must not change status.
     final userRole = ref.watch(userRoleProvider);
-    if (userRole == 'tenant') {
-      return const SizedBox.shrink();
-    }
+    final canUpdateStatus = userRole != 'tenant';
 
     if (request.status == 'completed' || request.status == 'cancelled') {
-      return const SizedBox.shrink();
+      // Still allow notes even when completed/cancelled.
+      return _buildAddNoteButton(context, ref, request.id, colors, l10n);
     }
 
     return Column(
       children: [
-        if (request.status == 'pending') ...[
+        if (canUpdateStatus && request.status == 'pending') ...[
           Container(
             width: double.infinity,
             height: 56,
@@ -768,7 +767,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ),
           ),
         ],
-        if (request.status == 'in_progress') ...[
+        if (canUpdateStatus && request.status == 'in_progress') ...[
           Container(
             width: double.infinity,
             height: 56,
@@ -819,46 +818,55 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             ),
           ),
         ],
-        // Add secondary action button for adding notes or scheduling
         const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          height: 48,
-          child: OutlinedButton(
-            onPressed: () {
-              _showAddNoteDialog(context, ref, requestId, colors);
-            },
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(
-                color: colors.textSecondary.withValues(alpha: 0.3),
-                width: 1.5,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.note_add,
-                  color: colors.textSecondary,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.addNote,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+        _buildAddNoteButton(context, ref, request.id, colors, l10n),
+      ],
+    );
+  }
+
+  Widget _buildAddNoteButton(
+    BuildContext context,
+    WidgetRef ref,
+    String requestId,
+    DynamicAppColors colors,
+    AppLocalizations l10n,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: OutlinedButton(
+        onPressed: () {
+          _showAddNoteDialog(context, ref, requestId, colors);
+        },
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(
+            color: colors.textSecondary.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-      ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.note_add,
+              color: colors.textSecondary,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.addNote,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -895,6 +903,23 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
   void _updateStatus(BuildContext context, WidgetRef ref, String requestId,
       String newStatus, DynamicAppColors colors) async {
     final l10n = AppLocalizations.of(context)!;
+
+    final userRole = ref.read(userRoleProvider);
+    if (userRole == 'tenant') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+              'Only landlords or managers can update request status.'),
+          backgroundColor: colors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
     try {
       // Show loading indicator
       showDialog(

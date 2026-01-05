@@ -26,6 +26,53 @@ import 'package:immosync/core/widgets/app_gradient_background.dart';
 import 'package:immosync/frb_generated.dart';
 import 'package:immosync/features/chat/presentation/providers/matrix_bootstrap_provider.dart';
 
+class PremiumPageTransition extends PageTransitionsBuilder {
+  const PremiumPageTransition();
+
+  static const Duration _duration = Duration(milliseconds: 400);
+
+  @override
+  Duration get transitionDuration => _duration;
+
+  @override
+  Duration get reverseTransitionDuration => _duration;
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (route.isFirst) return child;
+
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutQuart,
+      reverseCurve: Curves.easeOutQuart,
+    );
+
+    final slide = Tween<Offset>(
+      begin: const Offset(0.10, 0.0),
+      end: Offset.zero,
+    ).animate(curved);
+
+    final fade = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(curved);
+
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(
+        position: slide,
+        child: child,
+      ),
+    );
+  }
+}
+
 Future<void> main() async {
   bool _appStarted = false; // track if primary runApp already executed
   // Global Flutter error hooks for richer diagnostics
@@ -244,8 +291,22 @@ class ImmoSync extends ConsumerWidget {
     return MaterialApp.router(
       routerConfig: router,
       title: 'ImmoSync',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme.copyWith(
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: PremiumPageTransition(),
+            TargetPlatform.iOS: PremiumPageTransition(),
+          },
+        ),
+      ),
+      darkTheme: AppTheme.darkTheme.copyWith(
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: PremiumPageTransition(),
+            TargetPlatform.iOS: PremiumPageTransition(),
+          },
+        ),
+      ),
       themeMode: appThemeMode,
       locale: currentLocale,
       builder: (context, child) {

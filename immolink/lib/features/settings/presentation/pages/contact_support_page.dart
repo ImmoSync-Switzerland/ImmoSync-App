@@ -92,7 +92,14 @@ class _ContactSupportScreenState extends ConsumerState<ContactSupportScreen> {
                         Icons.arrow_back_ios_new_rounded,
                         color: Colors.white,
                       ),
-                      onPressed: () => context.pop(),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                          return;
+                        }
+                        // If opened as a root route (deep link), ensure a safe fallback.
+                        context.go('/home');
+                      },
                     ),
                     Expanded(
                       child: Center(

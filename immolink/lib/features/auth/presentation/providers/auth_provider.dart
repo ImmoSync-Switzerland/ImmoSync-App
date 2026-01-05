@@ -406,9 +406,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       {required String provider, required String idToken}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
+      debugPrint(
+          '[AuthProvider] socialLogin start provider=$provider tokenLen=${idToken.length}');
       final data =
           await _authService.socialLogin(provider: provider, idToken: idToken);
       if (data['needCompletion'] == true) {
+        debugPrint(
+            '[AuthProvider] socialLogin needs profile completion missingFields=${(data['missingFields'] as List?)?.length ?? 0}');
         state = state.copyWith(
           isLoading: false,
           needsProfileCompletion: true,
@@ -416,6 +420,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           pendingSocialUserId: data['userId'],
         );
       } else {
+        debugPrint('[AuthProvider] socialLogin success (authenticated)');
         final user = data['user'];
         final prefs = await SharedPreferences.getInstance();
         await Future.wait([
@@ -458,8 +463,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         _publishIdentityKey(user['userId']);
       }
     } catch (e) {
+      debugPrint('[AuthProvider] socialLogin failed: $e');
       state = state.copyWith(
-          isLoading: false, error: e.toString(), needsProfileCompletion: false);
+          isLoading: false,
+          error: e.toString().replaceFirst('Exception: ', ''),
+          needsProfileCompletion: false);
     }
   }
 

@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
 
-class DocumentsScreen extends StatelessWidget {
+import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/features/documents/domain/models/document_model.dart';
+import 'package:immosync/features/documents/presentation/pages/document_viewer_page.dart';
+import 'package:immosync/features/documents/presentation/providers/document_providers.dart';
+
+class DocumentsScreen extends ConsumerWidget {
   const DocumentsScreen({super.key});
 
   static const _bgTop = Color(0xFF0A1128);
@@ -9,25 +18,85 @@ class DocumentsScreen extends StatelessWidget {
   static const _card = Color(0xFF1C1C1E);
 
   @override
-  Widget build(BuildContext context) {
-    final recentFiles = <_RecentFileItem>[
-      const _RecentFileItem(
-        fileName: 'Lease_Agreement_2026.pdf',
-        dateLabel: 'Jan 2, 2026',
-      ),
-      const _RecentFileItem(
-        fileName: 'MoveIn_Photos_LivingRoom.jpg',
-        dateLabel: 'Dec 28, 2025',
-      ),
-      const _RecentFileItem(
-        fileName: 'Notice_Rent_Adjustment.docx',
-        dateLabel: 'Dec 15, 2025',
-      ),
-      const _RecentFileItem(
-        fileName: 'Receipt_Plumbing_Invoice.pdf',
-        dateLabel: 'Nov 30, 2025',
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(userRoleProvider);
+    final path = GoRouterState.of(context).uri.path;
+    final isLandlord = role == 'landlord' || path.startsWith('/landlord/');
+    final documentsAsync = ref.watch(
+      isLandlord ? landlordDocumentsProvider : tenantDocumentsProvider,
+    );
+
+    final userId =
+        ref.watch(currentUserProvider)?.id ?? ref.watch(authProvider).userId;
+
+    Future<void> refresh() async {
+      if (isLandlord) {
+        ref.read(landlordDocumentsProvider.notifier).refresh();
+      } else {
+        await ref.read(tenantDocumentsProvider.notifier).refresh();
+      }
+    }
+
+    Future<void> uploadQuick(String category) async {
+      if (userId == null || userId.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please sign in again.')),
+        );
+        return;
+      }
+
+      try {
+        final picked = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: const [
+            'pdf',
+            'doc',
+            'docx',
+            'txt',
+            'png',
+            'jpg',
+            'jpeg'
+          ],
+          allowMultiple: false,
+          withData: true,
+        );
+
+        if (picked == null || picked.files.isEmpty) return;
+        final file = picked.files.first;
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+        );
+
+        final documentService = ref.read(documentServiceProvider);
+        await documentService.uploadDocument(
+          file: file,
+          name: file.name,
+          description: '',
+          category: category,
+          uploadedBy: userId,
+        );
+
+        await refresh();
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Document uploaded.')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).maybePop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Upload failed: $e')),
+          );
+        }
+      }
+    }
 
     return Scaffold(
       extendBody: true,
@@ -82,145 +151,88 @@ class DocumentsScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _BentoCard(
-                  child: Row(
+          child: documentsAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: _BentoCard(
+                  child: Text(
+                    'Failed to load documents: $e',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            data: (docs) {
+              final documents = List<DocumentModel>.from(docs)
+                ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
+              final recent = documents.take(20).toList();
+              final totalBytes =
+                  documents.fold<int>(0, (sum, d) => sum + d.fileSize);
+              final subtitle =
+                  '${documents.length} Files • ${_formatTotalSize(totalBytes)} Used';
+
+              return RefreshIndicator(
+                onRefresh: refresh,
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color:
-                              const Color(0xFF3B82F6).withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF3B82F6)
-                                  .withValues(alpha: 0.25),
-                              blurRadius: 18,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.folder_rounded,
-                          color: Color(0xFF3B82F6),
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'My Documents',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 14,
-                                letterSpacing: -0.1,
-                              ),
-                            ),
-                            SizedBox(height: 6),
-                            Text(
-                              '4 Files • 12 MB Used',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Upload New',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 100,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: const [
-                      SizedBox(width: 0),
-                      _QuickActionCard(
-                        label: 'Lease',
-                        icon: Icons.description_rounded,
-                      ),
-                      SizedBox(width: 12),
-                      _QuickActionCard(
-                        label: 'Receipt',
-                        icon: Icons.receipt_long_rounded,
-                      ),
-                      SizedBox(width: 12),
-                      _QuickActionCard(
-                        label: 'Notice',
-                        icon: Icons.campaign_rounded,
-                      ),
-                      SizedBox(width: 0),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Recent Files',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: recentFiles.length,
-                  itemBuilder: (context, index) {
-                    final item = recentFiles[index];
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: index == recentFiles.length - 1 ? 0 : 10,
-                      ),
-                      child: _BentoCard(
+                      _BentoCard(
                         child: Row(
                           children: [
-                            _FileTypeIconBox(fileName: item.fileName),
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B82F6)
+                                    .withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF3B82F6)
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 18,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.folder_rounded,
+                                color: Color(0xFF3B82F6),
+                                size: 28,
+                              ),
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.fileName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    isLandlord
+                                        ? 'Document Management'
+                                        : 'My Documents',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 14,
+                                      letterSpacing: -0.1,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    item.dateLabel,
+                                    subtitle,
                                     style: const TextStyle(
-                                      color: Colors.white54,
+                                      color: Colors.white70,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
                                     ),
@@ -228,29 +240,171 @@ class DocumentsScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.more_horiz_rounded,
-                                color: Colors.white70,
-                                size: 20,
-                              ),
-                              tooltip: 'More',
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Upload New',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 100,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _QuickActionCard(
+                              label: 'Lease',
+                              icon: Icons.description_rounded,
+                              onTap: () => uploadQuick('Lease Agreement'),
+                            ),
+                            const SizedBox(width: 12),
+                            _QuickActionCard(
+                              label: 'Receipt',
+                              icon: Icons.receipt_long_rounded,
+                              onTap: () => uploadQuick('Operating Costs'),
+                            ),
+                            const SizedBox(width: 12),
+                            _QuickActionCard(
+                              label: 'Notice',
+                              icon: Icons.campaign_rounded,
+                              onTap: () => uploadQuick('Correspondence'),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Recent Files',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (recent.isEmpty)
+                        _BentoCard(
+                          child: const Text(
+                            'No documents yet.',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: recent.length,
+                          itemBuilder: (context, index) {
+                            final doc = recent[index];
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom: index == recent.length - 1 ? 0 : 10,
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(18),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          DocumentViewerPage(document: doc),
+                                    ),
+                                  );
+                                },
+                                child: _BentoCard(
+                                  child: Row(
+                                    children: [
+                                      _FileTypeIconBox(fileName: doc.name),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              doc.name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${_formatDate(doc.uploadDate)} • ${doc.formattedFileSize}',
+                                              style: const TextStyle(
+                                                color: Colors.white54,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      IconButton(
+                                        onPressed: () {
+                                          // Viewer page has download/open actions; keep this minimal.
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  DocumentViewerPage(
+                                                document: doc,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(
+                                          Icons.more_horiz_rounded,
+                                          color: Colors.white70,
+                                          size: 20,
+                                        ),
+                                        tooltip: 'More',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
     );
   }
+}
+
+String _formatDate(DateTime date) {
+  return DateFormat('MMM d, yyyy').format(date);
+}
+
+String _formatTotalSize(int bytes) {
+  if (bytes <= 0) return '0 B';
+  const kb = 1024;
+  const mb = 1024 * 1024;
+  const gb = 1024 * 1024 * 1024;
+  if (bytes < kb) return '$bytes B';
+  if (bytes < mb) return '${(bytes / kb).toStringAsFixed(1)} KB';
+  if (bytes < gb) return '${(bytes / mb).toStringAsFixed(1)} MB';
+  return '${(bytes / gb).toStringAsFixed(1)} GB';
 }
 
 class _BentoCard extends StatelessWidget {
@@ -276,10 +430,11 @@ class _BentoCard extends StatelessWidget {
 }
 
 class _QuickActionCard extends StatefulWidget {
-  const _QuickActionCard({required this.label, required this.icon});
+  const _QuickActionCard({required this.label, required this.icon, this.onTap});
 
   final String label;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   State<_QuickActionCard> createState() => _QuickActionCardState();
@@ -297,7 +452,7 @@ class _QuickActionCardState extends State<_QuickActionCard> {
       onTapDown: (_) => setState(() => _pressed = true),
       onTapCancel: () => setState(() => _pressed = false),
       onTapUp: (_) => setState(() => _pressed = false),
-      onTap: () {},
+      onTap: widget.onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         width: 110,
@@ -374,11 +529,4 @@ class _FileTypeIconBox extends StatelessWidget {
       child: Icon(icon, color: color, size: 22),
     );
   }
-}
-
-class _RecentFileItem {
-  const _RecentFileItem({required this.fileName, required this.dateLabel});
-
-  final String fileName;
-  final String dateLabel;
 }

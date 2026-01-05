@@ -6,24 +6,43 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
 
-class MaintenanceRequestPage extends ConsumerStatefulWidget {
-  final String? propertyId;
-
-  const MaintenanceRequestPage({super.key, this.propertyId});
-
-  @override
-  ConsumerState<MaintenanceRequestPage> createState() =>
-      _MaintenanceRequestPageState();
+@Deprecated('Use SubmitMaintenanceRequestScreen')
+class MaintenanceRequestPage extends SubmitMaintenanceRequestScreen {
+  const MaintenanceRequestPage({super.key, super.propertyId});
 }
 
-class _MaintenanceRequestPageState
-    extends ConsumerState<MaintenanceRequestPage> {
+/// Tenant Maintenance: premium "New Request" form.
+/// Alias for clarity across the app.
+class NewRequestScreen extends SubmitMaintenanceRequestScreen {
+  const NewRequestScreen({super.key, super.propertyId});
+}
+
+class SubmitMaintenanceRequestScreen extends ConsumerStatefulWidget {
+  final String? propertyId;
+
+  const SubmitMaintenanceRequestScreen({super.key, this.propertyId});
+
+  @override
+  ConsumerState<SubmitMaintenanceRequestScreen> createState() =>
+      _SubmitMaintenanceRequestScreenState();
+}
+
+class _SubmitMaintenanceRequestScreenState
+    extends ConsumerState<SubmitMaintenanceRequestScreen> {
+  static const Color _bgStart = Color(0xFF0A1128);
+  static const Color _bgEnd = Colors.black;
+  static const Color _cardBg = Color(0xFF1C1C1E);
+  static const Color _fieldBg = Color(0xFF2C2C2E);
+  static const Color _textPrimary = Colors.white;
+  static const Color _textSecondary = Color(0xFFA7A7A7);
+  static const Color _border = Color(0x1AFFFFFF);
+  static const Color _accent = Color(0xFFFFA000);
+  static const Color _accentDeep = Color(0xFFF4511E);
+
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
   String? _selectedPropertyId;
   String? _selectedCategory;
   String? _selectedPriority;
@@ -31,11 +50,9 @@ class _MaintenanceRequestPageState
   final List<String> _categories = [
     'Plumbing',
     'Electrical',
-    'Heating/Cooling',
-    'Appliance',
-    'Structural',
-    'Pest Control',
-    'Other'
+    'Heating',
+    'Appliances',
+    'General',
   ];
 
   final List<String> _priorities = ['Low', 'Medium', 'High', 'Emergency'];
@@ -47,16 +64,11 @@ class _MaintenanceRequestPageState
         return 'plumbing';
       case 'Electrical':
         return 'electrical';
-      case 'Heating/Cooling':
+      case 'Heating':
         return 'heating';
-      case 'Appliance':
+      case 'Appliances':
         return 'appliances';
-      case 'Structural':
-        return 'structural';
-      case 'Pest Control':
-        return 'pest_control';
-      case 'Other':
-        return 'other';
+      case 'General':
       default:
         return 'other';
     }
@@ -89,532 +101,228 @@ class _MaintenanceRequestPageState
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final properties = ref.watch(tenantPropertiesProvider);
-    final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Custom Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () => context.pop(),
-                      icon: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: colors.textPrimary,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'Maintenance Request',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header Card with Orange/Red Gradient
-                    Container(
-                      padding: const EdgeInsets.all(24),
+      extendBody: true,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bgStart, _bgEnd],
+          ),
+        ),
+        child: SafeArea(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: Stack(
+              children: [
+                // Atmospheric glow blob (top-left)
+                Positioned(
+                  top: -180,
+                  left: -160,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 420,
+                      height: 420,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
                           colors: [
-                            Color(0xF2EA580C), // Orange #EA580C @ 95%
-                            Color(0xD9DC2626), // Red #DC2626 @ 85%
+                            const Color(0xFF6D28D9).withValues(alpha: 0.22),
+                            const Color(0xFF2563EB).withValues(alpha: 0.14),
+                            Colors.transparent,
                           ],
+                          stops: const [0.0, 0.55, 1.0],
                         ),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.build_circle_outlined,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Submit Request',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Describe your maintenance issue',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white.withValues(alpha: 0.85),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                  ),
+                ),
 
-                    // Form Card with White Background
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Nav
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _BackButtonCircle(onTap: () => context.pop()),
                       ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                      const SizedBox(height: 16),
+
+                      // Header card
+                      const BentoCard(
+                        child: Row(
                           children: [
-                            // Property Selection
-                            Text(
-                              'Property',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
+                            _GlassIconBubble(
+                              icon: Icons.handyman_outlined,
                             ),
-                            const SizedBox(height: 12),
-                            properties.when(
-                              data: (propertyList) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: colors.surfaceCards,
-                                  border: Border.all(
-                                    color: colors.borderLight,
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: _selectedPropertyId,
-                                    hint: Text(
-                                      'Select a property',
-                                      style: TextStyle(
-                                          color: colors.textSecondary),
+                            SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'New Request',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      color: _textPrimary,
                                     ),
-                                    isExpanded: true,
-                                    style: TextStyle(color: colors.textPrimary),
-                                    items: propertyList.map((property) {
-                                      return DropdownMenuItem<String>(
-                                        value: property.id,
-                                        child: Text(
-                                            '${property.address.street}, ${property.address.city}'),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _selectedPropertyId = value;
-                                      });
-                                    },
                                   ),
-                                ),
-                              ),
-                              loading: () => Container(
-                                padding: const EdgeInsets.all(16),
-                                child: const Center(
-                                    child: CircularProgressIndicator()),
-                              ),
-                              error: (error, stack) => Container(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  'Error loading properties: $error',
-                                  style: TextStyle(color: colors.error),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Title Field
-                            Text(
-                              'Title',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _titleController,
-                              style: TextStyle(color: colors.textPrimary),
-                              decoration: InputDecoration(
-                                hintText: 'Brief title for the issue',
-                                hintStyle: TextStyle(
-                                  color: colors.textSecondary
-                                      .withValues(alpha: 0.7),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.borderLight,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.borderLight,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.primaryAccent,
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: colors.surfaceCards,
-                                contentPadding: const EdgeInsets.all(16),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a title';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Category Selection
-                            Text(
-                              'Category',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: colors.surfaceCards,
-                                border: Border.all(
-                                  color: colors.borderLight,
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _selectedCategory,
-                                  isExpanded: true,
-                                  style: TextStyle(color: colors.textPrimary),
-                                  items: _categories.map((category) {
-                                    return DropdownMenuItem<String>(
-                                      value: category,
-                                      child: Text(category),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedCategory = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Priority Selection
-                            Text(
-                              'Priority',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 8,
-                              children: _priorities.map((priority) {
-                                final isSelected =
-                                    _selectedPriority == priority;
-                                Color chipColor;
-                                switch (priority) {
-                                  case 'Emergency':
-                                    chipColor = Colors.red;
-                                    break;
-                                  case 'High':
-                                    chipColor = Colors.orange;
-                                    break;
-                                  case 'Medium':
-                                    chipColor = Colors.blue;
-                                    break;
-                                  case 'Low':
-                                  default:
-                                    chipColor = Colors.green;
-                                    break;
-                                }
-                                return FilterChip(
-                                  label: Text(priority),
-                                  selected: isSelected,
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      _selectedPriority = priority;
-                                    });
-                                  },
-                                  backgroundColor: colors.surfaceCards,
-                                  selectedColor:
-                                      chipColor.withValues(alpha: 0.2),
-                                  checkmarkColor: chipColor,
-                                  labelStyle: TextStyle(
-                                    color: isSelected
-                                        ? chipColor
-                                        : colors.textPrimary,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                  ),
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? chipColor
-                                        : colors.borderLight,
-                                    width: 1,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Location Field
-                            Text(
-                              'Location in Property',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _locationController,
-                              style: TextStyle(color: colors.textPrimary),
-                              decoration: InputDecoration(
-                                hintText:
-                                    'e.g., Kitchen, Bathroom, Living Room',
-                                hintStyle: TextStyle(
-                                  color: colors.textSecondary
-                                      .withValues(alpha: 0.7),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.borderLight,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.borderLight,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.primaryAccent,
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: colors.surfaceCards,
-                                contentPadding: const EdgeInsets.all(16),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Description Field
-                            Text(
-                              'Description',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _descriptionController,
-                              style: TextStyle(color: colors.textPrimary),
-                              maxLines: 4,
-                              decoration: InputDecoration(
-                                hintText:
-                                    'Describe the maintenance issue in detail...',
-                                hintStyle: TextStyle(
-                                  color: colors.textSecondary
-                                      .withValues(alpha: 0.7),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.borderLight,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.borderLight,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colors.primaryAccent,
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: colors.surfaceCards,
-                                contentPadding: const EdgeInsets.all(16),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a description';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 32),
-
-                            // Submit Button
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xF2EA580C), // Orange #EA580C @ 95%
-                                    Color(0xD9DC2626), // Red #DC2626 @ 85%
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x4DEA580C),
-                                    blurRadius: 20,
-                                    offset: Offset(0, 8),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Report an issue with your property.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: _textSecondary,
+                                    ),
                                   ),
                                 ],
                               ),
-                              child: ElevatedButton(
-                                onPressed: () => _submitRequest(colors),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 18),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Submit Request',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+
+                      // Inputs
+                      BentoCard(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const _SectionLabel('Property'),
+                              const SizedBox(height: 10),
+                              properties.when(
+                                data: (propertyList) =>
+                                    _PremiumDropdown<String>(
+                                  initialValue: _selectedPropertyId,
+                                  hintText: 'Select a property',
+                                  items: propertyList
+                                      .map(
+                                        (property) => DropdownMenuItem<String>(
+                                          value: property.id,
+                                          child: Text(
+                                            '${property.address.street}, ${property.address.city}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() => _selectedPropertyId = value);
+                                  },
+                                ),
+                                loading: () => const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    child: CircularProgressIndicator(
+                                        color: _accent),
+                                  ),
+                                ),
+                                error: (error, _) => Text(
+                                  'Error loading properties: $error',
+                                  style:
+                                      const TextStyle(color: Colors.redAccent),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              const _SectionLabel('Issue Title'),
+                              const SizedBox(height: 10),
+                              _PremiumTextField(
+                                controller: _titleController,
+                                hintText: 'Brief title for the issue',
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a title';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 18),
+                              const _SectionLabel('Category'),
+                              const SizedBox(height: 10),
+                              _PremiumDropdown<String>(
+                                initialValue: _selectedCategory,
+                                hintText: 'Select a category',
+                                items: _categories
+                                    .map(
+                                      (category) => DropdownMenuItem<String>(
+                                        value: category,
+                                        child: Text(category),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() => _selectedCategory = value);
+                                },
+                              ),
+                              const SizedBox(height: 18),
+                              const _SectionLabel('Description'),
+                              const SizedBox(height: 10),
+                              _PremiumTextField(
+                                controller: _descriptionController,
+                                hintText: 'Describe the issue in detail...',
+                                minLines: 4,
+                                maxLines: 6,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a description';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 18),
+                              const _SectionLabel('Priority'),
+                              const SizedBox(height: 10),
+                              _PremiumPriorityChips(
+                                value: _selectedPriority,
+                                onChanged: (next) {
+                                  setState(() => _selectedPriority = next);
+                                },
+                              ),
+                              const SizedBox(height: 22),
+                              _GlowGradientButton(
+                                label: l10n?.submitRequest ?? 'Submit Request',
+                                onTap: _submitRequest,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  void _submitRequest(DynamicAppColors colors) async {
+  Future<void> _submitRequest() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedPropertyId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.pleaseSelectProperty),
-            backgroundColor: colors.error,
+            backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -630,26 +338,16 @@ class _MaintenanceRequestPageState
           context: context,
           barrierDismissible: false,
           builder: (context) => Center(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colors.surfaceCards,
-                borderRadius: BorderRadius.circular(10),
-              ),
+            child: BentoCard(
+              padding: const EdgeInsets.all(18),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-                  ),
-                  const SizedBox(height: 16),
+                children: const [
+                  CircularProgressIndicator(color: _accent),
+                  SizedBox(height: 14),
                   Text(
                     'Submitting request...',
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: _textPrimary, fontSize: 14),
                   ),
                 ],
               ),
@@ -689,7 +387,7 @@ class _MaintenanceRequestPageState
           category: _getCategoryValue(_selectedCategory!),
           priority: _getPriorityValue(_selectedPriority!),
           status: 'pending',
-          location: _locationController.text.trim(),
+          location: '',
           requestedDate: DateTime.now(),
         );
 
@@ -708,7 +406,7 @@ class _MaintenanceRequestPageState
             SnackBar(
               content: Text(AppLocalizations.of(context)!
                   .maintenanceRequestSubmittedSuccessfully),
-              backgroundColor: colors.success,
+              backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -728,7 +426,7 @@ class _MaintenanceRequestPageState
             SnackBar(
               content: Text(
                   '${AppLocalizations.of(context)!.failedToSubmitRequest}: $e'),
-              backgroundColor: colors.error,
+              backgroundColor: Colors.redAccent,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -738,5 +436,361 @@ class _MaintenanceRequestPageState
         }
       }
     }
+  }
+}
+
+class BentoCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  const BentoCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: _SubmitMaintenanceRequestScreenState._cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _SubmitMaintenanceRequestScreenState._border,
+          width: 1,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _BackButtonCircle extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BackButtonCircle({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.12),
+            width: 1,
+          ),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new,
+          size: 18,
+          color: _SubmitMaintenanceRequestScreenState._textPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: _SubmitMaintenanceRequestScreenState._textPrimary,
+      ),
+    );
+  }
+}
+
+class _PremiumTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final int? minLines;
+  final int maxLines;
+  final String? Function(String?)? validator;
+
+  const _PremiumTextField({
+    required this.controller,
+    required this.hintText,
+    this.minLines,
+    this.maxLines = 1,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      minLines: minLines,
+      maxLines: maxLines,
+      validator: validator,
+      style: const TextStyle(
+          color: _SubmitMaintenanceRequestScreenState._textPrimary),
+      cursorColor: _SubmitMaintenanceRequestScreenState._accent,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(
+          color: _SubmitMaintenanceRequestScreenState._textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
+        filled: true,
+        fillColor: _SubmitMaintenanceRequestScreenState._fieldBg,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: _SubmitMaintenanceRequestScreenState._accent
+                .withValues(alpha: 0.55),
+            width: 1.2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumDropdown<T> extends StatelessWidget {
+  final T? initialValue;
+  final String hintText;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+
+  const _PremiumDropdown({
+    required this.initialValue,
+    required this.hintText,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<T>(
+      initialValue: initialValue,
+      items: items,
+      onChanged: onChanged,
+      dropdownColor: _SubmitMaintenanceRequestScreenState._fieldBg,
+      iconEnabledColor: _SubmitMaintenanceRequestScreenState._textSecondary,
+      style: const TextStyle(
+          color: _SubmitMaintenanceRequestScreenState._textPrimary),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: _SubmitMaintenanceRequestScreenState._fieldBg,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        hintText: hintText,
+        hintStyle: const TextStyle(
+          color: _SubmitMaintenanceRequestScreenState._textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: _SubmitMaintenanceRequestScreenState._accent
+                .withValues(alpha: 0.55),
+            width: 1.2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumPriorityChips extends StatelessWidget {
+  final String? value;
+  final ValueChanged<String> onChanged;
+
+  const _PremiumPriorityChips({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = <_PriorityEntry>[
+      const _PriorityEntry(
+        label: 'Low',
+        borderColor: Color(0xFF22C55E),
+      ),
+      const _PriorityEntry(
+        label: 'Medium',
+        borderColor: _SubmitMaintenanceRequestScreenState._accent,
+      ),
+      const _PriorityEntry(
+        label: 'High',
+        borderColor: Color(0xFFF97316),
+      ),
+      const _PriorityEntry(
+        label: 'Emergency',
+        borderColor: Color(0xFFEF4444),
+      ),
+    ];
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: entries.map((entry) {
+        final bool selected = value == entry.label;
+        final Color bg = selected ? Colors.transparent : Colors.transparent;
+        final Color text = selected ? Colors.white : const Color(0xFF9A9A9A);
+        final Color border = selected
+            ? Colors.transparent
+            : entry.borderColor.withValues(alpha: 0.65);
+
+        final Gradient? selectedGradient = entry.label == 'Emergency'
+            ? null
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  _SubmitMaintenanceRequestScreenState._accent,
+                  _SubmitMaintenanceRequestScreenState._accentDeep,
+                ],
+              );
+
+        final Color? selectedSolid =
+            entry.label == 'Emergency' ? const Color(0xFFEF4444) : null;
+
+        return InkWell(
+          onTap: () => onChanged(entry.label),
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? selectedSolid : bg,
+              gradient:
+                  selected && selectedSolid == null ? selectedGradient : null,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: border, width: 1),
+            ),
+            child: Text(
+              entry.label,
+              style: TextStyle(
+                color: text,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _PriorityEntry {
+  final String label;
+  final Color borderColor;
+
+  const _PriorityEntry({
+    required this.label,
+    required this.borderColor,
+  });
+}
+
+class _GlowGradientButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _GlowGradientButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              _SubmitMaintenanceRequestScreenState._accent,
+              _SubmitMaintenanceRequestScreenState._accentDeep,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: _SubmitMaintenanceRequestScreenState._accent
+                  .withValues(alpha: 0.28),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassIconBubble extends StatelessWidget {
+  final IconData icon;
+  const _GlassIconBubble({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        color: _SubmitMaintenanceRequestScreenState._accent
+            .withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _SubmitMaintenanceRequestScreenState._accent
+              .withValues(alpha: 0.28),
+          width: 1,
+        ),
+      ),
+      child: Icon(
+        icon,
+        size: 22,
+        color: _SubmitMaintenanceRequestScreenState._accent,
+      ),
+    );
   }
 }

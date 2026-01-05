@@ -5,6 +5,7 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
+import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/core/theme/app_colors.dart';
 
 class MakePaymentPage extends ConsumerStatefulWidget {
@@ -39,6 +40,18 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     _selectedPropertyId = widget.propertyId;
     _selectedPaymentMethod = _paymentMethods.first;
     _selectedPaymentType = _paymentTypes.first;
+  }
+
+  String _formatAddress(Property property) {
+    final street = property.address.street.trim();
+    final city = property.address.city.trim();
+    final postal = property.address.postalCode.trim();
+    final parts = [
+      if (street.isNotEmpty) street,
+      if (postal.isNotEmpty || city.isNotEmpty)
+        [postal, city].where((e) => e.isNotEmpty).join(' '),
+    ].where((e) => e.isNotEmpty).toList();
+    return parts.isNotEmpty ? parts.join(', ') : 'Property';
   }
 
   @override
@@ -196,7 +209,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   }
 
   Widget _buildPropertySection(
-      List<dynamic> properties, dynamic selectedProperty) {
+      List<Property> properties, Property selectedProperty) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceCards,
@@ -251,9 +264,10 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 ),
                 dropdownColor: AppColors.surfaceCards,
                 items: properties.map((property) {
+                  final addressLabel = _formatAddress(property);
                   return DropdownMenuItem<String>(
                     value: property.id,
-                    child: Text('${property.address} - ${property.title}'),
+                    child: Text(addressLabel),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {

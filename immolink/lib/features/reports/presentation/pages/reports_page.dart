@@ -6,10 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
+import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
 import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
-import 'package:immosync/features/property/presentation/providers/properties_provider.dart';
+import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/core/theme/app_typography.dart';
 
 class ReportsPage extends StatelessWidget {
@@ -24,8 +25,13 @@ class ReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final paymentsAsync = ref.watch(landlordPaymentsProvider);
-    final propertiesAsync = ref.watch(landlordPropertiesProvider);
+    final userRole = ref.watch(userRoleProvider);
+    final isTenant = userRole == 'tenant';
+
+    final paymentsAsync =
+        ref.watch(isTenant ? tenantPaymentsProvider : landlordPaymentsProvider);
+    final propertiesAsync = ref.watch(
+        isTenant ? tenantPropertiesProvider : landlordPropertiesProvider);
 
     return paymentsAsync.when(
       loading: () => const _ReportsScaffold(body: _CenteredLoader()),
@@ -39,10 +45,10 @@ class ReportsScreen extends ConsumerWidget {
             body: _ErrorState(message: 'Failed to load properties'),
           ),
           data: (properties) {
-            final derived =
-                _ReportData.from(payments: payments, properties: properties);
+            final derived = _ReportData.from(
+                payments: payments, properties: properties, isTenant: isTenant);
             return _ReportsScaffold(
-              body: _ReportsBody(data: derived),
+              body: _ReportsBody(data: derived, isTenant: isTenant),
             );
           },
         );
@@ -73,9 +79,10 @@ class _ReportsScaffold extends StatelessWidget {
 }
 
 class _ReportsBody extends StatelessWidget {
-  const _ReportsBody({required this.data});
+  const _ReportsBody({required this.data, required this.isTenant});
 
   final _ReportData data;
+  final bool isTenant;
 
   @override
   Widget build(BuildContext context) {
@@ -84,13 +91,15 @@ class _ReportsBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _Header(),
+          _Header(isTenant: isTenant),
           const SizedBox(height: 18),
-          _RevenueCard(data: data.revenue),
+          _RevenueCard(data: data.revenue, isTenant: isTenant),
           const SizedBox(height: 18),
           _MetricsGrid(data: data.metrics),
-          const SizedBox(height: 18),
-          _OccupancyCard(data: data.occupancy),
+          if (!isTenant) ...[
+            const SizedBox(height: 18),
+            _OccupancyCard(data: data.occupancy, isTenant: isTenant),
+          ],
         ],
       ),
     );
@@ -98,14 +107,16 @@ class _ReportsBody extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header();
+  const _Header({required this.isTenant});
+
+  final bool isTenant;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Text(
-          'Analytics',
+          isTenant ? 'My Reports' : 'Analytics',
           style: AppTypography.pageTitle.copyWith(color: Colors.white),
         ),
         const Spacer(),
@@ -135,9 +146,10 @@ class _Header extends StatelessWidget {
 }
 
 class _RevenueCard extends StatelessWidget {
-  const _RevenueCard({required this.data});
+  const _RevenueCard({required this.data, required this.isTenant});
 
   final _RevenueData data;
+  final bool isTenant;
 
   @override
   Widget build(BuildContext context) {
@@ -152,19 +164,28 @@ class _RevenueCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Revenue Trends',
-                style: TextStyle(
+                isTenant ? 'Payments Over Time' : 'Revenue Trends',
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   fontSize: 16,
                 ),
               ),
-              Icon(Icons.show_chart, color: Colors.white70),
+              const Icon(Icons.show_chart, color: Colors.white70),
             ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isTenant ? 'Payments over time' : 'Revenue over time',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 18),
           SizedBox(
@@ -318,9 +339,10 @@ class _MetricCard extends StatelessWidget {
 }
 
 class _OccupancyCard extends StatelessWidget {
-  const _OccupancyCard({required this.data});
+  const _OccupancyCard({required this.data, required this.isTenant});
 
   final _OccupancyData data;
+  final bool isTenant;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +363,7 @@ class _OccupancyCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Occupancy Rate',
+                  'Overview',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -350,12 +372,12 @@ class _OccupancyCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _OccupancyLine(
-                    label: 'Occupied',
+                    label: isTenant ? 'Leases' : 'Occupied',
                     value: data.occupied.toString(),
                     color: Colors.white),
                 const SizedBox(height: 8),
                 _OccupancyLine(
-                    label: 'Vacant',
+                    label: isTenant ? 'Other' : 'Vacant',
                     value: data.vacant.toString(),
                     color: Colors.white70),
                 const SizedBox(height: 8),
@@ -494,7 +516,9 @@ class _ReportData {
   final _OccupancyData occupancy;
 
   factory _ReportData.from(
-      {required List<Payment> payments, required List<Property> properties}) {
+      {required List<Payment> payments,
+      required List<Property> properties,
+      required bool isTenant}) {
     const monthNames = [
       'Jan',
       'Feb',
@@ -540,7 +564,9 @@ class _ReportData {
         properties.where((p) => p.tenantIds.isNotEmpty).length;
     final vacantUnits = math.max(0, totalUnits - occupiedUnits);
     final occupancyPercent = totalUnits == 0 ? 0.0 : occupiedUnits / totalUnits;
-    final expensesTotal =
+
+    // For tenants this is the key metric: outstanding payments across their rented objects.
+    final outstandingTotal =
         properties.fold<double>(0, (sum, p) => sum + p.outstandingPayments);
 
     final revenueData = _RevenueData(
@@ -548,36 +574,67 @@ class _ReportData {
       values: revenueBuckets,
     );
 
-    final metrics = <_MetricCardData>[
-      _MetricCardData(
-        icon: Icons.arrow_upward_rounded,
-        iconColor: const Color(0xFF22C55E),
-        label: 'Income',
-        value: _formatCurrency(incomeTotal),
-        valueColor: Colors.white,
-      ),
-      _MetricCardData(
-        icon: Icons.access_time_filled_rounded,
-        iconColor: const Color(0xFFF97316),
-        label: 'Pending',
-        value: _formatCurrency(pendingTotal),
-        valueColor: const Color(0xFFF97316),
-      ),
-      _MetricCardData(
-        icon: Icons.home_work_rounded,
-        iconColor: const Color(0xFF38BDF8),
-        label: 'Occupancy',
-        value: '${(occupancyPercent * 100).toStringAsFixed(0)}%',
-        valueColor: Colors.white,
-      ),
-      _MetricCardData(
-        icon: Icons.trending_down_rounded,
-        iconColor: const Color(0xFFEF4444),
-        label: 'Expenses',
-        value: _formatCurrency(expensesTotal),
-        valueColor: Colors.white,
-      ),
-    ];
+    final metrics = isTenant
+        ? <_MetricCardData>[
+            _MetricCardData(
+              icon: Icons.check_circle_rounded,
+              iconColor: const Color(0xFF22C55E),
+              label: 'Paid',
+              value: _formatCurrency(incomeTotal),
+              valueColor: Colors.white,
+            ),
+            _MetricCardData(
+              icon: Icons.access_time_filled_rounded,
+              iconColor: const Color(0xFFF97316),
+              label: 'Pending',
+              value: _formatCurrency(pendingTotal),
+              valueColor: const Color(0xFFF97316),
+            ),
+            _MetricCardData(
+              icon: Icons.account_balance_wallet_rounded,
+              iconColor: const Color(0xFFEF4444),
+              label: 'Outstanding',
+              value: _formatCurrency(outstandingTotal),
+              valueColor: Colors.white,
+            ),
+            _MetricCardData(
+              icon: Icons.home_work_rounded,
+              iconColor: const Color(0xFF38BDF8),
+              label: 'Rented Objects',
+              value: totalUnits.toString(),
+              valueColor: Colors.white,
+            ),
+          ]
+        : <_MetricCardData>[
+            _MetricCardData(
+              icon: Icons.arrow_upward_rounded,
+              iconColor: const Color(0xFF22C55E),
+              label: 'Income',
+              value: _formatCurrency(incomeTotal),
+              valueColor: Colors.white,
+            ),
+            _MetricCardData(
+              icon: Icons.access_time_filled_rounded,
+              iconColor: const Color(0xFFF97316),
+              label: 'Pending',
+              value: _formatCurrency(pendingTotal),
+              valueColor: const Color(0xFFF97316),
+            ),
+            _MetricCardData(
+              icon: Icons.home_work_rounded,
+              iconColor: const Color(0xFF38BDF8),
+              label: 'Occupancy',
+              value: '${(occupancyPercent * 100).toStringAsFixed(0)}%',
+              valueColor: Colors.white,
+            ),
+            _MetricCardData(
+              icon: Icons.trending_down_rounded,
+              iconColor: const Color(0xFFEF4444),
+              label: 'Expenses',
+              value: _formatCurrency(outstandingTotal),
+              valueColor: Colors.white,
+            ),
+          ];
 
     final occupancy = _OccupancyData(
       percent: occupancyPercent,

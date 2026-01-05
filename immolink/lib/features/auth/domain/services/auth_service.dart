@@ -185,6 +185,8 @@ class AuthService {
     required String provider,
     required String idToken,
   }) async {
+    print(
+        '[AuthService] socialLogin(provider=$provider, tokenLen=${idToken.length}) -> $_apiUrl/auth/social-login');
     final response = await http.post(
       Uri.parse('$_apiUrl/auth/social-login'),
       headers: {'Content-Type': 'application/json'},
@@ -192,9 +194,17 @@ class AuthService {
     );
 
     final data = json.decode(response.body);
+    print('[AuthService] socialLogin status=${response.statusCode}');
     if (response.statusCode == 200) {
+      final bool needCompletion = data['needCompletion'] == true;
+      final dynamic user = data['user'];
+      final String? userId =
+          (user is Map<String, dynamic>) ? user['userId']?.toString() : null;
+      print(
+          '[AuthService] socialLogin ok needCompletion=$needCompletion userId=${userId ?? data['userId'] ?? '(n/a)'}');
       return data; // contains success, needCompletion, missingFields or user
     }
+    print('[AuthService] socialLogin error body=${response.body}');
     throw Exception(data['message'] ?? 'Social login failed');
   }
 
