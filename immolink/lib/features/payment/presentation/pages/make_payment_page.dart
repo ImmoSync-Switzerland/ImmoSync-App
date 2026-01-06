@@ -370,6 +370,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                             vertical: 12,
                           ),
                         ),
+                        iconEnabledColor: _textPrimary,
                         style: const TextStyle(
                           color: _textPrimary,
                           fontSize: 14,
@@ -423,6 +424,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                             vertical: 12,
                           ),
                         ),
+                        iconEnabledColor: _textPrimary,
                         style: const TextStyle(
                           color: _textPrimary,
                           fontSize: 14,
@@ -699,17 +701,23 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 }
 
 class BentoCard extends StatelessWidget {
-  const BentoCard({super.key, required this.child, this.padding = const EdgeInsets.all(20)});
+  const BentoCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.backgroundColor = _cardColor,
+  });
 
   final Widget child;
   final EdgeInsets padding;
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: _cardColor,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.06),
