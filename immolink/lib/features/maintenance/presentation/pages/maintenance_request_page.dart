@@ -337,12 +337,12 @@ class _SubmitMaintenanceRequestScreenState
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Center(
+          builder: (context) => const Center(
             child: BentoCard(
-              padding: const EdgeInsets.all(18),
+              padding: EdgeInsets.all(18),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   CircularProgressIndicator(color: _accent),
                   SizedBox(height: 14),
                   Text(

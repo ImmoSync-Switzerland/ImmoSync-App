@@ -6,6 +6,23 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart'
     show DashboardConfig, QuickActionItem;
+import 'package:immosync/l10n/app_localizations.dart';
+
+class _GlowActionModel {
+  const _GlowActionModel({
+    required this.icon,
+    required this.title,
+    required this.route,
+    required this.usePush,
+    this.queryParameters,
+  });
+
+  final IconData icon;
+  final String title;
+  final String route;
+  final bool usePush;
+  final Map<String, String>? queryParameters;
+}
 
 /// Bento-styled dashboard scaffold for the landlord experience.
 /// Replaces the previous glassmorphism look with crisp, high-contrast tiles.
@@ -25,23 +42,10 @@ class BentoDashboardScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final quickActions = _dedupQuickActions(config.quickActions);
 
-    final QuickActionItem? messagesAction = _findAction(
-          quickActions,
-          (action) => action.label.toLowerCase().contains('message'),
-        ) ??
-        (quickActions.isNotEmpty ? quickActions.first : null);
-    final QuickActionItem? statsAction = _findAction(
-          quickActions,
-          (action) =>
-              action.label.toLowerCase().contains('report') ||
-              action.label.toLowerCase().contains('stat'),
-        ) ??
-        (quickActions.length > 1 ? quickActions[1] : null);
-    final restActions = quickActions
-        .where((a) => a != messagesAction && a != statsAction)
-        .toList();
+    final glowActions = _buildGlowActionModel(quickActions);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -65,199 +69,27 @@ class BentoDashboardScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _Header(
-                    greeting: 'Good Morning, Fabian',
-                    subtitle: 'Your Portfolio Overview',
+                  _Header(
+                    greeting: config.headerTitle,
+                    subtitle: '',
                   ),
                   const SizedBox(height: 16),
                   _DashboardSearchBar(hint: config.searchHint),
                   const SizedBox(height: 16),
-                  if (_isLandlordQuickActions(config)) ...[
+                  _SectionTitle(text: l10n.quickActions),
+                  const SizedBox(height: _spacing),
+                  if (glowActions.isNotEmpty)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: [
-                          _GlowQuickActionTile(
-                            color: const Color(0xFF22D3EE),
-                            icon: Icons.add_home_work_rounded,
-                            title: 'Add Property',
-                            subtitle: 'New Portfolio',
-                            onTap: () => _navigate(
-                              context,
-                              route:
-                                  config.primaryActionRoute ?? '/add-property',
-                              usePush: config.primaryActionUsePush,
-                              queryParameters:
-                                  config.primaryActionQueryParameters,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFF34D399),
-                            icon: Icons.person_add_alt_1_rounded,
-                            title: 'Add Tenant',
-                            subtitle: 'Assign Unit',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/tenants',
-                              usePush: false,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFFFBBF24),
-                            icon: Icons.handyman_rounded,
-                            title: 'Maintenance',
-                            subtitle: '3 Tickets',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/maintenance/manage',
-                              usePush: false,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFFA855F7),
-                            icon: Icons.chat_bubble_rounded,
-                            title: 'Messages',
-                            subtitle: '2 Unread',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/conversations',
-                              usePush: false,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFF60A5FA),
-                            icon: Icons.account_balance_wallet_outlined,
-                            title: 'Payments',
-                            subtitle: 'Overview',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/landlord/payments',
-                              usePush: false,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFFFB7185),
-                            icon: Icons.subscriptions_outlined,
-                            title: 'Subscription',
-                            subtitle: 'Plan',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/subscription/management',
-                              usePush: false,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFF38BDF8),
-                            icon: Icons.folder_open_rounded,
-                            title: 'Documents',
-                            subtitle: 'Files',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/landlord/documents',
-                              usePush: false,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          _GlowQuickActionTile(
-                            color: const Color(0xFFA3E635),
-                            icon: Icons.design_services_outlined,
-                            title: 'Services',
-                            subtitle: 'Bookings',
-                            onTap: () => _navigate(
-                              context,
-                              route: '/landlord/services',
-                              usePush: false,
-                            ),
-                          ),
-                        ],
+                        children: _buildGlowQuickActionTiles(
+                          context,
+                          glowActions,
+                        ),
                       ),
                     ),
-                  ] else ...[
-                    const _SectionTitle(text: 'Quick Actions'),
-                    const SizedBox(height: _spacing),
-                    _PrimaryActionTile(
-                      label: config.primaryActionLabel,
-                      icon: config.primaryActionIcon,
-                      onTap: () => _handlePrimaryAction(context),
-                    ),
-                    const SizedBox(height: _spacing),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _QuickActionTile(
-                            label: messagesAction?.label ?? 'Messages',
-                            icon: messagesAction?.icon ?? Icons.message_rounded,
-                            accent: const Color(0xFF8AB4FF),
-                            onTap: messagesAction == null
-                                ? null
-                                : () => _handleQuickActionTap(
-                                      context,
-                                      messagesAction,
-                                    ),
-                          ),
-                        ),
-                        const SizedBox(width: _spacing),
-                        Expanded(
-                          child: _QuickActionTile(
-                            label: statsAction?.label ?? 'Statistics',
-                            icon: statsAction?.icon ?? Icons.bar_chart_rounded,
-                            accent: const Color(0xFF7AE3C3),
-                            onTap: statsAction == null
-                                ? null
-                                : () => _handleQuickActionTap(
-                                      context,
-                                      statsAction,
-                                    ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (restActions.isNotEmpty) ...[
-                      const SizedBox(height: _spacing),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          const double spacing = 12;
-                          final int columns = constraints.maxWidth > 900
-                              ? 4
-                              : constraints.maxWidth > 640
-                                  ? 3
-                                  : 2;
-                          final double itemWidth =
-                              (constraints.maxWidth - spacing * (columns - 1)) /
-                                  columns;
-
-                          return Wrap(
-                            spacing: spacing,
-                            runSpacing: spacing,
-                            children: restActions
-                                .map(
-                                  (item) => SizedBox(
-                                    width: itemWidth,
-                                    child: _QuickActionTile(
-                                      label: item.label,
-                                      icon: item.icon,
-                                      accent: const Color(0xFF99A8FF),
-                                      onTap: () => _handleQuickActionTap(
-                                        context,
-                                        item,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          );
-                        },
-                      ),
-                    ],
-                  ],
                   const SizedBox(height: 28),
-                  const _SectionTitle(text: 'Revenue Chart'),
+                  _SectionTitle(text: l10n.revenueChart),
                   const SizedBox(height: _spacing),
                   Row(
                     children: [
@@ -265,7 +97,7 @@ class BentoDashboardScaffold extends StatelessWidget {
                         child: _MetricTile(
                           title: config.revenueSubtitle,
                           value: config.revenueLabel,
-                          trend: config.revenueTrend ?? '+4.2% MoM',
+                          trend: config.revenueTrend,
                           trendColor: const Color(0xFF10B981),
                           icon: Icons.trending_up_rounded,
                           iconColor: const Color(0xFF10B981),
@@ -288,7 +120,7 @@ class BentoDashboardScaffold extends StatelessWidget {
                         child: _MetricTile(
                           title: config.outstandingSubtitle,
                           value: config.outstandingLabel,
-                          trend: config.outstandingTrend ?? '-0.8% WoW',
+                          trend: config.outstandingTrend,
                           trendColor: const Color(0xFF3B82F6),
                           icon: Icons.notifications_active_rounded,
                           iconColor: const Color(0xFF3B82F6),
@@ -309,24 +141,24 @@ class BentoDashboardScaffold extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 28),
-                  const _SectionTitle(text: 'Recent Activity'),
+                  _SectionTitle(text: l10n.recentActivity),
                   const SizedBox(height: _spacing),
-                  const _BentoCard(
+                  _BentoCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'No recent activity yet',
-                          style: TextStyle(
+                          l10n.noRecentActivityYet,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Updates from payments, maintenance, and chats will appear here.',
-                          style: TextStyle(
+                          l10n.recentActivityDescription,
+                          style: const TextStyle(
                             color: Color(0xB3FFFFFF),
                             fontSize: 13,
                             height: 1.35,
@@ -344,27 +176,87 @@ class BentoDashboardScaffold extends StatelessWidget {
     );
   }
 
-  void _handlePrimaryAction(BuildContext context) {
-    if (config.primaryActionRoute == null) return;
-    _navigate(
-      context,
-      route: config.primaryActionRoute!,
-      usePush: config.primaryActionUsePush,
-      queryParameters: config.primaryActionQueryParameters,
-    );
+  List<_GlowActionModel> _buildGlowActionModel(
+      List<QuickActionItem> quickActions) {
+    final List<_GlowActionModel> result = [];
+
+    if (config.primaryActionRoute != null) {
+      result.add(
+        _GlowActionModel(
+          icon: config.primaryActionIcon,
+          title: config.primaryActionLabel,
+          route: config.primaryActionRoute!,
+          usePush: config.primaryActionUsePush,
+          queryParameters: config.primaryActionQueryParameters,
+        ),
+      );
+    }
+
+    for (final action in quickActions) {
+      result.add(
+        _GlowActionModel(
+          icon: action.icon,
+          title: action.label,
+          route: action.route,
+          usePush: action.usePush,
+          queryParameters: action.queryParameters,
+        ),
+      );
+    }
+
+    return result;
   }
 
-  void _handleQuickActionTap(BuildContext context, QuickActionItem item) {
-    _navigate(
-      context,
-      route: item.route,
-      usePush: item.usePush,
-      queryParameters: item.queryParameters,
-    );
+  List<Widget> _buildGlowQuickActionTiles(
+    BuildContext context,
+    List<_GlowActionModel> actions,
+  ) {
+    const double spacing = 14;
+    final List<Widget> tiles = [];
+
+    for (int i = 0; i < actions.length; i++) {
+      final action = actions[i];
+      tiles.add(
+        _GlowQuickActionTile(
+          color: _accentColorForRoute(action.route),
+          icon: action.icon,
+          title: action.title,
+          subtitle: null,
+          onTap: () => _navigate(
+            context,
+            route: action.route,
+            usePush: action.usePush,
+            queryParameters: action.queryParameters,
+          ),
+        ),
+      );
+
+      if (i != actions.length - 1) {
+        tiles.add(const SizedBox(width: spacing));
+      }
+    }
+
+    return tiles;
   }
 
-  bool _isLandlordQuickActions(DashboardConfig config) {
-    return config.headerTitle.toLowerCase().contains('landlord');
+  Color _accentColorForRoute(String route) {
+    final normalized = route.toLowerCase();
+    if (normalized.contains('reports')) return const Color(0xFF22D3EE);
+    if (normalized.contains('tenant') || normalized.contains('tenants')) {
+      return const Color(0xFF34D399);
+    }
+    if (normalized.contains('maintenance')) return const Color(0xFFFBBF24);
+    if (normalized.contains('conversation') || normalized.contains('message')) {
+      return const Color(0xFFA855F7);
+    }
+    if (normalized.contains('payment')) return const Color(0xFF60A5FA);
+    if (normalized.contains('subscription')) return const Color(0xFFFB7185);
+    if (normalized.contains('document')) return const Color(0xFF38BDF8);
+    if (normalized.contains('service') || normalized.contains('support')) {
+      return const Color(0xFFA3E635);
+    }
+    if (normalized.contains('property')) return const Color(0xFF22D3EE);
+    return const Color(0xFF8AB4FF);
   }
 
   void _navigate(
@@ -379,6 +271,15 @@ class BentoDashboardScaffold extends StatelessWidget {
     } else {
       context.go(targetRoute);
     }
+  }
+
+  void _handleQuickActionTap(BuildContext context, QuickActionItem item) {
+    _navigate(
+      context,
+      route: item.route,
+      usePush: item.usePush,
+      queryParameters: item.queryParameters,
+    );
   }
 
   List<QuickActionItem> _dedupQuickActions(List<QuickActionItem> items) {
@@ -401,16 +302,6 @@ class BentoDashboardScaffold extends StatelessWidget {
       seen.add(key);
       return true;
     }).toList();
-  }
-
-  QuickActionItem? _findAction(
-    List<QuickActionItem> actions,
-    bool Function(QuickActionItem) predicate,
-  ) {
-    for (final action in actions) {
-      if (predicate(action)) return action;
-    }
-    return null;
   }
 
   String _buildRouteWithQuery(
@@ -458,16 +349,18 @@ class _Header extends StatelessWidget {
                   letterSpacing: -0.2,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
+              if (subtitle.trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    height: 1.2,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.65),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -545,7 +438,7 @@ class _MetricTile extends StatelessWidget {
   const _MetricTile({
     required this.title,
     required this.value,
-    required this.trend,
+    this.trend,
     required this.trendColor,
     required this.icon,
     required this.iconColor,
@@ -555,7 +448,7 @@ class _MetricTile extends StatelessWidget {
 
   final String title;
   final String value;
-  final String trend;
+  final String? trend;
   final Color trendColor;
   final IconData icon;
   final Color iconColor;
@@ -577,16 +470,17 @@ class _MetricTile extends StatelessWidget {
             children: [
               _IconBadge(icon: icon, color: iconColor),
               const SizedBox(width: 12),
-              Flexible(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: _TrendPill(
-                    label: trend,
-                    color: trendColor.withValues(alpha: 0.16),
-                    textColor: Colors.white,
+              if (trend != null && trend!.trim().isNotEmpty)
+                Flexible(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _TrendPill(
+                      label: trend!,
+                      color: trendColor.withValues(alpha: 0.16),
+                      textColor: Colors.white,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -618,137 +512,19 @@ class _MetricTile extends StatelessWidget {
   }
 }
 
-class _PrimaryActionTile extends StatelessWidget {
-  const _PrimaryActionTile({
-    required this.label,
-    required this.icon,
-    this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return _BentoCard(
-      shadow: const BoxShadow(
-        color: Color(0x4D3B82F6),
-        blurRadius: 28,
-        spreadRadius: -4,
-        offset: Offset(0, 12),
-      ),
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(
-        children: [
-          _IconBadge(
-            icon: icon,
-            color: const Color(0xFF7AE3C3),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Add a new listing or unit to your portfolio',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.65),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: Colors.white,
-            size: 16,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionTile extends StatelessWidget {
-  const _QuickActionTile({
-    required this.label,
-    required this.icon,
-    required this.accent,
-    this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color accent;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: _BentoCard(
-        shadow: BoxShadow(
-          color: accent.withValues(alpha: 0.28),
-          blurRadius: 22,
-          spreadRadius: -6,
-          offset: const Offset(0, 10),
-        ),
-        onTap: onTap,
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _IconBadge(icon: icon, color: accent),
-            const Spacer(),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Open',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: Colors.white.withValues(alpha: 0.55),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _GlowQuickActionTile extends StatelessWidget {
   const _GlowQuickActionTile({
     required this.color,
     required this.icon,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     this.onTap,
   });
 
   final Color color;
   final IconData icon;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final VoidCallback? onTap;
 
   @override
@@ -814,15 +590,16 @@ class _GlowQuickActionTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: color,
+                  if (subtitle != null && subtitle!.trim().isNotEmpty)
+                    Text(
+                      subtitle!,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

@@ -8,6 +8,15 @@ import 'package:immosync/features/property/presentation/providers/property_provi
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/core/theme/app_colors.dart';
 
+const _backgroundStart = Color(0xFF0A1128);
+const _backgroundEnd = Colors.black;
+const _cardColor = Color(0xFF1C1C1E);
+const _fieldColor = Color(0xFF2C2C2E);
+const _textPrimary = Colors.white;
+const _textSecondary = Colors.white70;
+
+const _fieldBorderRadius = BorderRadius.all(Radius.circular(12));
+
 class MakePaymentPage extends ConsumerStatefulWidget {
   final String? propertyId;
 
@@ -71,136 +80,148 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         title: const Text(
           'Make Payment',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: _textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: _textPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios, color: _textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: userProperties.when(
-          data: (properties) {
-            if (properties.isEmpty) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.home_outlined,
-                      size: 64,
-                      color: AppColors.textTertiary,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No Properties Available',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [_backgroundStart, _backgroundEnd],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: userProperties.when(
+            data: (properties) {
+              if (properties.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.home_outlined,
+                        size: 64,
+                        color: _textSecondary,
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'You have no properties to make payments for.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
+                      SizedBox(height: 16),
+                      Text(
+                        'No Properties Available',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: _textPrimary,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                      SizedBox(height: 8),
+                      Text(
+                        'You have no properties to make payments for.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (_selectedPropertyId == null ||
+                  !properties.any((p) => p.id == _selectedPropertyId)) {
+                _selectedPropertyId = properties.first.id;
+              }
+
+              final selectedProperty = properties.firstWhere(
+                (p) => p.id == _selectedPropertyId,
+                orElse: () => properties.first,
+              );
+
+              if (_amountController.text.isEmpty) {
+                _amountController.text =
+                    selectedProperty.outstandingPayments.toString();
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildPropertySection(properties, selectedProperty),
+                      const SizedBox(height: 24),
+                      _buildPaymentDetailsSection(),
+                      const SizedBox(height: 24),
+                      _buildNotesSection(),
+                      const SizedBox(height: 32),
+                      _buildSubmitButton(),
+                    ],
+                  ),
                 ),
               );
-            }
-
-            if (_selectedPropertyId == null ||
-                !properties.any((p) => p.id == _selectedPropertyId)) {
-              _selectedPropertyId = properties.first.id;
-            }
-
-            final selectedProperty = properties.firstWhere(
-              (p) => p.id == _selectedPropertyId,
-              orElse: () => properties.first,
-            );
-
-            if (_amountController.text.isEmpty) {
-              _amountController.text =
-                  selectedProperty.outstandingPayments.toString();
-            }
-
-            return Form(
-              key: _formKey,
-              child: ListView(
+            },
+            loading: () => const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildPropertySection(properties, selectedProperty),
-                  const SizedBox(height: 24),
-                  _buildPaymentDetailsSection(),
-                  const SizedBox(height: 24),
-                  _buildNotesSection(),
-                  const SizedBox(height: 32),
-                  _buildSubmitButton(),
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryAccent),
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading properties...',
+                    style: TextStyle(
+                      color: _textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
-            );
-          },
-          loading: () => const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
-                    strokeWidth: 2.5,
-                  ),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Loading properties...',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
             ),
-          ),
-          error: (error, stack) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline,
-                    size: 48, color: AppColors.error),
-                const SizedBox(height: 16),
-                const Text(
-                  'Error loading properties',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline,
+                      size: 48, color: AppColors.error),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Error loading properties',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  error.toString(),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: _textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -210,117 +231,106 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 
   Widget _buildPropertySection(
       List<Property> properties, Property selectedProperty) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Property',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: _textPrimary,
+            ),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Property',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            isExpanded: true,
+            initialValue: _selectedPropertyId,
+            dropdownColor: _fieldColor,
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: _textSecondary,
+            ),
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 14,
+            ),
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: _fieldColor,
+              border: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
             ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.primaryBackground,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.borderLight,
-                  width: 1,
+            items: properties.map((property) {
+              final addressLabel = _formatAddress(property);
+              return DropdownMenuItem<String>(
+                value: property.id,
+                child: Text(
+                  addressLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textPrimary),
                 ),
-              ),
-              child: DropdownButtonFormField<String>(
-                initialValue: _selectedPropertyId,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-                dropdownColor: AppColors.surfaceCards,
-                items: properties.map((property) {
-                  final addressLabel = _formatAddress(property);
-                  return DropdownMenuItem<String>(
-                    value: property.id,
-                    child: Text(addressLabel),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedPropertyId = newValue;
-                    final newProperty =
-                        properties.firstWhere((p) => p.id == newValue);
-                    _amountController.text =
-                        newProperty.outstandingPayments.toString();
-                  });
-                },
-              ),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedPropertyId = newValue;
+                final newProperty =
+                    properties.firstWhere((p) => p.id == newValue);
+                _amountController.text =
+                    newProperty.outstandingPayments.toString();
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.accentLight,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.2),
-                  width: 1,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  color: Colors.blue,
+                  size: 20,
                 ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: AppColors.primaryAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Outstanding payments: CHF ${selectedProperty.outstandingPayments}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.primaryAccent,
-                        fontWeight: FontWeight.w500,
-                      ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Outstanding payments: CHF ${selectedProperty.outstandingPayments}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPaymentDetailsSection() {
-    // Ensure selections remain valid & unique
     if (_selectedPaymentType != null &&
         !_paymentTypes.contains(_selectedPaymentType)) {
       _selectedPaymentType = _paymentTypes.first;
@@ -329,267 +339,264 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         !_paymentMethods.contains(_selectedPaymentMethod)) {
       _selectedPaymentMethod = _paymentMethods.first;
     }
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Payment Details',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Type',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: _textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _selectedPaymentType,
+                      dropdownColor: _fieldColor,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: _textSecondary,
+                      ),
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 14,
+                      ),
+                      decoration: const InputDecoration(
+                        filled: true,
+                        fillColor: _fieldColor,
+                        border: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      items: _paymentTypes.map((type) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(
+                            type,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedPaymentType = newValue;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: _textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _selectedPaymentMethod,
+                      dropdownColor: _fieldColor,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: _textSecondary,
+                      ),
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 14,
+                      ),
+                      decoration: const InputDecoration(
+                        filled: true,
+                        fillColor: _fieldColor,
+                        border: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      items: _paymentMethods.map((method) {
+                        return DropdownMenuItem<String>(
+                          value: method,
+                          child: Text(
+                            method,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedPaymentMethod = newValue;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Amount (CHF)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _amountController,
+            keyboardType: TextInputType.number,
+            cursorColor: Colors.greenAccent,
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: _fieldColor,
+              hintText: 'Enter amount',
+              hintStyle: TextStyle(
+                color: Colors.white54,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              prefixText: 'CHF ',
+              prefixStyle: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: const TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter an amount';
+              }
+              if (double.tryParse(value) == null) {
+                return 'Please enter a valid number';
+              }
+              if (double.parse(value) <= 0) {
+                return 'Amount must be greater than 0';
+              }
+              return null;
+            },
           ),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Payment Details',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Payment Type',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBackground,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.borderLight,
-                            width: 1,
-                          ),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _selectedPaymentType,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 14,
-                          ),
-                          dropdownColor: AppColors.surfaceCards,
-                          items: _paymentTypes.map((type) {
-                            return DropdownMenuItem<String>(
-                              value: type,
-                              child: Text(type),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedPaymentType = newValue;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Payment Method',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBackground,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.borderLight,
-                            width: 1,
-                          ),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _selectedPaymentMethod,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 14,
-                          ),
-                          dropdownColor: AppColors.surfaceCards,
-                          items: _paymentMethods.map((method) {
-                            return DropdownMenuItem<String>(
-                              value: method,
-                              child: Text(method),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedPaymentMethod = newValue;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Amount (CHF)',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.primaryBackground,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.borderLight,
-                  width: 1,
-                ),
-              ),
-              child: TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter amount',
-                  hintStyle: TextStyle(
-                    color: AppColors.textTertiary,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  prefixText: 'CHF ',
-                  prefixStyle: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  if (double.parse(value) <= 0) {
-                    return 'Amount must be greater than 0';
-                  }
-                  return null;
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildNotesSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCards,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Notes (Optional)',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _notesController,
+            maxLines: 3,
+            cursorColor: _textPrimary,
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: _fieldColor,
+              hintText: 'Add any additional notes...',
+              hintStyle: TextStyle(
+                color: Colors.white54,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.all(16),
+            ),
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 14,
+            ),
           ),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Notes (Optional)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.primaryBackground,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.borderLight,
-                  width: 1,
-                ),
-              ),
-              child: TextFormField(
-                controller: _notesController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Add any additional notes...',
-                  hintStyle: TextStyle(
-                    color: AppColors.textTertiary,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
-                ),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -597,33 +604,44 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   Widget _buildSubmitButton() {
     return SizedBox(
       width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: _submitPayment,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryAccent,
-          foregroundColor: AppColors.textOnAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.payment,
-              size: 18,
+      child: GestureDetector(
+        onTap: _submitPayment,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2563EB), Color(0xFF22D3EE)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
-            SizedBox(width: 8),
-            Text(
-              'Submit Payment',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withValues(alpha: 0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.credit_card,
+                color: Colors.white,
+                size: 20,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Submit Payment',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -665,7 +683,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.surfaceCards,
+              color: _cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Column(
@@ -679,7 +697,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 Text(
                   'Processing payment...',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: _textPrimary,
                     fontSize: 16,
                   ),
                 ),
@@ -729,5 +747,34 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         );
       }
     }
+  }
+}
+
+class BentoCard extends StatelessWidget {
+  const BentoCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.backgroundColor = _cardColor,
+  });
+
+  final Widget child;
+  final EdgeInsets padding;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+          width: 1,
+        ),
+      ),
+      child: child,
+    );
   }
 }

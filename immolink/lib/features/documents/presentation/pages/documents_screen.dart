@@ -291,8 +291,8 @@ class DocumentsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 10),
                       if (recent.isEmpty)
-                        _BentoCard(
-                          child: const Text(
+                        const _BentoCard(
+                          child: Text(
                             'No documents yet.',
                             style: TextStyle(
                               color: Colors.white70,

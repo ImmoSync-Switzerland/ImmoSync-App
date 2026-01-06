@@ -556,7 +556,41 @@ class AppLocalizationsDe extends AppLocalizations {
   String get goodEvening => 'Guten Abend';
 
   @override
+  String get hello => 'Hallo';
+
+  @override
   String get quickActions => 'Schnelle Aktionen';
+
+  @override
+  String get landlordDashboard => 'Vermieter-Dashboard';
+
+  @override
+  String get tenantDashboard => 'Mieter-Dashboard';
+
+  @override
+  String get searchLandlordDashboardHint => 'Suche nach Immobilien, Mietern...';
+
+  @override
+  String get searchTenantDashboardHint => 'Suche nach Wohnungen, Zahlungen...';
+
+  @override
+  String get payRent => 'Miete bezahlen';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get upcomingPayments => 'Bevorstehende Zahlungen';
+
+  @override
+  String get revenueChart => 'Einnahmen-Diagramm';
+
+  @override
+  String get noRecentActivityYet => 'Noch keine aktuellen Aktivitäten';
+
+  @override
+  String get recentActivityDescription =>
+      'Aktualisierungen zu Zahlungen, Wartung und Chats werden hier angezeigt.';
 
   @override
   String get viewProperties => 'Immobilien anzeigen';
@@ -1429,6 +1463,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get paymentHistory => 'Zahlungshistorie';
+
+  @override
+  String get trackAllTransactions => 'Alle Transaktionen im Blick';
+
+  @override
+  String get filterPayments => 'Zahlungen filtern';
+
+  @override
+  String get allTypes => 'Alle Typen';
+
+  @override
+  String get noPaymentHistoryFound => 'Keine Zahlungshistorie gefunden';
+
+  @override
+  String get loadingPaymentHistory => 'Zahlungshistorie wird geladen...';
 
   @override
   String get searchPropertiesMaintenanceMessages =>

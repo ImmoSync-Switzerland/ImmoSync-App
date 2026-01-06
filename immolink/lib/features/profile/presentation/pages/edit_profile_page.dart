@@ -142,7 +142,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           context.pop();
         },
       ),
-      title: Text(
+      title: const Text(
         'Edit Profile',
         style: TextStyle(
           color: Colors.white,
@@ -438,7 +438,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           width: double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
