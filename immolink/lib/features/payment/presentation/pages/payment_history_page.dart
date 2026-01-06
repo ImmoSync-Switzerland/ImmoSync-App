@@ -5,11 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
-import 'package:immosync/features/payment/domain/services/payment_service.dart';
-import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
+
+const _backgroundStart = Color(0xFF0A1128);
+const _backgroundEnd = Colors.black;
+const _cardColor = Color(0xFF1C1C1E);
+const _surfaceDark = Color(0xFF2C2C2E);
+const _textPrimary = Colors.white;
+const _textSecondary = Colors.white70;
+const _textTertiary = Colors.white54;
+const _chipGradientDark = Color(0xFF2E7D32);
+const _chipGradientLight = Color(0xFF66BB6A);
 
 class PaymentHistoryPage extends ConsumerStatefulWidget {
   const PaymentHistoryPage({super.key});
@@ -21,7 +28,6 @@ class PaymentHistoryPage extends ConsumerStatefulWidget {
 class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
   String? _selectedStatus;
   String? _selectedType;
-  final PaymentService _paymentService = PaymentService();
 
   List<Payment> _filterPayments(List<Payment> payments) {
     return payments.where((payment) {
@@ -33,357 +39,213 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     }).toList();
   }
 
-  Future<void> _cancelPayment(Payment payment) async {
-    try {
-      // Show confirmation dialog
-      final shouldCancel = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Cancel Payment'),
-          content: const Text(
-              'Are you sure you want to cancel this payment? This action cannot be undone.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Yes, Cancel'),
-            ),
-          ],
-        ),
-      );
-
-      if (shouldCancel == true) {
-        // Show loading indicator
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-
-        await _paymentService.cancelPayment(payment.id);
-
-        // Close loading dialog
-        Navigator.of(context).pop();
-
-        // Close payment details dialog
-        Navigator.of(context).pop();
-
-        // Refresh the payments list
-        ref.invalidate(landlordPaymentsProvider);
-        ref.invalidate(tenantPaymentsProvider);
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment cancelled successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      // Close loading dialog if open
-      Navigator.of(context).pop();
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to cancel payment: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _downloadReceipt(Payment payment) async {
-    try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
-      final receiptUrl = await _paymentService.downloadReceipt(payment.id);
-
-      // Close loading dialog
-      Navigator.of(context).pop();
-
-      // Launch the receipt URL
-      if (await canLaunchUrl(Uri.parse(receiptUrl))) {
-        await launchUrl(Uri.parse(receiptUrl));
-      } else {
-        throw Exception('Could not open receipt');
-      }
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Receipt download started'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      // Close loading dialog if open
-      Navigator.of(context).pop();
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to download receipt: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
-    final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     final paymentsAsync = currentUser?.role == 'landlord'
         ? ref.watch(landlordPaymentsProvider)
         : ref.watch(tenantPaymentsProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'Payment History',
-          style: TextStyle(
-            color: colors.textPrimary,
+          l10n.paymentHistory,
+          style: const TextStyle(
+            color: _textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded,
-              color: colors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded,
+            color: _textPrimary,
+            size: 20,
+          ),
           onPressed: () {
             HapticFeedback.lightImpact();
-            context.pop();
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
           },
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              colors.primaryBackground,
-              colors.surfaceSecondary,
-            ],
+            colors: [_backgroundStart, _backgroundEnd],
           ),
         ),
-        child: Column(
-          children: [
-            SizedBox(
-                height:
-                    MediaQuery.of(context).padding.top + kToolbarHeight + 8),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(colors),
-                    const SizedBox(height: 20),
-                    _buildFilterOptions(context, colors),
-                    const SizedBox(height: 24),
-                    Expanded(
-                      child: paymentsAsync.when(
-                        data: (paymentsList) {
-                          final filteredPayments =
-                              _filterPayments(paymentsList);
-                          if (filteredPayments.isEmpty) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.payment_outlined,
-                                    size: 64,
-                                    color: colors.textTertiary,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No payment history found',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: colors.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Your payment history will appear here once you make your first payment.',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: colors.textSecondary,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeaderCard(l10n),
+                const SizedBox(height: 16),
+                _buildFilterCard(l10n),
+                const SizedBox(height: 20),
+                paymentsAsync.when(
+                  data: (paymentsList) {
+                    final filteredPayments = _filterPayments(paymentsList);
+                    if (filteredPayments.isEmpty) {
+                      return _buildEmptyStateCard(l10n);
+                    }
 
-                          return ListView.builder(
-                            itemCount: filteredPayments.length,
-                            itemBuilder: (context, index) {
-                              return _buildPaymentCard(
-                                  context, filteredPayments[index], colors);
-                            },
-                          );
-                        },
-                        loading: () => Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 32,
-                                height: 32,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      colors.primaryAccent),
-                                  strokeWidth: 2.5,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Loading payment history...',
-                                style: TextStyle(
-                                  color: colors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredPayments.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final payment = filteredPayments[index];
+                        final isIncoming = currentUser?.role == 'landlord';
+                        return _buildTransactionCard(payment, isIncoming);
+                      },
+                    );
+                  },
+                  loading: () => BentoCard(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _chipGradientLight,
+                            ),
                           ),
                         ),
-                        error: (error, stack) => Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error_outline,
-                                  size: 48, color: colors.error),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Error loading payment history',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                error.toString(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: colors.textSecondary,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  ref.invalidate(currentUser?.role == 'landlord'
-                                      ? landlordPaymentsProvider
-                                      : tenantPaymentsProvider);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colors.primaryAccent,
-                                  foregroundColor: colors.textOnAccent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child:
-                                    Text(AppLocalizations.of(context)!.retry),
-                              ),
-                            ],
+                        const SizedBox(width: 12),
+                        Text(
+                          l10n.loadingPaymentHistory,
+                          style: const TextStyle(
+                            color: _textSecondary,
+                            fontSize: 14,
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
+                  error: (error, stack) => BentoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 44,
+                          color: Colors.redAccent,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.errorLoadingPaymentHistory,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: _textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.toString(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: _textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              ref.invalidate(currentUser?.role == 'landlord'
+                                  ? landlordPaymentsProvider
+                                  : tenantPaymentsProvider);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _textPrimary,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(l10n.retry),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2E7D32), // Dunkleres Grün
-            Color(0xFF66BB6A), // Helleres Grün
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+  Widget _buildHeaderCard(AppLocalizations l10n) {
+    return BentoCard(
+      glowColor: const Color(0xFF2E7D32),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: const Color(0xFF2E7D32).withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: const Color(0xFF66BB6A).withValues(alpha: 0.35),
                 width: 1,
               ),
             ),
             child: const Icon(
               Icons.history_rounded,
-              color: Colors.white,
-              size: 28,
+              color: Color(0xFF66BB6A),
+              size: 22,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Payment History',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                Text(
+                  l10n.paymentHistory,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: _textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Track all your transactions',
-                  style: TextStyle(
+                  l10n.trackAllTransactions,
+                  style: const TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w500,
+                    color: _textSecondary,
                   ),
                 ),
               ],
@@ -394,89 +256,90 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildFilterOptions(BuildContext context, DynamicAppColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.surfaceCards,
-            colors.surfaceCards.withValues(alpha: 0.7),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.5),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+  Widget _buildFilterCard(AppLocalizations l10n) {
+    return BentoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.filter_list_rounded,
-                color: colors.textPrimary,
-                size: 20,
+                color: _textPrimary,
+                size: 18,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
-                'Filter Payments',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
+                l10n.filterPayments,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 14),
+          const Text(
             'Status',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: colors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: _textSecondary,
             ),
           ),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: [
-              _buildFilterChip('All', null, colors),
-              _buildFilterChip('Completed', 'completed', colors),
-              _buildFilterChip('Pending', 'pending', colors),
-              _buildFilterChip('Failed', 'failed', colors),
+              _buildFilterPill(
+                  label: 'All',
+                  selected: _selectedStatus == null,
+                  onTap: () => _setStatus(null)),
+              _buildFilterPill(
+                  label: 'Completed',
+                  selected: _selectedStatus == 'completed',
+                  onTap: () => _setStatus('completed')),
+              _buildFilterPill(
+                  label: 'Pending',
+                  selected: _selectedStatus == 'pending',
+                  onTap: () => _setStatus('pending')),
+              _buildFilterPill(
+                  label: 'Failed',
+                  selected: _selectedStatus == 'failed',
+                  onTap: () => _setStatus('failed')),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'Type',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: colors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: _textSecondary,
             ),
           ),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: [
-              _buildFilterChip('All Types', null, colors, isTypeFilter: true),
-              _buildFilterChip('Rent', 'rent', colors, isTypeFilter: true),
-              _buildFilterChip('Maintenance', 'maintenance', colors,
-                  isTypeFilter: true),
-              _buildFilterChip('Other', 'other', colors, isTypeFilter: true),
+              _buildFilterPill(
+                label: l10n.allTypes,
+                selected: _selectedType == null,
+                onTap: () => _setType(null),
+              ),
+              _buildFilterPill(
+                label: 'Rent',
+                selected: _selectedType == 'rent',
+                onTap: () => _setType('rent'),
+              ),
+              _buildFilterPill(
+                label: 'Maintenance',
+                selected: _selectedType == 'maintenance',
+                onTap: () => _setType('maintenance'),
+              ),
             ],
           ),
         ],
@@ -484,50 +347,53 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildFilterChip(
-    String label,
-    String? value,
-    DynamicAppColors colors, {
-    bool isTypeFilter = false,
-  }) {
-    final isSelected =
-        isTypeFilter ? _selectedType == value : _selectedStatus == value;
+  void _setStatus(String? value) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _selectedStatus = value;
+    });
+  }
 
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        setState(() {
-          if (isTypeFilter) {
-            _selectedType = value;
-          } else {
-            _selectedStatus = value;
-          }
-        });
-      },
+  void _setType(String? value) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _selectedType = value;
+    });
+  }
+
+  Widget _buildFilterPill({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          gradient: isSelected
+          color: selected ? null : _surfaceDark,
+          gradient: selected
               ? const LinearGradient(
-                  colors: [
-                    Color(0xFF2E7D32), // Dunkleres Grün
-                    Color(0xFF66BB6A), // Helleres Grün
-                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [_chipGradientDark, _chipGradientLight],
                 )
               : null,
-          color: isSelected ? null : colors.surfaceCards,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? const Color(0xFF2E7D32) : colors.borderLight,
-            width: isSelected ? 2 : 1,
+            color: selected
+                ? const Color(0xFF2E7D32).withValues(alpha: 0.9)
+                : Colors.white.withValues(alpha: 0.10),
+            width: selected ? 1.5 : 1,
           ),
-          boxShadow: isSelected
+          boxShadow: selected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ]
               : null,
@@ -536,349 +402,170 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           label,
           style: TextStyle(
             fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : colors.textSecondary,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            color: selected ? _textPrimary : _textTertiary,
           ),
         ),
       ),
     );
   }
 
-  IconData _getPaymentTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'rent':
-        return Icons.home_rounded;
-      case 'maintenance':
-        return Icons.build_rounded;
-      case 'deposit':
-        return Icons.account_balance_rounded;
-      case 'fee':
-        return Icons.receipt_long_rounded;
-      default:
-        return Icons.payment_rounded;
-    }
-  }
-
-  Widget _buildPaymentCard(
-      BuildContext context, Payment payment, DynamicAppColors colors) {
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (payment.status) {
-      case 'pending':
-        statusColor = colors.warning;
-        statusIcon = Icons.hourglass_empty_rounded;
-        break;
-      case 'completed':
-        statusColor = colors.success;
-        statusIcon = Icons.check_circle_rounded;
-        break;
-      case 'failed':
-        statusColor = colors.error;
-        statusIcon = Icons.cancel_rounded;
-        break;
-      case 'refunded':
-        statusColor = colors.info;
-        statusIcon = Icons.replay_rounded;
-        break;
-      default:
-        statusColor = colors.textTertiary;
-        statusIcon = Icons.help_outline_rounded;
-    }
-
-    final currencyFormat = NumberFormat.currency(symbol: 'CHF ');
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.surfaceCards.withValues(alpha: 0.7),
+  Widget _buildEmptyStateCard(AppLocalizations l10n) {
+    return BentoCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.credit_card_rounded,
+              size: 64,
+              color: Colors.white.withValues(alpha: 0.22),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              l10n.noPaymentHistoryFound,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Your transactions will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: _textSecondary,
+              ),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          _showPaymentDetails(context, payment);
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                statusColor.withValues(alpha: 0.2),
-                                statusColor.withValues(alpha: 0.1),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            _getPaymentTypeIcon(payment.type),
-                            color: statusColor,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            payment.type.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          statusIcon,
-                          size: 16,
-                          color: statusColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          payment.status.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: statusColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    );
+  }
+
+  Widget _buildTransactionCard(Payment payment, bool isIncoming) {
+    final amountText =
+        NumberFormat.currency(symbol: 'CHF ').format(payment.amount);
+    final dateText = DateFormat('MMM d, yyyy').format(payment.date);
+
+    final arrowColor = isIncoming ? const Color(0xFF66BB6A) : Colors.redAccent;
+    final arrowIcon =
+        isIncoming ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+
+    return BentoCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: arrowColor.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: arrowColor.withValues(alpha: 0.28),
+                width: 1,
               ),
-              const SizedBox(height: 8),
-              Text(
-                currencyFormat.format(payment.amount),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Property ID: ${payment.propertyId}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                  Text(
-                    DateFormat('MMM d, yyyy').format(payment.date),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                ],
-              ),
-              if (payment.paymentMethod != null) ...[
-                const SizedBox(height: 8),
+            ),
+            child: Icon(
+              arrowIcon,
+              color: arrowColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  'Method: ${payment.paymentMethod}',
-                  style: TextStyle(
+                  payment.type.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: _textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dateText,
+                  style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showPaymentDetails(BuildContext context, Payment payment) {
-    final currencyFormat = NumberFormat.currency(symbol: 'CHF ');
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          maxChildSize: 0.9,
-          minChildSize: 0.5,
-          expand: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Payment Details',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDetailItem(
-                        'Amount', currencyFormat.format(payment.amount)),
-                    _buildDetailItem('Status', payment.status.toUpperCase()),
-                    _buildDetailItem('Type', payment.type.toUpperCase()),
-                    _buildDetailItem(
-                        'Date', DateFormat('MMM d, yyyy').format(payment.date)),
-                    _buildDetailItem('Property ID', payment.propertyId),
-                    _buildDetailItem('Tenant ID', payment.tenantId),
-                    if (payment.transactionId != null)
-                      _buildDetailItem(
-                          'Transaction ID', payment.transactionId!),
-                    if (payment.paymentMethod != null)
-                      _buildDetailItem(
-                          'Payment Method', payment.paymentMethod!),
-                    if (payment.notes != null) ...[
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Notes',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        payment.notes!,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    if (payment.status == 'pending')
-                      ElevatedButton(
-                        onPressed: () => _cancelPayment(payment),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Cancel Payment',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    if (payment.status == 'completed')
-                      ElevatedButton(
-                        onPressed: () => _downloadReceipt(payment),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Download Receipt',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amountText,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF66BB6A),
                 ),
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDetailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+              const SizedBox(height: 4),
+              Text(
+                payment.status.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: _textTertiary,
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
-            ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class BentoCard extends StatelessWidget {
+  const BentoCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.glowColor,
+  });
+
+  final Widget child;
+  final EdgeInsets padding;
+  final Color? glowColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+          width: 1,
+        ),
+        boxShadow: glowColor == null
+            ? null
+            : [
+                BoxShadow(
+                  color: glowColor!.withValues(alpha: 0.22),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+      ),
+      child: child,
     );
   }
 }

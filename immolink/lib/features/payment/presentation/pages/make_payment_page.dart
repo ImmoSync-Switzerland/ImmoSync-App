@@ -15,6 +15,8 @@ const _fieldColor = Color(0xFF2C2C2E);
 const _textPrimary = Colors.white;
 const _textSecondary = Colors.white70;
 
+const _fieldBorderRadius = BorderRadius.all(Radius.circular(12));
+
 class MakePaymentPage extends ConsumerStatefulWidget {
   final String? propertyId;
 
@@ -178,8 +180,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                     width: 32,
                     height: 32,
                     child: CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryAccent),
                       strokeWidth: 2.5,
                     ),
                   ),
@@ -242,54 +244,64 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: _fieldColor,
-              borderRadius: BorderRadius.circular(12),
+          DropdownButtonFormField<String>(
+            isExpanded: true,
+            initialValue: _selectedPropertyId,
+            dropdownColor: _fieldColor,
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: _textSecondary,
             ),
-            child: DropdownButtonFormField<String>(
-              isExpanded: true,
-              initialValue: _selectedPropertyId,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 14,
+            ),
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: _fieldColor,
+              border: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            items: properties.map((property) {
+              final addressLabel = _formatAddress(property);
+              return DropdownMenuItem<String>(
+                value: property.id,
+                child: Text(
+                  addressLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textPrimary),
                 ),
-              ),
-              iconEnabledColor: _textPrimary,
-              dropdownColor: _fieldColor,
-              style: const TextStyle(
-                color: _textPrimary,
-                fontSize: 14,
-              ),
-              items: properties.map((property) {
-                final addressLabel = _formatAddress(property);
-                return DropdownMenuItem<String>(
-                  value: property.id,
-                  child: Text(
-                    addressLabel,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _textPrimary),
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedPropertyId = newValue;
-                  final newProperty =
-                      properties.firstWhere((p) => p.id == newValue);
-                  _amountController.text =
-                      newProperty.outstandingPayments.toString();
-                });
-              },
-            ),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedPropertyId = newValue;
+                final newProperty =
+                    properties.firstWhere((p) => p.id == newValue);
+                _amountController.text =
+                    newProperty.outstandingPayments.toString();
+              });
+            },
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -355,42 +367,53 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _fieldColor,
-                        borderRadius: BorderRadius.circular(12),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _selectedPaymentType,
+                      dropdownColor: _fieldColor,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: _textSecondary,
                       ),
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        initialValue: _selectedPaymentType,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 14,
+                      ),
+                      decoration: const InputDecoration(
+                        filled: true,
+                        fillColor: _fieldColor,
+                        border: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      items: _paymentTypes.map((type) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(
+                            type,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary),
                           ),
-                        ),
-                        iconEnabledColor: _textPrimary,
-                        style: const TextStyle(
-                          color: _textPrimary,
-                          fontSize: 14,
-                        ),
-                        dropdownColor: _fieldColor,
-                        items: _paymentTypes.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(
-                              type,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedPaymentType = newValue;
-                          });
-                        },
-                      ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedPaymentType = newValue;
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -409,42 +432,53 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _fieldColor,
-                        borderRadius: BorderRadius.circular(12),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: _selectedPaymentMethod,
+                      dropdownColor: _fieldColor,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: _textSecondary,
                       ),
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        initialValue: _selectedPaymentMethod,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 14,
+                      ),
+                      decoration: const InputDecoration(
+                        filled: true,
+                        fillColor: _fieldColor,
+                        border: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: _fieldBorderRadius,
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      items: _paymentMethods.map((method) {
+                        return DropdownMenuItem<String>(
+                          value: method,
+                          child: Text(
+                            method,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary),
                           ),
-                        ),
-                        iconEnabledColor: _textPrimary,
-                        style: const TextStyle(
-                          color: _textPrimary,
-                          fontSize: 14,
-                        ),
-                        dropdownColor: _fieldColor,
-                        items: _paymentMethods.map((method) {
-                          return DropdownMenuItem<String>(
-                            value: method,
-                            child: Text(
-                              method,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedPaymentMethod = newValue;
-                          });
-                        },
-                      ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedPaymentMethod = newValue;
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -461,49 +495,57 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
             ),
           ),
           const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: _fieldColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TextFormField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: 'Enter amount',
-                hintStyle: TextStyle(
-                  color: Colors.white54,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                prefixText: 'CHF ',
-                prefixStyle: TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
+          TextFormField(
+            controller: _amountController,
+            keyboardType: TextInputType.number,
+            cursorColor: Colors.greenAccent,
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: _fieldColor,
+              hintText: 'Enter amount',
+              hintStyle: TextStyle(
+                color: Colors.white54,
               ),
-              style: const TextStyle(
+              border: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              prefixText: 'CHF ',
+              prefixStyle: TextStyle(
                 color: Colors.greenAccent,
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an amount';
-                }
-                if (double.tryParse(value) == null) {
-                  return 'Please enter a valid number';
-                }
-                if (double.parse(value) <= 0) {
-                  return 'Amount must be greater than 0';
-                }
-                return null;
-              },
             ),
+            style: const TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter an amount';
+              }
+              if (double.tryParse(value) == null) {
+                return 'Please enter a valid number';
+              }
+              if (double.parse(value) <= 0) {
+                return 'Amount must be greater than 0';
+              }
+              return null;
+            },
           ),
         ],
       ),
@@ -524,26 +566,34 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: _fieldColor,
-              borderRadius: BorderRadius.circular(12),
+          TextFormField(
+            controller: _notesController,
+            maxLines: 3,
+            cursorColor: _textPrimary,
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: _fieldColor,
+              hintText: 'Add any additional notes...',
+              hintStyle: TextStyle(
+                color: Colors.white54,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: _fieldBorderRadius,
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.all(16),
             ),
-            child: TextFormField(
-              controller: _notesController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'Add any additional notes...',
-                hintStyle: TextStyle(
-                  color: Colors.white54,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(16),
-              ),
-              style: const TextStyle(
-                color: _textPrimary,
-                fontSize: 14,
-              ),
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 14,
             ),
           ),
         ],

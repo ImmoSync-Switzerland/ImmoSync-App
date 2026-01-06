@@ -556,7 +556,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get goodEvening => 'Bonsoir';
 
   @override
+  String get hello => 'Bonjour';
+
+  @override
   String get quickActions => 'Actions rapides';
+
+  @override
+  String get landlordDashboard => 'Tableau de bord propriétaire';
+
+  @override
+  String get tenantDashboard => 'Tableau de bord locataire';
+
+  @override
+  String get searchLandlordDashboardHint =>
+      'Rechercher des biens, des locataires...';
+
+  @override
+  String get searchTenantDashboardHint =>
+      'Rechercher des logements, des paiements...';
+
+  @override
+  String get payRent => 'Payer le loyer';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get upcomingPayments => 'Paiements à venir';
+
+  @override
+  String get revenueChart => 'Graphique des revenus';
+
+  @override
+  String get noRecentActivityYet => 'Aucune activité récente pour le moment';
+
+  @override
+  String get recentActivityDescription =>
+      'Les mises à jour des paiements, de la maintenance et des chats apparaîtront ici.';
 
   @override
   String get viewProperties => 'Voir les propriétés';
@@ -1429,6 +1465,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get paymentHistory => 'Historique des paiements';
+
+  @override
+  String get trackAllTransactions => 'Suivez toutes vos transactions';
+
+  @override
+  String get filterPayments => 'Filtrer les paiements';
+
+  @override
+  String get allTypes => 'Tous les types';
+
+  @override
+  String get noPaymentHistoryFound => 'Aucun historique de paiements';
+
+  @override
+  String get loadingPaymentHistory =>
+      'Chargement de l\'historique des paiements...';
 
   @override
   String get searchPropertiesMaintenanceMessages =>

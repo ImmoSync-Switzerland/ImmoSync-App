@@ -1134,11 +1134,77 @@ abstract class AppLocalizations {
   /// **'Good evening'**
   String get goodEvening;
 
+  /// No description provided for @hello.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get hello;
+
   /// No description provided for @quickActions.
   ///
   /// In en, this message translates to:
   /// **'Quick Actions'**
   String get quickActions;
+
+  /// No description provided for @landlordDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Landlord Dashboard'**
+  String get landlordDashboard;
+
+  /// No description provided for @tenantDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Dashboard'**
+  String get tenantDashboard;
+
+  /// No description provided for @searchLandlordDashboardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search properties, tenants...'**
+  String get searchLandlordDashboardHint;
+
+  /// No description provided for @searchTenantDashboardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search homes, payments...'**
+  String get searchTenantDashboardHint;
+
+  /// No description provided for @payRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Rent'**
+  String get payRent;
+
+  /// No description provided for @support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// No description provided for @upcomingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Payments'**
+  String get upcomingPayments;
+
+  /// No description provided for @revenueChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Chart'**
+  String get revenueChart;
+
+  /// No description provided for @noRecentActivityYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent activity yet'**
+  String get noRecentActivityYet;
+
+  /// No description provided for @recentActivityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates from payments, maintenance, and chats will appear here.'**
+  String get recentActivityDescription;
 
   /// No description provided for @viewProperties.
   ///
@@ -2771,6 +2837,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment History'**
   String get paymentHistory;
+
+  /// No description provided for @trackAllTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Track all your transactions'**
+  String get trackAllTransactions;
+
+  /// No description provided for @filterPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Payments'**
+  String get filterPayments;
+
+  /// No description provided for @allTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Types'**
+  String get allTypes;
+
+  /// No description provided for @noPaymentHistoryFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment history found'**
+  String get noPaymentHistoryFound;
+
+  /// No description provided for @loadingPaymentHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading payment history...'**
+  String get loadingPaymentHistory;
 
   /// No description provided for @searchPropertiesMaintenanceMessages.
   ///
