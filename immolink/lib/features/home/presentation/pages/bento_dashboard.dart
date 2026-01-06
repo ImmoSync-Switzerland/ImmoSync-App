@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:immosync/core/localization/app_translations.dart';
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart'
     show DashboardConfig, QuickActionItem;
@@ -65,9 +66,10 @@ class BentoDashboardScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _Header(
-                    greeting: 'Good Morning, Fabian',
-                    subtitle: 'Your Portfolio Overview',
+                  _Header(
+                    greeting:
+                        '${AppTranslations.of(context, 'dashboard.goodMorning')}, Fabian',
+                    subtitle: AppTranslations.of(context, 'nav.dashboard'),
                   ),
                   const SizedBox(height: 16),
                   _DashboardSearchBar(hint: config.searchHint),
@@ -179,7 +181,12 @@ class BentoDashboardScaffold extends StatelessWidget {
                       ),
                     ),
                   ] else ...[
-                    const _SectionTitle(text: 'Quick Actions'),
+                    _SectionTitle(
+                      text: AppTranslations.of(
+                        context,
+                        'dashboard.quickActions',
+                      ),
+                    ),
                     const SizedBox(height: _spacing),
                     _PrimaryActionTile(
                       label: config.primaryActionLabel,
@@ -257,7 +264,12 @@ class BentoDashboardScaffold extends StatelessWidget {
                     ],
                   ],
                   const SizedBox(height: 28),
-                  const _SectionTitle(text: 'Revenue Chart'),
+                   _SectionTitle(
+                     text: AppTranslations.of(
+                       context,
+                       'dashboard.revenueChart',
+                     ),
+                   ),
                   const SizedBox(height: _spacing),
                   Row(
                     children: [
@@ -309,32 +321,40 @@ class BentoDashboardScaffold extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 28),
-                  const _SectionTitle(text: 'Recent Activity'),
+                   _SectionTitle(
+                     text: AppTranslations.of(
+                       context,
+                       'dashboard.recentActivity',
+                     ),
+                   ),
                   const SizedBox(height: _spacing),
-                  const _BentoCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'No recent activity yet',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Updates from payments, maintenance, and chats will appear here.',
-                          style: TextStyle(
-                            color: Color(0xB3FFFFFF),
-                            fontSize: 13,
-                            height: 1.35,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                   _BentoCard(
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         Text(
+                           AppTranslations.of(
+                             context,
+                             'empty.noRecentActivity',
+                           ),
+                           style: const TextStyle(
+                             color: Colors.white,
+                             fontSize: 16,
+                             fontWeight: FontWeight.w700,
+                           ),
+                         ),
+                         const SizedBox(height: 8),
+                         const Text(
+                           'Updates from payments, maintenance, and chats will appear here.',
+                           style: TextStyle(
+                             color: Color(0xB3FFFFFF),
+                             fontSize: 13,
+                             height: 1.35,
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),
                 ],
               ),
             ),

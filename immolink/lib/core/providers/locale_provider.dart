@@ -1,52 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class LocaleNotifier extends StateNotifier<Locale> {
-  LocaleNotifier() : super(const Locale('de')) {
-    // Default to German
-    _loadSavedLocale();
+class LocaleProvider extends ChangeNotifier {
+  Locale _locale = const Locale('en');
+
+  Locale get locale => _locale;
+
+  void setLocale(Locale locale) {
+    if (_locale == locale) return;
+    _locale = locale;
+    notifyListeners();
   }
 
-  // Load saved locale from shared preferences
-  Future<void> _loadSavedLocale() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedLanguage =
-          prefs.getString('language') ?? 'de'; // Default to German
-      updateLanguage(savedLanguage);
-    } catch (e) {
-      print('Error loading saved locale: $e');
-    }
+  void setLanguageCode(String languageCode) {
+    setLocale(Locale(languageCode));
   }
 
-  void setLocale(String languageCode) {
-    state = Locale(languageCode);
-  }
-
-  void updateLanguage(String language) {
-    switch (language) {
-      case 'en':
-        state = const Locale('en');
-        break;
-      case 'de':
-        state = const Locale('de');
-        break;
-      case 'fr':
-        state = const Locale('fr');
-        break;
-      case 'it':
-        state = const Locale('it');
-        break;
-      default:
-        state = const Locale('de'); // Default to German instead of English
-    }
-  }
+  String get languageName => getLanguageName(_locale.languageCode);
 }
 
-final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
-  return LocaleNotifier();
-});
+final localeProvider =
+    ChangeNotifierProvider<LocaleProvider>((ref) => LocaleProvider());
 
 // Helper to get language name from code
 String getLanguageName(String code) {
@@ -54,11 +28,11 @@ String getLanguageName(String code) {
     case 'en':
       return 'English';
     case 'de':
-      return 'German';
+      return 'Deutsch';
     case 'fr':
-      return 'French';
+      return 'Français';
     case 'it':
-      return 'Italian';
+      return 'Italiano';
     default:
       return 'English';
   }
