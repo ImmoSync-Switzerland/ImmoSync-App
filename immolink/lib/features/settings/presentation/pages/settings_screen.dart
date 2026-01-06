@@ -143,7 +143,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                 ),
                 const SizedBox(height: 18),
-                const _SectionLabel('Preferences'),
+                _SectionLabel(
+                  AppTranslations.of(context, 'settings.preferences'),
+                ),
                 const SizedBox(height: 10),
                 const BentoCard(
                   padding: EdgeInsets.zero,
@@ -413,15 +415,15 @@ class _LanguageOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primaryAccent = Color(0xFF3B82F6);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
         color: selected ? Colors.white.withValues(alpha: 0.08) : null,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: selected
-              ? SettingsScreen._primaryBlue
-              : Colors.white.withValues(alpha: 0.10),
+          color:
+              selected ? primaryAccent : Colors.white.withValues(alpha: 0.10),
         ),
       ),
       child: ListTile(
@@ -438,7 +440,7 @@ class _LanguageOptionTile extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           child: const Icon(
             Icons.check_circle_rounded,
-            color: SettingsScreen._primaryBlue,
+            color: primaryAccent,
           ),
         ),
       ),

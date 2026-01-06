@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+/// Lightweight runtime translations used alongside the generated
+/// AppLocalizations delegates for quick, common strings.
 class AppTranslations {
   static const Map<String, Map<String, String>> translations = {
     'en': {
@@ -56,11 +58,14 @@ class AppTranslations {
       'empty.noRecentActivity': 'No recent activity',
       'empty.search': 'Search...',
       'empty.typeToFind': 'Type to find...',
+      'empty.activityDescription':
+          'Updates from payments, maintenance, and chats will appear here.',
 
       // Settings / language
       'settings.language': 'Language',
       'settings.general': 'General',
       'settings.chooseLanguage': 'Choose Language',
+      'settings.preferences': 'Preferences',
     },
     'de': {
       // Nav
@@ -116,11 +121,14 @@ class AppTranslations {
       'empty.noRecentActivity': 'Keine aktuellen Aktivitäten',
       'empty.search': 'Suchen...',
       'empty.typeToFind': 'Tippen zum Suchen...',
+      'empty.activityDescription':
+          'Aktualisierungen zu Zahlungen, Wartungen und Chats erscheinen hier.',
 
       // Settings / language
       'settings.language': 'Sprache',
       'settings.general': 'Allgemein',
       'settings.chooseLanguage': 'Sprache auswählen',
+      'settings.preferences': 'Einstellungen',
     },
     'fr': {
       // Nav
@@ -176,11 +184,14 @@ class AppTranslations {
       'empty.noRecentActivity': 'Aucune activité récente',
       'empty.search': 'Rechercher...',
       'empty.typeToFind': 'Tapez pour trouver...',
+      'empty.activityDescription':
+          'Les mises à jour des paiements, de la maintenance et des discussions apparaîtront ici.',
 
       // Settings / language
       'settings.language': 'Langue',
       'settings.general': 'Général',
       'settings.chooseLanguage': 'Choisir la langue',
+      'settings.preferences': 'Préférences',
     },
     'it': {
       // Nav
@@ -236,19 +247,30 @@ class AppTranslations {
       'empty.noRecentActivity': 'Nessuna attività recente',
       'empty.search': 'Cerca...',
       'empty.typeToFind': 'Digita per cercare...',
+      'empty.activityDescription':
+          'Gli aggiornamenti da pagamenti, manutenzione e chat appariranno qui.',
 
       // Settings / language
       'settings.language': 'Lingua',
       'settings.general': 'Generale',
       'settings.chooseLanguage': 'Scegli la lingua',
+      'settings.preferences': 'Preferenze',
     },
   };
 
   static String of(BuildContext context, String key) {
-    final code = Localizations.localeOf(context).languageCode;
+    final code = _safeLocaleCode(context);
     return translations[code]?[key] ??
         translations['en']?[key] ??
-        key.replaceAll('.', ' ');
+        '[Missing: $key]';
+  }
+
+  static String _safeLocaleCode(BuildContext context) {
+    try {
+      return Localizations.localeOf(context).languageCode;
+    } catch (_) {
+      return 'en';
+    }
   }
 
   static String languageLabel(String code) {

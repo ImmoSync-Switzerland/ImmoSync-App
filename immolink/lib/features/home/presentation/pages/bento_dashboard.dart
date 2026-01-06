@@ -344,9 +344,12 @@ class BentoDashboardScaffold extends StatelessWidget {
                            ),
                          ),
                          const SizedBox(height: 8),
-                         const Text(
-                           'Updates from payments, maintenance, and chats will appear here.',
-                           style: TextStyle(
+                         Text(
+                           AppTranslations.of(
+                             context,
+                             'empty.activityDescription',
+                           ),
+                           style: const TextStyle(
                              color: Color(0xB3FFFFFF),
                              fontSize: 13,
                              height: 1.35,
