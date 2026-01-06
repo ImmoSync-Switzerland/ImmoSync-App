@@ -144,7 +144,7 @@ class _RevenueDetailPageState extends ConsumerState<RevenueDetailPage> {
           onChanged: (v) => setState(() => _showPerProperty = v),
         ),
         const SizedBox(width: 8),
-        Text(_showPerProperty ? 'Property Breakdown' : 'Aggregate View'),
+        Text(_showPerProperty ? l10n.propertyBreakdown : l10n.aggregateView),
       ],
     );
   }
@@ -152,9 +152,9 @@ class _RevenueDetailPageState extends ConsumerState<RevenueDetailPage> {
   Widget _buildAggregateChart(
       List payments, DynamicAppColors colors, AppLocalizations l10n) {
     if (payments.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 40),
-        child: Text('No data'),
+      return Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Text(l10n.noData),
       );
     }
     final now = DateTime.now();
@@ -209,11 +209,14 @@ class _RevenueDetailPageState extends ConsumerState<RevenueDetailPage> {
                   const Icon(Icons.show_chart, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 16),
-            const Text('Aggregate View',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18)),
+            Text(
+              l10n.aggregateView,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
           ]),
           const SizedBox(height: 24),
           SizedBox(

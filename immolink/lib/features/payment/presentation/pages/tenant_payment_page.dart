@@ -53,14 +53,15 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
       // network / TLS issues. Provide a safe fallback so user still sees at least "Card".
       debugPrint('Error loading payment methods: $e');
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _paymentMethods = [
             PaymentMethod(
               type: 'card',
-              name: 'Credit/Debit Card',
+              name: l10n.creditDebitCard,
               icon: 'credit_card',
               instant: true,
-              description: 'Standard card payment',
+              description: l10n.standardCardPayment,
             ),
           ];
           _selectedPaymentMethod = 'card';
@@ -79,7 +80,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         title: Text(
-          'Pay ${widget.paymentType.toUpperCase()}',
+          l10n.payPaymentTypeTitle(widget.paymentType.toUpperCase()),
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 20,
@@ -182,7 +183,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Payment Details',
+            l10n.paymentDetailsTitle,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -194,7 +195,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${widget.paymentType.toUpperCase()} Payment',
+                l10n.paymentTypeLabel(widget.paymentType.toUpperCase()),
                 style: TextStyle(
                   fontSize: 16,
                   color: colors.textPrimary,
@@ -217,7 +218,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Processing Fee',
+                l10n.processingFee,
                 style: TextStyle(
                   fontSize: 14,
                   color: colors.textSecondary,
@@ -239,7 +240,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total',
+                l10n.total,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -274,7 +275,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Payment Method',
+            l10n.paymentMethod,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -289,7 +290,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'No payment methods loaded. Check network/API configuration. Showing none.',
+                    l10n.noPaymentMethodsLoaded,
                     style: TextStyle(fontSize: 12, color: colors.textSecondary),
                   ),
                 ),
@@ -298,14 +299,14 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
             const SizedBox(height: 12),
           ],
           ..._paymentMethods
-              .map((method) => _buildPaymentMethodTile(method, colors)),
+              .map((method) => _buildPaymentMethodTile(method, colors, l10n)),
         ],
       ),
     );
   }
 
   Widget _buildPaymentMethodTile(
-      PaymentMethod method, DynamicAppColors colors) {
+      PaymentMethod method, DynamicAppColors colors, AppLocalizations l10n) {
     final isSelected = _selectedPaymentMethod == method.type;
 
     return GestureDetector(
@@ -366,9 +367,9 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
                             color: colors.success,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'Instant',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.instant,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -447,7 +448,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
                   const Icon(Icons.payment, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Pay CHF ${_amount.toStringAsFixed(2)}',
+                    l10n.payAmount('CHF ${_amount.toStringAsFixed(2)}'),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -462,6 +463,8 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
   Future<void> _processPayment() async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
 
     setState(() => _isLoading = true);
 
@@ -504,7 +507,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_getSuccessMessage()),
+            content: Text(_getSuccessMessage(l10n)),
             backgroundColor: Colors.green,
           ),
         );
@@ -516,7 +519,7 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment failed: ${e.toString()}'),
+            content: Text(l10n.paymentFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -528,17 +531,17 @@ class _TenantPaymentPageState extends ConsumerState<TenantPaymentPage> {
     }
   }
 
-  String _getSuccessMessage() {
+  String _getSuccessMessage(AppLocalizations l10n) {
     switch (_selectedPaymentMethod) {
       case 'bank_transfer':
       case 'sepa_debit':
-        return 'Payment initiated! It will be processed within 1-3 business days.';
+        return l10n.paymentInitiated;
       case 'sofort':
       case 'ideal':
-        return 'Payment completed successfully!';
+        return l10n.paymentCompletedSuccessfully;
       case 'card':
       default:
-        return 'Payment successful!';
+        return l10n.paymentSuccessful;
     }
   }
 }

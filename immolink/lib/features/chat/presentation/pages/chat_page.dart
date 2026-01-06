@@ -253,6 +253,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
     required DynamicAppColors colors,
     required bool glassMode,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       children: [
         ValueListenableBuilder<MatrixClientState>(
@@ -265,20 +267,20 @@ class _ChatPageState extends ConsumerState<ChatPage>
             bool busy = true;
             switch (state) {
               case MatrixClientState.starting:
-                text = 'Initializing secure chat...';
+                text = l10n.matrixInitializingSecureChat;
                 break;
               case MatrixClientState.ensuringCrypto:
-                text = 'Preparing end-to-end encryption...';
+                text = l10n.matrixPreparingE2ee;
                 break;
               case MatrixClientState.ensuringRoom:
-                text = 'Establishing chat room...';
+                text = l10n.matrixEstablishingRoom;
                 break;
               case MatrixClientState.error:
-                text = 'Matrix error - please try again later.';
+                text = l10n.matrixErrorTryLater;
                 busy = false;
                 break;
               default:
-                text = 'Initializing secure chat...';
+                text = l10n.matrixInitializingSecureChat;
             }
 
             final banner = Row(
@@ -301,7 +303,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                             .ensureMatrixReady(userId: me);
                       }
                     },
-                    child: const Text('Reconnect'),
+                    child: Text(l10n.reconnect),
                   ),
               ],
             );
@@ -1136,8 +1138,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     onTap: () {
                       if (!matrixReady) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Initializing secure chat...')),
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(context)!
+                                  .matrixInitializingSecureChat,
+                            ),
+                          ),
                         );
                         return;
                       }
@@ -1737,16 +1743,19 @@ class _ChatPageState extends ConsumerState<ChatPage>
         await launchUrl(Uri.parse(phoneNumber));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cannot make phone calls on this device'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.cannotMakeCallOnDevice),
             backgroundColor: AppColors.error,
           ),
         );
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error initiating call: $e'),
+          content: Text(
+            '${l10n.errorInitiatingCall}: ${e.toString()}',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -1782,8 +1791,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 ref.read(currentUserProvider.notifier).setUserModel(updated);
                 if (!mounted) return;
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('User blocked successfully'),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(rootContext)!.userBlockedSuccessfully,
+                    ),
                     backgroundColor: AppColors.primaryAccent,
                   ),
                 );
@@ -1791,7 +1802,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 if (!mounted) return;
                 messenger.showSnackBar(
                   SnackBar(
-                      content: Text('Failed to block user: $e'),
+                      content: Text(
+                        AppLocalizations.of(rootContext)!
+                            .failedToBlockUser(e.toString()),
+                      ),
                       backgroundColor: AppColors.error),
                 );
               }
@@ -1833,8 +1847,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 ref.read(currentUserProvider.notifier).setUserModel(updated);
                 if (!mounted) return;
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('User unblocked successfully'),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(rootContext)!
+                          .userUnblockedSuccessfully,
+                    ),
                     backgroundColor: AppColors.primaryAccent,
                   ),
                 );
@@ -1842,7 +1859,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 if (!mounted) return;
                 messenger.showSnackBar(
                   SnackBar(
-                      content: Text('Failed to unblock user: $e'),
+                      content: Text(
+                        AppLocalizations.of(rootContext)!
+                            .failedToUnblockUser(e.toString()),
+                      ),
                       backgroundColor: AppColors.error),
                 );
               }
@@ -1878,8 +1898,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
               Navigator.of(dialogCtx).pop();
               if (me == null || me.id.isEmpty) {
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('You must be logged in to report.'),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(rootContext)!.mustBeLoggedInToReport,
+                    ),
                     backgroundColor: AppColors.error,
                   ),
                 );
@@ -1887,8 +1909,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
               }
               if (convId.isEmpty) {
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Unable to determine conversation to report'),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(rootContext)!
+                          .unableToDetermineConversationToReport,
+                    ),
                     backgroundColor: AppColors.error,
                   ),
                 );
@@ -1919,8 +1944,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
                   navigator.pop();
                 }
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Conversation reported and removed'),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(rootContext)!
+                          .conversationReportedAndRemoved,
+                    ),
                     backgroundColor: AppColors.primaryAccent,
                   ),
                 );
@@ -1928,7 +1956,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 if (!mounted) return;
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text('Failed to report conversation: $e'),
+                    content: Text(
+                      AppLocalizations.of(rootContext)!
+                          .failedToReportConversation(e.toString()),
+                    ),
                     backgroundColor: AppColors.error,
                   ),
                 );
@@ -1970,8 +2001,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
                   navigator.pop();
                 }
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Conversation deleted successfully'),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(rootContext)!
+                          .conversationDeletedSuccessfully,
+                    ),
                     backgroundColor: AppColors.primaryAccent,
                   ),
                 );
@@ -1979,7 +2013,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 if (!mounted) return;
                 messenger.showSnackBar(
                   SnackBar(
-                      content: Text('Failed to delete: $e'),
+                      content: Text(
+                        AppLocalizations.of(rootContext)!
+                            .failedToDeleteConversation(e.toString()),
+                      ),
                       backgroundColor: AppColors.error),
                 );
               }
@@ -2003,9 +2040,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
         });
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error selecting image: $e'),
+          content: Text(
+            '${l10n.errorSelectingImage}: ${e.toString()}',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -2024,9 +2064,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
         });
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error taking photo: $e'),
+          content: Text('${l10n.errorTakingPhoto}: ${e.toString()}'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -2048,9 +2089,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
         });
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error sending document: $e'),
+          content: Text(
+            '${l10n.errorSendingDocument}: ${e.toString()}',
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -2224,9 +2268,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
       });
       _scrollToBottom();
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Attachment failed: $e'),
+            content: Text(
+              '${l10n.attachmentFailed}: ${e.toString()}',
+            ),
             backgroundColor: AppColors.error),
       );
     } finally {
@@ -2259,9 +2306,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
     final yesterday = now.subtract(const Duration(days: 1));
 
     if (_isSameDay(date, now)) {
-      return 'Today';
+      return AppLocalizations.of(context)!.today;
     } else if (_isSameDay(date, yesterday)) {
-      return 'Yesterday';
+      return AppLocalizations.of(context)!.yesterday;
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

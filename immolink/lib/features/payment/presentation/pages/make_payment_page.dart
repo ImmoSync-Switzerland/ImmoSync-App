@@ -7,6 +7,7 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/core/theme/app_colors.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class MakePaymentPage extends ConsumerStatefulWidget {
   final String? propertyId;
@@ -51,7 +52,34 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
       if (postal.isNotEmpty || city.isNotEmpty)
         [postal, city].where((e) => e.isNotEmpty).join(' '),
     ].where((e) => e.isNotEmpty).toList();
-    return parts.isNotEmpty ? parts.join(', ') : 'Property';
+    final l10n = AppLocalizations.of(context)!;
+    return parts.isNotEmpty ? parts.join(', ') : l10n.property;
+  }
+
+  String _paymentTypeDisplay(AppLocalizations l10n, String type) {
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      case 'deposit':
+        return l10n.deposit;
+      case 'fee':
+        return l10n.fee;
+      default:
+        return l10n.other;
+    }
+  }
+
+  String _paymentMethodDisplay(AppLocalizations l10n, String method) {
+    switch (method.toLowerCase()) {
+      case 'credit card':
+        return l10n.creditDebitCard;
+      case 'bank transfer':
+        return l10n.bankTransfer;
+      case 'paypal':
+        return l10n.paypal;
+      default:
+        return l10n.other;
+    }
   }
 
   @override
@@ -64,13 +92,14 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   @override
   Widget build(BuildContext context) {
     final userProperties = ref.watch(tenantPropertiesProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text(
-          'Make Payment',
-          style: TextStyle(
+        title: Text(
+          l10n.makePayment,
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -90,28 +119,28 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: userProperties.when(
           data: (properties) {
             if (properties.isEmpty) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.home_outlined,
                       size: 64,
                       color: AppColors.textTertiary,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
-                      'No Properties Available',
-                      style: TextStyle(
+                      l10n.noPropertiesFound,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
-                      'You have no properties to make payments for.',
-                      style: TextStyle(
+                      l10n.noPropertiesToMakePaymentsFor,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                       ),
@@ -152,7 +181,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               ),
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -167,7 +196,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 ),
                 SizedBox(height: 16),
                 Text(
-                  'Loading properties...',
+                  l10n.loadingProperties,
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 14,
@@ -183,9 +212,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 const Icon(Icons.error_outline,
                     size: 48, color: AppColors.error),
                 const SizedBox(height: 16),
-                const Text(
-                  'Error loading properties',
-                  style: TextStyle(
+                Text(
+                  l10n.errorLoadingProperties,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -210,6 +239,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 
   Widget _buildPropertySection(
       List<Property> properties, Property selectedProperty) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceCards,
@@ -231,9 +261,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Property',
-              style: TextStyle(
+            Text(
+              l10n.property,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -302,7 +332,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Outstanding payments: CHF ${selectedProperty.outstandingPayments}',
+                      l10n.outstandingPaymentsWithAmount(
+                        'CHF ${selectedProperty.outstandingPayments}',
+                      ),
                       style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.primaryAccent,
@@ -320,6 +352,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   }
 
   Widget _buildPaymentDetailsSection() {
+    final l10n = AppLocalizations.of(context)!;
     // Ensure selections remain valid & unique
     if (_selectedPaymentType != null &&
         !_paymentTypes.contains(_selectedPaymentType)) {
@@ -350,9 +383,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Payment Details',
-              style: TextStyle(
+            Text(
+              l10n.paymentDetailsTitle,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -365,9 +398,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Payment Type',
-                        style: TextStyle(
+                      Text(
+                        l10n.paymentType,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
@@ -400,7 +433,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           items: _paymentTypes.map((type) {
                             return DropdownMenuItem<String>(
                               value: type,
-                              child: Text(type),
+                              child: Text(_paymentTypeDisplay(l10n, type)),
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
@@ -418,9 +451,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Payment Method',
-                        style: TextStyle(
+                      Text(
+                        l10n.paymentMethod,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
@@ -453,7 +486,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                           items: _paymentMethods.map((method) {
                             return DropdownMenuItem<String>(
                               value: method,
-                              child: Text(method),
+                              child: Text(_paymentMethodDisplay(l10n, method)),
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
@@ -469,9 +502,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               ],
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Amount (CHF)',
-              style: TextStyle(
+            Text(
+              '${l10n.amount} (CHF)',
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
@@ -490,18 +523,18 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               child: TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter amount',
-                  hintStyle: TextStyle(
+                decoration: InputDecoration(
+                  hintText: l10n.enterAmount,
+                  hintStyle: const TextStyle(
                     color: AppColors.textTertiary,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
                   prefixText: 'CHF ',
-                  prefixStyle: TextStyle(
+                  prefixStyle: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -513,13 +546,13 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
+                    return l10n.pleaseEnterAmount;
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
+                    return l10n.pleaseEnterValidNumber;
                   }
                   if (double.parse(value) <= 0) {
-                    return 'Amount must be greater than 0';
+                    return l10n.amountMustBeGreaterThanZero;
                   }
                   return null;
                 },
@@ -532,6 +565,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   }
 
   Widget _buildNotesSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceCards,
@@ -553,9 +587,9 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Notes (Optional)',
-              style: TextStyle(
+            Text(
+              l10n.notesOptional,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -574,13 +608,13 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               child: TextFormField(
                 controller: _notesController,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Add any additional notes...',
-                  hintStyle: TextStyle(
+                decoration: InputDecoration(
+                  hintText: l10n.addAdditionalNotes,
+                  hintStyle: const TextStyle(
                     color: AppColors.textTertiary,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
+                  contentPadding: const EdgeInsets.all(16),
                 ),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
@@ -595,6 +629,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   }
 
   Widget _buildSubmitButton() {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -608,17 +643,17 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
           ),
           elevation: 0,
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.payment,
               size: 18,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
-              'Submit Payment',
-              style: TextStyle(
+              l10n.submitPayment,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -630,14 +665,16 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
   }
 
   void _submitPayment() async {
+    final l10n = AppLocalizations.of(context)!;
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     if (_selectedPropertyId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a property'),
+        SnackBar(
+          content: Text(l10n.pleaseSelectProperty),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -648,8 +685,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User not authenticated'),
+        SnackBar(
+          content: Text(l10n.userNotAuthenticated),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -668,17 +705,17 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
               color: AppColors.surfaceCards,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(
+                const CircularProgressIndicator(
                   valueColor:
                       AlwaysStoppedAnimation<Color>(AppColors.primaryAccent),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'Processing payment...',
-                  style: TextStyle(
+                  l10n.processingPayment,
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 16,
                   ),
@@ -707,8 +744,8 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         Navigator.of(context).pop(); // Close loading dialog
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment submitted successfully'),
+          SnackBar(
+            content: Text(l10n.paymentSubmittedSuccessfully),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -722,7 +759,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to submit payment: $e'),
+            content: Text(l10n.failedToSubmitPayment(e)),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),

@@ -48,44 +48,28 @@ class _SubmitMaintenanceRequestScreenState
   String? _selectedPriority;
 
   final List<String> _categories = [
-    'Plumbing',
-    'Electrical',
-    'Heating',
-    'Appliances',
-    'General',
+    'plumbing',
+    'electrical',
+    'heating',
+    'appliances',
+    'other',
   ];
 
-  final List<String> _priorities = ['Low', 'Medium', 'High', 'Emergency'];
+  final List<String> _priorities = ['low', 'medium', 'high', 'urgent'];
 
-  // Helper method to convert display names to internal values
-  String _getCategoryValue(String displayName) {
-    switch (displayName) {
-      case 'Plumbing':
-        return 'plumbing';
-      case 'Electrical':
-        return 'electrical';
-      case 'Heating':
-        return 'heating';
-      case 'Appliances':
-        return 'appliances';
-      case 'General':
+  String _categoryLabel(AppLocalizations l10n, String category) {
+    switch (category) {
+      case 'plumbing':
+        return l10n.maintenanceCategoryPlumbing;
+      case 'electrical':
+        return l10n.maintenanceCategoryElectrical;
+      case 'heating':
+        return l10n.maintenanceCategoryHeating;
+      case 'appliances':
+        return l10n.maintenanceCategoryAppliances;
+      case 'other':
       default:
-        return 'other';
-    }
-  }
-
-  String _getPriorityValue(String displayName) {
-    switch (displayName) {
-      case 'Low':
-        return 'low';
-      case 'Medium':
-        return 'medium';
-      case 'High':
-        return 'high';
-      case 'Emergency':
-        return 'urgent';
-      default:
-        return 'medium';
+        return l10n.maintenanceCategoryGeneral;
     }
   }
 
@@ -94,7 +78,7 @@ class _SubmitMaintenanceRequestScreenState
     super.initState();
     _selectedPropertyId = widget.propertyId;
     _selectedCategory = _categories.first;
-    _selectedPriority = _priorities[1]; // Default to Medium
+    _selectedPriority = _priorities[1]; // Default to medium
   }
 
   @override
@@ -107,7 +91,7 @@ class _SubmitMaintenanceRequestScreenState
   @override
   Widget build(BuildContext context) {
     final properties = ref.watch(tenantPropertiesProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       extendBody: true,
@@ -162,29 +146,29 @@ class _SubmitMaintenanceRequestScreenState
                       const SizedBox(height: 16),
 
                       // Header card
-                      const BentoCard(
+                      BentoCard(
                         child: Row(
                           children: [
-                            _GlassIconBubble(
+                            const _GlassIconBubble(
                               icon: Icons.handyman_outlined,
                             ),
-                            SizedBox(width: 14),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'New Request',
-                                    style: TextStyle(
+                                    l10n.maintenanceNewRequestTitle,
+                                    style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w800,
                                       color: _textPrimary,
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  const SizedBox(height: 4),
                                   Text(
-                                    'Report an issue with your property.',
-                                    style: TextStyle(
+                                    l10n.maintenanceNewRequestSubtitle,
+                                    style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                       color: _textSecondary,
@@ -205,13 +189,13 @@ class _SubmitMaintenanceRequestScreenState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const _SectionLabel('Property'),
+                              _SectionLabel(l10n.property),
                               const SizedBox(height: 10),
                               properties.when(
                                 data: (propertyList) =>
                                     _PremiumDropdown<String>(
                                   initialValue: _selectedPropertyId,
-                                  hintText: 'Select a property',
+                                  hintText: l10n.maintenanceSelectPropertyHint,
                                   items: propertyList
                                       .map(
                                         (property) => DropdownMenuItem<String>(
@@ -236,35 +220,36 @@ class _SubmitMaintenanceRequestScreenState
                                   ),
                                 ),
                                 error: (error, _) => Text(
-                                  'Error loading properties: $error',
+                                  '${l10n.errorLoadingProperties}: $error',
                                   style:
                                       const TextStyle(color: Colors.redAccent),
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              const _SectionLabel('Issue Title'),
+                              _SectionLabel(l10n.maintenanceIssueTitleLabel),
                               const SizedBox(height: 10),
                               _PremiumTextField(
                                 controller: _titleController,
-                                hintText: 'Brief title for the issue',
+                                hintText: l10n.maintenanceIssueTitleHint,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter a title';
+                                    return l10n.maintenancePleaseEnterTitle;
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 18),
-                              const _SectionLabel('Category'),
+                              _SectionLabel(l10n.category),
                               const SizedBox(height: 10),
                               _PremiumDropdown<String>(
                                 initialValue: _selectedCategory,
-                                hintText: 'Select a category',
+                                hintText: l10n.maintenanceSelectCategoryHint,
                                 items: _categories
                                     .map(
                                       (category) => DropdownMenuItem<String>(
                                         value: category,
-                                        child: Text(category),
+                                        child: Text(
+                                            _categoryLabel(l10n, category)),
                                       ),
                                     )
                                     .toList(),
@@ -273,22 +258,22 @@ class _SubmitMaintenanceRequestScreenState
                                 },
                               ),
                               const SizedBox(height: 18),
-                              const _SectionLabel('Description'),
+                              _SectionLabel(l10n.description),
                               const SizedBox(height: 10),
                               _PremiumTextField(
                                 controller: _descriptionController,
-                                hintText: 'Describe the issue in detail...',
+                                hintText: l10n.maintenanceDescribeIssueHint,
                                 minLines: 4,
                                 maxLines: 6,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter a description';
+                                    return l10n.pleaseDescribeIssue;
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 18),
-                              const _SectionLabel('Priority'),
+                              _SectionLabel(l10n.priority),
                               const SizedBox(height: 10),
                               _PremiumPriorityChips(
                                 value: _selectedPriority,
@@ -298,7 +283,7 @@ class _SubmitMaintenanceRequestScreenState
                               ),
                               const SizedBox(height: 22),
                               _GlowGradientButton(
-                                label: l10n?.submitRequest ?? 'Submit Request',
+                                label: l10n.submitRequest,
                                 onTap: _submitRequest,
                               ),
                             ],
@@ -337,22 +322,25 @@ class _SubmitMaintenanceRequestScreenState
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Center(
-            child: BentoCard(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  CircularProgressIndicator(color: _accent),
-                  SizedBox(height: 14),
-                  Text(
-                    'Submitting request...',
-                    style: TextStyle(color: _textPrimary, fontSize: 14),
-                  ),
-                ],
+          builder: (context) {
+            final l10n = AppLocalizations.of(context)!;
+            return Center(
+              child: BentoCard(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(color: _accent),
+                    const SizedBox(height: 14),
+                    Text(
+                      l10n.maintenanceSubmittingRequest,
+                      style: const TextStyle(color: _textPrimary, fontSize: 14),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
 
         final maintenanceService = ref.read(maintenanceServiceProvider);
@@ -384,8 +372,8 @@ class _SubmitMaintenanceRequestScreenState
           landlordId: landlordId!,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
-          category: _getCategoryValue(_selectedCategory!),
-          priority: _getPriorityValue(_selectedPriority!),
+          category: _selectedCategory!,
+          priority: _selectedPriority!,
           status: 'pending',
           location: '',
           requestedDate: DateTime.now(),
@@ -639,22 +627,27 @@ class _PremiumPriorityChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final entries = <_PriorityEntry>[
-      const _PriorityEntry(
-        label: 'Low',
-        borderColor: Color(0xFF22C55E),
+      _PriorityEntry(
+        value: 'low',
+        label: l10n.low,
+        borderColor: const Color(0xFF22C55E),
       ),
-      const _PriorityEntry(
-        label: 'Medium',
+      _PriorityEntry(
+        value: 'medium',
+        label: l10n.medium,
         borderColor: _SubmitMaintenanceRequestScreenState._accent,
       ),
-      const _PriorityEntry(
-        label: 'High',
-        borderColor: Color(0xFFF97316),
+      _PriorityEntry(
+        value: 'high',
+        label: l10n.high,
+        borderColor: const Color(0xFFF97316),
       ),
-      const _PriorityEntry(
-        label: 'Emergency',
-        borderColor: Color(0xFFEF4444),
+      _PriorityEntry(
+        value: 'urgent',
+        label: l10n.emergency,
+        borderColor: const Color(0xFFEF4444),
       ),
     ];
 
@@ -662,14 +655,14 @@ class _PremiumPriorityChips extends StatelessWidget {
       spacing: 10,
       runSpacing: 10,
       children: entries.map((entry) {
-        final bool selected = value == entry.label;
+        final bool selected = value == entry.value;
         final Color bg = selected ? Colors.transparent : Colors.transparent;
         final Color text = selected ? Colors.white : const Color(0xFF9A9A9A);
         final Color border = selected
             ? Colors.transparent
             : entry.borderColor.withValues(alpha: 0.65);
 
-        final Gradient? selectedGradient = entry.label == 'Emergency'
+        final Gradient? selectedGradient = entry.value == 'urgent'
             ? null
             : const LinearGradient(
                 begin: Alignment.topLeft,
@@ -681,10 +674,10 @@ class _PremiumPriorityChips extends StatelessWidget {
               );
 
         final Color? selectedSolid =
-            entry.label == 'Emergency' ? const Color(0xFFEF4444) : null;
+            entry.value == 'urgent' ? const Color(0xFFEF4444) : null;
 
         return InkWell(
-          onTap: () => onChanged(entry.label),
+          onTap: () => onChanged(entry.value),
           borderRadius: BorderRadius.circular(999),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -711,10 +704,12 @@ class _PremiumPriorityChips extends StatelessWidget {
 }
 
 class _PriorityEntry {
+  final String value;
   final String label;
   final Color borderColor;
 
   const _PriorityEntry({
+    required this.value,
     required this.label,
     required this.borderColor,
   });

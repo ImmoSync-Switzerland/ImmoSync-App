@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class MaintenanceDetailData {
   const MaintenanceDetailData({
@@ -54,7 +55,7 @@ class MaintenanceDetailScreen extends StatelessWidget {
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        tooltip: 'Back',
+                        tooltip: AppLocalizations.of(context)!.back,
                       ),
                       const Spacer(),
                     ],
@@ -224,7 +225,7 @@ class MaintenanceDetailLoadingScreen extends StatelessWidget {
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        tooltip: 'Back',
+                        tooltip: AppLocalizations.of(context)!.back,
                       ),
                       const Spacer(),
                     ],
@@ -274,7 +275,7 @@ class MaintenanceDetailErrorScreen extends StatelessWidget {
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        tooltip: 'Back',
+                        tooltip: AppLocalizations.of(context)!.back,
                       ),
                       const Spacer(),
                     ],

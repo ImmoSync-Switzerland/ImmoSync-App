@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 // eviction configuration
 // Removed http_parser import; no longer using multipart upload
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import '../../../../core/config/db_config.dart';
 import '../../../../core/widgets/mongo_image.dart';
 import '../../../../core/widgets/authenticated_network_image.dart';
@@ -142,7 +143,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           context.pop();
         },
       ),
-      title: Text(
+      title: const Text(
         'Edit Profile',
         style: TextStyle(
           color: Colors.white,
@@ -438,13 +439,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           width: double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                _blue,
-                _cyan,
-              ],
+              colors: [_blue, _cyan],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
@@ -633,6 +631,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   }
 
   void _showImagePickerDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -647,16 +646,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
-        title: const Text('Profile Picture'),
-        content: const Text('Select profile picture source'),
+        title: Text(l10n.profilePicture),
+        content: Text(l10n.selectProfilePictureSource),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               _pickImageFromGallery();
             },
-            child: const Text('Gallery',
-                style: TextStyle(
+            child: Text(l10n.gallery,
+                style: const TextStyle(
                     color: Colors.white70, fontWeight: FontWeight.w700)),
           ),
           TextButton(
@@ -664,8 +663,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
               Navigator.of(context).pop();
               _pickImageFromCamera();
             },
-            child: const Text('Camera',
-                style: TextStyle(
+            child: Text(l10n.camera,
+                style: const TextStyle(
                     color: Colors.white70, fontWeight: FontWeight.w700)),
           ),
           if (_uploadedImageIdOrUrl != null || _selectedImageFile != null)
@@ -677,14 +676,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
                 });
                 Navigator.of(context).pop();
               },
-              child: const Text('Remove',
-                  style: TextStyle(
+              child: Text(l10n.removePhoto,
+                  style: const TextStyle(
                       color: Color(0xFFEF4444), fontWeight: FontWeight.w800)),
             ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel',
-                style: TextStyle(
+            child: Text(l10n.cancel,
+                style: const TextStyle(
                     color: Colors.white54, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -703,7 +702,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       });
       await _uploadSelectedImage();
     } catch (e) {
-      _showError('Failed to pick image');
+      _showError(AppLocalizations.of(context)!.failedToPickImage);
     }
   }
 
@@ -718,7 +717,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       });
       await _uploadSelectedImage();
     } catch (e) {
-      _showError('Failed to capture image');
+      _showError(AppLocalizations.of(context)!.failedToCaptureImage);
     }
   }
 
@@ -866,11 +865,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Profile image uploaded'),
+        content: Text(AppLocalizations.of(context)!.profileImageUploaded),
         backgroundColor: colors.success,
       ));
     } catch (e) {
-      _showError('Failed to upload image');
+      _showError(AppLocalizations.of(context)!.failedToUploadImage);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

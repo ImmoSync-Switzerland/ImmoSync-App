@@ -23,6 +23,38 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
   String? _selectedType;
   final PaymentService _paymentService = PaymentService();
 
+  String _localizePaymentStatus(AppLocalizations l10n, String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return l10n.pending;
+      case 'completed':
+        return l10n.completed;
+      case 'failed':
+        return l10n.failed;
+      case 'refunded':
+        return l10n.refunded;
+      default:
+        return status;
+    }
+  }
+
+  String _localizePaymentType(AppLocalizations l10n, String type) {
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      case 'maintenance':
+        return l10n.maintenance;
+      case 'deposit':
+        return l10n.deposit;
+      case 'fee':
+        return l10n.fee;
+      case 'other':
+        return l10n.other;
+      default:
+        return type;
+    }
+  }
+
   List<Payment> _filterPayments(List<Payment> payments) {
     return payments.where((payment) {
       final bool statusMatch =
@@ -34,22 +66,22 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
   }
 
   Future<void> _cancelPayment(Payment payment) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       // Show confirmation dialog
       final shouldCancel = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Cancel Payment'),
-          content: const Text(
-              'Are you sure you want to cancel this payment? This action cannot be undone.'),
+          title: Text(l10n.cancelPayment),
+          content: Text(l10n.confirmCancelPaymentMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
+              child: Text(l10n.no),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Yes, Cancel'),
+              child: Text(l10n.yesCancel),
             ),
           ],
         ),
@@ -79,8 +111,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment cancelled successfully'),
+          SnackBar(
+            content: Text(l10n.paymentCancelledSuccessfully),
             backgroundColor: Colors.green,
           ),
         );
@@ -92,7 +124,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to cancel payment: ${e.toString()}'),
+          content: Text(l10n.failedToCancelPayment(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -100,6 +132,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
   }
 
   Future<void> _downloadReceipt(Payment payment) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       // Show loading indicator
       showDialog(
@@ -119,13 +152,13 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       if (await canLaunchUrl(Uri.parse(receiptUrl))) {
         await launchUrl(Uri.parse(receiptUrl));
       } else {
-        throw Exception('Could not open receipt');
+        throw Exception(l10n.couldNotOpenReceipt);
       }
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Receipt download started'),
+        SnackBar(
+          content: Text(l10n.receiptDownloadStarted),
           backgroundColor: Colors.green,
         ),
       );
@@ -136,7 +169,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to download receipt: ${e.toString()}'),
+          content: Text(l10n.failedToDownloadReceipt(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -145,6 +178,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final colors = ref.watch(dynamicColorsProvider);
     final paymentsAsync = currentUser?.role == 'landlord'
@@ -156,7 +190,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'Payment History',
+          l10n.paymentHistory,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 20,
@@ -196,9 +230,9 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(colors),
+                    _buildHeader(colors, l10n),
                     const SizedBox(height: 20),
-                    _buildFilterOptions(context, colors),
+                    _buildFilterOptions(context, colors, l10n),
                     const SizedBox(height: 24),
                     Expanded(
                       child: paymentsAsync.when(
@@ -217,7 +251,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'No payment history found',
+                                    l10n.noPaymentHistoryFound,
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -226,7 +260,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Your payment history will appear here once you make your first payment.',
+                                    l10n.paymentHistoryWillAppearAfterFirstPayment,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: colors.textSecondary,
@@ -261,7 +295,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Loading payment history...',
+                                l10n.loadingPaymentHistory,
                                 style: TextStyle(
                                   color: colors.textSecondary,
                                   fontSize: 14,
@@ -278,7 +312,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                   size: 48, color: colors.error),
                               const SizedBox(height: 16),
                               Text(
-                                'Error loading payment history',
+                                l10n.errorLoadingPaymentHistory,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
@@ -308,8 +342,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child:
-                                    Text(AppLocalizations.of(context)!.retry),
+                                child: Text(l10n.retry),
                               ),
                             ],
                           ),
@@ -326,7 +359,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildHeader(DynamicAppColors colors) {
+  Widget _buildHeader(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -370,8 +403,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Payment History',
+                Text(
+                  l10n.paymentHistory,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -380,7 +413,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Track all your transactions',
+                  l10n.trackAllTransactions,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.9),
@@ -394,7 +427,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildFilterOptions(BuildContext context, DynamicAppColors colors) {
+  Widget _buildFilterOptions(
+      BuildContext context, DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -429,7 +463,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Filter Payments',
+                l10n.filterPayments,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -440,7 +474,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Status',
+            l10n.status,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -452,15 +486,15 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildFilterChip('All', null, colors),
-              _buildFilterChip('Completed', 'completed', colors),
-              _buildFilterChip('Pending', 'pending', colors),
-              _buildFilterChip('Failed', 'failed', colors),
+              _buildFilterChip(l10n.all, null, colors),
+              _buildFilterChip(l10n.completed, 'completed', colors),
+              _buildFilterChip(l10n.pending, 'pending', colors),
+              _buildFilterChip(l10n.failed, 'failed', colors),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            'Type',
+            l10n.type,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -472,11 +506,11 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildFilterChip('All Types', null, colors, isTypeFilter: true),
-              _buildFilterChip('Rent', 'rent', colors, isTypeFilter: true),
-              _buildFilterChip('Maintenance', 'maintenance', colors,
+              _buildFilterChip(l10n.allTypes, null, colors, isTypeFilter: true),
+              _buildFilterChip(l10n.rent, 'rent', colors, isTypeFilter: true),
+              _buildFilterChip(l10n.maintenance, 'maintenance', colors,
                   isTypeFilter: true),
-              _buildFilterChip('Other', 'other', colors, isTypeFilter: true),
+              _buildFilterChip(l10n.other, 'other', colors, isTypeFilter: true),
             ],
           ),
         ],
@@ -561,6 +595,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
 
   Widget _buildPaymentCard(
       BuildContext context, Payment payment, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     Color statusColor;
     IconData statusIcon;
 
@@ -649,7 +684,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            payment.type.toUpperCase(),
+                            _localizePaymentType(l10n, payment.type),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -679,7 +714,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          payment.status.toUpperCase(),
+                          _localizePaymentStatus(l10n, payment.status),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -704,7 +739,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Property ID: ${payment.propertyId}',
+                    l10n.propertyIdWithValue(payment.propertyId),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade700,
@@ -722,7 +757,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
               if (payment.paymentMethod != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'Method: ${payment.paymentMethod}',
+                  l10n.methodWithValue(payment.paymentMethod!),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade700,
@@ -746,6 +781,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
           maxChildSize: 0.9,
@@ -762,8 +798,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Payment Details',
+                        Text(
+                          l10n.paymentDetailsTitle,
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -777,23 +813,25 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                     ),
                     const SizedBox(height: 16),
                     _buildDetailItem(
-                        'Amount', currencyFormat.format(payment.amount)),
-                    _buildDetailItem('Status', payment.status.toUpperCase()),
-                    _buildDetailItem('Type', payment.type.toUpperCase()),
+                        l10n.amount, currencyFormat.format(payment.amount)),
+                    _buildDetailItem(l10n.status,
+                        _localizePaymentStatus(l10n, payment.status)),
                     _buildDetailItem(
-                        'Date', DateFormat('MMM d, yyyy').format(payment.date)),
-                    _buildDetailItem('Property ID', payment.propertyId),
-                    _buildDetailItem('Tenant ID', payment.tenantId),
+                        l10n.type, _localizePaymentType(l10n, payment.type)),
+                    _buildDetailItem(l10n.date,
+                        DateFormat('MMM d, yyyy').format(payment.date)),
+                    _buildDetailItem(l10n.propertyId, payment.propertyId),
+                    _buildDetailItem(l10n.tenantId, payment.tenantId),
                     if (payment.transactionId != null)
                       _buildDetailItem(
-                          'Transaction ID', payment.transactionId!),
+                          l10n.transactionId, payment.transactionId!),
                     if (payment.paymentMethod != null)
                       _buildDetailItem(
-                          'Payment Method', payment.paymentMethod!),
+                          l10n.paymentMethod, payment.paymentMethod!),
                     if (payment.notes != null) ...[
                       const SizedBox(height: 16),
-                      const Text(
-                        'Notes',
+                      Text(
+                        l10n.notes,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -816,8 +854,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Cancel Payment',
+                        child: Text(
+                          l10n.cancelPayment,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -835,8 +873,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Download Receipt',
+                        child: Text(
+                          l10n.downloadReceipt,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

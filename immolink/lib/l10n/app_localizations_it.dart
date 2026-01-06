@@ -15,6 +15,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard => 'Dashboard';
 
   @override
+  String get tenantDashboard => 'Dashboard inquilino';
+
+  @override
+  String get landlordDashboard => 'Dashboard proprietario';
+
+  @override
+  String get upcomingPayments => 'Pagamenti in arrivo';
+
+  @override
+  String get payRent => 'Paga l\'affitto';
+
+  @override
   String get properties => 'Proprietà';
 
   @override
@@ -150,6 +162,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get messageStatusRead => 'Letto';
+
+  @override
+  String get messageStatusDelivered => 'Consegnato';
+
+  @override
+  String get messageStatusSent => 'Inviato';
+
+  @override
   String get welcome => 'Benvenuto';
 
   @override
@@ -270,6 +291,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get generateReport => 'Genera rapporto';
 
   @override
+  String get propertyBreakdown => 'Dettaglio per proprietà';
+
+  @override
+  String get aggregateView => 'Vista aggregata';
+
+  @override
+  String get occupancy => 'Occupazione';
+
+  @override
   String get actual => 'Reale';
 
   @override
@@ -388,6 +418,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get errorLoadingTenants => 'Errore nel caricamento degli inquilini';
+
+  @override
+  String get couldNotLoadTenants => 'Impossibile caricare gli inquilini';
 
   @override
   String get pleaseTryAgainLater => 'Si prega di riprovare più tardi';
@@ -1139,6 +1172,47 @@ class AppLocalizationsIt extends AppLocalizations {
   String get report => 'Segnala';
 
   @override
+  String get userBlockedSuccessfully => 'Utente bloccato';
+
+  @override
+  String failedToBlockUser(Object error) {
+    return 'Impossibile bloccare l\'utente: $error';
+  }
+
+  @override
+  String get userUnblockedSuccessfully => 'Utente sbloccato';
+
+  @override
+  String failedToUnblockUser(Object error) {
+    return 'Impossibile sbloccare l\'utente: $error';
+  }
+
+  @override
+  String get mustBeLoggedInToReport =>
+      'Devi effettuare l\'accesso per segnalare';
+
+  @override
+  String get unableToDetermineConversationToReport =>
+      'Impossibile determinare la conversazione da segnalare';
+
+  @override
+  String get conversationReportedAndRemoved =>
+      'Conversazione segnalata ed eliminata';
+
+  @override
+  String failedToReportConversation(Object error) {
+    return 'Impossibile segnalare la conversazione: $error';
+  }
+
+  @override
+  String get conversationDeletedSuccessfully => 'Conversazione eliminata';
+
+  @override
+  String failedToDeleteConversation(Object error) {
+    return 'Impossibile eliminare la conversazione: $error';
+  }
+
+  @override
   String get blockConfirmBody =>
       'Sei sicuro di voler bloccare questo utente? Non riceverai più i suoi messaggi.';
 
@@ -1180,8 +1254,35 @@ class AppLocalizationsIt extends AppLocalizations {
       'Invia prima un messaggio di testo per avviare la conversazione';
 
   @override
+  String get missingRecipientForNewChat =>
+      'Destinatario mancante per una nuova chat';
+
+  @override
+  String get noMessagesYet => 'Ancora nessun messaggio';
+
+  @override
+  String get encryptedMessagePlaceholder => '[crittografato]';
+
+  @override
   String get encryptionKeyNotReady =>
       'La chiave di crittografia non è ancora pronta...';
+
+  @override
+  String get matrixInitializingSecureChat => 'Inizializzazione chat sicura...';
+
+  @override
+  String get matrixPreparingE2ee =>
+      'Preparazione della crittografia end-to-end...';
+
+  @override
+  String get matrixEstablishingRoom => 'Creazione della stanza di chat...';
+
+  @override
+  String get matrixErrorTryLater =>
+      'Impossibile inizializzare la chat. Riprova più tardi.';
+
+  @override
+  String get reconnect => 'Riconnetti';
 
   @override
   String get openFileFailed => 'Apertura non riuscita';
@@ -1292,6 +1393,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get save => 'Salva';
+
+  @override
+  String get saveFilter => 'Salva filtro';
+
+  @override
+  String get propertyType => 'Tipo di proprietà';
+
+  @override
+  String get priceRange => 'Fascia di prezzo';
+
+  @override
+  String get bedrooms => 'Camere da letto';
+
+  @override
+  String get beds => 'Letti';
 
   @override
   String get edit => 'Modifica';
@@ -1419,6 +1535,97 @@ class AppLocalizationsIt extends AppLocalizations {
   String get paymentHistory => 'Storico pagamenti';
 
   @override
+  String get trackAllTransactions => 'Monitora tutte le tue transazioni';
+
+  @override
+  String get filterPayments => 'Filtra pagamenti';
+
+  @override
+  String get allTypes => 'Tutti i tipi';
+
+  @override
+  String get other => 'Altro';
+
+  @override
+  String get deposit => 'Cauzione';
+
+  @override
+  String get fee => 'Commissione';
+
+  @override
+  String get refunded => 'Rimborsato';
+
+  @override
+  String get noPaymentHistoryFound => 'Nessuna cronologia pagamenti trovata';
+
+  @override
+  String get paymentHistoryWillAppearAfterFirstPayment =>
+      'La cronologia dei pagamenti apparirà qui dopo il tuo primo pagamento.';
+
+  @override
+  String get loadingPaymentHistory => 'Caricamento cronologia pagamenti...';
+
+  @override
+  String get amount => 'Importo';
+
+  @override
+  String get date => 'Data';
+
+  @override
+  String get propertyId => 'ID immobile';
+
+  @override
+  String get tenantId => 'ID inquilino';
+
+  @override
+  String get transactionId => 'ID transazione';
+
+  @override
+  String get downloadReceipt => 'Scarica ricevuta';
+
+  @override
+  String get cancelPayment => 'Annulla pagamento';
+
+  @override
+  String get confirmCancelPaymentMessage =>
+      'Sei sicuro di voler annullare questo pagamento? Questa azione non può essere annullata.';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get yesCancel => 'Sì, annulla';
+
+  @override
+  String get paymentCancelledSuccessfully => 'Pagamento annullato con successo';
+
+  @override
+  String failedToCancelPayment(Object error) {
+    return 'Impossibile annullare il pagamento: $error';
+  }
+
+  @override
+  String get receiptDownloadStarted => 'Download della ricevuta avviato';
+
+  @override
+  String failedToDownloadReceipt(Object error) {
+    return 'Impossibile scaricare la ricevuta: $error';
+  }
+
+  @override
+  String get couldNotOpenReceipt => 'Impossibile aprire la ricevuta';
+
+  @override
+  String propertyIdWithValue(Object id) {
+    return 'ID immobile: $id';
+  }
+
+  @override
+  String methodWithValue(Object method) {
+    return 'Metodo: $method';
+  }
+
+  @override
   String get searchPropertiesMaintenanceMessages =>
       'Cerca proprietà, manutenzione, messaggi...';
 
@@ -1427,6 +1634,53 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get pleaseSelectProperty => 'Seleziona una proprietà';
+
+  @override
+  String get attach => 'Allega';
+
+  @override
+  String get maintenanceNewRequestTitle => 'Nuova richiesta';
+
+  @override
+  String get maintenanceNewRequestSubtitle =>
+      'Segnala un problema relativo alla tua proprietà.';
+
+  @override
+  String get maintenanceSelectPropertyHint => 'Seleziona una proprietà';
+
+  @override
+  String get maintenanceIssueTitleLabel => 'Titolo del problema';
+
+  @override
+  String get maintenanceIssueTitleHint => 'Breve titolo del problema';
+
+  @override
+  String get maintenancePleaseEnterTitle => 'Inserisci un titolo';
+
+  @override
+  String get maintenanceSelectCategoryHint => 'Seleziona una categoria';
+
+  @override
+  String get maintenanceDescribeIssueHint =>
+      'Descrivi il problema in dettaglio...';
+
+  @override
+  String get maintenanceSubmittingRequest => 'Invio richiesta...';
+
+  @override
+  String get maintenanceCategoryPlumbing => 'Idraulica';
+
+  @override
+  String get maintenanceCategoryElectrical => 'Elettrico';
+
+  @override
+  String get maintenanceCategoryHeating => 'Riscaldamento';
+
+  @override
+  String get maintenanceCategoryAppliances => 'Elettrodomestici';
+
+  @override
+  String get maintenanceCategoryGeneral => 'Generale';
 
   @override
   String get maintenanceRequestSubmittedSuccessfully =>
@@ -1840,6 +2094,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get profileImageUpload => 'Caricamento immagine profilo';
 
   @override
+  String get profilePicture => 'Foto profilo';
+
+  @override
+  String get selectProfilePictureSource =>
+      'Seleziona la sorgente della foto profilo';
+
+  @override
+  String get failedToPickImage => 'Impossibile selezionare l\'immagine';
+
+  @override
+  String get failedToCaptureImage => 'Impossibile scattare la foto';
+
+  @override
+  String get profileImageUploaded => 'Foto profilo caricata';
+
+  @override
+  String get failedToUploadImage => 'Impossibile caricare l\'immagine';
+
+  @override
   String get forgotPasswordTitle => 'Password dimenticata?';
 
   @override
@@ -1851,6 +2124,71 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get backToLogin => 'Torna al login';
+
+  @override
+  String get welcomeBackTitle => 'Bentornato';
+
+  @override
+  String get signInToManageYourProperties =>
+      'Accedi per gestire le tue proprietà.';
+
+  @override
+  String get emailAddress => 'Indirizzo email';
+
+  @override
+  String get emailRequired => 'L\'email è obbligatoria';
+
+  @override
+  String get enterValidEmail => 'Inserisci un indirizzo email valido';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get passwordRequired => 'La password è obbligatoria';
+
+  @override
+  String get passwordMinLength =>
+      'La password deve contenere almeno 6 caratteri';
+
+  @override
+  String get fullName => 'Nome completo';
+
+  @override
+  String get fullNameRequired => 'Il nome completo è obbligatorio';
+
+  @override
+  String get signIn => 'Accedi';
+
+  @override
+  String get signInWithApple => 'Accedi con Apple';
+
+  @override
+  String get signInWithGoogle => 'Accedi con Google';
+
+  @override
+  String get dontHaveAccount => 'Non hai un account?';
+
+  @override
+  String get createOne => 'Creane uno';
+
+  @override
+  String get accountCreatedPleaseSignIn =>
+      'Account creato. Effettua l\'accesso.';
+
+  @override
+  String get alreadyHaveAccount => 'Hai già un account?';
+
+  @override
+  String get signUpFailedCheckDetails =>
+      'Registrazione non riuscita. Controlla i tuoi dati.';
+
+  @override
+  String get networkErrorCheckConnection =>
+      'Errore di rete. Controlla la connessione.';
+
+  @override
+  String get signUpFailedTryAgain => 'Registrazione non riuscita. Riprova.';
 
   @override
   String get passwordResetEmailSent =>
@@ -2222,6 +2560,126 @@ class AppLocalizationsIt extends AppLocalizations {
   String get recentPayments => 'Pagamenti recenti';
 
   @override
+  String get paymentDashboard => 'Dashboard pagamenti';
+
+  @override
+  String get stripeAccountActive => 'Account attivo';
+
+  @override
+  String get stripeSetupRequired => 'Configurazione richiesta';
+
+  @override
+  String get stripeAcceptPayments => 'Accetta pagamenti';
+
+  @override
+  String get stripeReceivePayouts => 'Ricevi pagamenti';
+
+  @override
+  String get stripeSetUpPaymentAccountTitle =>
+      'Configura il tuo account di pagamento';
+
+  @override
+  String get stripeSetUpPaymentAccountDescription =>
+      'Collega il tuo conto bancario per iniziare a ricevere pagamenti dagli inquilini';
+
+  @override
+  String get startSetup => 'Avvia configurazione';
+
+  @override
+  String get loadingAccountSetup =>
+      'Caricamento della configurazione dell’account...';
+
+  @override
+  String get unableToLoadEmbeddedSetup =>
+      'Impossibile caricare la configurazione incorporata';
+
+  @override
+  String get stripeOnboardingComponentWillAppearHere =>
+      'Il componente di onboarding Stripe apparirà qui';
+
+  @override
+  String get errorLoadingDashboard =>
+      'Errore durante il caricamento della dashboard';
+
+  @override
+  String get stripeDashboardPaymentManagementTitle => 'Gestione pagamenti';
+
+  @override
+  String get stripeDashboardPayoutsAndBalanceTitle => 'Pagamenti e saldo';
+
+  @override
+  String get stripeDashboardComponentWillAppearHere =>
+      'Il componente della dashboard Stripe apparirà qui';
+
+  @override
+  String get accountBalance => 'Saldo account';
+
+  @override
+  String get errorLoadingBalance => 'Errore durante il caricamento del saldo';
+
+  @override
+  String get openingStripeConnectSetup =>
+      'Apertura della configurazione Stripe Connect...';
+
+  @override
+  String get couldNotOpenBrowser => 'Impossibile aprire il browser';
+
+  @override
+  String get failedToCreateStripeAccount =>
+      'Impossibile creare l’account Stripe. Controlla la tua connessione Internet e riprova.';
+
+  @override
+  String get failedToCreateOnboardingLink =>
+      'Impossibile creare il link di onboarding. Riprova.';
+
+  @override
+  String get setupFailedTryAgain => 'Configurazione non riuscita. Riprova.';
+
+  @override
+  String get requestTimeoutTryAgain => 'Timeout della richiesta. Riprova.';
+
+  @override
+  String get serviceNotAvailableContactSupport =>
+      'Servizio non disponibile. Contatta l’assistenza.';
+
+  @override
+  String get requestPayout => 'Richiedi pagamento';
+
+  @override
+  String get transferAvailableBalanceToBankQuestion =>
+      'Trasferire il saldo disponibile sul tuo conto bancario?';
+
+  @override
+  String get arrival => 'Arrivo';
+
+  @override
+  String get payoutArrivalEstimate => '2–3 giorni lavorativi';
+
+  @override
+  String payoutRequestedWithAmount(Object amount) {
+    return 'Pagamento richiesto: $amount';
+  }
+
+  @override
+  String get failedToCreatePayout => 'Impossibile creare il pagamento';
+
+  @override
+  String get balanceInformation => 'Informazioni sul saldo';
+
+  @override
+  String get availableFundsDescription =>
+      'Fondi pronti per essere trasferiti sul tuo conto bancario';
+
+  @override
+  String get pendingFundsDescription =>
+      'Fondi in attesa di disponibilità (di solito 2–3 giorni)';
+
+  @override
+  String errorWithDetails(Object error) {
+    return 'Errore: $error';
+  }
+
+  @override
   String get noPaymentsFound => 'Nessun pagamento trovato';
 
   @override
@@ -2556,6 +3014,257 @@ class AppLocalizationsIt extends AppLocalizations {
   String get paymentMethod => 'Metodo di pagamento';
 
   @override
+  String get paymentDetailsTitle => 'Dettagli pagamento';
+
+  @override
+  String get autoPaymentSetupTitle => 'Configurazione pagamento automatico';
+
+  @override
+  String get automaticPayments => 'Pagamenti automatici';
+
+  @override
+  String get neverMissRentPayment =>
+      'Non perdere mai un pagamento dell’affitto';
+
+  @override
+  String get encryptedSecurePaymentProcessing =>
+      'Elaborazione dei pagamenti sicura e crittografata';
+
+  @override
+  String get bankAccount => 'Conto bancario';
+
+  @override
+  String get achTransfer => 'Bonifico ACH';
+
+  @override
+  String get instantPayment => 'Pagamento istantaneo';
+
+  @override
+  String get bankAccountInformation => 'Informazioni del conto bancario';
+
+  @override
+  String get accountNumber => 'Numero di conto';
+
+  @override
+  String get enterBankAccountNumber => 'Inserisci il numero del conto bancario';
+
+  @override
+  String get accountNumberIsRequired => 'Il numero di conto è obbligatorio';
+
+  @override
+  String get routingNumber => 'Routing number';
+
+  @override
+  String get enterBankRoutingNumber =>
+      'Inserisci il routing number della banca';
+
+  @override
+  String get routingNumberIsRequired => 'Il routing number è obbligatorio';
+
+  @override
+  String get cardInformation => 'Informazioni carta';
+
+  @override
+  String get cardholderName => 'Nome del titolare';
+
+  @override
+  String get enterNameOnCard => 'Inserisci il nome sulla carta';
+
+  @override
+  String get cardholderNameIsRequired => 'Il nome del titolare è obbligatorio';
+
+  @override
+  String get cardNumber => 'Numero carta';
+
+  @override
+  String get cardNumberIsRequired => 'Il numero della carta è obbligatorio';
+
+  @override
+  String get expiryDate => 'Data di scadenza';
+
+  @override
+  String get expiryDateIsRequired => 'La data di scadenza è obbligatoria';
+
+  @override
+  String get cvv => 'CVV';
+
+  @override
+  String get cvvIsRequired => 'Il CVV è obbligatorio';
+
+  @override
+  String get setUpAutoPayment => 'Imposta pagamento automatico';
+
+  @override
+  String get secureAndEncrypted => 'Sicuro e crittografato';
+
+  @override
+  String get autoPaymentSecurityDescription =>
+      'Le tue informazioni di pagamento sono crittografate con sicurezza di livello bancario. Puoi modificare o annullare i pagamenti automatici in qualsiasi momento.';
+
+  @override
+  String get setupCompleteTitle => 'Configurazione completata';
+
+  @override
+  String get setupCompleteMessage =>
+      'Il tuo pagamento automatico è stato configurato con successo con Stripe. Riceverai a breve un’email di conferma.';
+
+  @override
+  String get done => 'Fatto';
+
+  @override
+  String get unableToSetupPaymentNoPropertyInfo =>
+      'Impossibile configurare il pagamento: nessuna informazione su immobile o proprietario trovata.';
+
+  @override
+  String get setupFailedTitle => 'Configurazione non riuscita';
+
+  @override
+  String setupFailedWithError(Object error) {
+    return 'Configurazione non riuscita: $error';
+  }
+
+  @override
+  String get makePayment => 'Effettua pagamento';
+
+  @override
+  String get submitPayment => 'Invia pagamento';
+
+  @override
+  String get paymentType => 'Tipo di pagamento';
+
+  @override
+  String get enterAmount => 'Inserisci importo';
+
+  @override
+  String get pleaseEnterAmount => 'Inserisci un importo';
+
+  @override
+  String get pleaseEnterValidNumber => 'Inserisci un numero valido';
+
+  @override
+  String get amountMustBeGreaterThanZero =>
+      'L\'importo deve essere maggiore di 0';
+
+  @override
+  String get notesOptional => 'Note (facoltative)';
+
+  @override
+  String get addAdditionalNotes => 'Aggiungi eventuali note...';
+
+  @override
+  String get processingPayment => 'Elaborazione pagamento...';
+
+  @override
+  String get userNotAuthenticated => 'Utente non autenticato';
+
+  @override
+  String get paymentSubmittedSuccessfully => 'Pagamento inviato con successo';
+
+  @override
+  String failedToSubmitPayment(Object error) {
+    return 'Impossibile inviare il pagamento: $error';
+  }
+
+  @override
+  String get noPropertiesToMakePaymentsFor =>
+      'Non hai immobili per cui effettuare pagamenti.';
+
+  @override
+  String outstandingPaymentsWithAmount(Object amount) {
+    return 'Pagamenti in sospeso: $amount';
+  }
+
+  @override
+  String get bankTransfer => 'Bonifico bancario';
+
+  @override
+  String get paypal => 'PayPal';
+
+  @override
+  String get payNow => 'Paga ora';
+
+  @override
+  String get recordPayment => 'Registra pagamento';
+
+  @override
+  String get viewPayments => 'Visualizza pagamenti';
+
+  @override
+  String get paymentProcessedSecurelyByStripe =>
+      'Il tuo pagamento viene elaborato in modo sicuro da Stripe';
+
+  @override
+  String get bankTransferInstructionsTitle =>
+      'Istruzioni per bonifico bancario';
+
+  @override
+  String get bankTransferInstructionsDescription =>
+      'Trasferisci i fondi al seguente conto e includi il tuo riferimento di pagamento:';
+
+  @override
+  String get bankTransferInstructionsAccountDetails =>
+      'Conto: ImmoLink Payments\nIBAN: CH12 3456 7890 1234 5678\nRiferimento: ID della tua proprietà';
+
+  @override
+  String get paymentProcessedSuccessfully =>
+      'Il tuo pagamento è stato elaborato con successo.';
+
+  @override
+  String get paymentRecordedCompleteBankTransfer =>
+      'Il pagamento è stato registrato. Completa il bonifico bancario utilizzando i dettagli forniti.';
+
+  @override
+  String get utilities => 'Utenze';
+
+  @override
+  String get maintenanceFee => 'Quota di manutenzione';
+
+  @override
+  String get lateFee => 'Penale di ritardo';
+
+  @override
+  String paymentTypeLabel(Object type) {
+    return 'Pagamento $type';
+  }
+
+  @override
+  String payPaymentTypeTitle(Object type) {
+    return 'Paga $type';
+  }
+
+  @override
+  String get processingFee => 'Commissione di elaborazione';
+
+  @override
+  String get instant => 'Immediato';
+
+  @override
+  String payAmount(Object amount) {
+    return 'Paga $amount';
+  }
+
+  @override
+  String get noPaymentMethodsLoaded =>
+      'Nessun metodo di pagamento disponibile. Controlla la rete/la configurazione API.';
+
+  @override
+  String get paymentInitiated =>
+      'Pagamento avviato! Verrà elaborato entro 1-3 giorni lavorativi.';
+
+  @override
+  String get paymentCompletedSuccessfully =>
+      'Pagamento completato con successo!';
+
+  @override
+  String get paymentSuccessful => 'Pagamento riuscito!';
+
+  @override
+  String get creditDebitCard => 'Carta di credito/debito';
+
+  @override
+  String get standardCardPayment => 'Pagamento standard con carta';
+
+  @override
   String get paymentInfoSecure =>
       'Le tue informazioni di pagamento sono sicure';
 
@@ -2753,6 +3462,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get viewAll => 'Vedi tutto';
 
   @override
+  String get more => 'Altro';
+
+  @override
   String get noRecentDocuments => 'Nessun documento recente';
 
   @override
@@ -2825,6 +3537,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String documentsStorageSubtitle(Object count, Object size) {
+    return '$count file • $size utilizzati';
+  }
+
+  @override
+  String get uploadNew => 'Carica nuovo';
+
+  @override
+  String get recentFiles => 'File recenti';
+
+  @override
   String get insurance => 'Assicurazione';
 
   @override
@@ -2870,6 +3593,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get fileLabel => 'File';
 
   @override
+  String get selectFile => 'Seleziona un file';
+
+  @override
   String get sizeLabel => 'Dimensione';
 
   @override
@@ -2883,6 +3609,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get descriptionOptional => 'Descrizione (opzionale)';
+
+  @override
+  String errorPickingFile(Object error) {
+    return 'Errore durante la selezione del file: $error';
+  }
+
+  @override
+  String get pleaseSelectFile => 'Seleziona un file';
+
+  @override
+  String get pleaseEnterName => 'Inserisci un nome';
 
   @override
   String get assignToPropertyOptional => 'Assegna alla proprietà (opzionale)';

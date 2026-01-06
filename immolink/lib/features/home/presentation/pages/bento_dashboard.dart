@@ -264,12 +264,12 @@ class BentoDashboardScaffold extends StatelessWidget {
                     ],
                   ],
                   const SizedBox(height: 28),
-                   _SectionTitle(
-                     text: AppTranslations.of(
-                       context,
-                       'dashboard.revenueChart',
-                     ),
-                   ),
+                  _SectionTitle(
+                    text: AppTranslations.of(
+                      context,
+                      'dashboard.revenueChart',
+                    ),
+                  ),
                   const SizedBox(height: _spacing),
                   Row(
                     children: [
@@ -321,43 +321,43 @@ class BentoDashboardScaffold extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 28),
-                   _SectionTitle(
-                     text: AppTranslations.of(
-                       context,
-                       'dashboard.recentActivity',
-                     ),
-                   ),
+                  _SectionTitle(
+                    text: AppTranslations.of(
+                      context,
+                      'dashboard.recentActivity',
+                    ),
+                  ),
                   const SizedBox(height: _spacing),
-                   _BentoCard(
-                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         Text(
-                           AppTranslations.of(
-                             context,
-                             'empty.noRecentActivity',
-                           ),
-                           style: const TextStyle(
-                             color: Colors.white,
-                             fontSize: 16,
-                             fontWeight: FontWeight.w700,
-                           ),
-                         ),
-                         const SizedBox(height: 8),
-                         Text(
-                           AppTranslations.of(
-                             context,
-                             'empty.activityDescription',
-                           ),
-                           style: const TextStyle(
-                             color: Color(0xB3FFFFFF),
-                             fontSize: 13,
-                             height: 1.35,
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
+                  _BentoCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppTranslations.of(
+                            context,
+                            'empty.noRecentActivity',
+                          ),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          AppTranslations.of(
+                            context,
+                            'empty.activityDescription',
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 13,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

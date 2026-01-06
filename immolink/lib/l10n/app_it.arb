@@ -2,6 +2,10 @@
   "@@locale": "it",
   "appTitle": "ImmoSync",
   "dashboard": "Dashboard",  
+  "tenantDashboard": "Dashboard inquilino",
+  "landlordDashboard": "Dashboard proprietario",
+  "upcomingPayments": "Pagamenti in arrivo",
+  "payRent": "Paga l'affitto",
   "properties": "Proprietà",
   "tenants": "Inquilini",
   "services": "Servizi",
@@ -53,6 +57,9 @@
       "time": {}
     }
   },
+  "messageStatusRead": "Letto",
+  "messageStatusDelivered": "Consegnato",
+  "messageStatusSent": "Inviato",
   "welcome": "Benvenuto",
   "totalProperties": "Proprietà totali",
   "monthlyRevenue": "Entrate mensili",
@@ -93,6 +100,9 @@
   "occupancyReport": "Rapporto occupazione",  
   "maintenanceReport": "Rapporto manutenzione",
   "generateReport": "Genera rapporto",
+  "propertyBreakdown": "Dettaglio per proprietà",
+  "aggregateView": "Vista aggregata",
+  "occupancy": "Occupazione",
   "actual": "Reale",
   "planned": "Pianificato",
   "emailNotifications": "Notifiche email",
@@ -130,6 +140,7 @@
   "addTenant": "Aggiungi inquilino",
   "loadingTenants": "Caricamento inquilini...",
   "errorLoadingTenants": "Errore nel caricamento degli inquilini",
+  "couldNotLoadTenants": "Impossibile caricare gli inquilini",
   "pleaseTryAgainLater": "Si prega di riprovare più tardi",
   "retryLoading": "Riprova",
   "editTenant": "Modifica inquilino",
@@ -380,6 +391,36 @@
   "block": "Blocca",
   "unblock": "Sblocca",
   "report": "Segnala",
+  "userBlockedSuccessfully": "Utente bloccato",
+  "failedToBlockUser": "Impossibile bloccare l'utente: {error}",
+  "@failedToBlockUser": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "userUnblockedSuccessfully": "Utente sbloccato",
+  "failedToUnblockUser": "Impossibile sbloccare l'utente: {error}",
+  "@failedToUnblockUser": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "mustBeLoggedInToReport": "Devi effettuare l'accesso per segnalare",
+  "unableToDetermineConversationToReport": "Impossibile determinare la conversazione da segnalare",
+  "conversationReportedAndRemoved": "Conversazione segnalata ed eliminata",
+  "failedToReportConversation": "Impossibile segnalare la conversazione: {error}",
+  "@failedToReportConversation": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "conversationDeletedSuccessfully": "Conversazione eliminata",
+  "failedToDeleteConversation": "Impossibile eliminare la conversazione: {error}",
+  "@failedToDeleteConversation": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "blockConfirmBody": "Sei sicuro di voler bloccare questo utente? Non riceverai più i suoi messaggi.",
   "unblockConfirmBody": "Vuoi sbloccare questo utente? Potrai di nuovo scambiare messaggi.",
   "reportConfirmBody": "Sei sicuro di voler segnalare questa conversazione? Il nostro team di supporto la esaminerà.",
@@ -390,9 +431,64 @@
   "document": "Documento",
   "emojis": "Emoji",
   "imageReadyToSend": "Immagine pronta per l'invio",
+  "trackAllTransactions": "Monitora tutte le tue transazioni",
+  "filterPayments": "Filtra pagamenti",
+  "allTypes": "Tutti i tipi",
+  "other": "Altro",
+  "deposit": "Cauzione",
+  "fee": "Commissione",
+  "refunded": "Rimborsato",
+  "noPaymentHistoryFound": "Nessuna cronologia pagamenti trovata",
+  "paymentHistoryWillAppearAfterFirstPayment": "La cronologia dei pagamenti apparirà qui dopo il tuo primo pagamento.",
+  "loadingPaymentHistory": "Caricamento cronologia pagamenti...",
+  "amount": "Importo",
+  "date": "Data",
+  "propertyId": "ID immobile",
+  "tenantId": "ID inquilino",
+  "transactionId": "ID transazione",
+  "downloadReceipt": "Scarica ricevuta",
+  "cancelPayment": "Annulla pagamento",
+  "confirmCancelPaymentMessage": "Sei sicuro di voler annullare questo pagamento? Questa azione non può essere annullata.",
+  "no": "No",
+  "yesCancel": "Sì, annulla",
+  "paymentCancelledSuccessfully": "Pagamento annullato con successo",
+  "failedToCancelPayment": "Impossibile annullare il pagamento: {error}",
+  "@failedToCancelPayment": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "receiptDownloadStarted": "Download della ricevuta avviato",
+  "failedToDownloadReceipt": "Impossibile scaricare la ricevuta: {error}",
+  "@failedToDownloadReceipt": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "couldNotOpenReceipt": "Impossibile aprire la ricevuta",
+  "propertyIdWithValue": "ID immobile: {id}",
+  "@propertyIdWithValue": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "methodWithValue": "Metodo: {method}",
+  "@methodWithValue": {
+    "placeholders": {
+      "method": {}
+    }
+  },
   "fileReadyToSend": "File pronto per l'invio",
   "pleaseSendTextFirst": "Invia prima un messaggio di testo per avviare la conversazione",
+  "missingRecipientForNewChat": "Destinatario mancante per una nuova chat",
+  "noMessagesYet": "Ancora nessun messaggio",
+  "encryptedMessagePlaceholder": "[crittografato]",
   "encryptionKeyNotReady": "La chiave di crittografia non è ancora pronta...",
+  "matrixInitializingSecureChat": "Inizializzazione chat sicura...",
+  "matrixPreparingE2ee": "Preparazione della crittografia end-to-end...",
+  "matrixEstablishingRoom": "Creazione della stanza di chat...",
+  "matrixErrorTryLater": "Impossibile inizializzare la chat. Riprova più tardi.",
+  "reconnect": "Riconnetti",
   "openFileFailed": "Apertura non riuscita",
   "attachmentFailed": "Invio allegato non riuscito",
   "errorSelectingImage": "Errore durante la selezione dell'immagine",
@@ -416,6 +512,11 @@
   "update": "Aggiorna",
   "delete": "Elimina",
   "save": "Salva",
+  "saveFilter": "Salva filtro",
+  "propertyType": "Tipo di proprietà",
+  "priceRange": "Fascia di prezzo",
+  "bedrooms": "Camere da letto",
+  "beds": "Letti",
   "edit": "Modifica",
   "view": "Visualizza",
   "details": "Dettagli",
@@ -462,6 +563,21 @@
   "searchPropertiesMaintenanceMessages": "Cerca proprietà, manutenzione, messaggi...",
   "errorGeneric": "Errore",
   "pleaseSelectProperty": "Seleziona una proprietà",
+  "attach": "Allega",
+  "maintenanceNewRequestTitle": "Nuova richiesta",
+  "maintenanceNewRequestSubtitle": "Segnala un problema relativo alla tua proprietà.",
+  "maintenanceSelectPropertyHint": "Seleziona una proprietà",
+  "maintenanceIssueTitleLabel": "Titolo del problema",
+  "maintenanceIssueTitleHint": "Breve titolo del problema",
+  "maintenancePleaseEnterTitle": "Inserisci un titolo",
+  "maintenanceSelectCategoryHint": "Seleziona una categoria",
+  "maintenanceDescribeIssueHint": "Descrivi il problema in dettaglio...",
+  "maintenanceSubmittingRequest": "Invio richiesta...",
+  "maintenanceCategoryPlumbing": "Idraulica",
+  "maintenanceCategoryElectrical": "Elettrico",
+  "maintenanceCategoryHeating": "Riscaldamento",
+  "maintenanceCategoryAppliances": "Elettrodomestici",
+  "maintenanceCategoryGeneral": "Generale",
   "maintenanceRequestSubmittedSuccessfully": "Richiesta di manutenzione inviata con successo",
   "failedToSubmitRequest": "Invio richiesta fallito",
   "statusUpdatedTo": "Stato aggiornato a",
@@ -720,11 +836,37 @@
   "forgotPasswordDescription": "Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.",
   "sendResetEmail": "Invia e-mail di reimpostazione",
   "backToLogin": "Torna al login",
+  "welcomeBackTitle": "Bentornato",
+  "signInToManageYourProperties": "Accedi per gestire le tue proprietà.",
+  "emailAddress": "Indirizzo email",
+  "emailRequired": "L'email è obbligatoria",
+  "enterValidEmail": "Inserisci un indirizzo email valido",
+  "password": "Password",
+  "passwordRequired": "La password è obbligatoria",
+  "passwordMinLength": "La password deve contenere almeno 6 caratteri",
+  "fullName": "Nome completo",
+  "fullNameRequired": "Il nome completo è obbligatorio",
+  "signIn": "Accedi",
+  "signInWithApple": "Accedi con Apple",
+  "signInWithGoogle": "Accedi con Google",
+  "dontHaveAccount": "Non hai un account?",
+  "createOne": "Creane uno",
+  "accountCreatedPleaseSignIn": "Account creato. Effettua l'accesso.",
+  "alreadyHaveAccount": "Hai già un account?",
+  "signUpFailedCheckDetails": "Registrazione non riuscita. Controlla i tuoi dati.",
+  "networkErrorCheckConnection": "Errore di rete. Controlla la connessione.",
+  "signUpFailedTryAgain": "Registrazione non riuscita. Riprova.",
   "passwordResetEmailSent": "E-mail di reimpostazione inviata! Controlla la tua casella di posta.",
   "pleaseEnterYourEmail": "Inserisci la tua email",
   "tenant": "Inquilino",
   "propertyManager": "Gestore immobiliare",
   "profileImageUpload": "Caricamento immagine profilo",
+  "profilePicture": "Foto profilo",
+  "selectProfilePictureSource": "Seleziona la sorgente della foto profilo",
+  "failedToPickImage": "Impossibile selezionare l'immagine",
+  "failedToCaptureImage": "Impossibile scattare la foto",
+  "profileImageUploaded": "Foto profilo caricata",
+  "failedToUploadImage": "Impossibile caricare l'immagine",
   "searchPropertiesLandlords": "Cerca proprietà, proprietari",
   "startTypingToFindResults": "Inizia a digitare per trovare risultati",
   "tryDifferentSearchTerm": "Prova un termine di ricerca diverso",
@@ -916,6 +1058,86 @@
   ,"youSavePerYear":"Risparmi {savings} all'anno"
   ,"includedFeatures":"Funzionalità incluse"
   ,"paymentMethod":"Metodo di pagamento"
+  ,"paymentDetailsTitle":"Dettagli pagamento"
+  ,"autoPaymentSetupTitle":"Configurazione pagamento automatico"
+  ,"automaticPayments":"Pagamenti automatici"
+  ,"neverMissRentPayment":"Non perdere mai un pagamento dell’affitto"
+  ,"encryptedSecurePaymentProcessing":"Elaborazione dei pagamenti sicura e crittografata"
+  ,"bankAccount":"Conto bancario"
+  ,"achTransfer":"Bonifico ACH"
+  ,"instantPayment":"Pagamento istantaneo"
+  ,"bankAccountInformation":"Informazioni del conto bancario"
+  ,"accountNumber":"Numero di conto"
+  ,"enterBankAccountNumber":"Inserisci il numero del conto bancario"
+  ,"accountNumberIsRequired":"Il numero di conto è obbligatorio"
+  ,"routingNumber":"Routing number"
+  ,"enterBankRoutingNumber":"Inserisci il routing number della banca"
+  ,"routingNumberIsRequired":"Il routing number è obbligatorio"
+  ,"cardInformation":"Informazioni carta"
+  ,"cardholderName":"Nome del titolare"
+  ,"enterNameOnCard":"Inserisci il nome sulla carta"
+  ,"cardholderNameIsRequired":"Il nome del titolare è obbligatorio"
+  ,"cardNumber":"Numero carta"
+  ,"cardNumberIsRequired":"Il numero della carta è obbligatorio"
+  ,"expiryDate":"Data di scadenza"
+  ,"expiryDateIsRequired":"La data di scadenza è obbligatoria"
+  ,"cvv":"CVV"
+  ,"cvvIsRequired":"Il CVV è obbligatorio"
+  ,"setUpAutoPayment":"Imposta pagamento automatico"
+  ,"secureAndEncrypted":"Sicuro e crittografato"
+  ,"autoPaymentSecurityDescription":"Le tue informazioni di pagamento sono crittografate con sicurezza di livello bancario. Puoi modificare o annullare i pagamenti automatici in qualsiasi momento."
+  ,"setupCompleteTitle":"Configurazione completata"
+  ,"setupCompleteMessage":"Il tuo pagamento automatico è stato configurato con successo con Stripe. Riceverai a breve un’email di conferma."
+  ,"done":"Fatto"
+  ,"unableToSetupPaymentNoPropertyInfo":"Impossibile configurare il pagamento: nessuna informazione su immobile o proprietario trovata."
+  ,"setupFailedTitle":"Configurazione non riuscita"
+  ,"setupFailedWithError":"Configurazione non riuscita: {error}"
+  ,"@setupFailedWithError":{"placeholders":{"error":{}}}
+  ,"makePayment":"Effettua pagamento"
+  ,"submitPayment":"Invia pagamento"
+  ,"paymentType":"Tipo di pagamento"
+  ,"enterAmount":"Inserisci importo"
+  ,"pleaseEnterAmount":"Inserisci un importo"
+  ,"pleaseEnterValidNumber":"Inserisci un numero valido"
+  ,"amountMustBeGreaterThanZero":"L'importo deve essere maggiore di 0"
+  ,"notesOptional":"Note (facoltative)"
+  ,"addAdditionalNotes":"Aggiungi eventuali note..."
+  ,"processingPayment":"Elaborazione pagamento..."
+  ,"userNotAuthenticated":"Utente non autenticato"
+  ,"paymentSubmittedSuccessfully":"Pagamento inviato con successo"
+  ,"failedToSubmitPayment":"Impossibile inviare il pagamento: {error}"
+  ,"@failedToSubmitPayment":{"placeholders":{"error":{}}}
+  ,"noPropertiesToMakePaymentsFor":"Non hai immobili per cui effettuare pagamenti."
+  ,"outstandingPaymentsWithAmount":"Pagamenti in sospeso: {amount}"
+  ,"@outstandingPaymentsWithAmount":{"placeholders":{"amount":{}}}
+  ,"bankTransfer":"Bonifico bancario"
+  ,"paypal":"PayPal"
+  ,"payNow":"Paga ora"
+  ,"recordPayment":"Registra pagamento"
+  ,"viewPayments":"Visualizza pagamenti"
+  ,"paymentProcessedSecurelyByStripe":"Il tuo pagamento viene elaborato in modo sicuro da Stripe"
+  ,"bankTransferInstructionsTitle":"Istruzioni per bonifico bancario"
+  ,"bankTransferInstructionsDescription":"Trasferisci i fondi al seguente conto e includi il tuo riferimento di pagamento:"
+  ,"bankTransferInstructionsAccountDetails":"Conto: ImmoLink Payments\nIBAN: CH12 3456 7890 1234 5678\nRiferimento: ID della tua proprietà"
+  ,"paymentProcessedSuccessfully":"Il tuo pagamento è stato elaborato con successo."
+  ,"paymentRecordedCompleteBankTransfer":"Il pagamento è stato registrato. Completa il bonifico bancario utilizzando i dettagli forniti."
+  ,"utilities":"Utenze"
+  ,"maintenanceFee":"Quota di manutenzione"
+  ,"lateFee":"Penale di ritardo"
+  ,"paymentTypeLabel":"Pagamento {type}"
+  ,"@paymentTypeLabel":{"placeholders":{"type":{}}}
+  ,"payPaymentTypeTitle":"Paga {type}"
+  ,"@payPaymentTypeTitle":{"placeholders":{"type":{}}}
+  ,"processingFee":"Commissione di elaborazione"
+  ,"instant":"Immediato"
+  ,"payAmount":"Paga {amount}"
+  ,"@payAmount":{"placeholders":{"amount":{}}}
+  ,"noPaymentMethodsLoaded":"Nessun metodo di pagamento disponibile. Controlla la rete/la configurazione API."
+  ,"paymentInitiated":"Pagamento avviato! Verrà elaborato entro 1-3 giorni lavorativi."
+  ,"paymentCompletedSuccessfully":"Pagamento completato con successo!"
+  ,"paymentSuccessful":"Pagamento riuscito!"
+  ,"creditDebitCard":"Carta di credito/debito"
+  ,"standardCardPayment":"Pagamento standard con carta"
   ,"paymentInfoSecure":"Le tue informazioni di pagamento sono sicure"
   ,"desktopPaymentNotSupported":"Pagamento desktop non supportato"
   ,"desktopPaymentUseWebOrMobile":"Utilizza il web o l'app mobile per completare il pagamento."
@@ -975,12 +1197,17 @@
   ,"useDocumentsTabForDetailedSearch":"Usa la scheda documenti per una ricerca dettagliata"
   ,"recentDocuments":"Documenti recenti"
   ,"viewAll":"Vedi tutto"
+  ,"more":"Altro"
   ,"noRecentDocuments":"Nessun documento recente"
   ,"allDocumentsHeader":"Tutti i documenti"
   ,"noDocumentsAvailable":"Nessun documento disponibile"
   ,"documentsSharedByLandlord":"I documenti condivisi dal tuo proprietario appariranno qui"
   ,"loadingDocuments":"Caricamento documenti..."
   ,"errorLoadingDocuments":"Errore durante il caricamento dei documenti"
+  ,"documentsStorageSubtitle":"{count} file • {size} utilizzati"
+  ,"@documentsStorageSubtitle":{"placeholders":{"count":{},"size":{}}}
+  ,"uploadNew":"Carica nuovo"
+  ,"recentFiles":"File recenti"
   ,"pleaseLoginToUploadDocuments":"Accedi per caricare documenti"
   ,"downloadingDocument":"Download di {name}..."
   ,"documentDownloadedSuccessfully":"{name} scaricato con successo"
@@ -1011,11 +1238,16 @@
   ,"documentLibrary":"Libreria documenti"
   ,"uploadFirstDocument":"Carica il tuo primo documento per iniziare"
   ,"fileLabel":"File"
+  ,"selectFile":"Seleziona un file"
   ,"sizeLabel":"Dimensione"
   ,"recentLabel":"Recenti"
   ,"importantLabel":"Importante"
   ,"documentName":"Nome documento"
   ,"descriptionOptional":"Descrizione (opzionale)"
+  ,"errorPickingFile":"Errore durante la selezione del file: {error}"
+  ,"@errorPickingFile":{"placeholders":{"error":{}}}
+  ,"pleaseSelectFile":"Seleziona un file"
+  ,"pleaseEnterName":"Inserisci un nome"
   ,"assignToPropertyOptional":"Assegna alla proprietà (opzionale)"
   ,"areYouSure":"Sei sicuro?"
   ,"documentDeletedSuccessfully":"Documento \"{name}\" eliminato con successo"
@@ -1031,6 +1263,50 @@
   ,"propertyOverview": "Panoramica proprietà"
   ,"maintenanceOverview": "Panoramica manutenzione"
   ,"recentPayments": "Pagamenti recenti"
+  ,"paymentDashboard": "Dashboard pagamenti"
+  ,"stripeAccountActive": "Account attivo"
+  ,"stripeSetupRequired": "Configurazione richiesta"
+  ,"stripeAcceptPayments": "Accetta pagamenti"
+  ,"stripeReceivePayouts": "Ricevi pagamenti"
+  ,"stripeSetUpPaymentAccountTitle": "Configura il tuo account di pagamento"
+  ,"stripeSetUpPaymentAccountDescription": "Collega il tuo conto bancario per iniziare a ricevere pagamenti dagli inquilini"
+  ,"startSetup": "Avvia configurazione"
+  ,"loadingAccountSetup": "Caricamento della configurazione dell’account..."
+  ,"unableToLoadEmbeddedSetup": "Impossibile caricare la configurazione incorporata"
+  ,"stripeOnboardingComponentWillAppearHere": "Il componente di onboarding Stripe apparirà qui"
+  ,"errorLoadingDashboard": "Errore durante il caricamento della dashboard"
+  ,"stripeDashboardPaymentManagementTitle": "Gestione pagamenti"
+  ,"stripeDashboardPayoutsAndBalanceTitle": "Pagamenti e saldo"
+  ,"stripeDashboardComponentWillAppearHere": "Il componente della dashboard Stripe apparirà qui"
+  ,"accountBalance": "Saldo account"
+  ,"errorLoadingBalance": "Errore durante il caricamento del saldo"
+  ,"openingStripeConnectSetup": "Apertura della configurazione Stripe Connect..."
+  ,"couldNotOpenBrowser": "Impossibile aprire il browser"
+  ,"failedToCreateStripeAccount": "Impossibile creare l’account Stripe. Controlla la tua connessione Internet e riprova."
+  ,"failedToCreateOnboardingLink": "Impossibile creare il link di onboarding. Riprova."
+  ,"setupFailedTryAgain": "Configurazione non riuscita. Riprova."
+  ,"requestTimeoutTryAgain": "Timeout della richiesta. Riprova."
+  ,"serviceNotAvailableContactSupport": "Servizio non disponibile. Contatta l’assistenza."
+  ,"requestPayout": "Richiedi pagamento"
+  ,"transferAvailableBalanceToBankQuestion": "Trasferire il saldo disponibile sul tuo conto bancario?"
+  ,"arrival": "Arrivo"
+  ,"payoutArrivalEstimate": "2–3 giorni lavorativi"
+  ,"payoutRequestedWithAmount": "Pagamento richiesto: {amount}"
+  ,"@payoutRequestedWithAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  }
+  ,"failedToCreatePayout": "Impossibile creare il pagamento"
+  ,"balanceInformation": "Informazioni sul saldo"
+  ,"availableFundsDescription": "Fondi pronti per essere trasferiti sul tuo conto bancario"
+  ,"pendingFundsDescription": "Fondi in attesa di disponibilità (di solito 2–3 giorni)"
+  ,"errorWithDetails": "Errore: {error}"
+  ,"@errorWithDetails": {
+    "placeholders": {
+      "error": {}
+    }
+  }
   ,"noPaymentsFound": "Nessun pagamento trovato"
   ,"collected": "Incassato"
   ,"totalPaid": "Totale pagato"

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immosync/features/auth/presentation/providers/register_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -38,6 +39,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final registerState = ref.watch(registerProvider);
 
     ref.listen<RegisterState>(registerProvider, (previous, current) {
@@ -46,7 +48,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       if (current.isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Account created. Please sign in.'),
+            content: Text(l10n.accountCreatedPleaseSignIn),
             backgroundColor: Colors.green.withValues(alpha: 0.85),
             behavior: SnackBarBehavior.floating,
           ),
@@ -108,12 +110,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                         const SizedBox(height: 16),
                                         _buildField(
                                           controller: _fullNameController,
-                                          hintText: 'Full Name',
+                                          hintText: l10n.fullName,
                                           prefixIcon: Icons.person_outline,
                                           validator: (value) {
                                             if (value == null ||
                                                 value.trim().isEmpty) {
-                                              return 'Full name is required';
+                                              return l10n.fullNameRequired;
                                             }
                                             return null;
                                           },
@@ -121,17 +123,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                         const SizedBox(height: 14),
                                         _buildField(
                                           controller: _emailController,
-                                          hintText: 'Email Address',
+                                          hintText: l10n.emailAddress,
                                           keyboardType:
                                               TextInputType.emailAddress,
                                           prefixIcon: Icons.email_outlined,
                                           validator: (value) {
                                             if (value == null ||
                                                 value.trim().isEmpty) {
-                                              return 'Email is required';
+                                              return l10n.emailRequired;
                                             }
                                             if (!value.contains('@')) {
-                                              return 'Enter a valid email address';
+                                              return l10n.enterValidEmail;
                                             }
                                             return null;
                                           },
@@ -139,7 +141,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                         const SizedBox(height: 14),
                                         _buildField(
                                           controller: _passwordController,
-                                          hintText: 'Password',
+                                          hintText: l10n.password,
                                           prefixIcon: Icons.lock_outline,
                                           obscureText: !_isPasswordVisible,
                                           suffix: IconButton(
@@ -159,10 +161,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                           validator: (value) {
                                             if (value == null ||
                                                 value.trim().isEmpty) {
-                                              return 'Password is required';
+                                              return l10n.passwordRequired;
                                             }
                                             if (value.trim().length < 6) {
-                                              return 'Password must be at least 6 characters';
+                                              return l10n.passwordMinLength;
                                             }
                                             return null;
                                           },
@@ -349,14 +351,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Widget _buildFooter() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(top: 18, bottom: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'Already have an account? ',
-            style: TextStyle(
+          Text(
+            l10n.alreadyHaveAccount,
+            style: const TextStyle(
               color: Colors.white60,
               fontWeight: FontWeight.w600,
               fontSize: 13,
@@ -372,7 +375,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 fontSize: 13,
               ),
             ),
-            child: const Text('Sign In'),
+            child: Text(l10n.signIn),
           ),
         ],
       ),
@@ -394,16 +397,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   String _formatErrorMessage(String error) {
+    final l10n = AppLocalizations.of(context)!;
     final clean = error.replaceFirst('Exception: ', '').trim();
     if (clean.contains('Invalid') || clean.contains('400')) {
-      return 'Sign up failed. Please check your details and try again.';
+      return l10n.signUpFailedCheckDetails;
     }
     if (clean.toLowerCase().contains('network') ||
         clean.toLowerCase().contains('socket') ||
         clean.toLowerCase().contains('connection')) {
-      return 'Network error. Please check your connection and try again.';
+      return l10n.networkErrorCheckConnection;
     }
-    return clean.isNotEmpty ? clean : 'Sign up failed. Please try again.';
+    return clean.isNotEmpty ? clean : l10n.signUpFailedTryAgain;
   }
 }
 

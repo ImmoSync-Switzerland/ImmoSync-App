@@ -9,6 +9,7 @@ import 'package:immosync/core/widgets/user_avatar.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/settings/providers/settings_provider.dart';
 import 'package:immosync/core/theme/app_typography.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -517,7 +518,7 @@ class _SmallEditButton extends StatelessWidget {
           letterSpacing: -0.1,
         ),
       ),
-      child: const Text('Edit'),
+      child: Text(AppLocalizations.of(context)!.edit),
     );
   }
 }
