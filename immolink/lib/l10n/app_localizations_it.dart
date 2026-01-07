@@ -587,7 +587,41 @@ class AppLocalizationsIt extends AppLocalizations {
   String get goodEvening => 'Buonasera';
 
   @override
+  String get hello => 'Ciao';
+
+  @override
   String get quickActions => 'Azioni rapide';
+
+  @override
+  String get landlordDashboard => 'Dashboard locatore';
+
+  @override
+  String get tenantDashboard => 'Dashboard inquilino';
+
+  @override
+  String get searchLandlordDashboardHint => 'Cerca immobili, inquilini...';
+
+  @override
+  String get searchTenantDashboardHint => 'Cerca case, pagamenti...';
+
+  @override
+  String get payRent => 'Paga l\'affitto';
+
+  @override
+  String get support => 'Supporto';
+
+  @override
+  String get upcomingPayments => 'Pagamenti in arrivo';
+
+  @override
+  String get revenueChart => 'Grafico delle entrate';
+
+  @override
+  String get noRecentActivityYet => 'Nessuna attività recente per ora';
+
+  @override
+  String get recentActivityDescription =>
+      'Gli aggiornamenti su pagamenti, manutenzione e chat appariranno qui.';
 
   @override
   String get viewProperties => 'Visualizza proprietà';

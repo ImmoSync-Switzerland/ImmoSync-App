@@ -5,11 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
-import 'package:immosync/features/payment/domain/services/payment_service.dart';
-import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
+
+const _backgroundStart = Color(0xFF0A1128);
+const _backgroundEnd = Colors.black;
+const _cardColor = Color(0xFF1C1C1E);
+const _surfaceDark = Color(0xFF2C2C2E);
+const _textPrimary = Colors.white;
+const _textSecondary = Colors.white70;
+const _textTertiary = Colors.white54;
+const _chipGradientDark = Color(0xFF2E7D32);
+const _chipGradientLight = Color(0xFF66BB6A);
 
 class PaymentHistoryPage extends ConsumerStatefulWidget {
   const PaymentHistoryPage({super.key});
@@ -21,7 +28,6 @@ class PaymentHistoryPage extends ConsumerStatefulWidget {
 class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
   String? _selectedStatus;
   String? _selectedType;
-  final PaymentService _paymentService = PaymentService();
 
   String _localizePaymentStatus(AppLocalizations l10n, String status) {
     switch (status.toLowerCase()) {
@@ -180,14 +186,13 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
-    final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
     final paymentsAsync = currentUser?.role == 'landlord'
         ? ref.watch(landlordPaymentsProvider)
         : ref.watch(tenantPaymentsProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           l10n.paymentHistory,
@@ -198,25 +203,30 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           ),
         ),
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded,
-              color: colors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded,
+            color: _textPrimary,
+            size: 20,
+          ),
           onPressed: () {
             HapticFeedback.lightImpact();
-            context.pop();
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
           },
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              colors.primaryBackground,
-              colors.surfaceSecondary,
-            ],
+            colors: [_backgroundStart, _backgroundEnd],
           ),
         ),
         child: Column(
@@ -319,14 +329,9 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                   color: colors.textPrimary,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                error.toString(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: colors.textSecondary,
-                                ),
-                                textAlign: TextAlign.center,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
                               ),
                               const SizedBox(height: 16),
                               ElevatedButton(
@@ -344,16 +349,17 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                                 ),
                                 child: Text(l10n.retry),
                               ),
-                            ],
+                            ),
+                            child: Text(l10n.retry),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -383,22 +389,23 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: const Color(0xFF2E7D32).withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: const Color(0xFF66BB6A).withValues(alpha: 0.35),
                 width: 1,
               ),
             ),
             child: const Icon(
               Icons.history_rounded,
-              color: Colors.white,
-              size: 28,
+              color: Color(0xFF66BB6A),
+              size: 22,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,7 +423,8 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                   l10n.trackAllTransactions,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w500,
+                    color: _textSecondary,
                   ),
                 ),
               ],
@@ -456,12 +464,12 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.filter_list_rounded,
-                color: colors.textPrimary,
-                size: 20,
+                color: _textPrimary,
+                size: 18,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 l10n.filterPayments,
                 style: TextStyle(
@@ -476,15 +484,15 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           Text(
             l10n.status,
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: colors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: _textSecondary,
             ),
           ),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: [
               _buildFilterChip(l10n.all, null, colors),
               _buildFilterChip(l10n.completed, 'completed', colors),
@@ -495,22 +503,58 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           const SizedBox(height: 16),
           Text(
             l10n.type,
+              _buildFilterPill(
+                  label: 'All',
+                  selected: _selectedStatus == null,
+                  onTap: () => _setStatus(null)),
+              _buildFilterPill(
+                  label: 'Completed',
+                  selected: _selectedStatus == 'completed',
+                  onTap: () => _setStatus('completed')),
+              _buildFilterPill(
+                  label: 'Pending',
+                  selected: _selectedStatus == 'pending',
+                  onTap: () => _setStatus('pending')),
+              _buildFilterPill(
+                  label: 'Failed',
+                  selected: _selectedStatus == 'failed',
+                  onTap: () => _setStatus('failed')),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Type',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: colors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: _textSecondary,
             ),
           ),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 10,
+            runSpacing: 10,
             children: [
               _buildFilterChip(l10n.allTypes, null, colors, isTypeFilter: true),
               _buildFilterChip(l10n.rent, 'rent', colors, isTypeFilter: true),
               _buildFilterChip(l10n.maintenance, 'maintenance', colors,
                   isTypeFilter: true),
               _buildFilterChip(l10n.other, 'other', colors, isTypeFilter: true),
+              _buildFilterPill(
+                label: l10n.allTypes,
+                selected: _selectedType == null,
+                onTap: () => _setType(null),
+              ),
+              _buildFilterPill(
+                label: 'Rent',
+                selected: _selectedType == 'rent',
+                onTap: () => _setType('rent'),
+              ),
+              _buildFilterPill(
+                label: 'Maintenance',
+                selected: _selectedType == 'maintenance',
+                onTap: () => _setType('maintenance'),
+              ),
             ],
           ),
         ],
@@ -518,50 +562,53 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     );
   }
 
-  Widget _buildFilterChip(
-    String label,
-    String? value,
-    DynamicAppColors colors, {
-    bool isTypeFilter = false,
-  }) {
-    final isSelected =
-        isTypeFilter ? _selectedType == value : _selectedStatus == value;
+  void _setStatus(String? value) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _selectedStatus = value;
+    });
+  }
 
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        setState(() {
-          if (isTypeFilter) {
-            _selectedType = value;
-          } else {
-            _selectedStatus = value;
-          }
-        });
-      },
+  void _setType(String? value) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _selectedType = value;
+    });
+  }
+
+  Widget _buildFilterPill({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          gradient: isSelected
+          color: selected ? null : _surfaceDark,
+          gradient: selected
               ? const LinearGradient(
-                  colors: [
-                    Color(0xFF2E7D32), // Dunkleres Grün
-                    Color(0xFF66BB6A), // Helleres Grün
-                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [_chipGradientDark, _chipGradientLight],
                 )
               : null,
-          color: isSelected ? null : colors.surfaceCards,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? const Color(0xFF2E7D32) : colors.borderLight,
-            width: isSelected ? 2 : 1,
+            color: selected
+                ? const Color(0xFF2E7D32).withValues(alpha: 0.9)
+                : Colors.white.withValues(alpha: 0.10),
+            width: selected ? 1.5 : 1,
           ),
-          boxShadow: isSelected
+          boxShadow: selected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF2E7D32).withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ]
               : null,
@@ -570,27 +617,49 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           label,
           style: TextStyle(
             fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : colors.textSecondary,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            color: selected ? _textPrimary : _textTertiary,
           ),
         ),
       ),
     );
   }
 
-  IconData _getPaymentTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'rent':
-        return Icons.home_rounded;
-      case 'maintenance':
-        return Icons.build_rounded;
-      case 'deposit':
-        return Icons.account_balance_rounded;
-      case 'fee':
-        return Icons.receipt_long_rounded;
-      default:
-        return Icons.payment_rounded;
-    }
+  Widget _buildEmptyStateCard(AppLocalizations l10n) {
+    return BentoCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.credit_card_rounded,
+              size: 64,
+              color: Colors.white.withValues(alpha: 0.22),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              l10n.noPaymentHistoryFound,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Your transactions will appear here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: _textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildPaymentCard(
@@ -598,52 +667,36 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
     final l10n = AppLocalizations.of(context)!;
     Color statusColor;
     IconData statusIcon;
+  Widget _buildTransactionCard(Payment payment, bool isIncoming) {
+    final amountText =
+        NumberFormat.currency(symbol: 'CHF ').format(payment.amount);
+    final dateText = DateFormat('MMM d, yyyy').format(payment.date);
 
-    switch (payment.status) {
-      case 'pending':
-        statusColor = colors.warning;
-        statusIcon = Icons.hourglass_empty_rounded;
-        break;
-      case 'completed':
-        statusColor = colors.success;
-        statusIcon = Icons.check_circle_rounded;
-        break;
-      case 'failed':
-        statusColor = colors.error;
-        statusIcon = Icons.cancel_rounded;
-        break;
-      case 'refunded':
-        statusColor = colors.info;
-        statusIcon = Icons.replay_rounded;
-        break;
-      default:
-        statusColor = colors.textTertiary;
-        statusIcon = Icons.help_outline_rounded;
-    }
+    final arrowColor = isIncoming ? const Color(0xFF66BB6A) : Colors.redAccent;
+    final arrowIcon =
+        isIncoming ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
 
-    final currencyFormat = NumberFormat.currency(symbol: 'CHF ');
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.surfaceCards.withValues(alpha: 0.7),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+    return BentoCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: arrowColor.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: arrowColor.withValues(alpha: 0.28),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              arrowIcon,
+              color: arrowColor,
+              size: 22,
+            ),
           ),
         ],
       ),
@@ -723,15 +776,18 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                         ),
                       ],
                     ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  payment.type.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: _textPrimary,
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                currencyFormat.format(payment.amount),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
@@ -759,20 +815,54 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
                 Text(
                   l10n.methodWithValue(payment.paymentMethod!),
                   style: TextStyle(
+                const SizedBox(height: 4),
+                Text(
+                  dateText,
+                  style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amountText,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF66BB6A),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                payment.status.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: _textTertiary,
+                ),
+              ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
+}
 
-  void _showPaymentDetails(BuildContext context, Payment payment) {
-    final currencyFormat = NumberFormat.currency(symbol: 'CHF ');
+class BentoCard extends StatelessWidget {
+  const BentoCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.glowColor,
+  });
 
     showModalBottomSheet(
       context: context,
@@ -891,32 +981,32 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
       },
     );
   }
+  final Widget child;
+  final EdgeInsets padding;
+  final Color? glowColor;
 
-  Widget _buildDetailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+          width: 1,
+        ),
+        boxShadow: glowColor == null
+            ? null
+            : [
+                BoxShadow(
+                  color: glowColor!.withValues(alpha: 0.22),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
+      child: child,
     );
   }
 }

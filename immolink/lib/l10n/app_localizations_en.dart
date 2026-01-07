@@ -583,7 +583,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goodEvening => 'Good evening';
 
   @override
+  String get hello => 'Hello';
+
+  @override
   String get quickActions => 'Quick Actions';
+
+  @override
+  String get landlordDashboard => 'Landlord Dashboard';
+
+  @override
+  String get tenantDashboard => 'Tenant Dashboard';
+
+  @override
+  String get searchLandlordDashboardHint => 'Search properties, tenants...';
+
+  @override
+  String get searchTenantDashboardHint => 'Search homes, payments...';
+
+  @override
+  String get payRent => 'Pay Rent';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get upcomingPayments => 'Upcoming Payments';
+
+  @override
+  String get revenueChart => 'Revenue Chart';
+
+  @override
+  String get noRecentActivityYet => 'No recent activity yet';
+
+  @override
+  String get recentActivityDescription =>
+      'Updates from payments, maintenance, and chats will appear here.';
 
   @override
   String get viewProperties => 'View Properties';

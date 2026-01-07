@@ -73,7 +73,6 @@ class LandlordDashboard extends StatelessWidget {
       ),
       outstandingLabel: _landlordOutstandingLabel,
       outstandingSubtitle: l10n.outstanding,
-      outstandingTrend: '-0.8% WoW',
       outstandingAction: QuickActionItem(
         icon: Icons.account_balance_wallet_outlined,
         label: l10n.payments,
