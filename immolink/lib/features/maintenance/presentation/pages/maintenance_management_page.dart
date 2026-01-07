@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immosync/features/maintenance/domain/models/maintenance_request.dart';
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_request_detail_page.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 /// Back-compat wrapper for the existing `/maintenance/manage` route.
 /// The redesigned UI lives in [MaintenanceScreen].
@@ -105,7 +106,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                         ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        tooltip: 'Back',
+                        tooltip: AppLocalizations.of(context)!.back,
                       ),
                       const SizedBox(width: 12),
                       const Text(

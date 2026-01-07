@@ -12,6 +12,7 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 import 'package:immosync/features/property/domain/models/property.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/core/theme/app_typography.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
@@ -433,6 +434,7 @@ class _DonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       height: 100,
       width: 100,
@@ -451,7 +453,10 @@ class _DonutChart extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text('Occupancy', style: TextStyle(color: Colors.white70)),
+              Text(
+                l10n.occupancy,
+                style: const TextStyle(color: Colors.white70),
+              ),
             ],
           ),
         ),

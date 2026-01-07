@@ -266,7 +266,7 @@ class ImmoSync extends ConsumerWidget {
     // Keep Matrix client initialized as soon as the user opens the app.
     ref.watch(matrixBootstrapProvider);
     final router = ref.watch(routerProvider);
-    final currentLocale = ref.watch(localeProvider);
+    final currentLocale = ref.watch(localeProvider.select((p) => p.locale));
     final themeMode = ref.watch(themeModeProvider);
 
     // Ensure settings are loaded

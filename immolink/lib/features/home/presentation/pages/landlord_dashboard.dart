@@ -16,11 +16,56 @@ class LandlordDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    final quickActions = <QuickActionItem>[
+      QuickActionItem(
+        icon: Icons.message_rounded,
+        label: l10n.messages,
+        route: '/conversations',
+      ),
+      QuickActionItem(
+        icon: Icons.insert_chart_outlined_rounded,
+        label: l10n.reports,
+        route: '/reports',
+      ),
+      QuickActionItem(
+        icon: Icons.build_circle_outlined,
+        label: l10n.maintenance,
+        route: '/maintenance/manage',
+      ),
+      QuickActionItem(
+        icon: Icons.people_alt_rounded,
+        label: l10n.tenants,
+        route: '/tenants',
+      ),
+      QuickActionItem(
+        icon: Icons.account_balance_wallet_outlined,
+        label: l10n.payments,
+        route: '/landlord/payments',
+      ),
+      QuickActionItem(
+        icon: Icons.folder_open_rounded,
+        label: l10n.documents,
+        route: '/landlord/documents',
+      ),
+      QuickActionItem(
+        icon: Icons.subscriptions_outlined,
+        label: l10n.subscription,
+        route: '/subscription/management',
+      ),
+      QuickActionItem(
+        icon: Icons.design_services_outlined,
+        label: l10n.services,
+        route: '/landlord/services',
+      ),
+    ];
+
     final config = DashboardConfig(
       headerTitle: l10n.landlordDashboard,
-      searchHint: l10n.searchLandlordDashboardHint,
+      searchHint: l10n.searchPropertiesLandlords,
       revenueLabel: _landlordRevenueLabel,
       revenueSubtitle: l10n.monthlyRevenue,
+      revenueTrend: '+4.2% MoM',
       revenueAction: QuickActionItem(
         icon: Icons.insert_chart_outlined_rounded,
         label: l10n.reports,
@@ -37,48 +82,7 @@ class LandlordDashboard extends StatelessWidget {
       primaryActionIcon: _landlordPrimaryActionIcon,
       primaryActionRoute: _landlordPrimaryActionRoute,
       primaryActionUsePush: _landlordPrimaryActionUsePush,
-      quickActions: [
-        QuickActionItem(
-          icon: Icons.message_rounded,
-          label: l10n.messages,
-          route: '/conversations',
-        ),
-        QuickActionItem(
-          icon: Icons.insert_chart_outlined_rounded,
-          label: l10n.reports,
-          route: '/reports',
-        ),
-        QuickActionItem(
-          icon: Icons.build_circle_outlined,
-          label: l10n.maintenance,
-          route: '/maintenance/manage',
-        ),
-        QuickActionItem(
-          icon: Icons.people_alt_rounded,
-          label: l10n.tenants,
-          route: '/tenants',
-        ),
-        QuickActionItem(
-          icon: Icons.account_balance_wallet_outlined,
-          label: l10n.payments,
-          route: '/landlord/payments',
-        ),
-        QuickActionItem(
-          icon: Icons.folder_open_rounded,
-          label: l10n.documents,
-          route: '/landlord/documents',
-        ),
-        QuickActionItem(
-          icon: Icons.subscriptions_outlined,
-          label: l10n.subscription,
-          route: '/subscription/management',
-        ),
-        QuickActionItem(
-          icon: Icons.design_services_outlined,
-          label: l10n.services,
-          route: '/landlord/services',
-        ),
-      ],
+      quickActions: quickActions,
     );
 
     return BentoDashboardScaffold(config: config);

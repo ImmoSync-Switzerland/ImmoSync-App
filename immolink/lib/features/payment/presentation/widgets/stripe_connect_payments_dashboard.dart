@@ -49,7 +49,8 @@ class _StripeConnectPaymentsDashboardState
       setState(() {
         _isLoading = false;
         _hasError = true;
-        _errorMessage = 'Dashboard components are only available on web';
+        _errorMessage =
+            AppLocalizations.of(context)!.dashboardComponentsRequireBrowser;
       });
       return;
     }
@@ -82,11 +83,11 @@ class _StripeConnectPaymentsDashboardState
         _isLoading = false;
       });
     } catch (e) {
-      print('Error initializing embedded dashboard: $e');
+      debugPrint('Error initializing embedded dashboard: $e');
       setState(() {
         _isLoading = false;
         _hasError = true;
-        _errorMessage = e.toString();
+        _errorMessage = AppLocalizations.of(context)!.setupFailedTryAgain;
       });
     }
   }
@@ -154,7 +155,7 @@ class _StripeConnectPaymentsDashboardState
         StripeConnectJSService.createComponent(widget.componentType);
 
     if (component != null) {
-      print('Dashboard component created successfully');
+      debugPrint('Dashboard component created successfully');
       setState(() {
         _isLoading = false;
       });
@@ -164,7 +165,7 @@ class _StripeConnectPaymentsDashboardState
     } else {
       setState(() {
         _hasError = true;
-        _errorMessage = 'Failed to create dashboard component';
+        _errorMessage = AppLocalizations.of(context)!.setupFailedTryAgain;
         _isLoading = false;
       });
     }
@@ -191,18 +192,18 @@ class _StripeConnectPaymentsDashboardState
     };
   }
 
-  String _getComponentTitle() {
+  String _getComponentTitle(AppLocalizations l10n) {
     switch (widget.componentType) {
       case 'payments':
-        return 'Payment Management';
+        return l10n.stripeDashboardPaymentManagementTitle;
       case 'payouts':
-        return 'Payouts & Balance';
+        return l10n.stripeDashboardPayoutsAndBalanceTitle;
       case 'balances':
-        return 'Account Balance';
+        return l10n.accountBalance;
       case 'account_management':
-        return 'Account Settings';
+        return l10n.accountSettings;
       default:
-        return 'Dashboard';
+        return l10n.dashboard;
     }
   }
 
@@ -224,13 +225,14 @@ class _StripeConnectPaymentsDashboardState
   @override
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     if (_hasError) {
-      return _buildErrorState(colors);
+      return _buildErrorState(colors, l10n);
     }
 
     if (_isLoading) {
-      return _buildLoadingState(colors);
+      return _buildLoadingState(colors, l10n);
     }
 
     return Container(
@@ -261,7 +263,7 @@ class _StripeConnectPaymentsDashboardState
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  _getComponentTitle(),
+                  _getComponentTitle(l10n),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -276,10 +278,10 @@ class _StripeConnectPaymentsDashboardState
               width: double.infinity,
               height: double.infinity,
               child: kIsWeb
-                  ? const Text(
-                      'Stripe dashboard component will appear here',
+                  ? Text(
+                      l10n.stripeDashboardComponentWillAppearHere,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: colors.textSecondary),
                     )
                   : _buildMobileNotice(colors),
             ),
@@ -289,7 +291,7 @@ class _StripeConnectPaymentsDashboardState
     );
   }
 
-  Widget _buildLoadingState(DynamicAppColors colors) {
+  Widget _buildLoadingState(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       height: 400,
@@ -306,7 +308,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading ${_getComponentTitle().toLowerCase()}...',
+            l10n.loading,
             style: TextStyle(
               fontSize: 16,
               color: colors.textSecondary,
@@ -317,7 +319,7 @@ class _StripeConnectPaymentsDashboardState
     );
   }
 
-  Widget _buildErrorState(DynamicAppColors colors) {
+  Widget _buildErrorState(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -336,8 +338,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 16),
           Text(
-            AppLocalizations.of(context)!
-                .errorLoadingProperties, // placeholder mapping
+            l10n.errorLoadingDashboard,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -346,8 +347,7 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 8),
           Text(
-            _errorMessage ??
-                AppLocalizations.of(context)!.dashboardComponentsRequireBrowser,
+            _errorMessage ?? l10n.dashboardComponentsRequireBrowser,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -365,7 +365,7 @@ class _StripeConnectPaymentsDashboardState
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(AppLocalizations.of(context)!.retry),
+            child: Text(l10n.retry),
           ),
         ],
       ),
@@ -394,8 +394,9 @@ class _StripeConnectPaymentsDashboardState
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!
-                .visitWebForFullDashboard(_getComponentTitle().toLowerCase()),
+            AppLocalizations.of(context)!.visitWebForFullDashboard(
+                _getComponentTitle(AppLocalizations.of(context)!)
+                    .toLowerCase()),
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,

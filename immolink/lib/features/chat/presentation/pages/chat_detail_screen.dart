@@ -8,6 +8,7 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
 import 'package:immosync/core/presence/presence_ws_service.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   const ChatDetailScreen({
@@ -58,11 +59,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     return '$h:$m';
   }
 
-  String _messageStatusLabel(ChatMessage message) {
-    if (message.readAt != null || message.isRead) return 'Read';
-    if (message.deliveredAt != null) return 'Delivered';
-    if (message.id.startsWith('temp_')) return 'Sending…';
-    return 'Sent';
+  String _messageStatusLabel(AppLocalizations l10n, ChatMessage message) {
+    if (message.readAt != null || message.isRead) return l10n.messageStatusRead;
+    if (message.deliveredAt != null) {
+      return l10n.messageStatusDelivered;
+    }
+    if (message.id.startsWith('temp_')) return l10n.messageStatusSending;
+    return l10n.messageStatusSent;
   }
 
   String _resolveCurrentUserId() {
@@ -83,6 +86,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     final senderId = _resolveCurrentUserId();
     final receiverId = widget.otherUserId ?? '';
     _controller.clear();
@@ -92,7 +97,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
       if (receiverId.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missing recipient for new chat')),
+          SnackBar(content: Text(l10n.missingRecipientForNewChat)),
         );
         return;
       }
@@ -113,13 +118,14 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     ref.listen<AsyncValue<void>>(messageSenderProvider, (previous, next) {
       next.whenOrNull(
         error: (error, _) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to send message: $error'),
+              content: Text('${l10n.failedToSendMessage}: $error'),
             ),
           );
         },
@@ -179,7 +185,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'Failed to load messages: $error',
+                      '${l10n.failedToLoadMessages}: $error',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white70),
                     ),
@@ -202,10 +208,10 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                   final uiMessages = messages.reversed.toList(growable: false);
 
                   if (uiMessages.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
-                        'No messages yet',
-                        style: TextStyle(color: Colors.white54),
+                        l10n.noMessagesYet,
+                        style: const TextStyle(color: Colors.white54),
                       ),
                     );
                   }
@@ -218,7 +224,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                       final m = uiMessages[index];
                       final isMe = m.senderId == currentUserId;
                       final text = (m.content.isEmpty && m.isEncrypted)
-                          ? '[encrypted]'
+                          ? l10n.encryptedMessagePlaceholder
                           : m.content;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -231,7 +237,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                             status: (isMe &&
                                     lastOutgoingId.isNotEmpty &&
                                     m.id == lastOutgoingId)
-                                ? _messageStatusLabel(m)
+                                ? _messageStatusLabel(l10n, m)
                                 : null,
                           ),
                           theirBubbleColor: _theirBubble,
@@ -273,6 +279,7 @@ class _GlassHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final isOnline = status.toLowerCase() == 'online';
 
     return SafeArea(
@@ -297,7 +304,7 @@ class _GlassHeader extends ConsumerWidget {
                     color: Colors.white,
                     size: 20,
                   ),
-                  tooltip: 'Back',
+                  tooltip: l10n.back,
                 ),
                 UserAvatar(
                   imageRef: avatarUrl,
@@ -342,13 +349,13 @@ class _GlassHeader extends ConsumerWidget {
                 IconButton(
                   onPressed: () {},
                   icon: const Icon(Icons.phone_rounded, color: Colors.white70),
-                  tooltip: 'Call',
+                  tooltip: l10n.call,
                 ),
                 IconButton(
                   onPressed: () {},
                   icon: const Icon(Icons.more_vert_rounded,
                       color: Colors.white70),
-                  tooltip: 'More',
+                  tooltip: l10n.more,
                 ),
               ],
             ),
@@ -489,6 +496,7 @@ class _InputDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: dockColor,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
@@ -497,7 +505,7 @@ class _InputDock extends StatelessWidget {
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.add_rounded, color: Colors.white54),
-            tooltip: 'Attach',
+            tooltip: l10n.attach,
           ),
           Expanded(
             child: TextField(
@@ -512,7 +520,7 @@ class _InputDock extends StatelessWidget {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: inputFill,
-                hintText: 'Type a message…',
+                hintText: l10n.typeAMessage,
                 hintStyle: const TextStyle(color: Colors.white54),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

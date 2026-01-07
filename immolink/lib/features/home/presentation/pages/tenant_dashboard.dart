@@ -11,6 +11,39 @@ const IconData _tenantPrimaryActionIcon = Icons.payments_outlined;
 const String _tenantPrimaryActionRoute = '/payments/make';
 const bool _tenantPrimaryActionUsePush = true;
 
+class TenantDashboard extends StatelessWidget {
+  const TenantDashboard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    final quickActions = <QuickActionItem>[
+      QuickActionItem(
+        icon: Icons.folder_open_rounded,
+        label: l10n.documents,
+        route: '/documents',
+      ),
+      QuickActionItem(
+        icon: Icons.credit_card_rounded,
+        label: l10n.payments,
+        route: '/payments/history',
+      ),
+      QuickActionItem(
+        icon: Icons.build_circle_outlined,
+        label: l10n.maintenance,
+        route: '/tenant/maintenance',
+      ),
+      QuickActionItem(
+        icon: Icons.support_agent,
+        label: l10n.contactSupport,
+        route: '/contact-support',
+      ),
+    ];
+
+    final config = DashboardConfig(
+      headerTitle: l10n.tenantDashboard,
+      searchHint: l10n.searchPropertiesTenantsMessages,
 class TenantDashboard extends ConsumerWidget {
   const TenantDashboard({super.key});
 
@@ -42,7 +75,7 @@ class TenantDashboard extends ConsumerWidget {
         label: l10n.payments,
         route: '/payments/history',
       ),
-      outstandingLabel: '1',
+      outstandingLabel: _tenantOutstandingLabel,
       outstandingSubtitle: l10n.maintenance,
       outstandingAction: QuickActionItem(
         icon: Icons.build_circle_outlined,

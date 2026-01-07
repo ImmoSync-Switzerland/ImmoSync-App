@@ -4,6 +4,7 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 import 'package:immosync/features/payment/domain/services/stripe_connect_payment_service.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Widget for landlords to manage their Stripe Connect payments
@@ -17,14 +18,15 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
     final accountAsync = ref.watch(stripeConnectAccountProvider);
     final balanceAsync = ref.watch(landlordBalanceProvider);
     final paymentsAsync = ref.watch(landlordConnectPaymentsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     if (user == null) {
-      return const Center(child: Text('Please log in'));
+      return Center(child: Text(l10n.subscriptionLoginPrompt));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Payment Dashboard'),
+        title: Text(l10n.paymentDashboard),
         backgroundColor: colors.primaryBackground,
       ),
       body: RefreshIndicator(
@@ -56,13 +58,13 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
               balanceAsync.when(
                 data: (balance) => _buildBalanceCard(context, colors, balance),
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Text('Error loading balance: $error'),
+                error: (error, _) => Text(l10n.errorLoadingBalance),
               ),
               const SizedBox(height: 20),
 
               // Recent Payments
               Text(
-                'Recent Payments',
+                l10n.recentPayments,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -72,7 +74,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
               const SizedBox(height: 12),
               paymentsAsync.when(
                 data: (payments) => payments.isEmpty
-                    ? const Center(child: Text('No payments yet'))
+                    ? Center(child: Text(l10n.noPaymentsFound))
                     : Column(
                         children: payments
                             .map((payment) =>
@@ -80,7 +82,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
                             .toList(),
                       ),
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Text('Error loading payments: $error'),
+                error: (error, _) => Text(l10n.errorLoadingPayments),
               ),
             ],
           ),
@@ -95,6 +97,8 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
     bool chargesEnabled,
     bool payoutsEnabled,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -126,8 +130,8 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
               Expanded(
                 child: Text(
                   chargesEnabled && payoutsEnabled
-                      ? 'Account Active'
-                      : 'Setup Required',
+                      ? l10n.stripeAccountActive
+                      : l10n.stripeSetupRequired,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -138,9 +142,9 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildStatusRow('Accept Payments', chargesEnabled),
+          _buildStatusRow(l10n.stripeAcceptPayments, chargesEnabled),
           const SizedBox(height: 8),
-          _buildStatusRow('Receive Payouts', payoutsEnabled),
+          _buildStatusRow(l10n.stripeReceivePayouts, payoutsEnabled),
         ],
       ),
     );
@@ -171,6 +175,8 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
     WidgetRef ref,
     DynamicAppColors colors,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -187,7 +193,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Set up your payment account',
+            l10n.stripeSetUpPaymentAccountTitle,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -196,7 +202,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Connect your bank account to start receiving payments from tenants',
+            l10n.stripeSetUpPaymentAccountDescription,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: colors.textSecondary,
@@ -209,7 +215,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
               backgroundColor: colors.primaryAccent,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
-            child: const Text('Start Setup'),
+            child: Text(l10n.startSetup),
           ),
         ],
       ),
@@ -221,6 +227,8 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
     DynamicAppColors colors,
     AccountBalance balance,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -232,7 +240,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Account Balance',
+            l10n.accountBalance,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -247,7 +255,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Available',
+                    l10n.available,
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 14,
@@ -268,7 +276,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Pending',
+                    l10n.pending,
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 14,
@@ -297,6 +305,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
     DynamicAppColors colors,
     ConnectPayment payment,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _getStatusColor(payment.status, colors);
 
     return Container(
@@ -327,7 +336,8 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  payment.description ?? payment.paymentType.toUpperCase(),
+                  payment.description ??
+                      _localizePaymentType(l10n, payment.paymentType),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
@@ -335,7 +345,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _formatDate(payment.createdAt),
+                  _formatDate(context, payment.createdAt),
                   style: TextStyle(
                     fontSize: 12,
                     color: colors.textSecondary,
@@ -363,7 +373,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  payment.status.toUpperCase(),
+                  _localizePaymentStatus(l10n, payment.status),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -376,6 +386,41 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _localizePaymentStatus(AppLocalizations l10n, String status) {
+    switch (status.toLowerCase()) {
+      case 'succeeded':
+      case 'completed':
+        return l10n.completed;
+      case 'pending':
+      case 'processing':
+        return l10n.pending;
+      case 'failed':
+        return l10n.failed;
+      case 'canceled':
+      case 'cancelled':
+        return l10n.cancelled;
+      case 'refunded':
+        return l10n.refunded;
+      default:
+        return status;
+    }
+  }
+
+  String _localizePaymentType(AppLocalizations l10n, String paymentType) {
+    switch (paymentType.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      case 'deposit':
+        return l10n.deposit;
+      case 'maintenance':
+        return l10n.maintenance;
+      case 'fee':
+        return l10n.fee;
+      default:
+        return l10n.other;
+    }
   }
 
   Color _getStatusColor(String status, DynamicAppColors colors) {
@@ -407,24 +452,27 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Today';
+      return l10n.today;
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return l10n.yesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return l10n.daysAgo(difference.inDays);
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return MaterialLocalizations.of(context).formatShortDate(date);
     }
   }
 
   Future<void> _startOnboarding(BuildContext context, WidgetRef ref) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
 
     final notifier = ref.read(stripeConnectNotifierProvider.notifier);
 
@@ -456,16 +504,14 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
 
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Opening Stripe Connect setup...'),
-                ),
+                SnackBar(content: Text(l10n.openingStripeConnectSetup)),
               );
             }
           } else {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Could not open browser'),
+                SnackBar(
+                  content: Text(l10n.couldNotOpenBrowser),
                   backgroundColor: Colors.orange,
                 ),
               );
@@ -477,7 +523,7 @@ class LandlordStripeConnectDashboard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorWithDetails(e)),
             backgroundColor: Colors.red,
           ),
         );

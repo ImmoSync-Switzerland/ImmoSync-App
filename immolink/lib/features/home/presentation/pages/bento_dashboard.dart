@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:immosync/core/localization/app_translations.dart';
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart'
     show DashboardConfig, QuickActionItem;
@@ -70,8 +71,9 @@ class BentoDashboardScaffold extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _Header(
-                    greeting: config.headerTitle,
-                    subtitle: '',
+                    greeting:
+                        '${AppTranslations.of(context, 'dashboard.goodMorning')}, Fabian',
+                    subtitle: AppTranslations.of(context, 'nav.dashboard'),
                   ),
                   const SizedBox(height: 16),
                   _DashboardSearchBar(hint: config.searchHint),
@@ -82,14 +84,160 @@ class BentoDashboardScaffold extends StatelessWidget {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: _buildGlowQuickActionTiles(
-                          context,
-                          glowActions,
+                        children: [
+                          _GlowQuickActionTile(
+                            color: const Color(0xFF22D3EE),
+                            icon: Icons.add_home_work_rounded,
+                            title: 'Add Property',
+                            subtitle: 'New Portfolio',
+                            onTap: () => _navigate(
+                              context,
+                              route:
+                                  config.primaryActionRoute ?? '/add-property',
+                              usePush: config.primaryActionUsePush,
+                              queryParameters:
+                                  config.primaryActionQueryParameters,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFF34D399),
+                            icon: Icons.person_add_alt_1_rounded,
+                            title: 'Add Tenant',
+                            subtitle: 'Assign Unit',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/tenants',
+                              usePush: false,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFFFBBF24),
+                            icon: Icons.handyman_rounded,
+                            title: 'Maintenance',
+                            subtitle: '3 Tickets',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/maintenance/manage',
+                              usePush: false,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFFA855F7),
+                            icon: Icons.chat_bubble_rounded,
+                            title: 'Messages',
+                            subtitle: '2 Unread',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/conversations',
+                              usePush: false,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFF60A5FA),
+                            icon: Icons.account_balance_wallet_outlined,
+                            title: 'Payments',
+                            subtitle: 'Overview',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/landlord/payments',
+                              usePush: false,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFFFB7185),
+                            icon: Icons.subscriptions_outlined,
+                            title: 'Subscription',
+                            subtitle: 'Plan',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/subscription/management',
+                              usePush: false,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFF38BDF8),
+                            icon: Icons.folder_open_rounded,
+                            title: 'Documents',
+                            subtitle: 'Files',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/landlord/documents',
+                              usePush: false,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _GlowQuickActionTile(
+                            color: const Color(0xFFA3E635),
+                            icon: Icons.design_services_outlined,
+                            title: 'Services',
+                            subtitle: 'Bookings',
+                            onTap: () => _navigate(
+                              context,
+                              route: '/landlord/services',
+                              usePush: false,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    _SectionTitle(
+                      text: AppTranslations.of(
+                        context,
+                        'dashboard.quickActions',
+                      ),
+                    ),
+                    const SizedBox(height: _spacing),
+                    _PrimaryActionTile(
+                      label: config.primaryActionLabel,
+                      icon: config.primaryActionIcon,
+                      onTap: () => _handlePrimaryAction(context),
+                    ),
+                    const SizedBox(height: _spacing),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _QuickActionTile(
+                            label: messagesAction?.label ?? 'Messages',
+                            icon: messagesAction?.icon ?? Icons.message_rounded,
+                            accent: const Color(0xFF8AB4FF),
+                            onTap: messagesAction == null
+                                ? null
+                                : () => _handleQuickActionTap(
+                                      context,
+                                      messagesAction,
+                                    ),
+                          ),
+                        ),
+                        const SizedBox(width: _spacing),
+                        Expanded(
+                          child: _QuickActionTile(
+                            label: statsAction?.label ?? 'Statistics',
+                            icon: statsAction?.icon ?? Icons.bar_chart_rounded,
+                            accent: const Color(0xFF7AE3C3),
+                            onTap: statsAction == null
+                                ? null
+                                : () => _handleQuickActionTap(
+                                      context,
+                                      statsAction,
+                                    ),
+                          ),
                         ),
                       ),
                     ),
                   const SizedBox(height: 28),
-                  _SectionTitle(text: l10n.revenueChart),
+                  _SectionTitle(
+                    text: AppTranslations.of(
+                      context,
+                      'dashboard.revenueChart',
+                    ),
+                  ),
                   const SizedBox(height: _spacing),
                   Row(
                     children: [
@@ -141,14 +289,22 @@ class BentoDashboardScaffold extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 28),
-                  _SectionTitle(text: l10n.recentActivity),
+                  _SectionTitle(
+                    text: AppTranslations.of(
+                      context,
+                      'dashboard.recentActivity',
+                    ),
+                  ),
                   const SizedBox(height: _spacing),
                   _BentoCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.noRecentActivityYet,
+                          AppTranslations.of(
+                            context,
+                            'empty.noRecentActivity',
+                          ),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -157,7 +313,10 @@ class BentoDashboardScaffold extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          l10n.recentActivityDescription,
+                          AppTranslations.of(
+                            context,
+                            'empty.activityDescription',
+                          ),
                           style: const TextStyle(
                             color: Color(0xB3FFFFFF),
                             fontSize: 13,

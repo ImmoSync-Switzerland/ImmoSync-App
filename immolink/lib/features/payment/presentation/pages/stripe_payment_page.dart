@@ -46,6 +46,23 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
     'Other'
   ];
 
+  String _paymentTypeDisplay(AppLocalizations l10n, String type) {
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      case 'deposit':
+        return l10n.deposit;
+      case 'utilities':
+        return l10n.utilities;
+      case 'maintenance fee':
+        return l10n.maintenanceFee;
+      case 'late fee':
+        return l10n.lateFee;
+      default:
+        return l10n.other;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -73,7 +90,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
       backgroundColor: colors.primaryBackground,
       appBar: AppBar(
         title: Text(
-          'Make Payment',
+          l10n.makePayment,
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: 20,
@@ -97,7 +114,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Failed to load properties',
+                l10n.errorLoadingProperties,
                 style: TextStyle(
                   fontSize: 18,
                   color: colors.textPrimary,
@@ -134,7 +151,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No properties found',
+                    l10n.noPropertiesFound,
                     style: TextStyle(
                       fontSize: 18,
                       color: colors.textPrimary,
@@ -143,7 +160,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You need to be assigned to a property to make payments',
+                    l10n.noPropertiesToMakePaymentsFor,
                     style: TextStyle(
                       fontSize: 14,
                       color: colors.textSecondary,
@@ -195,7 +212,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Property',
+          l10n.property,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -215,7 +232,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedPropertyId,
                 decoration: InputDecoration(
-                  labelText: 'Select Property',
+                  labelText: l10n.maintenanceSelectPropertyHint,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -238,7 +255,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Monthly Rent:',
+                    '${l10n.monthlyRent}:',
                     style: TextStyle(
                       fontSize: 14,
                       color: colors.textSecondary,
@@ -267,7 +284,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Payment Details',
+          l10n.paymentDetailsTitle,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -287,7 +304,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedPaymentType,
                 decoration: InputDecoration(
-                  labelText: 'Payment Type',
+                  labelText: l10n.paymentType,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -295,7 +312,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 items: _paymentTypes.map((type) {
                   return DropdownMenuItem(
                     value: type,
-                    child: Text(type),
+                    child: Text(_paymentTypeDisplay(l10n, type)),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -308,7 +325,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
               TextFormField(
                 controller: _amountController,
                 decoration: InputDecoration(
-                  labelText: 'Amount (\$)',
+                  labelText: '${l10n.amount} (\$)',
                   prefixIcon: const Icon(Icons.attach_money),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -317,10 +334,10 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Amount is required';
+                  if (value?.isEmpty ?? true) return l10n.pleaseEnterAmount;
                   final amount = double.tryParse(value!);
                   if (amount == null || amount <= 0) {
-                    return 'Please enter a valid amount';
+                    return l10n.pleaseEnterValidNumber;
                   }
                   return null;
                 },
@@ -338,7 +355,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Payment Method',
+          l10n.paymentMethod,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -383,7 +400,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Credit Card',
+                          l10n.creditDebitCard,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -422,7 +439,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Bank Transfer',
+                          l10n.bankTransfer,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -469,7 +486,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Your payment is processed securely by Stripe',
+                        l10n.paymentProcessedSecurelyByStripe,
                         style: TextStyle(
                           fontSize: 12,
                           color: colors.textSecondary,
@@ -501,7 +518,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Bank Transfer Instructions',
+                      l10n.bankTransferInstructionsTitle,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -512,7 +529,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Transfer funds to the following account and include your payment reference:',
+                  l10n.bankTransferInstructionsDescription,
                   style: TextStyle(
                     fontSize: 12,
                     color: colors.textSecondary,
@@ -520,7 +537,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Account: ImmoLink Payments\nIBAN: CH12 3456 7890 1234 5678\nReference: Your property ID',
+                  l10n.bankTransferInstructionsAccountDetails,
                   style: TextStyle(
                     fontSize: 12,
                     color: colors.textPrimary,
@@ -540,7 +557,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Additional Notes (Optional)',
+          l10n.notesOptional,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -551,7 +568,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
         TextFormField(
           controller: _notesController,
           decoration: InputDecoration(
-            hintText: 'Any additional information about this payment...',
+            hintText: l10n.addAdditionalNotes,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -587,7 +604,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total Amount',
+                  l10n.totalAmount,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -629,7 +646,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
                       ),
                     )
                   : Text(
-                      _useStripe ? 'Pay Now' : 'Record Payment',
+                      _useStripe ? l10n.payNow : l10n.recordPayment,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -645,12 +662,14 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
   void _handlePayment() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     setState(() => _isProcessing = true);
 
     try {
       final user = ref.read(currentUserProvider);
       if (user == null) {
-        throw Exception('User not authenticated');
+        throw Exception(l10n.userNotAuthenticated);
       }
 
       final amount = double.parse(_amountController.text);
@@ -668,7 +687,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Payment failed: ${e.toString()}'),
+          content: Text(l10n.paymentFailed(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -732,6 +751,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
 
   void _showSuccessDialog() {
     final colors = ref.read(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
@@ -743,15 +763,15 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
             Icon(Icons.check_circle, color: colors.success),
             const SizedBox(width: 8),
             Text(
-              'Payment Submitted',
+              l10n.paymentSubmittedSuccessfully,
               style: TextStyle(color: colors.textPrimary),
             ),
           ],
         ),
         content: Text(
           _useStripe
-              ? 'Your payment has been processed successfully.'
-              : 'Your payment has been recorded. Please complete the bank transfer using the provided details.',
+              ? l10n.paymentProcessedSuccessfully
+              : l10n.paymentRecordedCompleteBankTransfer,
           style: TextStyle(color: colors.textSecondary),
         ),
         actions: [
@@ -763,7 +783,7 @@ class _StripePaymentPageState extends ConsumerState<StripePaymentPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryAccent,
             ),
-            child: const Text('View Payments'),
+            child: Text(l10n.viewPayments),
           ),
         ],
       ),

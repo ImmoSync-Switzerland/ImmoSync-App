@@ -95,7 +95,7 @@ class _LegacyTenantDocumentsPageState
     final List<Widget> actions = [
       IconButton(
         icon: const Icon(Icons.more_horiz),
-        tooltip: 'More',
+        tooltip: l10n.more,
         onPressed: _showComingSoonDialog,
         color: glassMode ? Colors.white : colors.textPrimary,
       ),
@@ -1271,19 +1271,11 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
 
   final List<String> _categories = [
     'Lease Agreement',
-    'Utility Bills',
+    'Operating Costs',
     'Inspection Reports',
     'Correspondence',
     'Other'
   ];
-
-  final Map<String, String> _categoryTranslations = {
-    'Lease Agreement': 'Mietvertrag',
-    'Utility Bills': 'Nebenkosten',
-    'Inspection Reports': 'Protokolle',
-    'Correspondence': 'Korrespondenz',
-    'Other': 'Sonstiges',
-  };
 
   @override
   void dispose() {
@@ -1307,9 +1299,10 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
         });
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error picking file: $e'),
+          content: Text(l10n.errorPickingFile(e)),
           backgroundColor: Colors.red,
         ),
       );
@@ -1318,9 +1311,10 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
 
   Future<void> _upload() async {
     if (_selectedFile == null) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a file'),
+        SnackBar(
+          content: Text(l10n.pleaseSelectFile),
           backgroundColor: Colors.red,
         ),
       );
@@ -1328,9 +1322,10 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
     }
 
     if (_nameController.text.trim().isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a name'),
+        SnackBar(
+          content: Text(l10n.pleaseEnterName),
           backgroundColor: Colors.red,
         ),
       );
@@ -1365,11 +1360,12 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: widget.colors.surfaceCards,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        'Dokument hochladen',
+        l10n.uploadDocument,
         style: TextStyle(color: widget.colors.textPrimary),
       ),
       content: SingleChildScrollView(
@@ -1398,7 +1394,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _selectedFile?.name ?? 'Datei auswählen',
+                    _selectedFile?.name ?? l10n.selectFile,
                     style: TextStyle(
                       color: widget.colors.textPrimary,
                       fontSize: 14,
@@ -1410,7 +1406,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'Größe: ${(_selectedFile!.size / 1024 / 1024).toStringAsFixed(2)} MB',
+                        '${l10n.sizeLabel}: ${(_selectedFile!.size / 1024 / 1024).toStringAsFixed(2)} MB',
                         style: TextStyle(
                           color: widget.colors.textSecondary,
                           fontSize: 12,
@@ -1424,7 +1420,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.colors.primaryAccent,
                     ),
-                    child: const Text('Durchsuchen'),
+                    child: Text(l10n.choose),
                   ),
                 ],
               ),
@@ -1435,7 +1431,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Dokumentname',
+                labelText: l10n.documentName,
                 labelStyle: TextStyle(color: widget.colors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1457,7 +1453,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
             DropdownButtonFormField<String>(
               initialValue: _selectedCategory,
               decoration: InputDecoration(
-                labelText: 'Kategorie',
+                labelText: l10n.category,
                 labelStyle: TextStyle(color: widget.colors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1477,7 +1473,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                 return DropdownMenuItem(
                   value: category,
                   child: Text(
-                    _categoryTranslations[category] ?? category,
+                    _localizeCategory(l10n, category),
                     style: TextStyle(color: widget.colors.textPrimary),
                   ),
                 );
@@ -1497,7 +1493,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
               controller: _descriptionController,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: 'Beschreibung (optional)',
+                labelText: l10n.descriptionOptional,
                 labelStyle: TextStyle(color: widget.colors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1520,7 +1516,7 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
         TextButton(
           onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
           child: Text(
-            'Abbrechen',
+            l10n.cancel,
             style: TextStyle(color: widget.colors.textSecondary),
           ),
         ),
@@ -1538,9 +1534,26 @@ class _UploadDocumentDialogState extends State<_UploadDocumentDialog> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : const Text('Hochladen'),
+              : Text(l10n.upload),
         ),
       ],
     );
+  }
+
+  String _localizeCategory(AppLocalizations l10n, String category) {
+    switch (category) {
+      case 'Lease Agreement':
+        return l10n.leaseAgreement;
+      case 'Operating Costs':
+        return l10n.operatingCosts;
+      case 'Inspection Reports':
+        return l10n.inspectionReports;
+      case 'Correspondence':
+        return l10n.correspondence;
+      case 'Other':
+        return l10n.otherCategory;
+      default:
+        return category;
+    }
   }
 }

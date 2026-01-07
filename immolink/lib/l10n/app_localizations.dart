@@ -114,6 +114,30 @@ abstract class AppLocalizations {
   /// **'Dashboard'**
   String get dashboard;
 
+  /// No description provided for @tenantDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Dashboard'**
+  String get tenantDashboard;
+
+  /// No description provided for @landlordDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Landlord Dashboard'**
+  String get landlordDashboard;
+
+  /// No description provided for @upcomingPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Payments'**
+  String get upcomingPayments;
+
+  /// No description provided for @payRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Rent'**
+  String get payRent;
+
   /// No description provided for @properties.
   ///
   /// In en, this message translates to:
@@ -353,6 +377,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read at {time}'**
   String messageStatusReadAt(Object time);
+
+  /// No description provided for @messageStatusRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get messageStatusRead;
+
+  /// No description provided for @messageStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get messageStatusDelivered;
+
+  /// No description provided for @messageStatusSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get messageStatusSent;
 
   /// No description provided for @welcome.
   ///
@@ -594,6 +636,24 @@ abstract class AppLocalizations {
   /// **'Generate Report'**
   String get generateReport;
 
+  /// No description provided for @propertyBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Breakdown'**
+  String get propertyBreakdown;
+
+  /// No description provided for @aggregateView.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggregate View'**
+  String get aggregateView;
+
+  /// No description provided for @occupancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupancy'**
+  String get occupancy;
+
   /// No description provided for @actual.
   ///
   /// In en, this message translates to:
@@ -821,6 +881,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading tenants'**
   String get errorLoadingTenants;
+
+  /// No description provided for @couldNotLoadTenants.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load tenants'**
+  String get couldNotLoadTenants;
 
   /// No description provided for @pleaseTryAgainLater.
   ///
@@ -2304,6 +2370,66 @@ abstract class AppLocalizations {
   /// **'Report'**
   String get report;
 
+  /// No description provided for @userBlockedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'User blocked successfully'**
+  String get userBlockedSuccessfully;
+
+  /// No description provided for @failedToBlockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to block user: {error}'**
+  String failedToBlockUser(Object error);
+
+  /// No description provided for @userUnblockedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'User unblocked successfully'**
+  String get userUnblockedSuccessfully;
+
+  /// No description provided for @failedToUnblockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unblock user: {error}'**
+  String failedToUnblockUser(Object error);
+
+  /// No description provided for @mustBeLoggedInToReport.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in to report'**
+  String get mustBeLoggedInToReport;
+
+  /// No description provided for @unableToDetermineConversationToReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to determine conversation to report'**
+  String get unableToDetermineConversationToReport;
+
+  /// No description provided for @conversationReportedAndRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation reported and removed'**
+  String get conversationReportedAndRemoved;
+
+  /// No description provided for @failedToReportConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to report conversation: {error}'**
+  String failedToReportConversation(Object error);
+
+  /// No description provided for @conversationDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation deleted successfully'**
+  String get conversationDeletedSuccessfully;
+
+  /// No description provided for @failedToDeleteConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete conversation: {error}'**
+  String failedToDeleteConversation(Object error);
+
   /// No description provided for @blockConfirmBody.
   ///
   /// In en, this message translates to:
@@ -2376,11 +2502,59 @@ abstract class AppLocalizations {
   /// **'Please send a text message first to start the conversation'**
   String get pleaseSendTextFirst;
 
+  /// No description provided for @missingRecipientForNewChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing recipient for new chat'**
+  String get missingRecipientForNewChat;
+
+  /// No description provided for @noMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get noMessagesYet;
+
+  /// No description provided for @encryptedMessagePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'[encrypted]'**
+  String get encryptedMessagePlaceholder;
+
   /// No description provided for @encryptionKeyNotReady.
   ///
   /// In en, this message translates to:
   /// **'Encryption key not ready yet...'**
   String get encryptionKeyNotReady;
+
+  /// No description provided for @matrixInitializingSecureChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing secure chat...'**
+  String get matrixInitializingSecureChat;
+
+  /// No description provided for @matrixPreparingE2ee.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing end-to-end encryption...'**
+  String get matrixPreparingE2ee;
+
+  /// No description provided for @matrixEstablishingRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Establishing chat room...'**
+  String get matrixEstablishingRoom;
+
+  /// No description provided for @matrixErrorTryLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat could not be initialized. Please try again later.'**
+  String get matrixErrorTryLater;
+
+  /// No description provided for @reconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get reconnect;
 
   /// No description provided for @openFileFailed.
   ///
@@ -2597,6 +2771,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
+
+  /// No description provided for @saveFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Filter'**
+  String get saveFilter;
+
+  /// No description provided for @propertyType.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Type'**
+  String get propertyType;
+
+  /// No description provided for @priceRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Range'**
+  String get priceRange;
+
+  /// No description provided for @bedrooms.
+  ///
+  /// In en, this message translates to:
+  /// **'Bedrooms'**
+  String get bedrooms;
+
+  /// No description provided for @beds.
+  ///
+  /// In en, this message translates to:
+  /// **'Beds'**
+  String get beds;
 
   /// No description provided for @edit.
   ///
@@ -2856,17 +3060,149 @@ abstract class AppLocalizations {
   /// **'All Types'**
   String get allTypes;
 
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get other;
+
+  /// No description provided for @deposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit'**
+  String get deposit;
+
+  /// No description provided for @fee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get fee;
+
+  /// No description provided for @refunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get refunded;
+
   /// No description provided for @noPaymentHistoryFound.
   ///
   /// In en, this message translates to:
   /// **'No payment history found'**
   String get noPaymentHistoryFound;
 
+  /// No description provided for @paymentHistoryWillAppearAfterFirstPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment history will appear here once you make your first payment.'**
+  String get paymentHistoryWillAppearAfterFirstPayment;
+
   /// No description provided for @loadingPaymentHistory.
   ///
   /// In en, this message translates to:
   /// **'Loading payment history...'**
   String get loadingPaymentHistory;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @propertyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Property ID'**
+  String get propertyId;
+
+  /// No description provided for @tenantId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant ID'**
+  String get tenantId;
+
+  /// No description provided for @transactionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get transactionId;
+
+  /// No description provided for @downloadReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Receipt'**
+  String get downloadReceipt;
+
+  /// No description provided for @cancelPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Payment'**
+  String get cancelPayment;
+
+  /// No description provided for @confirmCancelPaymentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this payment? This action cannot be undone.'**
+  String get confirmCancelPaymentMessage;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @yesCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Cancel'**
+  String get yesCancel;
+
+  /// No description provided for @paymentCancelledSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled successfully'**
+  String get paymentCancelledSuccessfully;
+
+  /// No description provided for @failedToCancelPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel payment: {error}'**
+  String failedToCancelPayment(Object error);
+
+  /// No description provided for @receiptDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt download started'**
+  String get receiptDownloadStarted;
+
+  /// No description provided for @failedToDownloadReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download receipt: {error}'**
+  String failedToDownloadReceipt(Object error);
+
+  /// No description provided for @couldNotOpenReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open receipt'**
+  String get couldNotOpenReceipt;
+
+  /// No description provided for @propertyIdWithValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Property ID: {id}'**
+  String propertyIdWithValue(Object id);
+
+  /// No description provided for @methodWithValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Method: {method}'**
+  String methodWithValue(Object method);
 
   /// No description provided for @searchPropertiesMaintenanceMessages.
   ///
@@ -2885,6 +3221,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please select a property'**
   String get pleaseSelectProperty;
+
+  /// No description provided for @attach.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get attach;
+
+  /// No description provided for @maintenanceNewRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Request'**
+  String get maintenanceNewRequestTitle;
+
+  /// No description provided for @maintenanceNewRequestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report an issue with your property.'**
+  String get maintenanceNewRequestSubtitle;
+
+  /// No description provided for @maintenanceSelectPropertyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a property'**
+  String get maintenanceSelectPropertyHint;
+
+  /// No description provided for @maintenanceIssueTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Title'**
+  String get maintenanceIssueTitleLabel;
+
+  /// No description provided for @maintenanceIssueTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief title for the issue'**
+  String get maintenanceIssueTitleHint;
+
+  /// No description provided for @maintenancePleaseEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a title'**
+  String get maintenancePleaseEnterTitle;
+
+  /// No description provided for @maintenanceSelectCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category'**
+  String get maintenanceSelectCategoryHint;
+
+  /// No description provided for @maintenanceDescribeIssueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the issue in detail...'**
+  String get maintenanceDescribeIssueHint;
+
+  /// No description provided for @maintenanceSubmittingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting request...'**
+  String get maintenanceSubmittingRequest;
+
+  /// No description provided for @maintenanceCategoryPlumbing.
+  ///
+  /// In en, this message translates to:
+  /// **'Plumbing'**
+  String get maintenanceCategoryPlumbing;
+
+  /// No description provided for @maintenanceCategoryElectrical.
+  ///
+  /// In en, this message translates to:
+  /// **'Electrical'**
+  String get maintenanceCategoryElectrical;
+
+  /// No description provided for @maintenanceCategoryHeating.
+  ///
+  /// In en, this message translates to:
+  /// **'Heating'**
+  String get maintenanceCategoryHeating;
+
+  /// No description provided for @maintenanceCategoryAppliances.
+  ///
+  /// In en, this message translates to:
+  /// **'Appliances'**
+  String get maintenanceCategoryAppliances;
+
+  /// No description provided for @maintenanceCategoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get maintenanceCategoryGeneral;
 
   /// No description provided for @maintenanceRequestSubmittedSuccessfully.
   ///
@@ -3606,6 +4032,42 @@ abstract class AppLocalizations {
   /// **'Profile image upload coming soon'**
   String get profileImageUpload;
 
+  /// No description provided for @profilePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Picture'**
+  String get profilePicture;
+
+  /// No description provided for @selectProfilePictureSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Select profile picture source'**
+  String get selectProfilePictureSource;
+
+  /// No description provided for @failedToPickImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to pick image'**
+  String get failedToPickImage;
+
+  /// No description provided for @failedToCaptureImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to capture image'**
+  String get failedToCaptureImage;
+
+  /// No description provided for @profileImageUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile image uploaded'**
+  String get profileImageUploaded;
+
+  /// No description provided for @failedToUploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload image'**
+  String get failedToUploadImage;
+
   /// No description provided for @forgotPasswordTitle.
   ///
   /// In en, this message translates to:
@@ -3629,6 +4091,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to Login'**
   String get backToLogin;
+
+  /// No description provided for @welcomeBackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back'**
+  String get welcomeBackTitle;
+
+  /// No description provided for @signInToManageYourProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to manage your properties.'**
+  String get signInToManageYourProperties;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get emailAddress;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get emailRequired;
+
+  /// No description provided for @enterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get enterValidEmail;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get passwordRequired;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordMinLength;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @fullNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name is required'**
+  String get fullNameRequired;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @signInWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Apple'**
+  String get signInWithApple;
+
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get signInWithGoogle;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @createOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Create One'**
+  String get createOne;
+
+  /// No description provided for @accountCreatedPleaseSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created. Please sign in.'**
+  String get accountCreatedPleaseSignIn;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @signUpFailedCheckDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up failed. Please check your details.'**
+  String get signUpFailedCheckDetails;
+
+  /// No description provided for @networkErrorCheckConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please check your connection.'**
+  String get networkErrorCheckConnection;
+
+  /// No description provided for @signUpFailedTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up failed. Please try again.'**
+  String get signUpFailedTryAgain;
 
   /// No description provided for @passwordResetEmailSent.
   ///
@@ -4290,6 +4872,210 @@ abstract class AppLocalizations {
   /// **'Recent Payments'**
   String get recentPayments;
 
+  /// No description provided for @paymentDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Dashboard'**
+  String get paymentDashboard;
+
+  /// No description provided for @stripeAccountActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Active'**
+  String get stripeAccountActive;
+
+  /// No description provided for @stripeSetupRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup Required'**
+  String get stripeSetupRequired;
+
+  /// No description provided for @stripeAcceptPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Payments'**
+  String get stripeAcceptPayments;
+
+  /// No description provided for @stripeReceivePayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Payouts'**
+  String get stripeReceivePayouts;
+
+  /// No description provided for @stripeSetUpPaymentAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your payment account'**
+  String get stripeSetUpPaymentAccountTitle;
+
+  /// No description provided for @stripeSetUpPaymentAccountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your bank account to start receiving payments from tenants'**
+  String get stripeSetUpPaymentAccountDescription;
+
+  /// No description provided for @startSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Setup'**
+  String get startSetup;
+
+  /// No description provided for @loadingAccountSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading account setup...'**
+  String get loadingAccountSetup;
+
+  /// No description provided for @unableToLoadEmbeddedSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load embedded setup'**
+  String get unableToLoadEmbeddedSetup;
+
+  /// No description provided for @stripeOnboardingComponentWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe onboarding component will appear here'**
+  String get stripeOnboardingComponentWillAppearHere;
+
+  /// No description provided for @errorLoadingDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading dashboard'**
+  String get errorLoadingDashboard;
+
+  /// No description provided for @stripeDashboardPaymentManagementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Management'**
+  String get stripeDashboardPaymentManagementTitle;
+
+  /// No description provided for @stripeDashboardPayoutsAndBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payouts & Balance'**
+  String get stripeDashboardPayoutsAndBalanceTitle;
+
+  /// No description provided for @stripeDashboardComponentWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe dashboard component will appear here'**
+  String get stripeDashboardComponentWillAppearHere;
+
+  /// No description provided for @accountBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Balance'**
+  String get accountBalance;
+
+  /// No description provided for @errorLoadingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading balance'**
+  String get errorLoadingBalance;
+
+  /// No description provided for @openingStripeConnectSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Stripe Connect setup...'**
+  String get openingStripeConnectSetup;
+
+  /// No description provided for @couldNotOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open browser'**
+  String get couldNotOpenBrowser;
+
+  /// No description provided for @failedToCreateStripeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create Stripe account. Please check your internet connection and try again.'**
+  String get failedToCreateStripeAccount;
+
+  /// No description provided for @failedToCreateOnboardingLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create onboarding link. Please try again.'**
+  String get failedToCreateOnboardingLink;
+
+  /// No description provided for @setupFailedTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup failed. Please try again.'**
+  String get setupFailedTryAgain;
+
+  /// No description provided for @requestTimeoutTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Request timeout. Please try again.'**
+  String get requestTimeoutTryAgain;
+
+  /// No description provided for @serviceNotAvailableContactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Service not available. Please contact support.'**
+  String get serviceNotAvailableContactSupport;
+
+  /// No description provided for @requestPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Payout'**
+  String get requestPayout;
+
+  /// No description provided for @transferAvailableBalanceToBankQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer your available balance to your bank account?'**
+  String get transferAvailableBalanceToBankQuestion;
+
+  /// No description provided for @arrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get arrival;
+
+  /// No description provided for @payoutArrivalEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'2-3 business days'**
+  String get payoutArrivalEstimate;
+
+  /// No description provided for @payoutRequestedWithAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout requested: {amount}'**
+  String payoutRequestedWithAmount(Object amount);
+
+  /// No description provided for @failedToCreatePayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create payout'**
+  String get failedToCreatePayout;
+
+  /// No description provided for @balanceInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance Information'**
+  String get balanceInformation;
+
+  /// No description provided for @availableFundsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Funds ready to be transferred to your bank account'**
+  String get availableFundsDescription;
+
+  /// No description provided for @pendingFundsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Funds waiting to clear (usually 2-3 days)'**
+  String get pendingFundsDescription;
+
+  /// No description provided for @errorWithDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorWithDetails(Object error);
+
   /// No description provided for @noPaymentsFound.
   ///
   /// In en, this message translates to:
@@ -4872,6 +5658,450 @@ abstract class AppLocalizations {
   /// **'Payment Method'**
   String get paymentMethod;
 
+  /// No description provided for @paymentDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Details'**
+  String get paymentDetailsTitle;
+
+  /// No description provided for @autoPaymentSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Payment Setup'**
+  String get autoPaymentSetupTitle;
+
+  /// No description provided for @automaticPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic Payments'**
+  String get automaticPayments;
+
+  /// No description provided for @neverMissRentPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Never miss a rent payment'**
+  String get neverMissRentPayment;
+
+  /// No description provided for @encryptedSecurePaymentProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted & secure payment processing'**
+  String get encryptedSecurePaymentProcessing;
+
+  /// No description provided for @bankAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account'**
+  String get bankAccount;
+
+  /// No description provided for @achTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'ACH Transfer'**
+  String get achTransfer;
+
+  /// No description provided for @instantPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant Payment'**
+  String get instantPayment;
+
+  /// No description provided for @bankAccountInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account Information'**
+  String get bankAccountInformation;
+
+  /// No description provided for @accountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get accountNumber;
+
+  /// No description provided for @enterBankAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your bank account number'**
+  String get enterBankAccountNumber;
+
+  /// No description provided for @accountNumberIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Account number is required'**
+  String get accountNumberIsRequired;
+
+  /// No description provided for @routingNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Routing Number'**
+  String get routingNumber;
+
+  /// No description provided for @enterBankRoutingNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your bank routing number'**
+  String get enterBankRoutingNumber;
+
+  /// No description provided for @routingNumberIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Routing number is required'**
+  String get routingNumberIsRequired;
+
+  /// No description provided for @cardInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Information'**
+  String get cardInformation;
+
+  /// No description provided for @cardholderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardholder Name'**
+  String get cardholderName;
+
+  /// No description provided for @enterNameOnCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter name on card'**
+  String get enterNameOnCard;
+
+  /// No description provided for @cardholderNameIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardholder name is required'**
+  String get cardholderNameIsRequired;
+
+  /// No description provided for @cardNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Number'**
+  String get cardNumber;
+
+  /// No description provided for @cardNumberIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Card number is required'**
+  String get cardNumberIsRequired;
+
+  /// No description provided for @expiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Date'**
+  String get expiryDate;
+
+  /// No description provided for @expiryDateIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date is required'**
+  String get expiryDateIsRequired;
+
+  /// No description provided for @cvv.
+  ///
+  /// In en, this message translates to:
+  /// **'CVV'**
+  String get cvv;
+
+  /// No description provided for @cvvIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'CVV is required'**
+  String get cvvIsRequired;
+
+  /// No description provided for @setUpAutoPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Up Auto Payment'**
+  String get setUpAutoPayment;
+
+  /// No description provided for @secureAndEncrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure & Encrypted'**
+  String get secureAndEncrypted;
+
+  /// No description provided for @autoPaymentSecurityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment information is encrypted with bank-level security. You can modify or cancel auto payments anytime.'**
+  String get autoPaymentSecurityDescription;
+
+  /// No description provided for @setupCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup Complete'**
+  String get setupCompleteTitle;
+
+  /// No description provided for @setupCompleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your automatic payment has been set up successfully with Stripe. You will receive a confirmation email shortly.'**
+  String get setupCompleteMessage;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @unableToSetupPaymentNoPropertyInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to setup payment: No property or landlord information found.'**
+  String get unableToSetupPaymentNoPropertyInfo;
+
+  /// No description provided for @setupFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup Failed'**
+  String get setupFailedTitle;
+
+  /// No description provided for @setupFailedWithError.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup failed: {error}'**
+  String setupFailedWithError(Object error);
+
+  /// No description provided for @makePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Make Payment'**
+  String get makePayment;
+
+  /// No description provided for @submitPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Payment'**
+  String get submitPayment;
+
+  /// No description provided for @paymentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Type'**
+  String get paymentType;
+
+  /// No description provided for @enterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter amount'**
+  String get enterAmount;
+
+  /// No description provided for @pleaseEnterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an amount'**
+  String get pleaseEnterAmount;
+
+  /// No description provided for @pleaseEnterValidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get pleaseEnterValidNumber;
+
+  /// No description provided for @amountMustBeGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount must be greater than 0'**
+  String get amountMustBeGreaterThanZero;
+
+  /// No description provided for @notesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (Optional)'**
+  String get notesOptional;
+
+  /// No description provided for @addAdditionalNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add any additional notes...'**
+  String get addAdditionalNotes;
+
+  /// No description provided for @processingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing payment...'**
+  String get processingPayment;
+
+  /// No description provided for @userNotAuthenticated.
+  ///
+  /// In en, this message translates to:
+  /// **'User not authenticated'**
+  String get userNotAuthenticated;
+
+  /// No description provided for @paymentSubmittedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment submitted successfully'**
+  String get paymentSubmittedSuccessfully;
+
+  /// No description provided for @failedToSubmitPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to submit payment: {error}'**
+  String failedToSubmitPayment(Object error);
+
+  /// No description provided for @noPropertiesToMakePaymentsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no properties to make payments for.'**
+  String get noPropertiesToMakePaymentsFor;
+
+  /// No description provided for @outstandingPaymentsWithAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding payments: {amount}'**
+  String outstandingPaymentsWithAmount(Object amount);
+
+  /// No description provided for @bankTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Transfer'**
+  String get bankTransfer;
+
+  /// No description provided for @paypal.
+  ///
+  /// In en, this message translates to:
+  /// **'PayPal'**
+  String get paypal;
+
+  /// No description provided for @payNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Now'**
+  String get payNow;
+
+  /// No description provided for @recordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Payment'**
+  String get recordPayment;
+
+  /// No description provided for @viewPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'View Payments'**
+  String get viewPayments;
+
+  /// No description provided for @paymentProcessedSecurelyByStripe.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment is processed securely by Stripe'**
+  String get paymentProcessedSecurelyByStripe;
+
+  /// No description provided for @bankTransferInstructionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Transfer Instructions'**
+  String get bankTransferInstructionsTitle;
+
+  /// No description provided for @bankTransferInstructionsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer funds to the following account and include your payment reference:'**
+  String get bankTransferInstructionsDescription;
+
+  /// No description provided for @bankTransferInstructionsAccountDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Account: ImmoLink Payments\nIBAN: CH12 3456 7890 1234 5678\nReference: Your property ID'**
+  String get bankTransferInstructionsAccountDetails;
+
+  /// No description provided for @paymentProcessedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment has been processed successfully.'**
+  String get paymentProcessedSuccessfully;
+
+  /// No description provided for @paymentRecordedCompleteBankTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment has been recorded. Please complete the bank transfer using the provided details.'**
+  String get paymentRecordedCompleteBankTransfer;
+
+  /// No description provided for @utilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Utilities'**
+  String get utilities;
+
+  /// No description provided for @maintenanceFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance Fee'**
+  String get maintenanceFee;
+
+  /// No description provided for @lateFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Late Fee'**
+  String get lateFee;
+
+  /// No description provided for @paymentTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} Payment'**
+  String paymentTypeLabel(Object type);
+
+  /// No description provided for @payPaymentTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {type}'**
+  String payPaymentTypeTitle(Object type);
+
+  /// No description provided for @processingFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing Fee'**
+  String get processingFee;
+
+  /// No description provided for @instant.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant'**
+  String get instant;
+
+  /// No description provided for @payAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount}'**
+  String payAmount(Object amount);
+
+  /// No description provided for @noPaymentMethodsLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment methods available. Check your network/API configuration.'**
+  String get noPaymentMethodsLoaded;
+
+  /// No description provided for @paymentInitiated.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment initiated! It will be processed within 1-3 business days.'**
+  String get paymentInitiated;
+
+  /// No description provided for @paymentCompletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment completed successfully!'**
+  String get paymentCompletedSuccessfully;
+
+  /// No description provided for @paymentSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful!'**
+  String get paymentSuccessful;
+
+  /// No description provided for @creditDebitCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit/Debit Card'**
+  String get creditDebitCard;
+
+  /// No description provided for @standardCardPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard card payment'**
+  String get standardCardPayment;
+
   /// No description provided for @paymentInfoSecure.
   ///
   /// In en, this message translates to:
@@ -5220,6 +6450,12 @@ abstract class AppLocalizations {
   /// **'View All'**
   String get viewAll;
 
+  /// No description provided for @more.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
   /// No description provided for @noRecentDocuments.
   ///
   /// In en, this message translates to:
@@ -5334,6 +6570,24 @@ abstract class AppLocalizations {
   /// **'Failed to upload document: {error}'**
   String failedToUploadDocumentGeneric(Object error);
 
+  /// No description provided for @documentsStorageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Files • {size} Used'**
+  String documentsStorageSubtitle(Object count, Object size);
+
+  /// No description provided for @uploadNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload New'**
+  String get uploadNew;
+
+  /// No description provided for @recentFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Files'**
+  String get recentFiles;
+
   /// No description provided for @insurance.
   ///
   /// In en, this message translates to:
@@ -5418,6 +6672,12 @@ abstract class AppLocalizations {
   /// **'File'**
   String get fileLabel;
 
+  /// No description provided for @selectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a file'**
+  String get selectFile;
+
   /// No description provided for @sizeLabel.
   ///
   /// In en, this message translates to:
@@ -5447,6 +6707,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Description (optional)'**
   String get descriptionOptional;
+
+  /// No description provided for @errorPickingFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Error picking file: {error}'**
+  String errorPickingFile(Object error);
+
+  /// No description provided for @pleaseSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a file'**
+  String get pleaseSelectFile;
+
+  /// No description provided for @pleaseEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get pleaseEnterName;
 
   /// No description provided for @assignToPropertyOptional.
   ///

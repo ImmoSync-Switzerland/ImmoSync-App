@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
@@ -19,6 +20,7 @@ class DocumentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final role = ref.watch(userRoleProvider);
     final path = GoRouterState.of(context).uri.path;
     final isLandlord = role == 'landlord' || path.startsWith('/landlord/');
@@ -40,7 +42,7 @@ class DocumentsScreen extends ConsumerWidget {
     Future<void> uploadQuick(String category) async {
       if (userId == null || userId.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in again.')),
+          SnackBar(content: Text(l10n.pleaseLoginToUploadDocuments)),
         );
         return;
       }
@@ -85,14 +87,18 @@ class DocumentsScreen extends ConsumerWidget {
         if (context.mounted) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Document uploaded.')),
+            SnackBar(
+              content: Text(l10n.documentUploadedSuccessfully(file.name)),
+            ),
           );
         }
       } catch (e) {
         if (context.mounted) {
           Navigator.of(context, rootNavigator: true).maybePop();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Upload failed: $e')),
+            SnackBar(
+              content: Text(l10n.failedToUploadDocumentGeneric(e.toString())),
+            ),
           );
         }
       }
@@ -117,11 +123,11 @@ class DocumentsScreen extends ConsumerWidget {
             color: Colors.white,
             size: 20,
           ),
-          tooltip: 'Back',
+          tooltip: l10n.back,
         ),
-        title: const Text(
-          'Documents',
-          style: TextStyle(
+        title: Text(
+          l10n.documents,
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w900,
             fontSize: 18,
@@ -132,12 +138,12 @@ class DocumentsScreen extends ConsumerWidget {
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.search_rounded, color: Colors.white),
-            tooltip: 'Search',
+            tooltip: l10n.search,
           ),
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.tune_rounded, color: Colors.white),
-            tooltip: 'Filter',
+            tooltip: l10n.filter,
           ),
           const SizedBox(width: 6),
         ],
@@ -160,7 +166,7 @@ class DocumentsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 child: _BentoCard(
                   child: Text(
-                    'Failed to load documents: $e',
+                    '${l10n.errorLoadingDocuments}: ${e.toString()}',
                     style: const TextStyle(
                       color: Colors.white70,
                       fontWeight: FontWeight.w600,
@@ -175,8 +181,10 @@ class DocumentsScreen extends ConsumerWidget {
               final recent = documents.take(20).toList();
               final totalBytes =
                   documents.fold<int>(0, (sum, d) => sum + d.fileSize);
-              final subtitle =
-                  '${documents.length} Files • ${_formatTotalSize(totalBytes)} Used';
+              final subtitle = l10n.documentsStorageSubtitle(
+                documents.length,
+                _formatTotalSize(totalBytes),
+              );
 
               return RefreshIndicator(
                 onRefresh: refresh,
@@ -219,8 +227,8 @@ class DocumentsScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     isLandlord
-                                        ? 'Document Management'
-                                        : 'My Documents',
+                                        ? l10n.documentManagement
+                                        : l10n.myDocuments,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -244,9 +252,9 @@ class DocumentsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Upload New',
-                        style: TextStyle(
+                      Text(
+                        l10n.uploadNew,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
@@ -260,19 +268,19 @@ class DocumentsScreen extends ConsumerWidget {
                           scrollDirection: Axis.horizontal,
                           children: [
                             _QuickActionCard(
-                              label: 'Lease',
+                              label: l10n.leaseAgreement,
                               icon: Icons.description_rounded,
                               onTap: () => uploadQuick('Lease Agreement'),
                             ),
                             const SizedBox(width: 12),
                             _QuickActionCard(
-                              label: 'Receipt',
+                              label: l10n.operatingCosts,
                               icon: Icons.receipt_long_rounded,
                               onTap: () => uploadQuick('Operating Costs'),
                             ),
                             const SizedBox(width: 12),
                             _QuickActionCard(
-                              label: 'Notice',
+                              label: l10n.correspondence,
                               icon: Icons.campaign_rounded,
                               onTap: () => uploadQuick('Correspondence'),
                             ),
@@ -280,9 +288,9 @@ class DocumentsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Recent Files',
-                        style: TextStyle(
+                      Text(
+                        l10n.recentFiles,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
@@ -291,10 +299,10 @@ class DocumentsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 10),
                       if (recent.isEmpty)
-                        const _BentoCard(
+                        _BentoCard(
                           child: Text(
-                            'No documents yet.',
-                            style: TextStyle(
+                            l10n.noDocumentsAvailable,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontWeight: FontWeight.w600,
                             ),
@@ -371,7 +379,7 @@ class DocumentsScreen extends ConsumerWidget {
                                           color: Colors.white70,
                                           size: 20,
                                         ),
-                                        tooltip: 'More',
+                                        tooltip: l10n.more,
                                       ),
                                     ],
                                   ),

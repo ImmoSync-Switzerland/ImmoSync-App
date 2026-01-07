@@ -2,6 +2,10 @@
   "@@locale": "en",
   "appTitle": "ImmoSync",
   "dashboard": "Dashboard",  
+  "tenantDashboard": "Tenant Dashboard",
+  "landlordDashboard": "Landlord Dashboard",
+  "upcomingPayments": "Upcoming Payments",
+  "payRent": "Pay Rent",
   "properties": "Properties",
   "tenants": "Tenants",
   "services": "Services",
@@ -52,6 +56,9 @@
       "time": {}
     }
   },
+  "messageStatusRead": "Read",
+  "messageStatusDelivered": "Delivered",
+  "messageStatusSent": "Sent",
   "welcome": "Welcome",
   "totalProperties": "Total Properties",  
   "monthlyRevenue": "Monthly Revenue",
@@ -92,6 +99,9 @@
   "occupancyReport": "Occupancy Report",
   "maintenanceReport": "Maintenance Report",  
   "generateReport": "Generate Report",
+  "propertyBreakdown": "Property Breakdown",
+  "aggregateView": "Aggregate View",
+  "occupancy": "Occupancy",
   "actual": "Actual",
   "planned": "Planned",
   "emailNotifications": "Email Notifications",
@@ -129,6 +139,7 @@
   "addTenant": "Add Tenant",
   "loadingTenants": "Loading tenants...",
   "errorLoadingTenants": "Error loading tenants",
+  "couldNotLoadTenants": "Could not load tenants",
   "pleaseTryAgainLater": "Please try again later",
   "retryLoading": "Retry",
   "editTenant": "Edit Tenant",
@@ -393,6 +404,36 @@
   "block": "Block",
   "unblock": "Unblock",
   "report": "Report",
+  "userBlockedSuccessfully": "User blocked successfully",
+  "failedToBlockUser": "Failed to block user: {error}",
+  "@failedToBlockUser": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "userUnblockedSuccessfully": "User unblocked successfully",
+  "failedToUnblockUser": "Failed to unblock user: {error}",
+  "@failedToUnblockUser": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "mustBeLoggedInToReport": "You must be logged in to report",
+  "unableToDetermineConversationToReport": "Unable to determine conversation to report",
+  "conversationReportedAndRemoved": "Conversation reported and removed",
+  "failedToReportConversation": "Failed to report conversation: {error}",
+  "@failedToReportConversation": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "conversationDeletedSuccessfully": "Conversation deleted successfully",
+  "failedToDeleteConversation": "Failed to delete conversation: {error}",
+  "@failedToDeleteConversation": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "blockConfirmBody": "Are you sure you want to block this user? You will no longer receive messages from them.",
   "unblockConfirmBody": "Do you want to unblock this user? You will be able to exchange messages again.",
   "reportConfirmBody": "Are you sure you want to report this conversation? Our support team will review it.",
@@ -405,7 +446,15 @@
   "imageReadyToSend": "Image ready to send",
   "fileReadyToSend": "File ready to send",
   "pleaseSendTextFirst": "Please send a text message first to start the conversation",
+  "missingRecipientForNewChat": "Missing recipient for new chat",
+  "noMessagesYet": "No messages yet",
+  "encryptedMessagePlaceholder": "[encrypted]",
   "encryptionKeyNotReady": "Encryption key not ready yet...",
+  "matrixInitializingSecureChat": "Initializing secure chat...",
+  "matrixPreparingE2ee": "Preparing end-to-end encryption...",
+  "matrixEstablishingRoom": "Establishing chat room...",
+  "matrixErrorTryLater": "Chat could not be initialized. Please try again later.",
+  "reconnect": "Reconnect",
   "openFileFailed": "Open failed",
   "attachmentFailed": "Attachment failed",
   "errorSelectingImage": "Error selecting image",
@@ -443,6 +492,11 @@
   "update": "Update",
   "delete": "Delete",
   "save": "Save",
+  "saveFilter": "Save Filter",
+  "propertyType": "Property Type",
+  "priceRange": "Price Range",
+  "bedrooms": "Bedrooms",
+  "beds": "Beds",
   "edit": "Edit",
   "view": "View",
   "details": "Details",
@@ -489,11 +543,68 @@
   "trackAllTransactions": "Track all your transactions",
   "filterPayments": "Filter Payments",
   "allTypes": "All Types",
+  "other": "Other",
+  "deposit": "Deposit",
+  "fee": "Fee",
+  "refunded": "Refunded",
   "noPaymentHistoryFound": "No payment history found",
+  "paymentHistoryWillAppearAfterFirstPayment": "Your payment history will appear here once you make your first payment.",
   "loadingPaymentHistory": "Loading payment history...",
+  "amount": "Amount",
+  "date": "Date",
+  "propertyId": "Property ID",
+  "tenantId": "Tenant ID",
+  "transactionId": "Transaction ID",
+  "downloadReceipt": "Download Receipt",
+  "cancelPayment": "Cancel Payment",
+  "confirmCancelPaymentMessage": "Are you sure you want to cancel this payment? This action cannot be undone.",
+  "no": "No",
+  "yesCancel": "Yes, Cancel",
+  "paymentCancelledSuccessfully": "Payment cancelled successfully",
+  "failedToCancelPayment": "Failed to cancel payment: {error}",
+  "@failedToCancelPayment": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "receiptDownloadStarted": "Receipt download started",
+  "failedToDownloadReceipt": "Failed to download receipt: {error}",
+  "@failedToDownloadReceipt": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "couldNotOpenReceipt": "Could not open receipt",
+  "propertyIdWithValue": "Property ID: {id}",
+  "@propertyIdWithValue": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "methodWithValue": "Method: {method}",
+  "@methodWithValue": {
+    "placeholders": {
+      "method": {}
+    }
+  },
   "searchPropertiesMaintenanceMessages": "Search properties, maintenance, messages...",
   "errorGeneric": "Error",
   "pleaseSelectProperty": "Please select a property",
+  "attach": "Attach",
+  "maintenanceNewRequestTitle": "New Request",
+  "maintenanceNewRequestSubtitle": "Report an issue with your property.",
+  "maintenanceSelectPropertyHint": "Select a property",
+  "maintenanceIssueTitleLabel": "Issue Title",
+  "maintenanceIssueTitleHint": "Brief title for the issue",
+  "maintenancePleaseEnterTitle": "Please enter a title",
+  "maintenanceSelectCategoryHint": "Select a category",
+  "maintenanceDescribeIssueHint": "Describe the issue in detail...",
+  "maintenanceSubmittingRequest": "Submitting request...",
+  "maintenanceCategoryPlumbing": "Plumbing",
+  "maintenanceCategoryElectrical": "Electrical",
+  "maintenanceCategoryHeating": "Heating",
+  "maintenanceCategoryAppliances": "Appliances",
+  "maintenanceCategoryGeneral": "General",
   "maintenanceRequestSubmittedSuccessfully": "Maintenance request submitted successfully",
   "failedToSubmitRequest": "Failed to submit request",
   "statusUpdatedTo": "Status updated to",
@@ -620,10 +731,36 @@
   "landlord": "Landlord",
   "propertyManager": "Property Manager",
   "profileImageUpload": "Profile image upload coming soon",
+  "profilePicture": "Profile Picture",
+  "selectProfilePictureSource": "Select profile picture source",
+  "failedToPickImage": "Failed to pick image",
+  "failedToCaptureImage": "Failed to capture image",
+  "profileImageUploaded": "Profile image uploaded",
+  "failedToUploadImage": "Failed to upload image",
   "forgotPasswordTitle": "Forgot Password?",
   "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
   "sendResetEmail": "Send Reset Email",
   "backToLogin": "Back to Login",
+  "welcomeBackTitle": "Welcome Back",
+  "signInToManageYourProperties": "Sign in to manage your properties.",
+  "emailAddress": "Email Address",
+  "emailRequired": "Email is required",
+  "enterValidEmail": "Enter a valid email address",
+  "password": "Password",
+  "passwordRequired": "Password is required",
+  "passwordMinLength": "Password must be at least 6 characters",
+  "fullName": "Full Name",
+  "fullNameRequired": "Full name is required",
+  "signIn": "Sign In",
+  "signInWithApple": "Sign in with Apple",
+  "signInWithGoogle": "Sign in with Google",
+  "dontHaveAccount": "Don't have an account?",
+  "createOne": "Create One",
+  "accountCreatedPleaseSignIn": "Account created. Please sign in.",
+  "alreadyHaveAccount": "Already have an account?",
+  "signUpFailedCheckDetails": "Sign up failed. Please check your details.",
+  "networkErrorCheckConnection": "Network error. Please check your connection.",
+  "signUpFailedTryAgain": "Sign up failed. Please try again.",
   "passwordResetEmailSent": "Password reset email sent! Please check your inbox.",
   "pleaseEnterYourEmail": "Please enter your email",
   "searchPropertiesTenantsMessages": "Search properties, tenants, messages...",
@@ -797,6 +934,50 @@
   ,"financialOverview": "Financial Overview"
   ,"maintenanceOverview": "Maintenance Overview"
   ,"recentPayments": "Recent Payments"
+  ,"paymentDashboard": "Payment Dashboard"
+  ,"stripeAccountActive": "Account Active"
+  ,"stripeSetupRequired": "Setup Required"
+  ,"stripeAcceptPayments": "Accept Payments"
+  ,"stripeReceivePayouts": "Receive Payouts"
+  ,"stripeSetUpPaymentAccountTitle": "Set up your payment account"
+  ,"stripeSetUpPaymentAccountDescription": "Connect your bank account to start receiving payments from tenants"
+  ,"startSetup": "Start Setup"
+  ,"loadingAccountSetup": "Loading account setup..."
+  ,"unableToLoadEmbeddedSetup": "Unable to load embedded setup"
+  ,"stripeOnboardingComponentWillAppearHere": "Stripe onboarding component will appear here"
+  ,"errorLoadingDashboard": "Error loading dashboard"
+  ,"stripeDashboardPaymentManagementTitle": "Payment Management"
+  ,"stripeDashboardPayoutsAndBalanceTitle": "Payouts & Balance"
+  ,"stripeDashboardComponentWillAppearHere": "Stripe dashboard component will appear here"
+  ,"accountBalance": "Account Balance"
+  ,"errorLoadingBalance": "Error loading balance"
+  ,"openingStripeConnectSetup": "Opening Stripe Connect setup..."
+  ,"couldNotOpenBrowser": "Could not open browser"
+  ,"failedToCreateStripeAccount": "Failed to create Stripe account. Please check your internet connection and try again."
+  ,"failedToCreateOnboardingLink": "Failed to create onboarding link. Please try again."
+  ,"setupFailedTryAgain": "Setup failed. Please try again."
+  ,"requestTimeoutTryAgain": "Request timeout. Please try again."
+  ,"serviceNotAvailableContactSupport": "Service not available. Please contact support."
+  ,"requestPayout": "Request Payout"
+  ,"transferAvailableBalanceToBankQuestion": "Transfer your available balance to your bank account?"
+  ,"arrival": "Arrival"
+  ,"payoutArrivalEstimate": "2-3 business days"
+  ,"payoutRequestedWithAmount": "Payout requested: {amount}"
+  ,"@payoutRequestedWithAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  }
+  ,"failedToCreatePayout": "Failed to create payout"
+  ,"balanceInformation": "Balance Information"
+  ,"availableFundsDescription": "Funds ready to be transferred to your bank account"
+  ,"pendingFundsDescription": "Funds waiting to clear (usually 2-3 days)"
+  ,"errorWithDetails": "Error: {error}"
+  ,"@errorWithDetails": {
+    "placeholders": {
+      "error": {}
+    }
+  }
   ,"noPaymentsFound": "No payments found"
   ,"monthlyRevenue": "Monthly Revenue"
   ,"collected": "Collected"
@@ -895,6 +1076,86 @@
   ,"youSavePerYear":"You save {savings} per year"
   ,"includedFeatures":"Included Features"
   ,"paymentMethod":"Payment Method"
+  ,"paymentDetailsTitle":"Payment Details"
+  ,"autoPaymentSetupTitle":"Auto Payment Setup"
+  ,"automaticPayments":"Automatic Payments"
+  ,"neverMissRentPayment":"Never miss a rent payment"
+  ,"encryptedSecurePaymentProcessing":"Encrypted & secure payment processing"
+  ,"bankAccount":"Bank Account"
+  ,"achTransfer":"ACH Transfer"
+  ,"instantPayment":"Instant Payment"
+  ,"bankAccountInformation":"Bank Account Information"
+  ,"accountNumber":"Account Number"
+  ,"enterBankAccountNumber":"Enter your bank account number"
+  ,"accountNumberIsRequired":"Account number is required"
+  ,"routingNumber":"Routing Number"
+  ,"enterBankRoutingNumber":"Enter your bank routing number"
+  ,"routingNumberIsRequired":"Routing number is required"
+  ,"cardInformation":"Card Information"
+  ,"cardholderName":"Cardholder Name"
+  ,"enterNameOnCard":"Enter name on card"
+  ,"cardholderNameIsRequired":"Cardholder name is required"
+  ,"cardNumber":"Card Number"
+  ,"cardNumberIsRequired":"Card number is required"
+  ,"expiryDate":"Expiry Date"
+  ,"expiryDateIsRequired":"Expiry date is required"
+  ,"cvv":"CVV"
+  ,"cvvIsRequired":"CVV is required"
+  ,"setUpAutoPayment":"Set Up Auto Payment"
+  ,"secureAndEncrypted":"Secure & Encrypted"
+  ,"autoPaymentSecurityDescription":"Your payment information is encrypted with bank-level security. You can modify or cancel auto payments anytime."
+  ,"setupCompleteTitle":"Setup Complete"
+  ,"setupCompleteMessage":"Your automatic payment has been set up successfully with Stripe. You will receive a confirmation email shortly."
+  ,"done":"Done"
+  ,"unableToSetupPaymentNoPropertyInfo":"Unable to setup payment: No property or landlord information found."
+  ,"setupFailedTitle":"Setup Failed"
+  ,"setupFailedWithError":"Setup failed: {error}"
+  ,"@setupFailedWithError":{"placeholders":{"error":{}}}
+  ,"makePayment":"Make Payment"
+  ,"submitPayment":"Submit Payment"
+  ,"paymentType":"Payment Type"
+  ,"enterAmount":"Enter amount"
+  ,"pleaseEnterAmount":"Please enter an amount"
+  ,"pleaseEnterValidNumber":"Please enter a valid number"
+  ,"amountMustBeGreaterThanZero":"Amount must be greater than 0"
+  ,"notesOptional":"Notes (Optional)"
+  ,"addAdditionalNotes":"Add any additional notes..."
+  ,"processingPayment":"Processing payment..."
+  ,"userNotAuthenticated":"User not authenticated"
+  ,"paymentSubmittedSuccessfully":"Payment submitted successfully"
+  ,"failedToSubmitPayment":"Failed to submit payment: {error}"
+  ,"@failedToSubmitPayment":{"placeholders":{"error":{}}}
+  ,"noPropertiesToMakePaymentsFor":"You have no properties to make payments for."
+  ,"outstandingPaymentsWithAmount":"Outstanding payments: {amount}"
+  ,"@outstandingPaymentsWithAmount":{"placeholders":{"amount":{}}}
+  ,"bankTransfer":"Bank Transfer"
+  ,"paypal":"PayPal"
+  ,"payNow":"Pay Now"
+  ,"recordPayment":"Record Payment"
+  ,"viewPayments":"View Payments"
+  ,"paymentProcessedSecurelyByStripe":"Your payment is processed securely by Stripe"
+  ,"bankTransferInstructionsTitle":"Bank Transfer Instructions"
+  ,"bankTransferInstructionsDescription":"Transfer funds to the following account and include your payment reference:"
+  ,"bankTransferInstructionsAccountDetails":"Account: ImmoLink Payments\nIBAN: CH12 3456 7890 1234 5678\nReference: Your property ID"
+  ,"paymentProcessedSuccessfully":"Your payment has been processed successfully."
+  ,"paymentRecordedCompleteBankTransfer":"Your payment has been recorded. Please complete the bank transfer using the provided details."
+  ,"utilities":"Utilities"
+  ,"maintenanceFee":"Maintenance Fee"
+  ,"lateFee":"Late Fee"
+  ,"paymentTypeLabel":"{type} Payment"
+  ,"@paymentTypeLabel":{"placeholders":{"type":{}}}
+  ,"payPaymentTypeTitle":"Pay {type}"
+  ,"@payPaymentTypeTitle":{"placeholders":{"type":{}}}
+  ,"processingFee":"Processing Fee"
+  ,"instant":"Instant"
+  ,"payAmount":"Pay {amount}"
+  ,"@payAmount":{"placeholders":{"amount":{}}}
+  ,"noPaymentMethodsLoaded":"No payment methods available. Check your network/API configuration."
+  ,"paymentInitiated":"Payment initiated! It will be processed within 1-3 business days."
+  ,"paymentCompletedSuccessfully":"Payment completed successfully!"
+  ,"paymentSuccessful":"Payment successful!"
+  ,"creditDebitCard":"Credit/Debit Card"
+  ,"standardCardPayment":"Standard card payment"
   ,"paymentInfoSecure":"Your payment information is secure"
   ,"desktopPaymentNotSupported":"Desktop payment not supported"
   ,"desktopPaymentUseWebOrMobile":"Please use the web or mobile app to complete your payment."
@@ -954,6 +1215,7 @@
   ,"useDocumentsTabForDetailedSearch":"Use the documents tab for a detailed search"
   ,"recentDocuments":"Recent Documents"
   ,"viewAll":"View All"
+  ,"more":"More"
   ,"noRecentDocuments":"No recent documents"
   ,"allDocumentsHeader":"All Documents"
   ,"noDocumentsAvailable":"No documents available"
@@ -975,6 +1237,10 @@
   ,"uploadDocument":"Upload Document"
   ,"noSpecificProperty":"No specific property"
   ,"failedToUploadDocumentGeneric":"Failed to upload document: {error}"
+  ,"documentsStorageSubtitle":"{count} Files • {size} Used"
+  ,"@documentsStorageSubtitle":{"placeholders":{"count":{},"size":{}}}
+  ,"uploadNew":"Upload New"
+  ,"recentFiles":"Recent Files"
   ,"insurance":"Insurance"
   ,"inspectionReports":"Inspection Reports"
   ,"legalDocuments":"Legal Documents"
@@ -990,11 +1256,16 @@
   ,"documentLibrary":"Document Library"
   ,"uploadFirstDocument":"Upload your first document to get started"
   ,"fileLabel":"File"
+  ,"selectFile":"Select a file"
   ,"sizeLabel":"Size"
   ,"recentLabel":"Recent"
   ,"importantLabel":"Important"
   ,"documentName":"Document Name"
   ,"descriptionOptional":"Description (optional)"
+  ,"errorPickingFile":"Error picking file: {error}"
+  ,"@errorPickingFile":{"placeholders":{"error":{}}}
+  ,"pleaseSelectFile":"Please select a file"
+  ,"pleaseEnterName":"Please enter a name"
   ,"assignToPropertyOptional":"Assign to Property (optional)"
   ,"areYouSure":"Are you sure?"
   ,"documentDeletedSuccessfully":"Document \"{name}\" deleted successfully"

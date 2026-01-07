@@ -3,6 +3,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
+import '../../l10n/app_localizations.dart';
 
 class PropertyType {
   final String label;
@@ -119,6 +120,7 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       decoration: const BoxDecoration(
@@ -135,7 +137,7 @@ class _FilterPanelState extends State<FilterPanel> {
           Expanded(
             child: Center(
               child: Text(
-                'Filter',
+                l10n.filter,
                 style: AppTypography.heading2,
               ),
             ),
@@ -150,10 +152,11 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildPropertyTypeSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Property Type', style: AppTypography.subhead),
+        Text(l10n.propertyType, style: AppTypography.subhead),
         const SizedBox(height: AppSpacing.itemSeparation),
         Wrap(
           spacing: AppSpacing.md,
@@ -204,10 +207,11 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildPriceRangeSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Price Range', style: AppTypography.subhead),
+        Text(l10n.priceRange, style: AppTypography.subhead),
         const SizedBox(height: AppSpacing.itemSeparation),
         _buildPriceHistogram(),
         const SizedBox(height: AppSpacing.md),
@@ -268,10 +272,11 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildBedroomsSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Bedrooms', style: AppTypography.subhead),
+        Text(l10n.bedrooms, style: AppTypography.subhead),
         const SizedBox(height: AppSpacing.itemSeparation),
         Row(
           children: List.generate(5, (index) {
@@ -291,10 +296,11 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildBedsSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Beds', style: AppTypography.subhead),
+        Text(l10n.beds, style: AppTypography.subhead),
         const SizedBox(height: AppSpacing.itemSeparation),
         Row(
           children: List.generate(5, (index) {
@@ -337,10 +343,11 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildAmenitiesSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Amenities', style: AppTypography.subhead),
+        Text(l10n.amenities, style: AppTypography.subhead),
         const SizedBox(height: AppSpacing.itemSeparation),
         Wrap(
           spacing: AppSpacing.sm,
@@ -389,10 +396,11 @@ class _FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildSaveButton() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.horizontalPadding),
       child: AppButton.primary(
-        text: 'Save Filter',
+        text: l10n.saveFilter,
         onPressed: _handleSave,
       ),
     );

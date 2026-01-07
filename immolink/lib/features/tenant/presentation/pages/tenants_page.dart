@@ -84,7 +84,10 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
               ),
             ),
             filtered.isEmpty
-                ? _statusSliver(const _EmptyState(), bottomPadding)
+                ? _statusSliver(
+                    _EmptyState(text: l10n.noTenantsFound),
+                    bottomPadding,
+                  )
                 : SliverPadding(
                     padding: EdgeInsets.only(bottom: bottomPadding),
                     sliver: SliverList.builder(
@@ -101,13 +104,29 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
         },
         loading: () =>
             slivers.add(_statusSliver(const _LoadingState(), bottomPadding)),
-        error: (_, __) => slivers
-            .add(_statusSliver(_ErrorState(onRetry: _refresh), bottomPadding)),
+        error: (_, __) => slivers.add(
+          _statusSliver(
+            _ErrorState(
+              title: l10n.couldNotLoadTenants,
+              retryLabel: l10n.retry,
+              onRetry: _refresh,
+            ),
+            bottomPadding,
+          ),
+        ),
       ),
       loading: () =>
           slivers.add(_statusSliver(const _LoadingState(), bottomPadding)),
-      error: (_, __) => slivers
-          .add(_statusSliver(_ErrorState(onRetry: _refresh), bottomPadding)),
+      error: (_, __) => slivers.add(
+        _statusSliver(
+          _ErrorState(
+            title: l10n.couldNotLoadTenants,
+            retryLabel: l10n.retry,
+            onRetry: _refresh,
+          ),
+          bottomPadding,
+        ),
+      ),
     );
 
     return Scaffold(
@@ -115,6 +134,7 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
       floatingActionButton: _AddTenantFab(
+        label: l10n.addTenant,
         onTap: () {
           HapticFeedback.mediumImpact();
           context.push('/add-property');
@@ -555,8 +575,9 @@ class _Avatar extends StatelessWidget {
 }
 
 class _AddTenantFab extends StatelessWidget {
-  const _AddTenantFab({required this.onTap});
+  const _AddTenantFab({required this.label, required this.onTap});
 
+  final String label;
   final VoidCallback onTap;
 
   @override
@@ -579,16 +600,20 @@ class _AddTenantFab extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Add Tenant',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w800)),
+                const Icon(Icons.add, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ],
             ),
           ),
@@ -693,8 +718,14 @@ class _LoadingState extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({
+    required this.title,
+    required this.retryLabel,
+    required this.onRetry,
+  });
 
+  final String title;
+  final String retryLabel;
   final VoidCallback onRetry;
 
   @override
@@ -705,15 +736,20 @@ class _ErrorState extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline, color: Colors.white70, size: 48),
           const SizedBox(height: 12),
-          const Text(
-            'Could not load tenants',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: onRetry,
-            child:
-                const Text('Retry', style: TextStyle(color: Color(0xFF38BDF8))),
+            child: Text(
+              retryLabel,
+              style: const TextStyle(color: Color(0xFF38BDF8)),
+            ),
           )
         ],
       ),
@@ -722,14 +758,17 @@ class _ErrorState extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Text(
-        'No tenants found',
-        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
+        text,
+        style:
+            const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
       ),
     );
   }

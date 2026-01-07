@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/features/payment/domain/services/stripe_connect_js_service.dart';
 import 'package:immosync/features/payment/domain/services/connect_service.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/web_wrapper.dart' as web;
 
@@ -83,11 +84,11 @@ class _StripeConnectOnboardingWidgetState
         _isLoading = false;
       });
     } catch (e) {
-      print('Error initializing embedded onboarding: $e');
+      debugPrint('Error initializing embedded onboarding: $e');
       setState(() {
         _isLoading = false;
         _hasError = true;
-        _errorMessage = e.toString();
+        _errorMessage = AppLocalizations.of(context)!.setupFailedTryAgain;
       });
 
       // Fall back to hosted onboarding
@@ -120,7 +121,7 @@ class _StripeConnectOnboardingWidgetState
     );
 
     if (component != null) {
-      print('Onboarding component created successfully');
+      debugPrint('Onboarding component created successfully');
       setState(() {
         _isLoading = false;
       });
@@ -130,7 +131,7 @@ class _StripeConnectOnboardingWidgetState
     } else {
       setState(() {
         _hasError = true;
-        _errorMessage = 'Failed to create onboarding component';
+        _errorMessage = AppLocalizations.of(context)!.setupFailedTryAgain;
         _isLoading = false;
       });
     }
@@ -156,9 +157,11 @@ class _StripeConnectOnboardingWidgetState
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
+      debugPrint('Error creating hosted onboarding link: $e');
       setState(() {
         _hasError = true;
-        _errorMessage = 'Failed to create onboarding link: $e';
+        _errorMessage =
+            AppLocalizations.of(context)!.failedToCreateOnboardingLink;
       });
     }
   }
@@ -180,18 +183,19 @@ class _StripeConnectOnboardingWidgetState
   @override
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     if (!kIsWeb) {
       // Mobile fallback UI
-      return _buildMobileFallback(colors);
+      return _buildMobileFallback(colors, l10n);
     }
 
     if (_hasError) {
-      return _buildErrorState(colors);
+      return _buildErrorState(colors, l10n);
     }
 
     if (_isLoading) {
-      return _buildLoadingState(colors);
+      return _buildLoadingState(colors, l10n);
     }
 
     // The embedded component will be rendered in the DOM
@@ -223,7 +227,7 @@ class _StripeConnectOnboardingWidgetState
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Complete Account Setup',
+                  l10n.stripeSetUpPaymentAccountTitle,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -238,10 +242,10 @@ class _StripeConnectOnboardingWidgetState
               width: double.infinity,
               height: double.infinity,
               child: kIsWeb
-                  ? const Text(
-                      'Stripe onboarding component will appear here',
+                  ? Text(
+                      l10n.stripeOnboardingComponentWillAppearHere,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: colors.textSecondary),
                     )
                   : const SizedBox(),
             ),
@@ -251,7 +255,7 @@ class _StripeConnectOnboardingWidgetState
     );
   }
 
-  Widget _buildLoadingState(DynamicAppColors colors) {
+  Widget _buildLoadingState(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       height: 400,
@@ -268,7 +272,7 @@ class _StripeConnectOnboardingWidgetState
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading account setup...',
+            l10n.loadingAccountSetup,
             style: TextStyle(
               fontSize: 16,
               color: colors.textSecondary,
@@ -279,7 +283,7 @@ class _StripeConnectOnboardingWidgetState
     );
   }
 
-  Widget _buildErrorState(DynamicAppColors colors) {
+  Widget _buildErrorState(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -298,7 +302,7 @@ class _StripeConnectOnboardingWidgetState
           ),
           const SizedBox(height: 16),
           Text(
-            'Unable to load embedded setup',
+            l10n.unableToLoadEmbeddedSetup,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -307,7 +311,7 @@ class _StripeConnectOnboardingWidgetState
           ),
           const SizedBox(height: 8),
           Text(
-            _errorMessage ?? 'Please try the alternative setup method',
+            _errorMessage ?? l10n.setupFailedTryAgain,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -325,14 +329,14 @@ class _StripeConnectOnboardingWidgetState
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Continue with Browser Setup'),
+            child: Text(l10n.startSetup),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMobileFallback(DynamicAppColors colors) {
+  Widget _buildMobileFallback(DynamicAppColors colors, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -351,7 +355,7 @@ class _StripeConnectOnboardingWidgetState
           ),
           const SizedBox(height: 16),
           Text(
-            'Complete Account Setup',
+            l10n.stripeSetUpPaymentAccountTitle,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -360,7 +364,7 @@ class _StripeConnectOnboardingWidgetState
           ),
           const SizedBox(height: 8),
           Text(
-            'Set up your payment account to start receiving rent payments',
+            l10n.stripeSetUpPaymentAccountDescription,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,
@@ -378,14 +382,14 @@ class _StripeConnectOnboardingWidgetState
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.launch, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.launch, size: 20),
+                const SizedBox(width: 8),
                 Text(
-                  'Start Setup',
-                  style: TextStyle(
+                  l10n.startSetup,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

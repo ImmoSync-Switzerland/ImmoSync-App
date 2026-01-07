@@ -108,7 +108,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   void _updateProviders() {
     // Update locale provider
-    ref.read(localeProvider.notifier).updateLanguage(state.language);
+    ref.read(localeProvider).setLanguageCode(state.language);
 
     // Update currency provider
     ref.read(currencyProvider.notifier).setCurrency(state.currency);
@@ -135,7 +135,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> updateLanguage(String language) async {
     state = state.copyWith(language: language);
     await _saveSettings();
-    ref.read(localeProvider.notifier).updateLanguage(language);
+    ref.read(localeProvider).setLanguageCode(language);
   }
 
   Future<void> updateTheme(String theme) async {

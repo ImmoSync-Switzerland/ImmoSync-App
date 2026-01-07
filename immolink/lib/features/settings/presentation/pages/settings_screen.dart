@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:immosync/core/localization/app_translations.dart';
+import 'package:immosync/core/providers/locale_provider.dart';
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/core/widgets/user_avatar.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/features/settings/providers/settings_provider.dart';
 import 'package:immosync/core/theme/app_typography.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -36,6 +40,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ? user!.email.trim()
         : 'fabian.boni@email.com';
     final avatarRef = user?.profileImageUrl ?? user?.profileImage;
+    final currentLocale = ref.watch(localeProvider).locale;
 
     return Scaffold(
       extendBody: true,
@@ -71,7 +76,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Settings',
+                        AppTranslations.of(context, 'nav.settings'),
                         style: AppTypography.pageTitle.copyWith(
                           color: Colors.white,
                         ),
@@ -127,17 +132,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const _SectionLabel('Preferences'),
+                _SectionLabel(AppTranslations.of(context, 'settings.general')),
+                const SizedBox(height: 10),
+                LanguageSelectorCard(
+                  locale: currentLocale,
+                  onSelected: (locale) {
+                    ref.read(localeProvider).setLocale(locale);
+                    ref
+                        .read(settingsProvider.notifier)
+                        .updateLanguage(locale.languageCode);
+                  },
+                ),
+                const SizedBox(height: 18),
+                _SectionLabel(
+                  AppTranslations.of(context, 'settings.preferences'),
+                ),
                 const SizedBox(height: 10),
                 const BentoCard(
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      _SettingsValueRow(
-                        title: 'Language',
-                        value: 'English',
-                      ),
-                      _DividerLine(),
                       _SettingsValueRow(
                         title: 'Theme',
                         value: 'Dark Mode',
@@ -257,6 +271,184 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
+class LanguageSelectorCard extends StatelessWidget {
+  const LanguageSelectorCard({
+    super.key,
+    required this.locale,
+    required this.onSelected,
+  });
+
+  final Locale locale;
+  final ValueChanged<Locale> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final languageLabel = AppTranslations.languageLabel(locale.languageCode);
+
+    return BentoCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: InkWell(
+        onTap: () => _showLanguageSheet(context),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.language_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppTranslations.of(context, 'settings.language'),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    languageLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.white70,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSheet(BuildContext context) {
+    final options = [
+      ('en', '🇺🇸 English'),
+      ('de', '🇩🇪 Deutsch'),
+      ('fr', '🇫🇷 Français'),
+      ('it', '🇮🇹 Italiano'),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F1115),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  AppTranslations.of(sheetContext, 'settings.chooseLanguage'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ...options.map(
+                  (option) => _LanguageOptionTile(
+                    label: option.$2,
+                    selected: locale.languageCode == option.$1,
+                    onTap: () {
+                      onSelected(Locale(option.$1));
+                      Navigator.of(sheetContext).pop();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LanguageOptionTile extends StatelessWidget {
+  const _LanguageOptionTile({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const primaryAccent = Color(0xFF3B82F6);
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: selected ? Colors.white.withValues(alpha: 0.08) : null,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color:
+              selected ? primaryAccent : Colors.white.withValues(alpha: 0.10),
+        ),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        title: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        trailing: AnimatedOpacity(
+          opacity: selected ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: const Icon(
+            Icons.check_circle_rounded,
+            color: primaryAccent,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class BentoCard extends StatelessWidget {
   const BentoCard({
     super.key,
@@ -326,7 +518,7 @@ class _SmallEditButton extends StatelessWidget {
           letterSpacing: -0.1,
         ),
       ),
-      child: const Text('Edit'),
+      child: Text(AppLocalizations.of(context)!.edit),
     );
   }
 }

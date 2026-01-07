@@ -136,7 +136,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         },
       ),
       title: Text(
-        'Auto Payment Setup',
+        l10n.autoPaymentSetupTitle,
         style: TextStyle(
           color: colors.textPrimary,
           fontSize: 18,
@@ -194,9 +194,9 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Automatic Payments',
-                      style: TextStyle(
+                    Text(
+                      l10n.automaticPayments,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -204,7 +204,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Never miss a rent payment',
+                      l10n.neverMissRentPayment,
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withValues(alpha: 0.9),
@@ -235,7 +235,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Encrypted & secure payment processing',
+                    l10n.encryptedSecurePaymentProcessing,
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.white.withValues(alpha: 0.95),
@@ -257,7 +257,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Payment Method',
+          l10n.paymentMethod,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -269,20 +269,20 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           children: [
             Expanded(
               child: _buildPaymentMethodCard(
-                'Bank Account',
+                l10n.bankAccount,
                 Icons.account_balance_outlined,
                 'bank',
-                'ACH Transfer',
+                l10n.achTransfer,
                 colors,
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: _buildPaymentMethodCard(
-                'Credit/Debit Card',
+                l10n.creditDebitCard,
                 Icons.credit_card_outlined,
                 'card',
-                'Instant Payment',
+                l10n.instantPayment,
                 colors,
               ),
             ),
@@ -394,7 +394,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Bank Account Information',
+            l10n.bankAccountInformation,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -405,8 +405,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           TextFormField(
             controller: _bankAccountController,
             decoration: InputDecoration(
-              labelText: 'Account Number',
-              hintText: 'Enter your bank account number',
+              labelText: l10n.accountNumber,
+              hintText: l10n.enterBankAccountNumber,
               prefixIcon: const Icon(Icons.account_balance_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -414,7 +414,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             ),
             keyboardType: TextInputType.number,
             validator: (value) {
-              if (value?.isEmpty ?? true) return 'Account number is required';
+              if (value?.isEmpty ?? true) return l10n.accountNumberIsRequired;
               return null;
             },
           ),
@@ -422,8 +422,8 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           TextFormField(
             controller: _routingNumberController,
             decoration: InputDecoration(
-              labelText: 'Routing Number',
-              hintText: 'Enter your bank routing number',
+              labelText: l10n.routingNumber,
+              hintText: l10n.enterBankRoutingNumber,
               prefixIcon: const Icon(Icons.numbers_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -431,7 +431,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             ),
             keyboardType: TextInputType.number,
             validator: (value) {
-              if (value?.isEmpty ?? true) return 'Routing number is required';
+              if (value?.isEmpty ?? true) return l10n.routingNumberIsRequired;
               return null;
             },
           ),
@@ -452,7 +452,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Card Information',
+            l10n.cardInformation,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -463,15 +463,17 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           TextFormField(
             controller: _cardHolderController,
             decoration: InputDecoration(
-              labelText: 'Cardholder Name',
-              hintText: 'Enter name on card',
+              labelText: l10n.cardholderName,
+              hintText: l10n.enterNameOnCard,
               prefixIcon: const Icon(Icons.person_outline),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             validator: (value) {
-              if (value?.isEmpty ?? true) return 'Cardholder name is required';
+              if (value?.isEmpty ?? true) {
+                return l10n.cardholderNameIsRequired;
+              }
               return null;
             },
           ),
@@ -479,7 +481,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           TextFormField(
             controller: _cardNumberController,
             decoration: InputDecoration(
-              labelText: 'Card Number',
+              labelText: l10n.cardNumber,
               hintText: '1234 5678 9012 3456',
               prefixIcon: const Icon(Icons.credit_card_outlined),
               border: OutlineInputBorder(
@@ -488,7 +490,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
             ),
             keyboardType: TextInputType.number,
             validator: (value) {
-              if (value?.isEmpty ?? true) return 'Card number is required';
+              if (value?.isEmpty ?? true) return l10n.cardNumberIsRequired;
               return null;
             },
           ),
@@ -499,7 +501,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 child: TextFormField(
                   controller: _expiryController,
                   decoration: InputDecoration(
-                    labelText: 'Expiry Date',
+                    labelText: l10n.expiryDate,
                     hintText: 'MM/YY',
                     prefixIcon: const Icon(Icons.calendar_today_outlined),
                     border: OutlineInputBorder(
@@ -509,7 +511,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value?.isEmpty ?? true) {
-                      return 'Expiry date is required';
+                      return l10n.expiryDateIsRequired;
                     }
                     return null;
                   },
@@ -520,7 +522,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 child: TextFormField(
                   controller: _cvvController,
                   decoration: InputDecoration(
-                    labelText: 'CVV',
+                    labelText: l10n.cvv,
                     hintText: '123',
                     prefixIcon: const Icon(Icons.lock_outline),
                     border: OutlineInputBorder(
@@ -530,7 +532,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   keyboardType: TextInputType.number,
                   obscureText: true,
                   validator: (value) {
-                    if (value?.isEmpty ?? true) return 'CVV is required';
+                    if (value?.isEmpty ?? true) return l10n.cvvIsRequired;
                     return null;
                   },
                 ),
@@ -581,14 +583,14 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                   strokeWidth: 2.5,
                 ),
               )
-            : const Row(
+            : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle_outline_rounded, size: 22),
-                  SizedBox(width: 10),
+                  const Icon(Icons.check_circle_outline_rounded, size: 22),
+                  const SizedBox(width: 10),
                   Text(
-                    'Set Up Auto Payment',
-                    style: TextStyle(
+                    l10n.setUpAutoPayment,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -620,7 +622,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Secure & Encrypted',
+                  l10n.secureAndEncrypted,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -629,7 +631,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Your payment information is encrypted with bank-level security. You can modify or cancel auto payments anytime.',
+                  l10n.autoPaymentSecurityDescription,
                   style: TextStyle(
                     fontSize: 12,
                     color: colors.textSecondary,
@@ -645,6 +647,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
   }
 
   void _showSetupConfirmation(BuildContext context, DynamicAppColors colors) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -653,11 +656,11 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           children: [
             Icon(Icons.check_circle_outline, color: colors.success),
             const SizedBox(width: 8),
-            const Text('Setup Complete'),
+            Text(l10n.setupCompleteTitle),
           ],
         ),
         content: Text(
-          'Your automatic payment has been set up successfully with Stripe. You will receive a confirmation email shortly.',
+          l10n.setupCompleteMessage,
           style: TextStyle(color: colors.textSecondary),
         ),
         actions: [
@@ -667,7 +670,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
               context.pop(); // Go back to previous page
             },
             child: Text(
-              'Done',
+              l10n.done,
               style: TextStyle(color: colors.primaryAccent),
             ),
           ),
@@ -685,7 +688,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
       _showErrorDialog(
         context,
         colors,
-        'Unable to setup payment: No property or landlord information found.',
+        l10n.unableToSetupPaymentNoPropertyInfo,
       );
       return;
     }
@@ -717,7 +720,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
 
       _showSetupConfirmation(context, colors);
     } catch (e) {
-      _showErrorDialog(context, colors, 'Setup failed: ${e.toString()}');
+      _showErrorDialog(context, colors, l10n.setupFailedWithError(e));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -755,6 +758,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
 
   void _showErrorDialog(
       BuildContext context, DynamicAppColors colors, String message) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -763,7 +767,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           children: [
             Icon(Icons.error_outline, color: colors.error),
             const SizedBox(width: 8),
-            const Text('Setup Failed'),
+            Text(l10n.setupFailedTitle),
           ],
         ),
         content: Text(
@@ -774,7 +778,7 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'OK',
+              l10n.ok,
               style: TextStyle(color: colors.primaryAccent),
             ),
           ),

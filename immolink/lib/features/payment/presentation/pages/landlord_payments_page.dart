@@ -58,7 +58,7 @@ class _LandlordPaymentsPageState
           title: Text(l10n.payments),
           backgroundColor: colors.primaryBackground,
         ),
-        body: const Center(child: Text('Please log in')),
+        body: Center(child: Text(l10n.subscriptionLoginPrompt)),
       );
     }
 
@@ -963,6 +963,8 @@ class _LandlordPaymentsPageState
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     final notifier = ref.read(stripeConnectNotifierProvider.notifier);
 
     // Store mounted state and context before async operations
@@ -987,8 +989,7 @@ class _LandlordPaymentsPageState
 
       if (account == null) {
         if (mounted) {
-          _showErrorSnackBar(
-              'Failed to create Stripe account. Please check your internet connection and try again.');
+          _showErrorSnackBar(l10n.failedToCreateStripeAccount);
         }
         return;
       }
@@ -1011,19 +1012,18 @@ class _LandlordPaymentsPageState
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Opening Stripe Connect setup...'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.openingStripeConnectSetup),
+                duration: const Duration(seconds: 2),
               ),
             );
           }
         } else {
-          if (mounted) _showErrorSnackBar('Could not open browser');
+          if (mounted) _showErrorSnackBar(l10n.couldNotOpenBrowser);
         }
       } else {
         if (mounted) {
-          _showErrorSnackBar(
-              'Failed to create onboarding link. Please try again.');
+          _showErrorSnackBar(l10n.failedToCreateOnboardingLink);
         }
       }
     } catch (e) {
@@ -1035,14 +1035,14 @@ class _LandlordPaymentsPageState
         } catch (_) {}
 
         // Show user-friendly error message
-        String errorMsg = 'Setup failed. Please try again.';
+        String errorMsg = l10n.setupFailedTryAgain;
         if (e.toString().contains('Failed to host lookup') ||
             e.toString().contains('SocketException')) {
-          errorMsg = 'Network error. Please check your internet connection.';
+          errorMsg = l10n.networkErrorCheckConnection;
         } else if (e.toString().contains('timeout')) {
-          errorMsg = 'Request timeout. Please try again.';
+          errorMsg = l10n.requestTimeoutTryAgain;
         } else if (e.toString().contains('404')) {
-          errorMsg = 'Service not available. Please contact support.';
+          errorMsg = l10n.serviceNotAvailableContactSupport;
         }
 
         _showErrorSnackBar(errorMsg);
@@ -1053,6 +1053,8 @@ class _LandlordPaymentsPageState
   Future<void> _requestPayout(AccountBalance balance) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
 
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
@@ -1085,17 +1087,19 @@ class _LandlordPaymentsPageState
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Payout requested: ${balance.currency.toUpperCase()} ${balance.available.toStringAsFixed(2)}',
+                l10n.payoutRequestedWithAmount(
+                  '${balance.currency.toUpperCase()} ${balance.available.toStringAsFixed(2)}',
+                ),
               ),
               backgroundColor: Colors.green,
             ),
           );
         }
       } else {
-        if (mounted) _showErrorSnackBar('Failed to create payout');
+        if (mounted) _showErrorSnackBar(l10n.failedToCreatePayout);
       }
     } catch (e) {
-      if (mounted) _showErrorSnackBar('Error: $e');
+      if (mounted) _showErrorSnackBar(l10n.errorWithDetails(e));
     } finally {
       if (mounted) {
         setState(() {
@@ -1107,14 +1111,15 @@ class _LandlordPaymentsPageState
 
   Widget _buildPayoutDialog(AccountBalance balance) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return AlertDialog(
-      title: const Text('Request Payout'),
+      title: Text(l10n.requestPayout),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Transfer your available balance to your bank account?'),
+          Text(l10n.transferAvailableBalanceToBankQuestion),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
@@ -1127,7 +1132,7 @@ class _LandlordPaymentsPageState
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Amount:'),
+                    Text('${l10n.amount}:'),
                     Text(
                       '${balance.currency.toUpperCase()} ${balance.available.toStringAsFixed(2)}',
                       style: const TextStyle(
@@ -1142,12 +1147,12 @@ class _LandlordPaymentsPageState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Arrival:',
+                      '${l10n.arrival}:',
                       style:
                           TextStyle(color: colors.textSecondary, fontSize: 12),
                     ),
                     Text(
-                      '2-3 business days',
+                      l10n.payoutArrivalEstimate,
                       style:
                           TextStyle(color: colors.textSecondary, fontSize: 12),
                     ),
@@ -1161,7 +1166,7 @@ class _LandlordPaymentsPageState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
@@ -1169,7 +1174,7 @@ class _LandlordPaymentsPageState
             backgroundColor: colors.primaryAccent,
             foregroundColor: Colors.white,
           ),
-          child: const Text('Confirm'),
+          child: Text(l10n.confirm),
         ),
       ],
     );
@@ -1177,25 +1182,26 @@ class _LandlordPaymentsPageState
 
   void _showBalanceInfoDialog() {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Balance Information'),
+        title: Text(l10n.balanceInformation),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              'Available',
-              'Funds ready to be transferred to your bank account',
+              l10n.available,
+              l10n.availableFundsDescription,
               Icons.check_circle,
               colors.success,
             ),
             const SizedBox(height: 16),
             _buildInfoRow(
-              'Pending',
-              'Funds waiting to clear (usually 2-3 days)',
+              l10n.pending,
+              l10n.pendingFundsDescription,
               Icons.pending,
               colors.warning,
             ),
@@ -1204,7 +1210,7 @@ class _LandlordPaymentsPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Got it'),
+            child: Text(l10n.gotIt),
           ),
         ],
       ),
