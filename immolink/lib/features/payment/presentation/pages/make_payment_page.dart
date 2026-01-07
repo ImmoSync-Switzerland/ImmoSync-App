@@ -6,8 +6,647 @@ import 'package:immosync/features/payment/domain/models/payment.dart';
 import 'package:immosync/features/payment/presentation/providers/payment_providers.dart';
 import 'package:immosync/features/property/presentation/providers/property_providers.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
-import 'package:immosync/core/theme/app_colors.dart';
 import 'package:immosync/l10n/app_localizations.dart';
+
+/// This file previously contained a corrupted widget tree (likely from a bad
+/// paste/merge) that caused a large cascade of syntax errors.
+///
+/// The page is reimplemented below to compile and behave correctly.
+/// The old broken code is kept commented out at the bottom for recovery.
+
+const _backgroundStart = Color(0xFF0A1128);
+const _backgroundEnd = Colors.black;
+const _cardColor = Color(0xFF1C1C1E);
+const _fieldColor = Color(0xFF2C2C2E);
+
+const _textPrimary = Colors.white;
+const _textSecondary = Color(0xFFB0B0B0);
+
+const _moneyGreen = Color(0xFF34C759);
+
+const _fieldBorderRadius = BorderRadius.all(Radius.circular(12));
+
+/// Backwards-compatible alias: app routes currently use `MakePaymentPage`.
+/// New code should prefer `MakePaymentScreen`.
+class MakePaymentScreen extends MakePaymentPage {
+  const MakePaymentScreen({super.key, super.propertyId});
+}
+
+class MakePaymentPage extends ConsumerStatefulWidget {
+  final String? propertyId;
+
+  const MakePaymentPage({super.key, this.propertyId});
+
+  @override
+  ConsumerState<MakePaymentPage> createState() => _MakePaymentPageState();
+}
+
+class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountController = TextEditingController();
+  final _notesController = TextEditingController();
+
+  String? _selectedPropertyId;
+  String? _selectedPaymentMethod;
+  String? _selectedPaymentType;
+
+  final List<String> _paymentMethods = const [
+    'Credit Card',
+    'Bank Transfer',
+    'PayPal',
+    'Other',
+  ];
+
+  final List<String> _paymentTypes = const [
+    'Rent',
+    'Deposit',
+    'Fee',
+    'Other',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPropertyId = widget.propertyId;
+    _selectedPaymentMethod = _paymentMethods.first;
+    _selectedPaymentType = _paymentTypes.first;
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  String _formatAddress(Property property, AppLocalizations l10n) {
+    final street = property.address.street.trim();
+    final city = property.address.city.trim();
+    final postal = property.address.postalCode.trim();
+
+    final parts = <String>[
+      if (street.isNotEmpty) street,
+      if (postal.isNotEmpty || city.isNotEmpty)
+        [postal, city].where((e) => e.isNotEmpty).join(' '),
+    ].where((e) => e.isNotEmpty).toList();
+
+    return parts.isNotEmpty ? parts.join(', ') : l10n.property;
+  }
+
+  String _paymentTypeDisplay(AppLocalizations l10n, String type) {
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      case 'deposit':
+        return l10n.deposit;
+      case 'fee':
+        return l10n.fee;
+      default:
+        return l10n.other;
+    }
+  }
+
+  String _paymentMethodDisplay(AppLocalizations l10n, String method) {
+    switch (method.toLowerCase()) {
+      case 'credit card':
+        return l10n.creditDebitCard;
+      case 'bank transfer':
+        return l10n.bankTransfer;
+      case 'paypal':
+        return l10n.paypal;
+      default:
+        return l10n.other;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final userProperties = ref.watch(tenantPropertiesProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: Text(
+          l10n.makePayment,
+          style: const TextStyle(
+            color: _textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: _textPrimary),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_backgroundStart, _backgroundEnd],
+          ),
+        ),
+        child: SafeArea(
+          child: userProperties.when(
+            data: (properties) {
+              if (properties.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.home_outlined,
+                          size: 64,
+                          color: _textSecondary,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.noPropertiesFound,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: _textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.noPropertiesToMakePaymentsFor,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (_selectedPropertyId == null ||
+                  !properties.any((p) => p.id == _selectedPropertyId)) {
+                _selectedPropertyId = properties.first.id;
+              }
+
+              final selectedProperty = properties.firstWhere(
+                (p) => p.id == _selectedPropertyId,
+                orElse: () => properties.first,
+              );
+
+              if (_amountController.text.isEmpty &&
+                  selectedProperty.outstandingPayments > 0) {
+                _amountController.text =
+                    selectedProperty.outstandingPayments.toString();
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildPropertySection(l10n, properties, selectedProperty),
+                      const SizedBox(height: 20),
+                      _buildPaymentDetailsSection(l10n),
+                      const SizedBox(height: 20),
+                      _buildNotesSection(l10n),
+                      const SizedBox(height: 28),
+                      _buildSubmitButton(l10n),
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline,
+                        size: 48, color: Colors.redAccent),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.errorLoadingProperties,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: _textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () =>
+                            ref.invalidate(tenantPropertiesProvider),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _textPrimary,
+                          side: const BorderSide(color: Colors.white24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(l10n.retry),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _darkFieldDecoration({required String label}) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: _textSecondary),
+      filled: true,
+      fillColor: _fieldColor,
+      border: const OutlineInputBorder(
+        borderRadius: _fieldBorderRadius,
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: _fieldBorderRadius,
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: _fieldBorderRadius,
+        borderSide: BorderSide(color: Colors.cyanAccent, width: 1),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    );
+  }
+
+  Widget _buildPropertySection(
+    AppLocalizations l10n,
+    List<Property> properties,
+    Property selectedProperty,
+  ) {
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.property,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            isExpanded: true,
+            // ignore: deprecated_member_use
+            value: _selectedPropertyId,
+            dropdownColor: _fieldColor,
+            decoration: _darkFieldDecoration(label: l10n.property),
+            items: properties.map((property) {
+              final label = _formatAddress(property, l10n);
+              return DropdownMenuItem<String>(
+                value: property.id,
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textPrimary),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedPropertyId = value;
+              });
+            },
+            iconEnabledColor: _textPrimary,
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Outstanding payments: CHF '
+                    '${selectedProperty.outstandingPayments.toStringAsFixed(1)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetailsSection(AppLocalizations l10n) {
+    if (_selectedPaymentType == null ||
+        !_paymentTypes.contains(_selectedPaymentType)) {
+      _selectedPaymentType = _paymentTypes.first;
+    }
+    if (_selectedPaymentMethod == null ||
+        !_paymentMethods.contains(_selectedPaymentMethod)) {
+      _selectedPaymentMethod = _paymentMethods.first;
+    }
+
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.paymentDetailsTitle,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  // ignore: deprecated_member_use
+                  value: _selectedPaymentType,
+                  dropdownColor: _fieldColor,
+                  iconEnabledColor: _textPrimary,
+                  decoration: _darkFieldDecoration(label: l10n.paymentType),
+                  items: _paymentTypes
+                      .map(
+                        (type) => DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(
+                            _paymentTypeDisplay(l10n, type),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedPaymentType = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  // ignore: deprecated_member_use
+                  value: _selectedPaymentMethod,
+                  dropdownColor: _fieldColor,
+                  iconEnabledColor: _textPrimary,
+                  decoration: _darkFieldDecoration(label: l10n.paymentMethod),
+                  items: _paymentMethods
+                      .map(
+                        (method) => DropdownMenuItem<String>(
+                          value: method,
+                          child: Text(
+                            _paymentMethodDisplay(l10n, method),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _textPrimary),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedPaymentMethod = value;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextFormField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: const TextStyle(
+              color: _moneyGreen,
+              fontWeight: FontWeight.w700,
+            ),
+            decoration: _darkFieldDecoration(label: l10n.amount).copyWith(
+              prefixText: 'CHF ',
+              prefixStyle: const TextStyle(color: _textSecondary),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return l10n.pleaseEnterAmount;
+              }
+              final parsed = double.tryParse(value.replaceAll(',', '.'));
+              if (parsed == null) {
+                return l10n.pleaseEnterValidNumber;
+              }
+              if (parsed <= 0) {
+                return l10n.amountMustBeGreaterThanZero;
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesSection(AppLocalizations l10n) {
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.notesOptional,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _notesController,
+            maxLines: 3,
+            style: const TextStyle(color: _textPrimary),
+            decoration:
+                _darkFieldDecoration(label: l10n.notesOptional).copyWith(
+              hintText: l10n.addAdditionalNotes,
+              hintStyle: const TextStyle(color: _textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Colors.blue, Colors.cyan],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: ElevatedButton.icon(
+          onPressed: _submitPayment,
+          icon: const Icon(Icons.credit_card_rounded),
+          label: const Text(
+            'Submit Payment',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitPayment() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_selectedPropertyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.pleaseSelectProperty),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.userNotAuthenticated),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    try {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final amount = double.parse(
+        _amountController.text.trim().replaceAll(',', '.'),
+      );
+
+      final payment = Payment(
+        id: '',
+        tenantId: currentUser.id,
+        propertyId: _selectedPropertyId!,
+        amount: amount,
+        type: (_selectedPaymentType ?? _paymentTypes.first).toLowerCase(),
+        paymentMethod:
+            (_selectedPaymentMethod ?? _paymentMethods.first).toLowerCase(),
+        status: 'pending',
+        date: DateTime.now(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+      );
+
+      await ref.read(paymentNotifierProvider.notifier).createPayment(payment);
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.paymentSubmittedSuccessfully),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).maybePop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.failedToSubmitPayment(e)),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+}
+
+class BentoCard extends StatelessWidget {
+  const BentoCard({super.key, required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding ?? const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: child,
+    );
+  }
+}
+
+/*
 
 const _backgroundStart = Color(0xFF0A1128);
 const _backgroundEnd = Colors.black;
@@ -947,3 +1586,5 @@ class BentoCard extends StatelessWidget {
     );
   }
 }
+
+*/

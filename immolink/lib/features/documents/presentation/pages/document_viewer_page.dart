@@ -6,10 +6,22 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/document_model.dart';
 import '../../../../core/config/api_config.dart';
+
+const _backgroundStart = Color(0xFF0A1128);
+const _backgroundEnd = Colors.black;
+const _cardColor = Color(0xFF1C1C1E);
+const _surfaceDark = Color(0xFF2C2C2E);
+
+const _textPrimary = Colors.white;
+const _textSecondary = Color(0xFFB0B0B0);
+
+/// Backwards-compatible alias for the requested name.
+class DocumentDetailScreen extends DocumentViewerPage {
+  const DocumentDetailScreen({super.key, required super.document});
+}
 
 class DocumentViewerPage extends ConsumerStatefulWidget {
   final DocumentModel document;
@@ -54,11 +66,11 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
 
       // Get authentication headers
       final headers = await _getAuthHeaders();
-      print('DocumentViewer: Auth headers: ${headers.keys.join(", ")}');
+      debugPrint('DocumentViewer: Auth headers: ${headers.keys.join(", ")}');
 
       // Prefer raw endpoint (streams from disk or DB) rather than guessing path
       final rawUrl = '${ApiConfig.baseUrl}/documents/${widget.document.id}/raw';
-      print('DocumentViewer: Loading document from raw endpoint: $rawUrl');
+      debugPrint('DocumentViewer: Loading document from raw endpoint: $rawUrl');
       http.Response response =
           await http.get(Uri.parse(rawUrl), headers: headers);
 
@@ -66,12 +78,12 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       if (response.statusCode == 404) {
         final altUrl =
             '${ApiConfig.baseUrl}/documents/download/${widget.document.id}';
-        print(
+        debugPrint(
             'DocumentViewer: raw endpoint 404, trying download endpoint: $altUrl');
         response = await http.get(Uri.parse(altUrl), headers: headers);
       }
 
-      print('DocumentViewer: Response status: ${response.statusCode}');
+      debugPrint('DocumentViewer: Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         if (mounted) {
@@ -92,7 +104,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
             'Failed to load document: ${response.statusCode} - ${response.reasonPhrase}');
       }
     } catch (e) {
-      print('DocumentViewer: Error loading document: $e');
+      debugPrint('DocumentViewer: Error loading document: $e');
       if (mounted) {
         setState(() {
           _error = e.toString();
@@ -114,7 +126,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       }
       return {};
     } catch (e) {
-      print('DocumentViewer: Failed to read auth token: $e');
+      debugPrint('DocumentViewer: Failed to read auth token: $e');
       return {};
     }
   }
@@ -224,55 +236,58 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dynamicColors = ref.watch(dynamicColorsProvider);
-
     return Scaffold(
-      backgroundColor: dynamicColors.primaryBackground,
-      appBar: AppBar(
-        title: Text(
-          widget.document.name,
-          style: TextStyle(
-            color: dynamicColors.textPrimary,
-            fontWeight: FontWeight.w600,
+      backgroundColor: Colors.transparent,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_backgroundStart, _backgroundEnd],
           ),
         ),
-        backgroundColor: dynamicColors.primaryBackground,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: dynamicColors.textPrimary),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.open_in_new),
-            onPressed: _openInExternalApp,
-            tooltip: AppLocalizations.of(context)!.openInExternalApp,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+                  child: _buildBody(),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.close_rounded, color: _textPrimary),
+                  tooltip: AppLocalizations.of(context)!.close,
+                  style: IconButton.styleFrom(
+                    backgroundColor: _surfaceDark,
+                    shape: const CircleBorder(),
+                  ),
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: _downloadDocument,
-            tooltip: AppLocalizations.of(context)!.download,
-          ),
-        ],
+        ),
       ),
-      body: _buildBody(dynamicColors),
     );
   }
 
-  Widget _buildBody(DynamicAppColors colors) {
+  Widget _buildBody() {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-            ),
+            const CircularProgressIndicator(color: Colors.white),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.loadingDocument,
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 16,
-              ),
+              l10n.loadingDocument,
+              style: const TextStyle(color: _textSecondary, fontSize: 16),
             ),
           ],
         ),
@@ -280,44 +295,42 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     }
 
     if (_error != null) {
-      return Center(
+      return BentoCard(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: colors.error,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.unableToLoadDocument,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
+              l10n.unableToLoadDocument,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _textPrimary,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: _textSecondary, fontSize: 13),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _downloadDocument,
-              icon: const Icon(Icons.download),
-              label: Text(AppLocalizations.of(context)!.downloadInstead),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.primaryAccent,
-                foregroundColor: colors.textOnAccent,
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _downloadDocument,
+                icon: const Icon(Icons.download_rounded),
+                label: Text(l10n.downloadInstead),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _textPrimary,
+                  side: const BorderSide(color: Colors.white24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
               ),
             ),
           ],
@@ -326,127 +339,88 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     }
 
     // Show document preview or file information
-    return _buildDocumentPreview(colors);
+    return _buildDocumentPreview();
   }
 
-  Widget _buildDocumentPreview(DynamicAppColors colors) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          // File icon and info
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colors.borderLight),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  _getFileIcon(),
-                  size: 80,
-                  color: colors.primaryAccent,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  widget.document.name,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _getFileTypeDescription(),
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.document.formattedFileSize,
-                  style: TextStyle(
-                    color: colors.textTertiary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
+  Widget _buildDocumentPreview() {
+    final l10n = AppLocalizations.of(context)!;
+    final meta =
+        '${_getFileTypeDescription()} • ${widget.document.formattedFileSize}';
 
-          const SizedBox(height: 32),
-
-          // Action buttons
-          Column(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        BentoCard(
+          child: Column(
             children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _backgroundStart.withValues(alpha: 0.35),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: Icon(
+                    _getFileIcon(),
+                    size: 80,
+                    color: const Color(0xFF3B82F6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                widget.document.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: _textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                meta,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _primaryGradientButton(
+                label: 'Vorschau laden',
+                icon: Icons.visibility_rounded,
+                onPressed: _documentData == null ? _loadDocument : null,
+              ),
+              const SizedBox(height: 12),
+              _secondaryButton(
+                label: 'In externer App öffnen',
+                icon: Icons.open_in_new_rounded,
+                onPressed: _openInExternalApp,
+              ),
+              const SizedBox(height: 10),
+              _outlinedButton(
+                label: 'Auf Gerät herunterladen',
+                icon: Icons.download_rounded,
+                onPressed: _downloadDocument,
+              ),
               if (_documentData != null && _isImageFile()) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _showImagePreview(colors),
-                    icon: const Icon(Icons.visibility),
-                    label: Text(AppLocalizations.of(context)!.viewImage),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryAccent,
-                      foregroundColor: colors.textOnAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
+                const SizedBox(height: 10),
+                _outlinedButton(
+                  label: l10n.viewImage,
+                  icon: Icons.image_rounded,
+                  onPressed: _showImagePreview,
                 ),
-                const SizedBox(height: 16),
               ],
-              if (_documentData == null) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _loadDocument,
-                    icon: const Icon(Icons.visibility),
-                    label: Text(AppLocalizations.of(context)!.loadPreview),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryAccent,
-                      foregroundColor: colors.textOnAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _openInExternalApp,
-                  icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context)!.openInExternalApp),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primaryAccent,
-                    foregroundColor: colors.textOnAccent,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _downloadDocument,
-                  icon: const Icon(Icons.download),
-                  label: Text(AppLocalizations.of(context)!.downloadToDevice),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colors.primaryAccent,
-                    side: BorderSide(color: colors.primaryAccent),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -462,7 +436,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         fileName.endsWith('.webp');
   }
 
-  void _showImagePreview(DynamicAppColors colors) {
+  void _showImagePreview() {
     if (_documentData == null) return;
 
     showDialog(
@@ -479,7 +453,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
                   return Center(
                     child: Text(
                       AppLocalizations.of(context)!.failedToDisplayImage,
-                      style: TextStyle(color: colors.textPrimary),
+                      style: const TextStyle(color: _textPrimary),
                     ),
                   );
                 },
@@ -508,19 +482,19 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     final mimeType = widget.document.mimeType.toLowerCase();
 
     if (mimeType.contains('pdf') || fileName.endsWith('.pdf')) {
-      return Icons.picture_as_pdf;
+      return Icons.picture_as_pdf_rounded;
     } else if (mimeType.startsWith('image/')) {
-      return Icons.image;
+      return Icons.image_rounded;
     } else if (mimeType.startsWith('text/') || fileName.endsWith('.txt')) {
-      return Icons.description;
+      return Icons.description_rounded;
     } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-      return Icons.description;
+      return Icons.description_rounded;
     } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-      return Icons.table_chart;
+      return Icons.table_chart_rounded;
     } else if (fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
-      return Icons.slideshow;
+      return Icons.slideshow_rounded;
     } else {
-      return Icons.insert_drive_file;
+      return Icons.insert_drive_file_rounded;
     }
   }
 
@@ -544,4 +518,116 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       return AppLocalizations.of(context)!.documentFile;
     }
   }
+}
+
+class BentoCard extends StatelessWidget {
+  const BentoCard({super.key, required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: padding ?? const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: child,
+    );
+  }
+}
+
+Widget _primaryGradientButton({
+  required String label,
+  required IconData icon,
+  required VoidCallback? onPressed,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    height: 54,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.blue, Colors.cyan],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        label: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _secondaryButton({
+  required String label,
+  required IconData icon,
+  required VoidCallback onPressed,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    height: 52,
+    child: ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _surfaceDark,
+        foregroundColor: _textPrimary,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Colors.white12),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _outlinedButton({
+  required String label,
+  required IconData icon,
+  required VoidCallback onPressed,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    height: 52,
+    child: OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _textPrimary,
+        side: const BorderSide(color: Colors.white24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+      ),
+    ),
+  );
 }

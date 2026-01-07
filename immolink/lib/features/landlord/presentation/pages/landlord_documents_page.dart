@@ -89,7 +89,7 @@ class _LegacyLandlordDocumentsPageState
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
-    final documentsAsync = ref.watch(landlordDocumentsProvider);
+    final documentsAsync = ref.watch(landlordVisibleDocumentsProvider);
     final propertiesAsync = ref.watch(landlordPropertiesProvider);
     final design = dashboardDesignFromId(
       ref.watch(settingsProvider).dashboardDesign,

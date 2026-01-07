@@ -595,12 +595,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get quickActions => 'Actions rapides';
 
   @override
-  String get landlordDashboard => 'Tableau de bord propriétaire';
-
-  @override
-  String get tenantDashboard => 'Tableau de bord locataire';
-
-  @override
   String get searchLandlordDashboardHint =>
       'Rechercher des biens, des locataires...';
 
@@ -609,13 +603,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rechercher des logements, des paiements...';
 
   @override
-  String get payRent => 'Payer le loyer';
-
-  @override
   String get support => 'Support';
-
-  @override
-  String get upcomingPayments => 'Paiements à venir';
 
   @override
   String get revenueChart => 'Graphique des revenus';
@@ -1604,7 +1592,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get refunded => 'Remboursé';
 
   @override
-  String get noPaymentHistoryFound => 'Aucun historique de paiement trouvé';
+  String get noPaymentHistoryFound => 'Aucun historique de paiements';
 
   @override
   String get paymentHistoryWillAppearAfterFirstPayment =>
@@ -1612,7 +1600,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loadingPaymentHistory =>
-      'Chargement de l’historique des paiements...';
+      'Chargement de l\'historique des paiements...';
 
   @override
   String get amount => 'Montant';
@@ -2211,6 +2199,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signIn => 'Se connecter';
+
+  @override
+  String get signUp => 'S\'inscrire';
+
+  @override
+  String get signUpTitle => 'Créer un compte';
+
+  @override
+  String get signUpSubtitle => 'Rejoignez ImmoLink dès aujourd\'hui.';
 
   @override
   String get signInWithApple => 'Se connecter avec Apple';

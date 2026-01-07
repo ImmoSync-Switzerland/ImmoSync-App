@@ -18,7 +18,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tenantDashboard => 'Dashboard inquilino';
 
   @override
-  String get landlordDashboard => 'Dashboard proprietario';
+  String get landlordDashboard => 'Dashboard locatore';
 
   @override
   String get upcomingPayments => 'Pagamenti in arrivo';
@@ -593,25 +593,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get quickActions => 'Azioni rapide';
 
   @override
-  String get landlordDashboard => 'Dashboard locatore';
-
-  @override
-  String get tenantDashboard => 'Dashboard inquilino';
-
-  @override
   String get searchLandlordDashboardHint => 'Cerca immobili, inquilini...';
 
   @override
   String get searchTenantDashboardHint => 'Cerca case, pagamenti...';
 
   @override
-  String get payRent => 'Paga l\'affitto';
-
-  @override
   String get support => 'Supporto';
-
-  @override
-  String get upcomingPayments => 'Pagamenti in arrivo';
 
   @override
   String get revenueChart => 'Grafico delle entrate';
@@ -1569,7 +1557,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get paymentHistory => 'Storico pagamenti';
 
   @override
-  String get trackAllTransactions => 'Monitora tutte le tue transazioni';
+  String get trackAllTransactions =>
+      'Tieni traccia di tutte le tue transazioni';
 
   @override
   String get filterPayments => 'Filtra pagamenti';
@@ -1597,7 +1586,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'La cronologia dei pagamenti apparirà qui dopo il tuo primo pagamento.';
 
   @override
-  String get loadingPaymentHistory => 'Caricamento cronologia pagamenti...';
+  String get loadingPaymentHistory =>
+      'Caricamento della cronologia pagamenti...';
 
   @override
   String get amount => 'Importo';
@@ -2193,6 +2183,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get signIn => 'Accedi';
+
+  @override
+  String get signUp => 'Registrati';
+
+  @override
+  String get signUpTitle => 'Crea account';
+
+  @override
+  String get signUpSubtitle => 'Unisciti a ImmoLink oggi.';
 
   @override
   String get signInWithApple => 'Accedi con Apple';

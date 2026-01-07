@@ -15,7 +15,7 @@ class AppSettings {
   final bool paymentReminders;
 
   AppSettings({
-    this.language = 'en',
+    this.language = 'de',
     this.theme = 'light',
     this.dashboardDesign = 'glass',
     this.currency = 'CHF',
@@ -58,7 +58,7 @@ class AppSettings {
 
   factory AppSettings.fromMap(Map<String, dynamic> map) {
     return AppSettings(
-      language: map['language'] ?? 'en',
+      language: map['language'] ?? 'de',
       theme: map['theme'] ?? 'light',
       dashboardDesign: map['dashboardDesign'] ?? 'glass',
       currency: map['currency'] ?? 'CHF',
@@ -80,7 +80,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final language = prefs.getString('language') ?? 'en';
+      final language = prefs.getString('language') ?? 'de';
       final theme = prefs.getString('theme') ?? 'light';
       final dashboardDesign = prefs.getString('dashboardDesign') ?? 'glass';
       final currency = prefs.getString('currency') ?? 'CHF';

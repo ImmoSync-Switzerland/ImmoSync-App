@@ -13,6 +13,7 @@ class MaintenanceDetailData {
     required this.reportedLabel,
     required this.tenant,
     required this.description,
+    required this.notes,
   });
 
   final String title;
@@ -23,6 +24,19 @@ class MaintenanceDetailData {
   final String reportedLabel;
   final String tenant;
   final String description;
+  final List<MaintenanceNoteData> notes;
+}
+
+class MaintenanceNoteData {
+  const MaintenanceNoteData({
+    required this.authorLabel,
+    required this.timestampLabel,
+    required this.content,
+  });
+
+  final String authorLabel;
+  final String timestampLabel;
+  final String content;
 }
 
 class MaintenanceDetailScreen extends StatelessWidget {
@@ -30,13 +44,23 @@ class MaintenanceDetailScreen extends StatelessWidget {
     super.key,
     required this.data,
     required this.onBack,
+    required this.secondaryActionLabel,
+    required this.onSecondaryActionTap,
+    this.primaryActionLabel,
+    this.onPrimaryActionTap,
   });
 
   final MaintenanceDetailData data;
   final VoidCallback onBack;
 
+  final String? primaryActionLabel;
+  final VoidCallback? onPrimaryActionTap;
+  final String secondaryActionLabel;
+  final VoidCallback onSecondaryActionTap;
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
@@ -175,14 +199,105 @@ class MaintenanceDetailScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            _BentoCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.notes,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  if (data.notes.isEmpty)
+                                    const Text(
+                                      '—',
+                                      style: TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    )
+                                  else
+                                    ...data.notes.map(
+                                      (note) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 10),
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF0A1128)
+                                                .withValues(alpha: 0.35),
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.10),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      note.authorLabel,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    note.timestampLabel,
+                                                    style: TextStyle(
+                                                      color: Colors.white
+                                                          .withValues(
+                                                              alpha: 0.55),
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                note.content,
+                                                style: const TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 13,
+                                                  height: 1.4,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: _BottomActions(
-                          onPrimaryTap: () {},
-                          onSecondaryTap: () {},
+                          primaryLabel: primaryActionLabel,
+                          onPrimaryTap: onPrimaryActionTap,
+                          secondaryLabel: secondaryActionLabel,
+                          onSecondaryTap: onSecondaryActionTap,
                         ),
                       ),
                     ],
@@ -322,11 +437,15 @@ class MaintenanceDetailErrorScreen extends StatelessWidget {
 
 class _BottomActions extends StatelessWidget {
   const _BottomActions({
-    required this.onPrimaryTap,
+    required this.secondaryLabel,
     required this.onSecondaryTap,
+    this.primaryLabel,
+    this.onPrimaryTap,
   });
 
-  final VoidCallback onPrimaryTap;
+  final String? primaryLabel;
+  final VoidCallback? onPrimaryTap;
+  final String secondaryLabel;
   final VoidCallback onSecondaryTap;
 
   @override
@@ -346,13 +465,15 @@ class _BottomActions extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _GradientButton(
-              label: 'Mark as In Progress',
-              onTap: onPrimaryTap,
-            ),
-            const SizedBox(height: 10),
+            if (primaryLabel != null && onPrimaryTap != null) ...[
+              _GradientButton(
+                label: primaryLabel!,
+                onTap: onPrimaryTap!,
+              ),
+              const SizedBox(height: 10),
+            ],
             _SecondaryButton(
-              label: 'Add Note',
+              label: secondaryLabel,
               onTap: onSecondaryTap,
             ),
           ],

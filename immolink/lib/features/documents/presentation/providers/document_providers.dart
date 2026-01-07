@@ -2,6 +2,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/document_model.dart';
 import '../../domain/services/document_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../property/presentation/providers/property_providers.dart';
+
+List<DocumentModel> _filterTenantVisibleDocuments({
+  required List<DocumentModel> documents,
+  required String tenantId,
+  required Set<String> tenantPropertyIds,
+}) {
+  return documents.where((doc) {
+    if (doc.uploadedBy == tenantId) return true;
+    if (doc.assignedTenantIds.contains(tenantId)) return true;
+    if (doc.propertyIds.any(tenantPropertyIds.contains)) return true;
+    return false;
+  }).toList();
+}
+
+List<DocumentModel> _filterLandlordVisibleDocuments({
+  required List<DocumentModel> documents,
+  required String landlordId,
+  required Set<String> landlordPropertyIds,
+}) {
+  return documents.where((doc) {
+    if (doc.uploadedBy == landlordId) return true;
+    if (doc.propertyIds.any(landlordPropertyIds.contains)) return true;
+    return false;
+  }).toList();
+}
 
 // Document service provider
 final documentServiceProvider = Provider<DocumentService>((ref) {
@@ -28,6 +54,72 @@ final tenantDocumentsProvider = StateNotifierProvider<TenantDocumentsNotifier,
   final authState = ref.watch(authProvider);
   return TenantDocumentsNotifier(
       ref.watch(documentServiceProvider), authState.userId);
+});
+
+/// Tenant-visible documents:
+/// - documents uploaded by the tenant
+/// - documents explicitly assigned to the tenant
+/// - documents assigned to any property the tenant is assigned to
+final tenantVisibleDocumentsProvider =
+    Provider<AsyncValue<List<DocumentModel>>>(
+  (ref) {
+    final docsAsync = ref.watch(tenantDocumentsProvider);
+    final tenantId = ref.watch(authProvider).userId;
+    final tenantPropertiesAsync = ref.watch(tenantPropertiesProvider);
+
+    if (tenantId == null || tenantId.isEmpty) {
+      return const AsyncValue.data([]);
+    }
+
+    final tenantPropertyIds = tenantPropertiesAsync.maybeWhen(
+      data: (properties) => properties.map((p) => p.id).toSet(),
+      orElse: () => <String>{},
+    );
+
+    return docsAsync.when(
+      data: (documents) => AsyncValue.data(
+        _filterTenantVisibleDocuments(
+          documents: documents,
+          tenantId: tenantId,
+          tenantPropertyIds: tenantPropertyIds,
+        ),
+      ),
+      loading: () => const AsyncValue.loading(),
+      error: AsyncValue.error,
+    );
+  },
+);
+
+/// Landlord-visible documents:
+/// - documents uploaded by the landlord
+/// - documents assigned to any property owned by the landlord
+final landlordVisibleDocumentsProvider =
+    Provider<AsyncValue<List<DocumentModel>>>((ref) {
+  final currentUser = ref.watch(currentUserProvider);
+  final landlordId = currentUser?.id;
+  final docsAsync = ref.watch(landlordDocumentsProvider);
+  final landlordPropertiesAsync = ref.watch(landlordPropertiesProvider);
+
+  if (landlordId == null || landlordId.isEmpty) {
+    return const AsyncValue.data([]);
+  }
+
+  final landlordPropertyIds = landlordPropertiesAsync.maybeWhen(
+    data: (properties) => properties.map((p) => p.id).toSet(),
+    orElse: () => <String>{},
+  );
+
+  return docsAsync.when(
+    data: (documents) => AsyncValue.data(
+      _filterLandlordVisibleDocuments(
+        documents: documents,
+        landlordId: landlordId,
+        landlordPropertyIds: landlordPropertyIds,
+      ),
+    ),
+    loading: () => const AsyncValue.loading(),
+    error: AsyncValue.error,
+  );
 });
 
 // Documents by category provider

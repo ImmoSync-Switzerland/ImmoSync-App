@@ -11,6 +11,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'package:immosync/core/config/db_config.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 import '../providers/auth_provider.dart';
 
@@ -53,6 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Listen to auth state changes
     ref.listen<AuthState>(authProvider, (previous, current) {
       if (current.isAuthenticated) {
@@ -141,17 +143,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         const SizedBox(height: 22),
                                         _buildField(
                                           controller: _emailController,
-                                          hintText: 'Email Address',
+                                          hintText: l10n.emailAddress,
                                           keyboardType:
                                               TextInputType.emailAddress,
                                           prefixIcon: Icons.email_outlined,
                                           validator: (value) {
                                             if (value == null ||
                                                 value.trim().isEmpty) {
-                                              return 'Email is required';
+                                              return l10n.emailRequired;
                                             }
                                             if (!value.contains('@')) {
-                                              return 'Enter a valid email address';
+                                              return l10n.enterValidEmail;
                                             }
                                             return null;
                                           },
@@ -159,7 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         const SizedBox(height: 14),
                                         _buildField(
                                           controller: _passwordController,
-                                          hintText: 'Password',
+                                          hintText: l10n.password,
                                           prefixIcon: Icons.lock_outline,
                                           obscureText: !_isPasswordVisible,
                                           suffix: IconButton(
@@ -179,7 +181,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           validator: (value) {
                                             if (value == null ||
                                                 value.trim().isEmpty) {
-                                              return 'Password is required';
+                                              return l10n.passwordRequired;
                                             }
                                             return null;
                                           },
@@ -201,9 +203,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                 fontSize: 13,
                                               ),
                                             ),
-                                            child: const Text(
-                                              'Forgot Password?',
-                                            ),
+                                            child:
+                                                Text(l10n.forgotPasswordTitle),
                                           ),
                                         ),
                                         if (_currentError != null) ...[
@@ -227,7 +228,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           )
                                         else
                                           GradientButton(
-                                            text: 'Sign In',
+                                            text: l10n.signIn,
                                             onPressed: _handleSignIn,
                                           ),
                                         if (!authState.isLoading)
@@ -258,6 +259,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildBrandingHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -298,10 +300,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'Welcome Back',
+        Text(
+          l10n.welcomeBackTitle,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w900,
             fontSize: 22,
@@ -309,10 +311,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Sign in to manage your properties.',
+        Text(
+          l10n.signInToManageYourProperties,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white60,
             fontWeight: FontWeight.w600,
             fontSize: 13,
@@ -370,14 +372,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildFooter() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(top: 18, bottom: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            "Don't have an account? ",
-            style: TextStyle(
+          Text(
+            '${l10n.dontHaveAccount} ',
+            style: const TextStyle(
               color: Colors.white60,
               fontWeight: FontWeight.w600,
               fontSize: 13,
@@ -393,7 +396,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 fontSize: 13,
               ),
             ),
-            child: const Text('Create One'),
+            child: Text(l10n.createOne),
           ),
         ],
       ),
@@ -416,17 +419,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }) {
     if (!showApple && !showGoogle) return const [];
 
+    final l10n = AppLocalizations.of(context)!;
+
     return [
       const SizedBox(height: 12),
       if (showApple)
         SocialButton(
-          text: 'Sign in with Apple',
+          text: l10n.signInWithApple,
           icon: FontAwesomeIcons.apple,
           onPressed: _handleAppleSignIn,
         ),
       if (showGoogle)
         SocialButton(
-          text: 'Sign in with Google',
+          text: l10n.signInWithGoogle,
           icon: FontAwesomeIcons.google,
           onPressed: _handleGoogleSignIn,
         ),

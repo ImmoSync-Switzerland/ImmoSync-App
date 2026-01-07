@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Holds the active locale (defaults to English per updated i18n spec).
+/// Holds the active locale (defaults to German).
 /// SettingsNotifier applies any saved language after load.
 class LocaleProvider extends ChangeNotifier {
-  LocaleProvider({Locale initialLocale = const Locale('en')})
+  LocaleProvider({Locale initialLocale = const Locale('de')})
       : _locale = initialLocale;
 
   Locale _locale;

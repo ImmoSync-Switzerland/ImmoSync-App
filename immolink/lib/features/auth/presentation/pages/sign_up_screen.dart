@@ -191,7 +191,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                           )
                                         else
                                           GradientButton(
-                                            text: 'Sign Up',
+                                            text: l10n.signUp,
                                             onPressed: _handleSignUp,
                                           ),
                                       ],
@@ -217,6 +217,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -257,10 +258,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'Create Account',
+        Text(
+          l10n.signUpTitle,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w900,
             fontSize: 22,
@@ -268,10 +269,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Join ImmoSync today.',
+        Text(
+          l10n.signUpSubtitle,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white60,
             fontWeight: FontWeight.w600,
             fontSize: 13,
@@ -283,11 +284,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Widget _buildRoleSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
           child: _RoleChip(
-            label: 'Landlord',
+            label: l10n.landlord,
             selected: _selectedRole == 'landlord',
             onTap: () => setState(() => _selectedRole = 'landlord'),
           ),
@@ -295,7 +297,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: _RoleChip(
-            label: 'Tenant',
+            label: l10n.tenant,
             selected: _selectedRole == 'tenant',
             onTap: () => setState(() => _selectedRole = 'tenant'),
           ),

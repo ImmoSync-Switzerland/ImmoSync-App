@@ -85,7 +85,7 @@ class _LegacyTenantDocumentsPageState
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
-    final documentsAsync = ref.watch(tenantDocumentsProvider);
+    final documentsAsync = ref.watch(tenantVisibleDocumentsProvider);
     final recentDocuments = ref.watch(recentDocumentsProvider);
     final documentStats = ref.watch(documentStatsProvider);
     final design = dashboardDesignFromId(

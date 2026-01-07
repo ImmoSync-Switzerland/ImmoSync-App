@@ -2,6 +2,7 @@ import 'dart:async';
 // For PlatformDispatcher
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -98,6 +99,12 @@ Future<void> main() async {
         WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     debugPrint('[Startup] Widgets binding ensured');
+
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, // Android: White icons
+      statusBarBrightness: Brightness.dark, // iOS: White icons
+    ));
 
     // Step 1: Load .env (optional) to allow runtime configuration on desktop/dev
     try {

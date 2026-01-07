@@ -27,7 +27,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
         ? AsyncValue.data(initialRequest!)
         : ref.watch(maintenanceRequestProvider(requestId));
 
-    final _ = _buildRequestDetails;
+    final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     void handleBack() {
       if (context.canPop()) {
@@ -38,10 +39,36 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
 
     return requestAsync.when(
-      data: (request) => MaintenanceDetailScreen(
-        onBack: handleBack,
-        data: _toDetailData(request),
-      ),
+      data: (request) {
+        final userRole = ref.watch(userRoleProvider);
+        final canUpdateStatus = userRole == 'landlord';
+
+        final effectiveRequestId =
+            request.id.isNotEmpty ? request.id : requestId;
+
+        String? primaryLabel;
+        String? nextStatus;
+        if (canUpdateStatus && request.status == 'pending') {
+          primaryLabel = l10n.markAsInProgress;
+          nextStatus = 'in_progress';
+        } else if (canUpdateStatus && request.status == 'in_progress') {
+          primaryLabel = l10n.markAsCompleted;
+          nextStatus = 'completed';
+        }
+
+        return MaintenanceDetailScreen(
+          onBack: handleBack,
+          data: _toDetailData(request),
+          primaryActionLabel: primaryLabel,
+          onPrimaryActionTap: nextStatus == null
+              ? null
+              : () => _updateStatus(
+                  context, ref, effectiveRequestId, nextStatus!, colors),
+          secondaryActionLabel: l10n.addNote,
+          onSecondaryActionTap: () =>
+              _showAddNoteDialog(context, ref, effectiveRequestId, colors),
+        );
+      },
       loading: () => MaintenanceDetailLoadingScreen(onBack: handleBack),
       error: (error, stack) => MaintenanceDetailErrorScreen(
         onBack: handleBack,
@@ -60,6 +87,9 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       _ => request.priorityDisplayText,
     };
 
+    final notes = [...request.notes]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
     return MaintenanceDetailData(
       title: request.title.isNotEmpty ? request.title : 'Maintenance Request',
       statusLabel: statusLabel,
@@ -75,6 +105,19 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       description: request.description.isNotEmpty
           ? request.description
           : 'No description provided.',
+      notes: notes
+          .map(
+            (note) => MaintenanceNoteData(
+              authorLabel: _firstNonEmpty([
+                note.authorName,
+                note.author,
+              ]),
+              timestampLabel:
+                  DateFormat('MMM d, yyyy · HH:mm').format(note.timestamp),
+              content: note.content,
+            ),
+          )
+          .toList(growable: false),
     );
   }
 
@@ -86,6 +129,8 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     return '—';
   }
 
+  // Kept as legacy/reference UI. The active detail UI is [MaintenanceDetailScreen].
+  // ignore: unused_element
   Widget _buildRequestDetails(BuildContext context, MaintenanceRequest request,
       AppLocalizations l10n, WidgetRef ref, DynamicAppColors colors) {
     final IconData statusIcon = _getStatusIcon(request.status);
@@ -707,7 +752,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       AppLocalizations l10n) {
     // Tenants may add notes, but must not change status.
     final userRole = ref.watch(userRoleProvider);
-    final canUpdateStatus = userRole != 'tenant';
+    final canUpdateStatus = userRole == 'landlord';
 
     if (request.status == 'completed' || request.status == 'cancelled') {
       // Still allow notes even when completed/cancelled.
@@ -905,11 +950,10 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final userRole = ref.read(userRoleProvider);
-    if (userRole == 'tenant') {
+    if (userRole != 'landlord') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-              'Only landlords or managers can update request status.'),
+          content: const Text('Only landlords can update request status.'),
           backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -985,92 +1029,133 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
     showDialog(
       context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: colors.surfaceCards,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            l10n.addNote,
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: colors.primaryBackground,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colors.textSecondary.withValues(alpha: 0.2),
-                  ),
+        final viewInsets = MediaQuery.viewInsetsOf(context);
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(bottom: viewInsets.bottom),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colors.surfaceCards,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: colors.textSecondary.withValues(alpha: 0.15),
                 ),
-                child: TextField(
-                  controller: noteController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: l10n.enterNoteHint,
-                    hintStyle: TextStyle(
-                      color: colors.textSecondary.withValues(alpha: 0.6),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.addNote,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 14,
-                  ),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colors.textSecondary.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      child: TextField(
+                        controller: noteController,
+                        maxLines: 4,
+                        minLines: 3,
+                        decoration: InputDecoration(
+                          hintText: l10n.enterNoteHint,
+                          hintStyle: TextStyle(
+                            color: colors.textSecondary.withValues(alpha: 0.7),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: colors.textSecondary
+                                    .withValues(alpha: 0.25),
+                              ),
+                              foregroundColor: colors.textSecondary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: Text(
+                              l10n.cancel,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final value = noteController.text.trim();
+                              if (value.isEmpty) return;
+
+                              await _addNote(
+                                  context, ref, requestId, value, colors);
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colors.primaryAccent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              l10n.addNote,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (noteController.text.trim().isNotEmpty) {
-                  await _addNote(context, ref, requestId,
-                      noteController.text.trim(), colors);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.primaryAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: Text(
-                l10n.addNote,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
         );
       },
     );

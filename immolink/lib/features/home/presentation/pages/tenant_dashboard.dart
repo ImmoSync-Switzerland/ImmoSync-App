@@ -7,16 +7,39 @@ import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared
 import 'package:immosync/l10n/app_localizations.dart';
 
 const String _tenantRevenueLabel = "CHF 3'250.00";
+const String _tenantOutstandingLabel = 'CHF 0.00';
 const IconData _tenantPrimaryActionIcon = Icons.payments_outlined;
 const String _tenantPrimaryActionRoute = '/payments/make';
 const bool _tenantPrimaryActionUsePush = true;
 
-class TenantDashboard extends StatelessWidget {
+class TenantDashboard extends ConsumerWidget {
   const TenantDashboard({super.key});
 
+  String _greeting(AppLocalizations l10n) {
+    final hour = DateTime.now().hour;
+
+    // Morning: 05:00–11:59
+    if (hour >= 5 && hour < 12) return l10n.goodMorning;
+
+    // Day: 12:00–17:59
+    if (hour < 18) return l10n.goodAfternoon;
+
+    // Evening: 18:00–04:59
+    return l10n.goodEvening;
+  }
+
+  String _greetingWithName(AppLocalizations l10n, String? fullName) {
+    final greeting = _greeting(l10n);
+    final name = (fullName ?? '').trim();
+    if (name.isEmpty) return greeting;
+    final firstName = name.split(RegExp(r'\s+')).first;
+    return '$greeting, $firstName';
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final currentUser = ref.watch(currentUserProvider);
 
     final quickActions = <QuickActionItem>[
       QuickActionItem(
@@ -42,34 +65,11 @@ class TenantDashboard extends StatelessWidget {
     ];
 
     final config = DashboardConfig(
-      headerTitle: l10n.tenantDashboard,
+      headerTitle: _greetingWithName(l10n, currentUser?.fullName),
       searchHint: l10n.searchPropertiesTenantsMessages,
-class TenantDashboard extends ConsumerWidget {
-  const TenantDashboard({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.watch(currentUserProvider);
-
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? l10n.goodMorning
-        : hour < 18
-            ? l10n.hello
-            : l10n.goodEvening;
-
-    final fullName = (currentUser?.fullName ?? '').trim();
-    final firstName =
-        fullName.isEmpty ? '' : fullName.split(RegExp(r'\s+')).first;
-    final greetingWithName =
-        firstName.isEmpty ? greeting : '$greeting, $firstName';
-
-    final config = DashboardConfig(
-      headerTitle: greetingWithName,
-      searchHint: l10n.searchTenantDashboardHint,
       revenueLabel: _tenantRevenueLabel,
       revenueSubtitle: l10n.upcomingPayments,
+      revenueTrend: null,
       revenueAction: QuickActionItem(
         icon: Icons.credit_card_rounded,
         label: l10n.payments,
@@ -86,28 +86,7 @@ class TenantDashboard extends ConsumerWidget {
       primaryActionIcon: _tenantPrimaryActionIcon,
       primaryActionRoute: _tenantPrimaryActionRoute,
       primaryActionUsePush: _tenantPrimaryActionUsePush,
-      quickActions: [
-        QuickActionItem(
-          icon: Icons.folder_open_rounded,
-          label: l10n.documents,
-          route: '/documents',
-        ),
-        QuickActionItem(
-          icon: Icons.credit_card_rounded,
-          label: l10n.payments,
-          route: '/payments/history',
-        ),
-        QuickActionItem(
-          icon: Icons.build_circle_outlined,
-          label: l10n.maintenance,
-          route: '/tenant/maintenance',
-        ),
-        QuickActionItem(
-          icon: Icons.support_agent,
-          label: l10n.support,
-          route: '/contact-support',
-        ),
-      ],
+      quickActions: quickActions,
     );
 
     return BentoDashboardScaffold(config: config);

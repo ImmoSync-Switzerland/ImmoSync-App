@@ -1212,18 +1212,6 @@ abstract class AppLocalizations {
   /// **'Quick Actions'**
   String get quickActions;
 
-  /// No description provided for @landlordDashboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Landlord Dashboard'**
-  String get landlordDashboard;
-
-  /// No description provided for @tenantDashboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Tenant Dashboard'**
-  String get tenantDashboard;
-
   /// No description provided for @searchLandlordDashboardHint.
   ///
   /// In en, this message translates to:
@@ -1236,23 +1224,11 @@ abstract class AppLocalizations {
   /// **'Search homes, payments...'**
   String get searchTenantDashboardHint;
 
-  /// No description provided for @payRent.
-  ///
-  /// In en, this message translates to:
-  /// **'Pay Rent'**
-  String get payRent;
-
   /// No description provided for @support.
   ///
   /// In en, this message translates to:
   /// **'Support'**
   String get support;
-
-  /// No description provided for @upcomingPayments.
-  ///
-  /// In en, this message translates to:
-  /// **'Upcoming Payments'**
-  String get upcomingPayments;
 
   /// No description provided for @revenueChart.
   ///
@@ -4157,6 +4133,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign In'**
   String get signIn;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @signUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get signUpTitle;
+
+  /// No description provided for @signUpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join ImmoLink today.'**
+  String get signUpSubtitle;
 
   /// No description provided for @signInWithApple.
   ///

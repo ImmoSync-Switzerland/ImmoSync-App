@@ -589,25 +589,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickActions => 'Quick Actions';
 
   @override
-  String get landlordDashboard => 'Landlord Dashboard';
-
-  @override
-  String get tenantDashboard => 'Tenant Dashboard';
-
-  @override
   String get searchLandlordDashboardHint => 'Search properties, tenants...';
 
   @override
   String get searchTenantDashboardHint => 'Search homes, payments...';
 
   @override
-  String get payRent => 'Pay Rent';
-
-  @override
   String get support => 'Support';
-
-  @override
-  String get upcomingPayments => 'Upcoming Payments';
 
   @override
   String get revenueChart => 'Revenue Chart';
@@ -2164,6 +2152,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signIn => 'Sign In';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get signUpTitle => 'Create Account';
+
+  @override
+  String get signUpSubtitle => 'Join ImmoLink today.';
 
   @override
   String get signInWithApple => 'Sign in with Apple';

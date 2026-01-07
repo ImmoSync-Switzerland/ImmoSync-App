@@ -25,7 +25,9 @@ class DocumentsScreen extends ConsumerWidget {
     final path = GoRouterState.of(context).uri.path;
     final isLandlord = role == 'landlord' || path.startsWith('/landlord/');
     final documentsAsync = ref.watch(
-      isLandlord ? landlordDocumentsProvider : tenantDocumentsProvider,
+      isLandlord
+          ? landlordVisibleDocumentsProvider
+          : tenantVisibleDocumentsProvider,
     );
 
     final userId =

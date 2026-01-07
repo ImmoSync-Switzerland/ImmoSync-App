@@ -8,6 +8,801 @@ import 'package:immosync/features/payment/presentation/providers/payment_provide
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
+/// This file was corrupted by a bad paste/merge (widgets and methods ended up
+/// inside other widgets/classes), causing a large cascade of syntax errors.
+///
+/// A clean, compiling implementation is provided below.
+/// The old broken code is kept commented out for recovery.
+
+const _backgroundStart = Color(0xFF0A1128);
+const _backgroundEnd = Colors.black;
+const _cardColor = Color(0xFF1C1C1E);
+const _surfaceDark = Color(0xFF2C2C2E);
+
+const _textPrimary = Colors.white;
+const _textSecondary = Color(0xFFB0B0B0);
+
+const _chipGradientDark = Color(0xFF2E7D32);
+const _chipGradientLight = Color(0xFF66BB6A);
+
+/// Backwards-compatible alias: app routes currently use `PaymentHistoryPage`.
+/// New code should prefer `PaymentHistoryScreen`.
+class PaymentHistoryScreen extends PaymentHistoryPage {
+  const PaymentHistoryScreen({super.key});
+}
+
+class PaymentHistoryPage extends ConsumerStatefulWidget {
+  const PaymentHistoryPage({super.key});
+
+  @override
+  ConsumerState<PaymentHistoryPage> createState() => _PaymentHistoryPageState();
+}
+
+class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
+  String? _selectedStatus;
+  String? _selectedType;
+
+  String _localizePaymentStatus(AppLocalizations l10n, String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return l10n.pending;
+      case 'completed':
+        return l10n.completed;
+      case 'failed':
+        return l10n.failed;
+      case 'refunded':
+        return l10n.refunded;
+      default:
+        return status;
+    }
+  }
+
+  String _localizePaymentType(AppLocalizations l10n, String type) {
+    switch (type.toLowerCase()) {
+      case 'rent':
+        return l10n.rent;
+      case 'maintenance':
+        return l10n.maintenance;
+      case 'deposit':
+        return l10n.deposit;
+      case 'fee':
+        return l10n.fee;
+      default:
+        return l10n.other;
+    }
+  }
+
+  List<Payment> _filterPayments(List<Payment> payments) {
+    return payments.where((payment) {
+      final normalizedStatus = payment.status.toLowerCase().trim();
+      final normalizedType = payment.type.toLowerCase().trim();
+
+      final statusMatch =
+          _selectedStatus == null || normalizedStatus == _selectedStatus;
+      final typeMatch =
+          _selectedType == null || normalizedType == _selectedType;
+      return statusMatch && typeMatch;
+    }).toList();
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return const Color(0xFF34C759);
+      case 'failed':
+        return const Color(0xFFFF3B30);
+      case 'refunded':
+        return const Color(0xFFFFD60A);
+      case 'pending':
+      default:
+        return const Color(0xFF0A84FF);
+    }
+  }
+
+  void _setStatus(String? value) {
+    HapticFeedback.lightImpact();
+    setState(() => _selectedStatus = value);
+  }
+
+  void _setType(String? value) {
+    HapticFeedback.lightImpact();
+    setState(() => _selectedType = value);
+  }
+
+  Future<void> _cancelPayment(Payment payment) async {
+    final l10n = AppLocalizations.of(context)!;
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.cancelPayment),
+        content: Text(l10n.confirmCancelPaymentMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.no),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.yesCancel),
+          ),
+        ],
+      ),
+    );
+    if (shouldCancel != true) return;
+
+    try {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final paymentService = ref.read(paymentServiceProvider);
+      await paymentService.cancelPayment(payment.id);
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      Navigator.of(context).maybePop();
+
+      ref.invalidate(landlordPaymentsProvider);
+      ref.invalidate(tenantPaymentsProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.paymentCancelledSuccessfully),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).maybePop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.failedToCancelPayment(e.toString())),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _copyReceiptLink(Payment payment) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final paymentService = ref.read(paymentServiceProvider);
+      final receiptUrl = await paymentService.downloadReceipt(payment.id);
+      await Clipboard.setData(ClipboardData(text: receiptUrl));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.receiptDownloadStarted)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.failedToDownloadReceipt(e.toString())),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showPaymentDetails(Payment payment) {
+    final l10n = AppLocalizations.of(context)!;
+    final currency = NumberFormat.currency(symbol: 'CHF ');
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: BentoCard(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n.paymentDetailsTitle,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded,
+                            color: _textPrimary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _detailRow(l10n.amount, currency.format(payment.amount)),
+                  _detailRow(l10n.status,
+                      _localizePaymentStatus(l10n, payment.status)),
+                  _detailRow(
+                      l10n.type, _localizePaymentType(l10n, payment.type)),
+                  _detailRow(l10n.date,
+                      DateFormat('MMM d, yyyy').format(payment.date)),
+                  _detailRow(l10n.propertyId, payment.propertyId),
+                  _detailRow(l10n.tenantId, payment.tenantId),
+                  if (payment.paymentMethod != null)
+                    _detailRow(l10n.paymentMethod, payment.paymentMethod!),
+                  if (payment.notes != null && payment.notes!.trim().isNotEmpty)
+                    _detailRow(l10n.notes, payment.notes!),
+                  const SizedBox(height: 16),
+                  if (payment.status.toLowerCase() == 'pending')
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _cancelPayment(payment),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: _textPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(l10n.cancelPayment),
+                      ),
+                    ),
+                  if (payment.status.toLowerCase() == 'completed')
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => _copyReceiptLink(payment),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _textPrimary,
+                          side: const BorderSide(color: Colors.white24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(l10n.downloadReceipt),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: _textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: _textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          color: selected ? null : _surfaceDark,
+          gradient: selected
+              ? const LinearGradient(
+                  colors: [_chipGradientDark, _chipGradientLight],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                )
+              : null,
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? _textPrimary : _textSecondary,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _headerCard() {
+    final l10n = AppLocalizations.of(context)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          colors: [
+            _chipGradientLight.withValues(alpha: 0.55),
+            _chipGradientDark.withValues(alpha: 0.25),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _chipGradientLight.withValues(alpha: 0.18),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(1.2),
+        child: BentoCard(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _chipGradientLight.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _chipGradientLight.withValues(alpha: 0.30),
+                  ),
+                ),
+                child: const SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Icon(
+                    Icons.history_rounded,
+                    color: _chipGradientLight,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.paymentHistory,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.trackAllTransactions,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _filtersCard(AppLocalizations l10n) {
+    return BentoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.filter_alt_rounded,
+                    color: _textSecondary,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.filterPayments,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 12.0,
+            alignment: WrapAlignment.start,
+            children: [
+              _filterChip(
+                label: l10n.all,
+                selected: _selectedStatus == null,
+                onTap: () => _setStatus(null),
+              ),
+              _filterChip(
+                label: l10n.completed,
+                selected: _selectedStatus == 'completed',
+                onTap: () => _setStatus('completed'),
+              ),
+              _filterChip(
+                label: l10n.pending,
+                selected: _selectedStatus == 'pending',
+                onTap: () => _setStatus('pending'),
+              ),
+              _filterChip(
+                label: l10n.failed,
+                selected: _selectedStatus == 'failed',
+                onTap: () => _setStatus('failed'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 12.0,
+            alignment: WrapAlignment.start,
+            children: [
+              _filterChip(
+                label: l10n.allTypes,
+                selected: _selectedType == null,
+                onTap: () => _setType(null),
+              ),
+              _filterChip(
+                label: l10n.rent,
+                selected: _selectedType == 'rent',
+                onTap: () => _setType('rent'),
+              ),
+              _filterChip(
+                label: l10n.maintenance,
+                selected: _selectedType == 'maintenance',
+                onTap: () => _setType('maintenance'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.credit_card_rounded,
+              size: 64,
+              color: _textPrimary.withValues(alpha: 0.30),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              l10n.noPaymentHistoryFound,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: _textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.paymentHistoryWillAppearAfterFirstPayment,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: _textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _transactionCard({
+    required AppLocalizations l10n,
+    required Payment payment,
+    required bool incoming,
+  }) {
+    final currency = NumberFormat.currency(symbol: 'CHF ');
+    final statusColor = _statusColor(payment.status);
+    final arrowColor =
+        incoming ? const Color(0xFF34C759) : const Color(0xFFFF3B30);
+
+    return BentoCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: arrowColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: SizedBox(
+              width: 42,
+              height: 42,
+              child: Icon(
+                incoming ? Icons.south_west_rounded : Icons.north_east_rounded,
+                color: arrowColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _localizePaymentType(l10n, payment.type),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: _textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat('MMM d, yyyy').format(payment.date),
+                  style: const TextStyle(
+                    color: _textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                currency.format(payment.amount),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF34C759),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _localizePaymentStatus(l10n, payment.status),
+                style: TextStyle(
+                  color: statusColor,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentUser = ref.watch(currentUserProvider);
+
+    final paymentsAsync = currentUser?.role == 'landlord'
+        ? ref.watch(landlordPaymentsProvider)
+        : ref.watch(tenantPaymentsProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          l10n.paymentHistory,
+          style: const TextStyle(
+            color: _textPrimary,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+            letterSpacing: -0.2,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: _textPrimary),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
+      ),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_backgroundStart, _backgroundEnd],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _headerCard(),
+                const SizedBox(height: 16),
+                _filtersCard(l10n),
+                const SizedBox(height: 16),
+                paymentsAsync.when(
+                  data: (payments) {
+                    final filtered = _filterPayments(payments);
+                    if (filtered.isEmpty) {
+                      return _emptyState();
+                    }
+
+                    final incoming = (currentUser?.role == 'landlord');
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final payment = filtered[index];
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            _showPaymentDetails(payment);
+                          },
+                          child: _transactionCard(
+                            l10n: l10n,
+                            payment: payment,
+                            incoming: incoming,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 36),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          l10n.loadingPaymentHistory,
+                          style: const TextStyle(
+                            color: _textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  error: (error, _) => BentoCard(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 48, color: Colors.redAccent),
+                        const SizedBox(height: 12),
+                        Text(
+                          error.toString(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: _textSecondary),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              ref.invalidate(currentUser?.role == 'landlord'
+                                  ? landlordPaymentsProvider
+                                  : tenantPaymentsProvider);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _textPrimary,
+                              side: const BorderSide(color: Colors.white24),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(l10n.retry),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class BentoCard extends StatelessWidget {
+  const BentoCard({super.key, required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding ?? const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: child,
+    );
+  }
+}
+
+/*
+
 const _backgroundStart = Color(0xFF0A1128);
 const _backgroundEnd = Colors.black;
 const _cardColor = Color(0xFF1C1C1E);
@@ -1010,3 +1805,5 @@ class BentoCard extends StatelessWidget {
     );
   }
 }
+
+*/
