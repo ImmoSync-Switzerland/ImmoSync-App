@@ -109,9 +109,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                         ? null
                         : IconButton(
                             onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                              });
+                              setState(_searchController.clear);
                             },
                             icon: const Icon(
                               Icons.close_rounded,
