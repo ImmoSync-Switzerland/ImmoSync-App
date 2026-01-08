@@ -11,15 +11,253 @@ import 'package:immosync/features/documents/domain/models/document_model.dart';
 import 'package:immosync/features/documents/presentation/pages/document_viewer_page.dart';
 import 'package:immosync/features/documents/presentation/providers/document_providers.dart';
 
-class DocumentsScreen extends ConsumerWidget {
+class DocumentsScreen extends ConsumerStatefulWidget {
   const DocumentsScreen({super.key});
+
+  @override
+  ConsumerState<DocumentsScreen> createState() => _DocumentsScreenState();
 
   static const _bgTop = Color(0xFF0A1128);
   static const _bgBottom = Colors.black;
   static const _card = Color(0xFF1C1C1E);
 
+  static const _categoryAll = '__all__';
+
+  // Canonical category names (see DocumentModel._normalizeCategory)
+  static const _categoryLease = 'Lease Agreement';
+  static const _categoryOperatingCosts = 'Operating Costs';
+  static const _categoryCorrespondence = 'Correspondence';
+}
+
+class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedCategory = DocumentsScreen._categoryAll;
+
+  String _categoryLabel(AppLocalizations l10n, String category) {
+    switch (category) {
+      case DocumentsScreen._categoryAll:
+        return l10n.all;
+      case DocumentsScreen._categoryLease:
+        return l10n.leaseAgreement;
+      case DocumentsScreen._categoryOperatingCosts:
+        return l10n.operatingCosts;
+      case DocumentsScreen._categoryCorrespondence:
+        return l10n.correspondence;
+      default:
+        return category;
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _openSearchSheet(BuildContext context, AppLocalizations l10n) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
+        return Padding(
+          padding: EdgeInsets.only(left: 12, right: 12, bottom: bottomInset),
+          child: Container(
+            decoration: BoxDecoration(
+              color: DocumentsScreen._card,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.search,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: l10n.search,
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Colors.white70,
+                    ),
+                    suffixIcon: _searchController.text.trim().isEmpty
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                              });
+                            },
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.white70,
+                            ),
+                            tooltip: l10n.close,
+                          ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text(
+                      l10n.filter,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _categoryLabel(l10n, _selectedCategory),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openFilterSheet(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final options = <String>[
+          DocumentsScreen._categoryAll,
+          DocumentsScreen._categoryLease,
+          DocumentsScreen._categoryOperatingCosts,
+          DocumentsScreen._categoryCorrespondence,
+        ];
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: DocumentsScreen._card,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.filter,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        separatorBuilder: (_, __) => Divider(
+                          height: 1,
+                          color: Colors.white.withValues(alpha: 0.06),
+                        ),
+                        itemBuilder: (context, index) {
+                          final value = options[index];
+                          final label = _categoryLabel(l10n, value);
+
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              label,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                              ),
+                            ),
+                            trailing: value == _selectedCategory
+                                ? const Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                  )
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = value;
+                              });
+                              Navigator.of(sheetContext).pop();
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final role = ref.watch(userRoleProvider);
     final path = GoRouterState.of(context).uri.path;
@@ -121,9 +359,9 @@ class DocumentsScreen extends ConsumerWidget {
             }
           },
           icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
+            Icons.chevron_left,
             color: Colors.white,
-            size: 20,
+            size: 32,
           ),
           tooltip: l10n.back,
         ),
@@ -138,12 +376,14 @@ class DocumentsScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () => _openSearchSheet(context, l10n),
             icon: const Icon(Icons.search_rounded, color: Colors.white),
             tooltip: l10n.search,
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              _openFilterSheet(context, l10n);
+            },
             icon: const Icon(Icons.tune_rounded, color: Colors.white),
             tooltip: l10n.filter,
           ),
@@ -155,7 +395,7 @@ class DocumentsScreen extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [_bgTop, _bgBottom],
+            colors: [DocumentsScreen._bgTop, DocumentsScreen._bgBottom],
           ),
         ),
         child: SafeArea(
@@ -178,13 +418,36 @@ class DocumentsScreen extends ConsumerWidget {
               ),
             ),
             data: (docs) {
-              final documents = List<DocumentModel>.from(docs)
+              final query = _searchController.text.trim().toLowerCase();
+
+              final allDocuments = List<DocumentModel>.from(docs)
                 ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
-              final recent = documents.take(20).toList();
-              final totalBytes =
-                  documents.fold<int>(0, (sum, d) => sum + d.fileSize);
+
+              final filteredDocuments = allDocuments.where((doc) {
+                final matchesCategory =
+                    _selectedCategory == DocumentsScreen._categoryAll ||
+                        doc.category == _selectedCategory;
+                if (!matchesCategory) return false;
+                if (query.isEmpty) return true;
+
+                final haystack =
+                    '${doc.name} ${doc.description} ${doc.category}'
+                        .toLowerCase();
+                return haystack.contains(query);
+              }).toList(growable: false);
+
+              final showAllMatches = query.isNotEmpty ||
+                  _selectedCategory != DocumentsScreen._categoryAll;
+              final recent = showAllMatches
+                  ? filteredDocuments
+                  : filteredDocuments.take(20).toList(growable: false);
+
+              final totalBytes = filteredDocuments.fold<int>(
+                0,
+                (sum, d) => sum + d.fileSize,
+              );
               final subtitle = l10n.documentsStorageSubtitle(
-                documents.length,
+                filteredDocuments.length,
                 _formatTotalSize(totalBytes),
               );
 

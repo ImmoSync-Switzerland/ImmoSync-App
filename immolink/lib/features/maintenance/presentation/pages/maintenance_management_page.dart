@@ -101,7 +101,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                           context.go('/home');
                         },
                         icon: const Icon(
-                          Icons.arrow_back,
+                          Icons.chevron_left,
                           color: Colors.white,
                         ),
                         padding: EdgeInsets.zero,

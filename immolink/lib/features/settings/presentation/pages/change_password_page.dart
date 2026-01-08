@@ -96,8 +96,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           style: AppTypography.pageTitle.copyWith(color: Colors.white),
         ),
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(Icons.chevron_left, color: Colors.white, size: 32),
           onPressed: () => context.pop(),
         ),
       ),

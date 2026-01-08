@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:immosync/core/providers/dynamic_colors_provider.dart';
 import 'package:immosync/features/property/domain/models/property.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class AddPropertyScreen extends ConsumerStatefulWidget {
   const AddPropertyScreen({super.key, this.propertyToEdit});
@@ -69,8 +71,9 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = ref.watch(dynamicColorsProvider);
-    final title = _isEditing ? 'Edit Property' : 'Add Property';
-    final ctaLabel = _isEditing ? 'Update Property' : 'Save Property';
+    final l10n = AppLocalizations.of(context)!;
+    final title = _isEditing ? l10n.editProperty : l10n.addProperty;
+    final ctaLabel = _isEditing ? l10n.updateProperty : l10n.saveProperty;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -86,9 +89,15 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => Navigator.of(context).maybePop(),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/properties');
+                          }
+                        },
                         icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
+                          Icons.chevron_left,
                           color: Colors.white,
                           size: 20,
                         ),
@@ -106,26 +115,26 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const _SectionTitle('Basic Info'),
+                  _SectionTitle(l10n.planBasic),
                   const SizedBox(height: 12),
                   _BentoTextField(
                     controller: _nameController,
                     focusNode: _nameFocus,
-                    label: 'Property Name',
-                    hint: 'e.g., Lakeview Apartment',
+                    label: l10n.name,
+                    hint: '',
                     keyboardType: TextInputType.text,
                   ),
                   const SizedBox(height: 12),
                   _BentoTextField(
                     controller: _addressController,
                     focusNode: _addressFocus,
-                    label: 'Address',
-                    hint: 'Street, City, Postal Code',
+                    label: l10n.address,
+                    hint: '',
                     keyboardType: TextInputType.streetAddress,
                     prefixIcon: Icons.place_rounded,
                   ),
                   const SizedBox(height: 24),
-                  const _SectionTitle('Details'),
+                  _SectionTitle(l10n.details),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -133,8 +142,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                         child: _BentoTextField(
                           controller: _rentController,
                           focusNode: _rentFocus,
-                          label: 'Monthly Rent (CHF)',
-                          hint: '0.00',
+                          label: '${l10n.monthlyRent} (CHF)',
+                          hint: '',
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),
                         ),
@@ -144,8 +153,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                         child: _BentoTextField(
                           controller: _sizeController,
                           focusNode: _sizeFocus,
-                          label: 'Size (m²)',
-                          hint: '0',
+                          label: '${l10n.size} (m²)',
+                          hint: '',
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),
                         ),
@@ -158,7 +167,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     onChanged: (value) => setState(() => _rooms = value),
                   ),
                   const SizedBox(height: 24),
-                  const _SectionTitle('Amenities'),
+                  _SectionTitle(l10n.amenities),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -198,7 +207,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  const _SectionTitle('Image Upload'),
+                  _SectionTitle(l10n.addPhotos),
                   const SizedBox(height: 12),
                   _DashedUploadBox(
                     onTap: () {
@@ -206,13 +215,13 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  const _SectionTitle('Description'),
+                  _SectionTitle(l10n.description),
                   const SizedBox(height: 12),
                   _BentoTextField(
                     controller: _descriptionController,
                     focusNode: _descriptionFocus,
-                    label: 'Description',
-                    hint: 'Add a short description...',
+                    label: l10n.description,
+                    hint: '',
                     keyboardType: TextInputType.multiline,
                     minLines: 4,
                     maxLines: 6,
@@ -380,6 +389,7 @@ class _RoomsCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -389,9 +399,9 @@ class _RoomsCounter extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text(
-            'Rooms',
-            style: TextStyle(
+          Text(
+            l10n.rooms,
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -456,6 +466,7 @@ class _DashedUploadBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onTap,
       child: CustomPaint(
@@ -467,31 +478,31 @@ class _DashedUploadBox extends StatelessWidget {
             color: const Color(0xFF121421),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.cloud_upload_outlined,
                 color: Colors.white,
                 size: 28,
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Upload photos',
-                      style: TextStyle(
+                      l10n.addPhotos,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     Text(
-                      'Tap to select images or drag & drop',
-                      style: TextStyle(
+                      l10n.selectPhotosDescription,
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

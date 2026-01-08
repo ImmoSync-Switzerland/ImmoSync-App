@@ -146,7 +146,7 @@ class _Header extends StatelessWidget {
             IconButton(
               onPressed: onBack,
               icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
+                Icons.chevron_left,
                 color: Colors.white,
               ),
             ),

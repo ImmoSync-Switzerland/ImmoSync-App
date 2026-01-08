@@ -4,10 +4,10 @@ import 'package:immosync/features/auth/presentation/providers/auth_provider.dart
 import 'package:immosync/features/home/presentation/pages/bento_dashboard.dart';
 import 'package:immosync/features/home/presentation/pages/glass_dashboard_shared.dart'
     show DashboardConfig, QuickActionItem;
+import 'package:immosync/features/maintenance/presentation/providers/maintenance_providers.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 
 const String _tenantRevenueLabel = "CHF 3'250.00";
-const String _tenantOutstandingLabel = 'CHF 0.00';
 const IconData _tenantPrimaryActionIcon = Icons.payments_outlined;
 const String _tenantPrimaryActionRoute = '/payments/make';
 const bool _tenantPrimaryActionUsePush = true;
@@ -40,6 +40,18 @@ class TenantDashboard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
+
+    final maintenanceAsync = ref.watch(tenantMaintenanceRequestsProvider);
+    final outstandingLabel = maintenanceAsync.maybeWhen(
+      data: (requests) {
+        final openCount = requests.where((r) {
+          final status = r.status.toLowerCase();
+          return status == 'pending' || status == 'in_progress';
+        }).length;
+        return openCount.toString();
+      },
+      orElse: () => '0',
+    );
 
     final quickActions = <QuickActionItem>[
       QuickActionItem(
@@ -75,7 +87,7 @@ class TenantDashboard extends ConsumerWidget {
         label: l10n.payments,
         route: '/payments/history',
       ),
-      outstandingLabel: _tenantOutstandingLabel,
+      outstandingLabel: outstandingLabel,
       outstandingSubtitle: l10n.maintenance,
       outstandingAction: QuickActionItem(
         icon: Icons.build_circle_outlined,

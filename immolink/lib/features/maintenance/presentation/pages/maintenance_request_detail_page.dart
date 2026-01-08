@@ -8,6 +8,7 @@ import 'package:immosync/features/maintenance/presentation/providers/maintenance
 import 'package:immosync/features/maintenance/presentation/pages/maintenance_detail_screen.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/features/auth/presentation/providers/user_service_provider.dart';
 import '../../../../core/providers/dynamic_colors_provider.dart';
 import '../../../../core/utils/category_utils.dart';
 
@@ -23,9 +24,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final requestAsync = initialRequest != null
-        ? AsyncValue.data(initialRequest!)
-        : ref.watch(maintenanceRequestProvider(requestId));
+    final requestAsync = ref.watch(maintenanceRequestProvider(requestId));
 
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
@@ -38,38 +37,77 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       context.go('/home');
     }
 
-    return requestAsync.when(
-      data: (request) {
-        final userRole = ref.watch(userRoleProvider);
-        final canUpdateStatus = userRole == 'landlord';
+    Widget buildForRequest(MaintenanceRequest request) {
+      final userRole = ref.watch(userRoleProvider);
+      final canUpdateStatus = userRole == 'landlord';
 
-        final effectiveRequestId =
-            request.id.isNotEmpty ? request.id : requestId;
+      final tenantId = request.tenantId.trim();
+      final tenantUserAsync = tenantId.isEmpty
+          ? const AsyncValue.data(null)
+          : ref.watch(userByIdProvider(tenantId));
+      final tenantUser = tenantUserAsync.maybeWhen(
+        data: (u) => u,
+        orElse: () => null,
+      );
 
-        String? primaryLabel;
-        String? nextStatus;
-        if (canUpdateStatus && request.status == 'pending') {
-          primaryLabel = l10n.markAsInProgress;
-          nextStatus = 'in_progress';
-        } else if (canUpdateStatus && request.status == 'in_progress') {
-          primaryLabel = l10n.markAsCompleted;
-          nextStatus = 'completed';
-        }
+      final noteAuthorNameById = <String, String>{};
+      final authorIds = request.notes
+          .map((n) => n.author.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet();
 
-        return MaintenanceDetailScreen(
-          onBack: handleBack,
-          data: _toDetailData(request),
-          primaryActionLabel: primaryLabel,
-          onPrimaryActionTap: nextStatus == null
-              ? null
-              : () => _updateStatus(
-                  context, ref, effectiveRequestId, nextStatus!, colors),
-          secondaryActionLabel: l10n.addNote,
-          onSecondaryActionTap: () =>
-              _showAddNoteDialog(context, ref, effectiveRequestId, colors),
+      for (final authorId in authorIds) {
+        // If it's already an email/name-like string, don't treat it as an id.
+        if (authorId.contains('@')) continue;
+        final userAsync = ref.watch(userByIdProvider(authorId));
+        final user = userAsync.maybeWhen(
+          data: (u) => u,
+          orElse: () => null,
         );
+        final name = user?.fullName.trim();
+        if (name != null && name.isNotEmpty) {
+          noteAuthorNameById[authorId] = name;
+        }
+      }
+
+      final effectiveRequestId = request.id.isNotEmpty ? request.id : requestId;
+
+      String? primaryLabel;
+      String? nextStatus;
+      if (canUpdateStatus && request.status == 'pending') {
+        primaryLabel = l10n.markAsInProgress;
+        nextStatus = 'in_progress';
+      } else if (canUpdateStatus && request.status == 'in_progress') {
+        primaryLabel = l10n.markAsCompleted;
+        nextStatus = 'completed';
+      }
+
+      return MaintenanceDetailScreen(
+        onBack: handleBack,
+        data: _toDetailData(
+          request,
+          resolvedTenantName: tenantUser?.fullName,
+          resolvedNoteAuthorNames: noteAuthorNameById,
+        ),
+        primaryActionLabel: primaryLabel,
+        onPrimaryActionTap: nextStatus == null
+            ? null
+            : () => _updateStatus(
+                context, ref, effectiveRequestId, nextStatus!, colors),
+        secondaryActionLabel: l10n.addNote,
+        onSecondaryActionTap: () =>
+            _showAddNoteDialog(context, ref, effectiveRequestId, colors),
+      );
+    }
+
+    return requestAsync.when(
+      data: buildForRequest,
+      loading: () {
+        if (initialRequest != null) {
+          return buildForRequest(initialRequest!);
+        }
+        return MaintenanceDetailLoadingScreen(onBack: handleBack);
       },
-      loading: () => MaintenanceDetailLoadingScreen(onBack: handleBack),
       error: (error, stack) => MaintenanceDetailErrorScreen(
         onBack: handleBack,
         message: error.toString(),
@@ -77,7 +115,11 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     );
   }
 
-  static MaintenanceDetailData _toDetailData(MaintenanceRequest request) {
+  static MaintenanceDetailData _toDetailData(
+    MaintenanceRequest request, {
+    String? resolvedTenantName,
+    Map<String, String> resolvedNoteAuthorNames = const {},
+  }) {
     final statusLabel = request.statusDisplayText;
     final priorityLabel = switch (request.priority) {
       'urgent' => 'Urgent',
@@ -98,6 +140,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
       location: request.location.isNotEmpty ? request.location : '—',
       reportedLabel: DateFormat('MMM d, yyyy').format(request.requestedDate),
       tenant: _firstNonEmpty([
+        resolvedTenantName,
         request.tenantName,
         request.tenantEmail,
         request.tenantId,
@@ -110,6 +153,7 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
             (note) => MaintenanceNoteData(
               authorLabel: _firstNonEmpty([
                 note.authorName,
+                resolvedNoteAuthorNames[note.author.trim()],
                 note.author,
               ]),
               timestampLabel:
@@ -1022,129 +1066,245 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
     }
   }
 
-  void _showAddNoteDialog(BuildContext context, WidgetRef ref, String requestId,
-      DynamicAppColors colors) {
-    final TextEditingController noteController = TextEditingController();
-    final l10n = AppLocalizations.of(context)!;
-
-    showDialog(
-      context: context,
+  void _showAddNoteDialog(
+    BuildContext pageContext,
+    WidgetRef ref,
+    String requestId,
+    DynamicAppColors colors,
+  ) {
+    showModalBottomSheet<void>(
+      context: pageContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.55),
-      builder: (BuildContext context) {
-        final viewInsets = MediaQuery.viewInsetsOf(context);
+      builder: (sheetContext) {
+        return _AddNoteDialog(
+          colors: colors,
+          onSubmit: (value) =>
+              _addNote(pageContext, ref, requestId, value, colors),
+        );
+      },
+    );
+  }
+}
 
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: AnimatedPadding(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            padding: EdgeInsets.only(bottom: viewInsets.bottom),
+class _AddNoteDialog extends StatefulWidget {
+  final DynamicAppColors colors;
+  final Future<void> Function(String value) onSubmit;
+
+  const _AddNoteDialog({
+    required this.colors,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_AddNoteDialog> createState() => _AddNoteDialogState();
+}
+
+class _AddNoteDialogState extends State<_AddNoteDialog> {
+  late final TextEditingController _noteController;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _noteController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final value = _noteController.text.trim();
+    if (value.isEmpty || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSubmit(value);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } finally {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final fullHeight = MediaQuery.sizeOf(context).height;
+    // Keep the sheet height stable while typing. We avoid tying height to
+    // viewInsets so keyboard/suggestion-bar changes don't collapse the input.
+    final sheetHeight = (fullHeight * 0.56).clamp(320.0, 520.0);
+
+    final canSubmit = _noteController.text.trim().isNotEmpty && !_isSubmitting;
+
+    return SafeArea(
+      top: false,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: viewInsets.bottom),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: SizedBox(
+            height: sheetHeight,
             child: Container(
               decoration: BoxDecoration(
-                color: colors.surfaceCards,
-                borderRadius: BorderRadius.circular(22),
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: colors.textSecondary.withValues(alpha: 0.15),
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1,
                 ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black45,
+                    blurRadius: 18,
+                    offset: Offset(0, 12),
+                  ),
+                ],
               ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       l10n.addNote,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: 18,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colors.surfaceSecondary,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colors.textSecondary.withValues(alpha: 0.18),
-                        ),
-                      ),
-                      child: TextField(
-                        controller: noteController,
-                        maxLines: 4,
-                        minLines: 3,
-                        decoration: InputDecoration(
-                          hintText: l10n.enterNoteHint,
-                          hintStyle: TextStyle(
-                            color: colors.textSecondary.withValues(alpha: 0.7),
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
                           ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.all(16),
                         ),
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          height: 1.35,
+                        child: TextField(
+                          controller: _noteController,
+                          autofocus: true,
+                          expands: true,
+                          maxLines: null,
+                          minLines: null,
+                          keyboardAppearance: Brightness.dark,
+                          cursorColor: Colors.white,
+                          textInputAction: TextInputAction.send,
+                          onChanged: (_) {
+                            if (!mounted) return;
+                            setState(() {});
+                          },
+                          onSubmitted: (_) => _submit(),
+                          decoration: InputDecoration(
+                            hintText: l10n.enterNoteHint,
+                            hintStyle: const TextStyle(
+                              color: Colors.white54,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            isCollapsed: true,
+                          ),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            height: 1.4,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(
-                                color: colors.textSecondary
-                                    .withValues(alpha: 0.25),
-                              ),
-                              foregroundColor: colors.textSecondary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: Text(
-                              l10n.cancel,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                          child: Opacity(
+                            opacity: _isSubmitting ? 0.6 : 1.0,
+                            child: GestureDetector(
+                              onTap: _isSubmitting
+                                  ? null
+                                  : () => Navigator.of(context).pop(),
+                              child: Container(
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C1C1E),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.16),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    l10n.cancel,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final value = noteController.text.trim();
-                              if (value.isEmpty) return;
-
-                              await _addNote(
-                                  context, ref, requestId, value, colors);
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colors.primaryAccent,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              elevation: 0,
-                            ),
-                            child: Text(
-                              l10n.addNote,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
+                          child: Opacity(
+                            opacity: canSubmit ? 1.0 : 0.55,
+                            child: GestureDetector(
+                              onTap: canSubmit ? _submit : null,
+                              child: Container(
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF38BDF8),
+                                      Color(0xFF06B6D4)
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: _isSubmitting
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                          ),
+                                        )
+                                      : Text(
+                                          l10n.addNote,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                ),
                               ),
                             ),
                           ),
@@ -1156,97 +1316,64 @@ class MaintenanceRequestDetailPage extends ConsumerWidget {
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+}
 
-  Future<void> _addNote(BuildContext context, WidgetRef ref, String requestId,
-      String noteContent, DynamicAppColors colors) async {
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: colors.surfaceCards,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(colors.primaryAccent),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.addingNote,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
+Future<void> _addNote(
+  BuildContext context,
+  WidgetRef ref,
+  String requestId,
+  String noteContent,
+  DynamicAppColors colors,
+) async {
+  try {
+    final maintenanceService = ref.read(maintenanceServiceProvider);
+    final currentUser = ref.read(currentUserProvider);
+
+    if (currentUser?.id == null) {
+      throw Exception('User not authenticated');
+    }
+
+    await maintenanceService.addNoteToMaintenanceRequest(
+      requestId,
+      noteContent,
+      currentUser!.id,
+    );
+
+    // Refresh the maintenance request data
+    ref.invalidate(maintenanceRequestProvider(requestId));
+
+    if (context.mounted) {
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (messenger == null) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.noteAddedSuccessfully),
+          backgroundColor: colors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       );
-
-      final maintenanceService = ref.read(maintenanceServiceProvider);
-      final currentUser = ref.read(currentUserProvider);
-
-      if (currentUser?.id == null) {
-        throw Exception('User not authenticated');
-      }
-
-      await maintenanceService.addNoteToMaintenanceRequest(
-        requestId,
-        noteContent,
-        currentUser!.id,
+    }
+  } catch (e) {
+    if (context.mounted) {
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (messenger == null) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${AppLocalizations.of(context)!.failedToAddNote}: $e'),
+          backgroundColor: colors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
-
-      // Refresh the maintenance request data
-      ref.invalidate(maintenanceRequestProvider(requestId));
-
-      // Close loading dialog
-      if (context.mounted) {
-        Navigator.of(context).pop();
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.noteAddedSuccessfully),
-            backgroundColor: colors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      // Close loading dialog
-      if (context.mounted) {
-        Navigator.of(context).pop();
-
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('${AppLocalizations.of(context)!.failedToAddNote}: $e'),
-            backgroundColor: colors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
     }
   }
 }

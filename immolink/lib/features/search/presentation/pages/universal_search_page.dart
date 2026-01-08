@@ -71,7 +71,7 @@ class _UniversalSearchPageState extends ConsumerState<UniversalSearchPage>
         ),
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: Icon(Icons.arrow_back, color: colors.textPrimary),
+          icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(120),

@@ -659,7 +659,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: _textPrimary),
+          icon: const Icon(Icons.chevron_left, color: _textPrimary, size: 32),
           onPressed: () {
             if (Navigator.of(context).canPop()) {
               context.pop();
@@ -1002,7 +1002,7 @@ class _PaymentHistoryPageState extends ConsumerState<PaymentHistoryPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
-            Icons.arrow_back_ios_rounded,
+            Icons.chevron_left,
             color: _textPrimary,
             size: 20,
           ),

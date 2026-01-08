@@ -113,7 +113,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                         IconButton(
                           onPressed: _handleBack,
                           icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
+                            Icons.chevron_left,
                             color: Colors.white,
                             size: 20,
                           ),

@@ -21,7 +21,7 @@ class OutstandingPaymentsPage extends ConsumerWidget {
         title: '',
         showNotification: false,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+          icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
           onPressed: () => context.pop(),
         ),
       ),

@@ -85,6 +85,7 @@
   "rent": "Loyer",
   "available": "Disponible",
   "occupied": "Occupé",
+  "vacant": "Vacant",
   "maintenance": "Maintenance",
   "area": "Surface",
   "mapNotAvailable": "Carte non disponible",
@@ -163,6 +164,20 @@
   "noConversationsYet": "Aucune conversation pour le moment",
   "tryAdjustingSearch": "Essayez d'ajuster vos termes de recherche",
   "startConversation": "Commencez une conversation avec vos propriétés",
+  "conversation": "Conversation",
+  "applicant": "Candidat",
+  "from": "De",
+  "sentTo": "Envoyé à",
+  "noInvitations": "Aucune invitation",
+  "errorLoadingInvitations": "Erreur lors du chargement des invitations",
+  "applicationFor": "Candidature pour {property}",
+  "@applicationFor": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      }
+    }
+  },
   "newConversation": "Nouvelle conversation",
   "propertySelectionMessage": "La sélection de propriétés sera implémentée avec l'intégration de base de données",
   "create": "Créer",
@@ -1046,6 +1061,12 @@
   ,"totalRequests": "Demandes totales"
   ,"revenueAnalytics": "Analyses des revenus"
   ,"revenueChartComingSoon": "Graphique des revenus bientôt disponible"
+  ,"paymentsOverTimeTitle": "Paiements au fil du temps"
+  ,"paymentsOverTimeSubtitle": "Paiements au fil du temps"
+  ,"revenueTrendsTitle": "Évolution des revenus"
+  ,"revenueTrendsSubtitle": "Revenus au fil du temps"
+  ,"failedToLoadPayments": "Impossible de charger les paiements"
+  ,"failedToLoadProperties": "Impossible de charger les propriétés"
   ,"thisWeek": "Cette semaine"
   ,"thisMonth": "Ce mois-ci"
   ,"thisQuarter": "Ce trimestre"
@@ -1053,6 +1074,10 @@
   ,"reportPeriod": "Période du rapport"
   ,"financialSummary": "Résumé financier"
   ,"totalIncome": "Revenu total"
+  ,"income": "Revenus"
+  ,"paid": "Payé"
+  ,"rentedObjects": "Biens loués"
+  ,"leases": "Baux"
   ,"paymentSummary": "Résumé des paiements"
   ,"dashboardComponentsRequireBrowser": "Les composants du tableau de bord nécessitent un navigateur web"
   ,"dashboardAvailableOnWeb": "Tableau de bord disponible sur le web"

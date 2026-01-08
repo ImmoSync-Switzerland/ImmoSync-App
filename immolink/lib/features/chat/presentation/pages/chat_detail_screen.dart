@@ -7,8 +7,15 @@ import 'package:immosync/core/widgets/user_avatar.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
 import 'package:immosync/features/chat/domain/models/chat_message.dart';
 import 'package:immosync/features/chat/presentation/providers/messages_provider.dart';
+import 'package:immosync/features/chat/presentation/providers/chat_provider.dart';
 import 'package:immosync/core/presence/presence_ws_service.dart';
 import 'package:immosync/l10n/app_localizations.dart';
+
+enum _ChatMenuAction {
+  reportUser,
+  blockUser,
+  deleteConversation,
+}
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   const ChatDetailScreen({
@@ -80,6 +87,151 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
       return authUserId;
     }
     return 'unknown-user';
+  }
+
+  Future<bool> _confirmAction({
+    required String title,
+    required String body,
+    required String confirmLabel,
+    bool destructive = false,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: _inputDock,
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          content: Text(
+            body,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(
+                confirmLabel,
+                style: TextStyle(
+                  color: destructive ? Colors.redAccent : Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
+
+  void _showSnack(String text) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+    messenger.showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  Future<void> _handleMenuAction(_ChatMenuAction action) async {
+    final l10n = AppLocalizations.of(context)!;
+    final me = _resolveCurrentUserId();
+    final other = widget.otherUserId;
+    final convId = widget.conversationId;
+
+    final chatService = ref.read(chatServiceProvider);
+
+    try {
+      switch (action) {
+        case _ChatMenuAction.reportUser:
+          if (me == 'unknown-user') {
+            _showSnack(l10n.mustBeLoggedInToReport);
+            return;
+          }
+          if (convId == 'new') {
+            _showSnack(l10n.missingRecipientForNewChat);
+            return;
+          }
+          final ok = await _confirmAction(
+            title: l10n.reportConversation,
+            body: l10n.reportConfirmBody,
+            confirmLabel: l10n.report,
+          );
+          if (!ok) return;
+
+          await chatService.reportConversation(
+            conversationId: convId,
+            reporterId: me,
+            reportedUserId: (other != null && other.isNotEmpty) ? other : null,
+            reason: 'user_report',
+          );
+          if (!mounted) return;
+          _showSnack(l10n.reported);
+          return;
+
+        case _ChatMenuAction.blockUser:
+          if (other == null || other.isEmpty) {
+            _showSnack(l10n.missingRecipientForNewChat);
+            return;
+          }
+          final ok = await _confirmAction(
+            title: l10n.blockUser,
+            body: l10n.blockConfirmBody,
+            confirmLabel: l10n.blockUser,
+            destructive: true,
+          );
+          if (!ok) return;
+
+          await chatService.blockUser(userId: me, targetUserId: other);
+          if (!mounted) return;
+          _showSnack(l10n.userBlockedSuccessfully);
+          return;
+
+        case _ChatMenuAction.deleteConversation:
+          if (convId == 'new') {
+            if (!mounted) return;
+            context.pop();
+            return;
+          }
+          final ok = await _confirmAction(
+            title: l10n.deleteConversation,
+            body: l10n.deleteConversationConfirmBody,
+            confirmLabel: l10n.deleteConversation,
+            destructive: true,
+          );
+          if (!ok) return;
+
+          final token = ref.read(authProvider).sessionToken;
+          await chatService.deleteConversationWithToken(convId, token);
+          if (!mounted) return;
+          _showSnack(l10n.conversationDeletedSuccessfully);
+          context.pop();
+          return;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      switch (action) {
+        case _ChatMenuAction.reportUser:
+          _showSnack(l10n.failedToReportConversation(e.toString()));
+          return;
+        case _ChatMenuAction.blockUser:
+          _showSnack(l10n.failedToBlockUser(e.toString()));
+          return;
+        case _ChatMenuAction.deleteConversation:
+          _showSnack(l10n.failedToDeleteConversation(e.toString()));
+          return;
+      }
+    }
   }
 
   Future<void> _send() async {
@@ -168,6 +320,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
               title: widget.title,
               status: widget.status,
               avatarUrl: widget.avatarUrl,
+              onMenuAction: _handleMenuAction,
               onBack: () {
                 if (context.canPop()) {
                   context.pop();
@@ -269,12 +422,14 @@ class _GlassHeader extends ConsumerWidget {
     required this.title,
     required this.status,
     required this.onBack,
+    required this.onMenuAction,
     this.avatarUrl,
   });
 
   final String title;
   final String status;
   final VoidCallback onBack;
+  final ValueChanged<_ChatMenuAction> onMenuAction;
   final String? avatarUrl;
 
   @override
@@ -300,7 +455,7 @@ class _GlassHeader extends ConsumerWidget {
                 IconButton(
                   onPressed: onBack,
                   icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    Icons.chevron_left,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -351,11 +506,27 @@ class _GlassHeader extends ConsumerWidget {
                   icon: const Icon(Icons.phone_rounded, color: Colors.white70),
                   tooltip: l10n.call,
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.more_vert_rounded,
-                      color: Colors.white70),
+                PopupMenuButton<_ChatMenuAction>(
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    color: Colors.white70,
+                  ),
                   tooltip: l10n.more,
+                  onSelected: onMenuAction,
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _ChatMenuAction.reportUser,
+                      child: Text(l10n.reportConversation),
+                    ),
+                    PopupMenuItem(
+                      value: _ChatMenuAction.blockUser,
+                      child: Text(l10n.blockUser),
+                    ),
+                    PopupMenuItem(
+                      value: _ChatMenuAction.deleteConversation,
+                      child: Text(l10n.deleteConversation),
+                    ),
+                  ],
                 ),
               ],
             ),

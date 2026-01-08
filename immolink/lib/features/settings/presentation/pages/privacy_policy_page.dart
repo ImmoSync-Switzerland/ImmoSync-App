@@ -127,8 +127,8 @@ class _PrivacyPolicyPageState extends ConsumerState<PrivacyPolicyPage> {
                 fontSize: 18,
                 fontWeight: FontWeight.w600)),
         leading: IconButton(
-            icon:
-                const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+            icon: const Icon(Icons.chevron_left,
+                color: AppColors.textPrimary, size: 32),
             onPressed: () => context.pop()),
         actions: [
           IconButton(

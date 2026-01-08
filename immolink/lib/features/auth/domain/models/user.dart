@@ -4,6 +4,7 @@ class User {
   final String id;
   final String email;
   final String fullName;
+  final String? phone;
   final DateTime birthDate;
   final String role;
   final bool isAdmin;
@@ -21,6 +22,7 @@ class User {
     required this.id,
     required this.email,
     required this.fullName,
+    this.phone,
     required this.birthDate,
     required this.role,
     required this.isAdmin,
@@ -85,6 +87,11 @@ class User {
       id: userId,
       email: _asString(map['email']),
       fullName: _asString(map['fullName']),
+      phone: (() {
+        final raw = map['phone'] ?? map['phoneNumber'] ?? map['mobile'];
+        final s = _asString(raw).trim();
+        return s.isEmpty ? null : s;
+      })(),
       birthDate: _asDate(map['birthDate']),
       role: _asString(map['role']),
       isAdmin: _asBool(map['isAdmin']),
@@ -110,6 +117,7 @@ class User {
       '_id': id,
       'email': email,
       'fullName': fullName,
+      if (phone != null) 'phone': phone,
       'birthDate': birthDate.toIso8601String(),
       'role': role,
       'isAdmin': isAdmin,
@@ -127,6 +135,7 @@ class User {
     String? id,
     String? email,
     String? fullName,
+    String? phone,
     DateTime? birthDate,
     String? role,
     bool? isAdmin,
@@ -142,6 +151,7 @@ class User {
       id: id ?? this.id,
       email: email ?? this.email,
       fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
       birthDate: birthDate ?? this.birthDate,
       role: role ?? this.role,
       isAdmin: isAdmin ?? this.isAdmin,

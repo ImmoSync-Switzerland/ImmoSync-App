@@ -146,7 +146,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                             }
                           },
                           icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
+                            Icons.chevron_left,
                             color: Colors.white,
                             size: 20,
                           ),

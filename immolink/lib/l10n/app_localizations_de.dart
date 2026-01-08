@@ -39,7 +39,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get messages => 'Nachrichten';
 
   @override
-  String get reports => 'Berichte';
+  String get reports => 'Bericht';
 
   @override
   String get profile => 'Profil';
@@ -247,6 +247,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get occupied => 'Belegt';
+
+  @override
+  String get vacant => 'Leer';
 
   @override
   String get maintenance => 'Wartung';
@@ -499,6 +502,29 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get startConversation =>
       'Beginnen Sie eine Unterhaltung mit Ihren Immobilien';
+
+  @override
+  String get conversation => 'Unterhaltung';
+
+  @override
+  String get applicant => 'Bewerber';
+
+  @override
+  String get from => 'Von';
+
+  @override
+  String get sentTo => 'Gesendet an';
+
+  @override
+  String get noInvitations => 'Keine Einladungen';
+
+  @override
+  String get errorLoadingInvitations => 'Fehler beim Laden der Einladungen';
+
+  @override
+  String applicationFor(String property) {
+    return 'Bewerbung für $property';
+  }
 
   @override
   String get newConversation => 'Neue Unterhaltung';
@@ -2737,6 +2763,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get totalPaid => 'Gesamt bezahlt';
 
   @override
+  String get paid => 'Bezahlt';
+
+  @override
   String get totalPayments => 'Gesamtzahlungen';
 
   @override
@@ -2755,6 +2784,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get thisMonth => 'Diesen Monat';
 
   @override
+  String get paymentsOverTimeTitle => 'Zahlungen im Zeitverlauf';
+
+  @override
+  String get paymentsOverTimeSubtitle => 'Zahlungen im Zeitverlauf';
+
+  @override
+  String get revenueTrendsTitle => 'Einnahmenentwicklung';
+
+  @override
+  String get revenueTrendsSubtitle => 'Einnahmen im Zeitverlauf';
+
+  @override
+  String get failedToLoadPayments => 'Zahlungen konnten nicht geladen werden';
+
+  @override
+  String get failedToLoadProperties =>
+      'Immobilien konnten nicht geladen werden';
+
+  @override
   String get thisQuarter => 'Dieses Quartal';
 
   @override
@@ -2770,7 +2818,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get totalIncome => 'Gesamte Einnahmen';
 
   @override
+  String get income => 'Einnahmen';
+
+  @override
   String get paymentSummary => 'Zahlungsübersicht';
+
+  @override
+  String get rentedObjects => 'Vermietete Objekte';
+
+  @override
+  String get leases => 'Mietverträge';
 
   @override
   String get dashboardComponentsRequireBrowser =>

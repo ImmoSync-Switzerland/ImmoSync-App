@@ -113,7 +113,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 alignment: Alignment.centerLeft,
                                 child: IconButton(
                                   onPressed: () => context.pop(),
-                                  icon: const Icon(Icons.arrow_back_rounded),
+                                  icon:
+                                      const Icon(Icons.chevron_left, size: 32),
                                   color: Colors.white70,
                                   tooltip: MaterialLocalizations.of(context)
                                       .backButtonTooltip,

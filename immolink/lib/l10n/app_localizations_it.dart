@@ -39,7 +39,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get messages => 'Messaggi';
 
   @override
-  String get reports => 'Rapporti';
+  String get reports => 'Report';
 
   @override
   String get profile => 'Profilo';
@@ -247,6 +247,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get occupied => 'Occupato';
+
+  @override
+  String get vacant => 'Libero';
 
   @override
   String get maintenance => 'Manutenzione';
@@ -496,6 +499,29 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get startConversation =>
       'Inizia una conversazione con le tue proprietà';
+
+  @override
+  String get conversation => 'Conversazione';
+
+  @override
+  String get applicant => 'Candidato';
+
+  @override
+  String get from => 'Da';
+
+  @override
+  String get sentTo => 'Inviato a';
+
+  @override
+  String get noInvitations => 'Nessun invito';
+
+  @override
+  String get errorLoadingInvitations => 'Errore nel caricamento degli inviti';
+
+  @override
+  String applicationFor(String property) {
+    return 'Candidatura per $property';
+  }
 
   @override
   String get newConversation => 'Nuova conversazione';
@@ -2722,6 +2748,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get totalPaid => 'Totale pagato';
 
   @override
+  String get paid => 'Pagato';
+
+  @override
   String get totalPayments => 'Pagamenti totali';
 
   @override
@@ -2740,6 +2769,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get thisMonth => 'Questo mese';
 
   @override
+  String get paymentsOverTimeTitle => 'Pagamenti nel tempo';
+
+  @override
+  String get paymentsOverTimeSubtitle => 'Pagamenti nel tempo';
+
+  @override
+  String get revenueTrendsTitle => 'Andamento entrate';
+
+  @override
+  String get revenueTrendsSubtitle => 'Entrate nel tempo';
+
+  @override
+  String get failedToLoadPayments => 'Impossibile caricare i pagamenti';
+
+  @override
+  String get failedToLoadProperties => 'Impossibile caricare le proprietà';
+
+  @override
   String get thisQuarter => 'Questo trimestre';
 
   @override
@@ -2755,7 +2802,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get totalIncome => 'Entrate totali';
 
   @override
+  String get income => 'Entrate';
+
+  @override
   String get paymentSummary => 'Riepilogo pagamenti';
+
+  @override
+  String get rentedObjects => 'Immobili affittati';
+
+  @override
+  String get leases => 'Contratti di locazione';
 
   @override
   String get dashboardComponentsRequireBrowser =>

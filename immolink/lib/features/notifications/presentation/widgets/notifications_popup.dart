@@ -285,7 +285,7 @@ class _HeaderBar extends StatelessWidget {
             visualDensity: VisualDensity.compact,
             onPressed: () => _handleBack(context),
             icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
+              Icons.chevron_left,
               size: 18,
               color: theme.colorScheme.onSurface,
             ),

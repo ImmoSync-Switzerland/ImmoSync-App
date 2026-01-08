@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
@@ -38,26 +40,75 @@ class _EmailInviteTenantDialogState
     final colors = ref.watch(dynamicColorsProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: colors.surfaceCards,
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(l10n, colors),
-              const SizedBox(height: 24),
-              _buildEmailField(l10n, colors),
-              const SizedBox(height: 16),
-              _buildMessageField(l10n, colors),
-              const SizedBox(height: 24),
-              _buildActionButtons(l10n, colors),
+    // Most of the app uses a dark glass/bento visual style.
+    // Ensure this dialog matches that look even if the effective theme is light.
+    final palette = colors.isDark ? colors : DynamicAppColors(isDark: true);
+
+    final media = MediaQuery.of(context);
+    final keyboardInset = media.viewInsets.bottom;
+    final maxHeight = media.size.height * 0.82;
+
+    return MediaQuery.removeViewInsets(
+      context: context,
+      removeBottom: true,
+      child: Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: palette.shadowColorMedium,
+                blurRadius: 24,
+                offset: const Offset(0, 16),
+              ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: palette.overlayBackground,
+                  border: Border.all(
+                    color: palette.overlayWhite.withValues(alpha: 0.14),
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: maxHeight,
+                    minWidth: media.size.width * 0.90,
+                  ),
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding:
+                        EdgeInsets.fromLTRB(24, 24, 24, 24 + keyboardInset),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(l10n, palette),
+                          const SizedBox(height: 20),
+                          _buildEmailField(l10n, palette),
+                          const SizedBox(height: 14),
+                          _buildMessageField(l10n, palette),
+                          const SizedBox(height: 20),
+                          _buildActionButtons(l10n, palette),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -78,7 +129,7 @@ class _EmailInviteTenantDialogState
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Mieter per E-Mail einladen',
+                l10n.inviteTenant,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -94,11 +145,14 @@ class _EmailInviteTenantDialogState
         ),
         const SizedBox(height: 8),
         Text(
-          'Laden Sie einen Mieter über seine E-Mail-Adresse ein. Er erhält eine Benachrichtigung und kann die Einladung in der App akzeptieren.',
+          l10n.howToInviteTenantAnswer,
           style: TextStyle(
             color: colors.textSecondary,
-            fontSize: 14,
+            fontSize: 13,
+            height: 1.25,
           ),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -109,7 +163,7 @@ class _EmailInviteTenantDialogState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'E-Mail-Adresse des Mieters',
+          l10n.email,
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.w600,
@@ -120,20 +174,23 @@ class _EmailInviteTenantDialogState
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
           style: TextStyle(color: colors.textPrimary),
           decoration: InputDecoration(
             hintText: 'mieter@beispiel.de',
-            hintStyle: TextStyle(color: colors.textSecondary),
+            hintStyle: TextStyle(color: colors.textPlaceholder),
             prefixIcon: Icon(Icons.email, color: colors.primaryAccent),
             filled: true,
-            fillColor: colors.primaryBackground,
+            fillColor: colors.overlayWhite.withValues(alpha: 0.06),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colors.borderLight),
+              borderSide: BorderSide(
+                  color: colors.overlayWhite.withValues(alpha: 0.14)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colors.borderLight),
+              borderSide: BorderSide(
+                  color: colors.overlayWhite.withValues(alpha: 0.14)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -146,10 +203,10 @@ class _EmailInviteTenantDialogState
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Bitte geben Sie eine E-Mail-Adresse ein';
+              return l10n.pleaseEnterYourEmail;
             }
             if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-              return 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
+              return l10n.pleaseEnterValidEmail;
             }
             return null;
           },
@@ -163,7 +220,7 @@ class _EmailInviteTenantDialogState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Persönliche Nachricht (optional)',
+          l10n.message,
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.w600,
@@ -174,20 +231,23 @@ class _EmailInviteTenantDialogState
         TextFormField(
           controller: _messageController,
           maxLines: 3,
+          textInputAction: TextInputAction.newline,
           style: TextStyle(color: colors.textPrimary),
           decoration: InputDecoration(
-            hintText: 'Fügen Sie eine persönliche Nachricht hinzu...',
-            hintStyle: TextStyle(color: colors.textSecondary),
+            hintText: l10n.typeMessage,
+            hintStyle: TextStyle(color: colors.textPlaceholder),
             prefixIcon: Icon(Icons.message, color: colors.primaryAccent),
             filled: true,
-            fillColor: colors.primaryBackground,
+            fillColor: colors.overlayWhite.withValues(alpha: 0.06),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colors.borderLight),
+              borderSide: BorderSide(
+                  color: colors.overlayWhite.withValues(alpha: 0.14)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colors.borderLight),
+              borderSide: BorderSide(
+                  color: colors.overlayWhite.withValues(alpha: 0.14)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -206,16 +266,17 @@ class _EmailInviteTenantDialogState
           child: OutlinedButton(
             onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: colors.borderLight),
+              side: BorderSide(
+                  color: colors.overlayWhite.withValues(alpha: 0.14)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
             child: Text(
-              'Abbrechen',
+              l10n.cancel,
               style: TextStyle(
-                color: colors.textSecondary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -227,7 +288,7 @@ class _EmailInviteTenantDialogState
             onPressed: _isLoading ? null : _sendInvitation,
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryAccent,
-              foregroundColor: Colors.white,
+              foregroundColor: colors.textOnAccent,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -243,9 +304,9 @@ class _EmailInviteTenantDialogState
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text(
-                    'Einladung senden',
-                    style: TextStyle(
+                : Text(
+                    l10n.inviteTenant,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -293,14 +354,18 @@ class _EmailInviteTenantDialogState
       final success = await _sendEmailInvitation(invitationData);
 
       if (success && mounted) {
+        final colors = ref.read(dynamicColorsProvider);
+        final palette = colors.isDark ? colors : DynamicAppColors(isDark: true);
+        final l10n = AppLocalizations.of(context)!;
+
         // Invalidate providers to refresh the UI
         ref.invalidate(userInvitationsProvider);
 
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Einladung erfolgreich gesendet!'),
-            backgroundColor: Colors.green,
+            content: Text(l10n.invitationSentSuccessfully),
+            backgroundColor: palette.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -310,10 +375,13 @@ class _EmailInviteTenantDialogState
       }
     } catch (error) {
       if (mounted) {
+        final colors = ref.read(dynamicColorsProvider);
+        final palette = colors.isDark ? colors : DynamicAppColors(isDark: true);
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Fehler beim Senden der Einladung: $error'),
-            backgroundColor: Colors.red,
+            content: Text('${l10n.failedToSendInvitation}: $error'),
+            backgroundColor: palette.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

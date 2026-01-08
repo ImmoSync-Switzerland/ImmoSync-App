@@ -14,6 +14,12 @@ import 'package:immosync/features/property/presentation/providers/property_provi
 import 'package:immosync/core/theme/app_typography.dart';
 import 'package:immosync/l10n/app_localizations.dart';
 
+enum _ReportPeriod { week, month, quarter, year }
+
+final _reportPeriodProvider = StateProvider<_ReportPeriod>(
+  (ref) => _ReportPeriod.month,
+);
+
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
 
@@ -26,6 +32,9 @@ class ReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeName = Localizations.localeOf(context).toString();
+    final period = ref.watch(_reportPeriodProvider);
     final userRole = ref.watch(userRoleProvider);
     final isTenant = userRole == 'tenant';
 
@@ -36,18 +45,24 @@ class ReportsScreen extends ConsumerWidget {
 
     return paymentsAsync.when(
       loading: () => const _ReportsScaffold(body: _CenteredLoader()),
-      error: (e, st) => const _ReportsScaffold(
-        body: _ErrorState(message: 'Failed to load payments'),
+      error: (e, st) => _ReportsScaffold(
+        body: _ErrorState(message: l10n.failedToLoadPayments),
       ),
       data: (payments) {
         return propertiesAsync.when(
           loading: () => const _ReportsScaffold(body: _CenteredLoader()),
-          error: (e, st) => const _ReportsScaffold(
-            body: _ErrorState(message: 'Failed to load properties'),
+          error: (e, st) => _ReportsScaffold(
+            body: _ErrorState(message: l10n.failedToLoadProperties),
           ),
           data: (properties) {
             final derived = _ReportData.from(
-                payments: payments, properties: properties, isTenant: isTenant);
+              payments: payments,
+              properties: properties,
+              isTenant: isTenant,
+              l10n: l10n,
+              localeName: localeName,
+              period: period,
+            );
             return _ReportsScaffold(
               body: _ReportsBody(data: derived, isTenant: isTenant),
             );
@@ -107,38 +122,79 @@ class _ReportsBody extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header({required this.isTenant});
 
   final bool isTenant;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final period = ref.watch(_reportPeriodProvider);
+
+    String periodLabel;
+    switch (period) {
+      case _ReportPeriod.week:
+        periodLabel = l10n.thisWeek;
+      case _ReportPeriod.month:
+        periodLabel = l10n.thisMonth;
+      case _ReportPeriod.quarter:
+        periodLabel = l10n.thisQuarter;
+      case _ReportPeriod.year:
+        periodLabel = l10n.thisYear;
+    }
+
     return Row(
       children: [
         Text(
-          isTenant ? 'My Reports' : 'Analytics',
+          l10n.reports,
           style: AppTypography.pageTitle.copyWith(color: Colors.white),
         ),
         const Spacer(),
-        const _BentoCard(
-          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.calendar_today, size: 16, color: Colors.white70),
-              SizedBox(width: 8),
-              Text(
-                'This Month',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+        PopupMenuButton<_ReportPeriod>(
+          initialValue: period,
+          onSelected: (value) {
+            ref.read(_reportPeriodProvider.notifier).state = value;
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: _ReportPeriod.week,
+              child: Text(l10n.thisWeek),
+            ),
+            PopupMenuItem(
+              value: _ReportPeriod.month,
+              child: Text(l10n.thisMonth),
+            ),
+            PopupMenuItem(
+              value: _ReportPeriod.quarter,
+              child: Text(l10n.thisQuarter),
+            ),
+            PopupMenuItem(
+              value: _ReportPeriod.year,
+              child: Text(l10n.thisYear),
+            ),
+          ],
+          child: _BentoCard(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.calendar_today,
+                    size: 16, color: Colors.white70),
+                const SizedBox(width: 8),
+                Text(
+                  periodLabel,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-              SizedBox(width: 6),
-              Icon(Icons.keyboard_arrow_down, size: 18, color: Colors.white70),
-            ],
+                const SizedBox(width: 6),
+                const Icon(Icons.keyboard_arrow_down,
+                    size: 18, color: Colors.white70),
+              ],
+            ),
           ),
         ),
       ],
@@ -154,6 +210,7 @@ class _RevenueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final months = data.monthLabels;
     final revenue = data.values;
     final maxRevenue = revenue.isEmpty
@@ -169,7 +226,7 @@ class _RevenueCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isTenant ? 'Payments Over Time' : 'Revenue Trends',
+                isTenant ? l10n.paymentsOverTimeTitle : l10n.revenueTrendsTitle,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
@@ -181,7 +238,9 @@ class _RevenueCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            isTenant ? 'Payments over time' : 'Revenue over time',
+            isTenant
+                ? l10n.paymentsOverTimeSubtitle
+                : l10n.revenueTrendsSubtitle,
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 12,
@@ -347,6 +406,7 @@ class _OccupancyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final occupancy = data.percent;
 
     return _BentoCard(
@@ -363,9 +423,9 @@ class _OccupancyCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Overview',
-                  style: TextStyle(
+                Text(
+                  l10n.overview,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -373,17 +433,17 @@ class _OccupancyCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _OccupancyLine(
-                    label: isTenant ? 'Leases' : 'Occupied',
+                    label: isTenant ? l10n.leases : l10n.occupied,
                     value: data.occupied.toString(),
                     color: Colors.white),
                 const SizedBox(height: 8),
                 _OccupancyLine(
-                    label: isTenant ? 'Other' : 'Vacant',
+                    label: isTenant ? l10n.other : l10n.vacant,
                     value: data.vacant.toString(),
                     color: Colors.white70),
                 const SizedBox(height: 8),
                 _OccupancyLine(
-                    label: 'Total',
+                    label: l10n.total,
                     value: data.total.toString(),
                     color: Colors.white54),
               ],
@@ -523,22 +583,32 @@ class _ReportData {
   factory _ReportData.from(
       {required List<Payment> payments,
       required List<Property> properties,
-      required bool isTenant}) {
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    final now = DateTime.now();
+      required bool isTenant,
+      required AppLocalizations l10n,
+      required String localeName,
+      required _ReportPeriod period,
+      DateTime? nowOverride}) {
+    final now = nowOverride ?? DateTime.now();
+
+    DateTime start;
+    switch (period) {
+      case _ReportPeriod.week:
+        // Week start (Mon) in local time.
+        final startOfDay = DateTime(now.year, now.month, now.day);
+        start = startOfDay.subtract(Duration(days: startOfDay.weekday - 1));
+      case _ReportPeriod.month:
+        start = DateTime(now.year, now.month, 1);
+      case _ReportPeriod.quarter:
+        final quarterStartMonth = ((now.month - 1) ~/ 3) * 3 + 1;
+        start = DateTime(now.year, quarterStartMonth, 1);
+      case _ReportPeriod.year:
+        start = DateTime(now.year, 1, 1);
+    }
+
+    final filteredPayments = payments
+        .where((p) => !p.date.isBefore(start) && !p.date.isAfter(now))
+        .toList();
+
     final months = List<DateTime>.generate(
       7,
       (i) => DateTime(now.year, now.month - (6 - i), 1),
@@ -551,7 +621,7 @@ class _ReportData {
     final revenueBuckets = List<double>.filled(months.length, 0);
     double incomeTotal = 0;
     double pendingTotal = 0;
-    for (final payment in payments) {
+    for (final payment in filteredPayments) {
       if (payment.status == 'completed') {
         incomeTotal += payment.amount;
         final key = '${payment.date.year}-${payment.date.month}';
@@ -575,7 +645,8 @@ class _ReportData {
         properties.fold<double>(0, (sum, p) => sum + p.outstandingPayments);
 
     final revenueData = _RevenueData(
-      monthLabels: months.map((m) => monthNames[m.month - 1]).toList(),
+      monthLabels:
+          months.map((m) => DateFormat.MMM(localeName).format(m)).toList(),
       values: revenueBuckets,
     );
 
@@ -584,28 +655,28 @@ class _ReportData {
             _MetricCardData(
               icon: Icons.check_circle_rounded,
               iconColor: const Color(0xFF22C55E),
-              label: 'Paid',
+              label: l10n.paid,
               value: _formatCurrency(incomeTotal),
               valueColor: Colors.white,
             ),
             _MetricCardData(
               icon: Icons.access_time_filled_rounded,
               iconColor: const Color(0xFFF97316),
-              label: 'Pending',
+              label: l10n.pending,
               value: _formatCurrency(pendingTotal),
               valueColor: const Color(0xFFF97316),
             ),
             _MetricCardData(
               icon: Icons.account_balance_wallet_rounded,
               iconColor: const Color(0xFFEF4444),
-              label: 'Outstanding',
+              label: l10n.outstanding,
               value: _formatCurrency(outstandingTotal),
               valueColor: Colors.white,
             ),
             _MetricCardData(
               icon: Icons.home_work_rounded,
               iconColor: const Color(0xFF38BDF8),
-              label: 'Rented Objects',
+              label: l10n.rentedObjects,
               value: totalUnits.toString(),
               valueColor: Colors.white,
             ),
@@ -614,28 +685,28 @@ class _ReportData {
             _MetricCardData(
               icon: Icons.arrow_upward_rounded,
               iconColor: const Color(0xFF22C55E),
-              label: 'Income',
+              label: l10n.income,
               value: _formatCurrency(incomeTotal),
               valueColor: Colors.white,
             ),
             _MetricCardData(
               icon: Icons.access_time_filled_rounded,
               iconColor: const Color(0xFFF97316),
-              label: 'Pending',
+              label: l10n.pending,
               value: _formatCurrency(pendingTotal),
               valueColor: const Color(0xFFF97316),
             ),
             _MetricCardData(
               icon: Icons.home_work_rounded,
               iconColor: const Color(0xFF38BDF8),
-              label: 'Occupancy',
+              label: l10n.occupancy,
               value: '${(occupancyPercent * 100).toStringAsFixed(0)}%',
               valueColor: Colors.white,
             ),
             _MetricCardData(
               icon: Icons.trending_down_rounded,
               iconColor: const Color(0xFFEF4444),
-              label: 'Expenses',
+              label: l10n.expenses,
               value: _formatCurrency(outstandingTotal),
               valueColor: Colors.white,
             ),

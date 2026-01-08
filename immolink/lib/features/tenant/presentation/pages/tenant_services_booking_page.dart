@@ -125,7 +125,11 @@ class _TenantServicesBookingPageState
         backgroundColor: colors.surfaceCards.withValues(alpha: 0.95),
         foregroundColor: colors.textPrimary,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // Android: White icons
+          statusBarBrightness: Brightness.dark, // iOS: White icons
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(

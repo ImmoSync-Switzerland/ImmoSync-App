@@ -304,15 +304,69 @@ class ChatService {
           // Give brief moment for sync to start
           await Future.delayed(const Duration(seconds: 2));
         } catch (e) {
+          final msg = e.toString();
           print(
               '[ChatService.ensureMatrixReady] Matrix client init/login failed: $e');
-          if (required) {
-            throw Exception('Matrix Login fehlgeschlagen: $e');
+
+          // If backend stored a stale password, Matrix will return M_FORBIDDEN.
+          // In that case, re-provision credentials and retry once.
+          final isForbidden = msg.contains('M_FORBIDDEN') ||
+              msg.contains('Invalid username or password');
+          if (!required && isForbidden) {
+            try {
+              print(
+                  '[ChatService.ensureMatrixReady] 🔁 Login forbidden - re-provisioning Matrix credentials and retrying');
+              final provisionUrl = '$_apiUrl/matrix/provision';
+              final provisionResp = await http
+                  .post(
+                    Uri.parse(provisionUrl),
+                    headers: headers,
+                    body: json.encode({'userId': userId}),
+                  )
+                  .timeout(const Duration(seconds: 20));
+
+              if (provisionResp.statusCode != 200 &&
+                  provisionResp.statusCode != 201) {
+                throw Exception(
+                    'Provision failed (${provisionResp.statusCode}): ${provisionResp.body}');
+              }
+
+              final provisionData = json.decode(provisionResp.body);
+              final newMxid = provisionData['username']?.toString() ??
+                  provisionData['userId']?.toString();
+              final newPassword = provisionData['password']?.toString();
+              if (newMxid == null ||
+                  newMxid.isEmpty ||
+                  newPassword == null ||
+                  newPassword.isEmpty) {
+                throw Exception(
+                    'Provision returned missing credentials: $provisionData');
+              }
+
+              mxid = newMxid;
+              password = newPassword;
+
+              print(
+                  '[ChatService.ensureMatrixReady] Retrying password login for: $mxid');
+              await mobileClient.login(mxid, password);
+              print(
+                  '[ChatService.ensureMatrixReady] Mobile Matrix client ready');
+              await Future.delayed(const Duration(seconds: 2));
+            } catch (e2) {
+              print(
+                  '[ChatService.ensureMatrixReady] Re-provision retry failed: $e2');
+              clientState.value = MatrixClientState.error;
+              return;
+            }
           } else {
-            print(
-                '[ChatService.ensureMatrixReady] Matrix not available but not required - chat will work without E2EE');
-            clientState.value = MatrixClientState.error;
-            return;
+            if (required) {
+              throw Exception('Matrix Login fehlgeschlagen: $e');
+            } else {
+              print(
+                  '[ChatService.ensureMatrixReady] Matrix not available but not required - chat will work without E2EE');
+              clientState.value = MatrixClientState.error;
+              return;
+            }
           }
         }
       }

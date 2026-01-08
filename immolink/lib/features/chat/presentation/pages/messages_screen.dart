@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:immosync/core/theme/app_typography.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/core/widgets/user_avatar.dart';
@@ -16,15 +17,6 @@ import 'package:immosync/features/chat/presentation/providers/invitation_provide
 
 const _segmentMessages = 'messages';
 const _segmentInvitations = 'invitations';
-
-const _titleMessages = 'Messages';
-const _titleInvitations = 'Invitations';
-const _searchHint = 'Search conversations';
-const _labelAllMessages = 'All Messages';
-const _labelInvitations = 'Invitations';
-const _labelApplicationFor = 'Application for';
-const _labelAccept = 'Accept';
-const _labelDecline = 'Decline';
 
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
@@ -137,10 +129,11 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         Text(
-          _titleMessages,
+          l10n.messages,
           style: AppTypography.pageTitle.copyWith(color: Colors.white),
         ),
         const SizedBox(width: 8),
@@ -150,9 +143,9 @@ class _Header extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            _titleInvitations,
-            style: TextStyle(
+          child: Text(
+            l10n.invitations,
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -161,8 +154,10 @@ class _Header extends StatelessWidget {
         ),
         const Spacer(),
         IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.edit_outlined, color: Colors.white),
+          onPressed: () {
+            context.push('/address-book');
+          },
+          icon: const Icon(Icons.contacts_outlined, color: Colors.white),
         ),
       ],
     );
@@ -177,6 +172,7 @@ class _TabSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF0E1629),
@@ -187,13 +183,13 @@ class _TabSwitcher extends StatelessWidget {
       child: Row(
         children: [
           _TabButton(
-            label: _labelAllMessages,
+            label: l10n.messages,
             value: _segmentMessages,
             groupValue: activeTab,
             onSelected: onChanged,
           ),
           _TabButton(
-            label: _labelInvitations,
+            label: l10n.invitations,
             value: _segmentInvitations,
             groupValue: activeTab,
             onSelected: onChanged,
@@ -270,6 +266,7 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -286,7 +283,7 @@ class _SearchBar extends StatelessWidget {
             const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         cursorColor: Colors.white,
         decoration: InputDecoration(
-          hintText: _searchHint,
+          hintText: l10n.searchConversationsHint,
           hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.64)),
           prefixIcon: const Icon(Icons.search, color: Colors.white70, size: 20),
           filled: false,
@@ -329,6 +326,7 @@ class _MessagesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return conversationsAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
@@ -338,20 +336,20 @@ class _MessagesList extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
-            'Failed to load conversations',
+            l10n.errorLoadingConversations,
             style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
           ),
         ),
       ),
       data: (conversations) {
-        final filtered =
-            _filterConversations(conversations, searchQuery, currentUserId);
+        final filtered = _filterConversations(
+            l10n, conversations, searchQuery, currentUserId);
         if (filtered.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 28),
             child: Center(
               child: Text(
-                'No conversations yet',
+                l10n.noConversationsYet,
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
               ),
             ),
@@ -365,7 +363,7 @@ class _MessagesList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final conversation = filtered[index];
             final displayName =
-                _resolveDisplayName(conversation, currentUserId);
+                _resolveDisplayName(l10n, conversation, currentUserId);
             final otherUserId =
                 _resolveOtherUserId(conversation, currentUserId);
             final avatarRef = conversation.getOtherParticipantAvatarRef();
@@ -390,7 +388,7 @@ class _MessagesList extends ConsumerWidget {
                 title: displayName,
                 message: lastMessage.isNotEmpty
                     ? lastMessage
-                    : 'Start the conversation',
+                    : l10n.noRecentMessages,
                 timeLabel: _formatRelativeTime(conversation.lastMessageTime),
                 unreadCount: 0,
                 isOnline: false,
@@ -529,6 +527,7 @@ class _InvitationsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return invitationsAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
@@ -538,7 +537,7 @@ class _InvitationsList extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
-            'Failed to load invitations',
+            l10n.errorLoadingInvitations,
             style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
           ),
         ),
@@ -549,7 +548,7 @@ class _InvitationsList extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 28),
             child: Center(
               child: Text(
-                'No invitations',
+                l10n.noInvitations,
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
               ),
             ),
@@ -568,7 +567,7 @@ class _InvitationsList extends ConsumerWidget {
             final statusLabel = invitation.status.isNotEmpty
                 ? invitation.status[0].toUpperCase() +
                     invitation.status.substring(1)
-                : 'Pending';
+                : l10n.pending;
             return Padding(
               padding: EdgeInsets.only(
                   bottom: index == invitations.length - 1 ? 0 : 12),
@@ -577,7 +576,7 @@ class _InvitationsList extends ConsumerWidget {
                 isBusy: actionState is AsyncLoading,
                 canRespond: canRespond,
                 statusLabel: statusLabel,
-                directionLabel: isSender ? 'Sent to' : 'From',
+                directionLabel: isSender ? l10n.sentTo : l10n.from,
                 onAccept: canRespond
                     ? () async {
                         await ref
@@ -624,6 +623,7 @@ class _InvitationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: _bentoCardDecoration(),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -638,7 +638,9 @@ class _InvitationCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$_labelApplicationFor ${invitation.propertyAddress ?? invitation.propertyId}',
+                  l10n.applicationFor(
+                    invitation.propertyAddress ?? invitation.propertyId,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -649,7 +651,7 @@ class _InvitationCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$directionLabel ${invitation.tenantName ?? invitation.tenantEmail ?? 'Applicant'} - $statusLabel',
+                  '$directionLabel ${invitation.tenantName ?? invitation.tenantEmail ?? l10n.applicant} - $statusLabel',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -676,14 +678,14 @@ class _InvitationCard extends StatelessWidget {
             children: [
               if (canRespond) ...[
                 _PillButton(
-                  label: _labelAccept,
+                  label: l10n.accept,
                   background: const Color(0xFF6DD3FF),
                   foreground: const Color(0xFF0A0E1A),
                   onTap: isBusy ? null : onAccept,
                 ),
                 const SizedBox(height: 8),
                 _PillButton(
-                  label: _labelDecline,
+                  label: l10n.decline,
                   background: Colors.white.withValues(alpha: 0.08),
                   foreground: Colors.white,
                   onTap: isBusy ? null : onDecline,
@@ -714,6 +716,7 @@ class _InvitationCard extends StatelessWidget {
 }
 
 List<Conversation> _filterConversations(
+  AppLocalizations l10n,
   List<Conversation> conversations,
   String query,
   String? currentUserId,
@@ -721,7 +724,7 @@ List<Conversation> _filterConversations(
   if (query.isEmpty) return conversations;
   final lower = query.toLowerCase();
   return conversations.where((conversation) {
-    final nameMatches = (_resolveDisplayName(conversation, currentUserId))
+    final nameMatches = (_resolveDisplayName(l10n, conversation, currentUserId))
         .toLowerCase()
         .contains(lower);
     final messageMatches =
@@ -730,7 +733,11 @@ List<Conversation> _filterConversations(
   }).toList();
 }
 
-String _resolveDisplayName(Conversation conversation, String? currentUserId) {
+String _resolveDisplayName(
+  AppLocalizations l10n,
+  Conversation conversation,
+  String? currentUserId,
+) {
   if (conversation.otherParticipantName != null &&
       conversation.otherParticipantName!.isNotEmpty) {
     return conversation.otherParticipantName!;
@@ -738,18 +745,18 @@ String _resolveDisplayName(Conversation conversation, String? currentUserId) {
   if (currentUserId != null && currentUserId == conversation.landlordId) {
     return conversation.tenantName?.isNotEmpty == true
         ? conversation.tenantName!
-        : conversation.otherParticipantEmail ?? 'Tenant';
+        : conversation.otherParticipantEmail ?? l10n.tenant;
   }
   if (currentUserId != null && currentUserId == conversation.tenantId) {
     return conversation.landlordName?.isNotEmpty == true
         ? conversation.landlordName!
-        : conversation.otherParticipantEmail ?? 'Landlord';
+        : conversation.otherParticipantEmail ?? l10n.landlord;
   }
   return conversation.otherParticipantName ??
       conversation.landlordName ??
       conversation.tenantName ??
       conversation.otherParticipantEmail ??
-      'Conversation';
+      l10n.conversation;
 }
 
 String? _resolveOtherUserId(Conversation conversation, String? currentUserId) {

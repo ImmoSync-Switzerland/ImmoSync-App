@@ -552,6 +552,12 @@ abstract class AppLocalizations {
   /// **'Occupied'**
   String get occupied;
 
+  /// No description provided for @vacant.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacant'**
+  String get vacant;
+
   /// No description provided for @maintenance.
   ///
   /// In en, this message translates to:
@@ -1031,6 +1037,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start a conversation with your properties'**
   String get startConversation;
+
+  /// No description provided for @conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation'**
+  String get conversation;
+
+  /// No description provided for @applicant.
+  ///
+  /// In en, this message translates to:
+  /// **'Applicant'**
+  String get applicant;
+
+  /// No description provided for @from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get from;
+
+  /// No description provided for @sentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to'**
+  String get sentTo;
+
+  /// No description provided for @noInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations'**
+  String get noInvitations;
+
+  /// No description provided for @errorLoadingInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading invitations'**
+  String get errorLoadingInvitations;
+
+  /// No description provided for @applicationFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Application for {property}'**
+  String applicationFor(String property);
 
   /// No description provided for @newConversation.
   ///
@@ -5088,6 +5136,12 @@ abstract class AppLocalizations {
   /// **'Total Paid'**
   String get totalPaid;
 
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
   /// No description provided for @totalPayments.
   ///
   /// In en, this message translates to:
@@ -5124,6 +5178,42 @@ abstract class AppLocalizations {
   /// **'This Month'**
   String get thisMonth;
 
+  /// No description provided for @paymentsOverTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments Over Time'**
+  String get paymentsOverTimeTitle;
+
+  /// No description provided for @paymentsOverTimeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments over time'**
+  String get paymentsOverTimeSubtitle;
+
+  /// No description provided for @revenueTrendsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Trends'**
+  String get revenueTrendsTitle;
+
+  /// No description provided for @revenueTrendsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue over time'**
+  String get revenueTrendsSubtitle;
+
+  /// No description provided for @failedToLoadPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load payments'**
+  String get failedToLoadPayments;
+
+  /// No description provided for @failedToLoadProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load properties'**
+  String get failedToLoadProperties;
+
   /// No description provided for @thisQuarter.
   ///
   /// In en, this message translates to:
@@ -5154,11 +5244,29 @@ abstract class AppLocalizations {
   /// **'Total Income'**
   String get totalIncome;
 
+  /// No description provided for @income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get income;
+
   /// No description provided for @paymentSummary.
   ///
   /// In en, this message translates to:
   /// **'Payment Summary'**
   String get paymentSummary;
+
+  /// No description provided for @rentedObjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Rented Objects'**
+  String get rentedObjects;
+
+  /// No description provided for @leases.
+  ///
+  /// In en, this message translates to:
+  /// **'Leases'**
+  String get leases;
 
   /// No description provided for @dashboardComponentsRequireBrowser.
   ///

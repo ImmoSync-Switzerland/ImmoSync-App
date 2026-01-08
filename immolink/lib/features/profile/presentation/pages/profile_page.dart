@@ -100,8 +100,7 @@ class ProfilePage extends ConsumerWidget {
           style: AppTypography.pageTitle.copyWith(color: colors.textPrimary),
         ),
         leading: IconButton(
-          icon:
-              Icon(Icons.arrow_back_ios_new_rounded, color: colors.textPrimary),
+          icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -316,6 +315,7 @@ class ProfilePage extends ConsumerWidget {
     required bool glassMode,
   }) {
     final String addressText = _formatAddress(user.address);
+    final String phone = (user.phone ?? '').trim();
 
     return _sectionCard(
       colors: colors,
@@ -348,6 +348,16 @@ class ProfilePage extends ConsumerWidget {
             colors: colors,
             glassMode: glassMode,
           ),
+          if (phone.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              icon: Icons.phone_outlined,
+              label: l10n.phone,
+              value: phone,
+              colors: colors,
+              glassMode: glassMode,
+            ),
+          ],
           if (addressText.isNotEmpty) ...[
             const SizedBox(height: 16),
             _buildInfoRow(

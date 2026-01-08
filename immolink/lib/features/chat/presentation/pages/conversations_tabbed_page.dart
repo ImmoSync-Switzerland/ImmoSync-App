@@ -138,7 +138,7 @@ class _ConversationsTabbedPageState
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
+            Icons.chevron_left,
             color: colors.textPrimary,
             size: 20,
           ),

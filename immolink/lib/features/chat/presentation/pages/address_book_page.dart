@@ -6,7 +6,6 @@ import 'package:immosync/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/providers/dynamic_colors_provider.dart';
-import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/widgets/user_avatar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/models/dashboard_design.dart';
@@ -25,6 +24,10 @@ class AddressBookPage extends ConsumerStatefulWidget {
 
 class _AddressBookPageState extends ConsumerState<AddressBookPage>
     with SingleTickerProviderStateMixin {
+  static const Color _bgTop = Color(0xFF0A1128);
+  static const Color _bgBottom = Colors.black;
+  static const Color _bentoCardColor = Color(0xFF1C1C1E);
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   AnimationController? _animationController;
@@ -93,29 +96,12 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
     }
 
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      extendBodyBehindAppBar: true,
-      appBar: AppTopBar(
-        title: isLandlord ? l10n.tenants : l10n.landlords,
-        showNotification: false,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: colors.textPrimary, size: 20),
-          onPressed: () => _handleBack(context),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.primaryBackground,
-              colors.surfaceSecondary,
-            ],
-          ),
-        ),
-        child: SafeArea(child: body),
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          const _DeepNavyBackground(),
+          SafeArea(child: body),
+        ],
       ),
     );
   }
@@ -137,7 +123,14 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
           : const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          if (!glassMode) const SizedBox(height: 8),
+          if (!glassMode) ...[
+            const SizedBox(height: 8),
+            _BentoHeader(
+              title: isLandlord ? l10n.tenants : l10n.landlords,
+              onBack: () => _handleBack(context),
+            ),
+            const SizedBox(height: 14),
+          ],
           _buildSearchBar(glassMode: glassMode, colors: colors, l10n: l10n),
           const SizedBox(height: 16),
           Expanded(
@@ -171,139 +164,44 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
     required DynamicAppColors colors,
     required AppLocalizations l10n,
   }) {
-    final hintText = l10n.searchContacts;
-    if (glassMode) {
-      return GlassContainer(
-        padding: EdgeInsets.zero,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.32),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: TextField(
-            controller: _searchController,
-            cursorColor: Colors.white,
-            onChanged: (value) {
-              setState(() => _searchQuery = value);
-            },
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.1,
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.08),
-              hintText: hintText,
-              hintStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-              prefixIcon: Icon(
-                Icons.search_outlined,
-                color: Colors.white.withValues(alpha: 0.92),
-                size: 20,
-              ),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: Colors.white.withValues(alpha: 0.85),
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart.withValues(alpha: 0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.5),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: colors.primaryAccent.withValues(alpha: 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-            spreadRadius: -5,
-          ),
-        ],
+    final hintText = l10n.searchContactsHint;
+    return TextField(
+      controller: _searchController,
+      keyboardType: TextInputType.text,
+      onChanged: (value) => setState(() => _searchQuery = value),
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
       ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) {
-          setState(() => _searchQuery = value);
-        },
-        style: TextStyle(
-          color: colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          letterSpacing: -0.1,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFF1C1C1E),
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.55)),
+        prefixIcon: Icon(
+          Icons.search,
+          color: Colors.white.withValues(alpha: 0.55),
         ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: colors.textSecondary,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.1,
-          ),
-          prefixIcon: Container(
-            padding: const EdgeInsets.all(12),
-            child: Icon(
-              Icons.search_outlined,
-              color: colors.primaryAccent,
-              size: 20,
-            ),
-          ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear,
-                    color: colors.textSecondary,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  color: Colors.white.withValues(alpha: 0.65),
+                ),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = '');
+                },
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
         ),
       ),
     );
@@ -339,8 +237,9 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
           },
           color: refreshColor,
           backgroundColor: refreshBackground,
-          child: ListView.builder(
+          child: ListView.separated(
             physics: const BouncingScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: EdgeInsets.fromLTRB(
               glassMode ? 0 : 0,
               8,
@@ -348,23 +247,14 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
               glassMode ? 160 : 100,
             ),
             itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final contact = filtered[index];
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: glassMode ? 0 : 0,
-                  right: glassMode ? 0 : 0,
-                  bottom: 16,
-                ),
-                child: _buildContactTile(
-                  contact,
-                  isLandlord,
-                  colors,
-                  l10n,
-                  glassMode: glassMode,
-                ),
-              );
-            },
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) => _buildContactTile(
+              filtered[index],
+              isLandlord,
+              colors,
+              l10n,
+              glassMode: glassMode,
+            ),
           ),
         );
       },
@@ -389,6 +279,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
     required bool isLandlord,
     required DynamicAppColors colors,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     final Widget content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -423,7 +314,7 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
         const SizedBox(height: 8),
         Text(
           _searchQuery.isNotEmpty
-              ? 'Try adjusting your search terms'
+              ? l10n.tryAdjustingSearch
               : isLandlord
                   ? 'Add properties to connect with tenants'
                   : 'Your landlord contacts will appear here',
@@ -525,55 +416,51 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
         glassMode ? Colors.white.withValues(alpha: 0.78) : colors.textSecondary;
     final Color tertiaryText =
         glassMode ? Colors.white.withValues(alpha: 0.65) : colors.textTertiary;
-    final Color accentColor =
-        glassMode ? colors.luxuryGold : colors.primaryAccent;
-    final Color badgeBackground = glassMode
-        ? accentColor.withValues(alpha: 0.25)
-        : accentColor.withValues(alpha: 0.1);
-    final Color badgeBorder = glassMode
-        ? Colors.white.withValues(alpha: 0.35)
-        : accentColor.withValues(alpha: 0.2);
 
     final Widget tileContent = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        UserAvatar(
-          imageRef: contact.profileImage,
-          name: contact.fullName,
-          size: 52,
-          fallbackToCurrentUser: false,
+        SizedBox(
+          width: 60,
+          height: 60,
+          child: ClipOval(
+            child: UserAvatar(
+              imageRef: contact.profileImage,
+              name: contact.fullName,
+              size: 60,
+              fallbackToCurrentUser: false,
+            ),
+          ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 contact.fullName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: primaryText,
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(
-                    Icons.email_outlined,
-                    size: 14,
-                    color: tertiaryText,
-                  ),
-                  const SizedBox(width: 4),
+                  Icon(Icons.email_outlined, size: 14, color: tertiaryText),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       contact.email,
-                      style: TextStyle(
-                        color: secondaryText,
-                        fontSize: 14,
-                      ),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: glassMode ? secondaryText : Colors.grey,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -582,78 +469,57 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(
-                      Icons.phone_outlined,
-                      size: 14,
-                      color: tertiaryText,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      contact.phone,
-                      style: TextStyle(
-                        color: secondaryText,
-                        fontSize: 14,
+                    Icon(Icons.phone_outlined, size: 14, color: tertiaryText),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        contact.phone,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: secondaryText,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
-              if (contact.properties.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: badgeBackground,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: badgeBorder),
-                  ),
-                  child: Text(
-                    isLandlord
-                        ? contact.properties.first
-                        : '${contact.properties.length} '
-                            '${contact.properties.length == 1 ? 'Property' : 'Properties'}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: glassMode ? Colors.white : accentColor,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.1,
-                    ),
-                  ),
+              const SizedBox(height: 10),
+              if (contact.properties.isNotEmpty)
+                _PropertiesChip(
+                  label:
+                      '${contact.properties.length} ${contact.properties.length == 1 ? 'Property' : 'Properties'}',
                 ),
-              ],
             ],
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: Icon(
-                Icons.chat_bubble_outline,
-                color: glassMode ? Colors.white : colors.primaryAccent,
-                size: 22,
-              ),
+            _CircleActionButton(
               tooltip: l10n.openChat,
-              onPressed: () {
+              background: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+              icon: Icons.chat_bubble_outline,
+              onTap: () {
                 HapticFeedback.lightImpact();
                 _startConversationWith(contact);
               },
             ),
-            if (contact.phone.isNotEmpty)
-              IconButton(
-                icon: Icon(
-                  Icons.phone_outlined,
-                  color: glassMode ? Colors.white : colors.success,
-                  size: 22,
-                ),
+            if (contact.phone.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _CircleActionButton(
                 tooltip: l10n.call,
-                onPressed: () {
+                background: const Color(0xFF22C55E).withValues(alpha: 0.25),
+                icon: Icons.phone_outlined,
+                onTap: () {
                   HapticFeedback.lightImpact();
                   _callContact(contact);
                 },
               ),
+            ],
           ],
         ),
       ],
@@ -676,33 +542,11 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceCards,
-            colors.luxuryGradientStart.withValues(alpha: 0.2),
-          ],
-        ),
+        color: _bentoCardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.borderLight.withValues(alpha: 0.5),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: colors.primaryAccent.withValues(alpha: 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-            spreadRadius: -5,
-          ),
-        ],
+        border: Border.all(color: Colors.white10, width: 1),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: tileContent,
     );
   }
@@ -907,5 +751,124 @@ class _AddressBookPageState extends ConsumerState<AddressBookPage>
     } else {
       context.go('/conversations');
     }
+  }
+}
+
+class _DeepNavyBackground extends StatelessWidget {
+  const _DeepNavyBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            _AddressBookPageState._bgTop,
+            _AddressBookPageState._bgBottom
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BentoHeader extends StatelessWidget {
+  const _BentoHeader({required this.title, required this.onBack});
+
+  final String title;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: onBack,
+          icon: const Icon(
+            Icons.chevron_left,
+            color: Colors.white,
+            size: 32,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PropertiesChip extends StatelessWidget {
+  const _PropertiesChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    const amber = Color(0xFFFFC107);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: amber, width: 1),
+        color: amber.withValues(alpha: 0.06),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: amber,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _CircleActionButton extends StatelessWidget {
+  const _CircleActionButton({
+    required this.tooltip,
+    required this.background,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String tooltip;
+  final Color background;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Ink(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: background,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Tooltip(
+            message: tooltip,
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -85,6 +85,7 @@
   "rent": "Rent",
   "available": "Available",
   "occupied": "Occupied",
+  "vacant": "Vacant",
   "maintenance": "Maintenance",
   "area": "Area",
   "mapNotAvailable": "Map not available",
@@ -165,6 +166,20 @@
   "noConversationsYet": "No conversations yet",
   "tryAdjustingSearch": "Try adjusting your search terms",
   "startConversation": "Start a conversation with your properties",
+  "conversation": "Conversation",
+  "applicant": "Applicant",
+  "from": "From",
+  "sentTo": "Sent to",
+  "noInvitations": "No invitations",
+  "errorLoadingInvitations": "Error loading invitations",
+  "applicationFor": "Application for {property}",
+  "@applicationFor": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      }
+    }
+  },
   "newConversation": "New Conversation",
   "propertySelectionMessage": "Property selection will be implemented with database integration",
   "create": "Create",
@@ -985,18 +1000,28 @@
   ,"monthlyRevenue": "Monthly Revenue"
   ,"collected": "Collected"
   ,"totalPaid": "Total Paid"
+  ,"paid": "Paid"
   ,"totalPayments": "Total Payments"
   ,"totalRequests": "Total Requests"
   ,"revenueAnalytics": "Revenue Analytics"
   ,"revenueChartComingSoon": "Revenue Chart Coming Soon"
   ,"thisWeek": "This Week"
   ,"thisMonth": "This Month"
+  ,"paymentsOverTimeTitle": "Payments Over Time"
+  ,"paymentsOverTimeSubtitle": "Payments over time"
+  ,"revenueTrendsTitle": "Revenue Trends"
+  ,"revenueTrendsSubtitle": "Revenue over time"
+  ,"failedToLoadPayments": "Failed to load payments"
+  ,"failedToLoadProperties": "Failed to load properties"
   ,"thisQuarter": "This Quarter"
   ,"thisYear": "This Year"
   ,"reportPeriod": "Report Period"
   ,"financialSummary": "Financial Summary"
   ,"totalIncome": "Total Income"
+  ,"income": "Income"
   ,"paymentSummary": "Payment Summary"
+  ,"rentedObjects": "Rented Objects"
+  ,"leases": "Leases"
   ,"dashboardComponentsRequireBrowser": "Dashboard components require web browser"
   ,"dashboardAvailableOnWeb": "Dashboard Available on Web"
   ,"visitWebForFullDashboard": "Visit the web version to access the full {component} dashboard"

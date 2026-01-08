@@ -40,8 +40,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
         title: const Text('Edit Property',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(Icons.chevron_left, color: Colors.white, size: 32),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         actions: [

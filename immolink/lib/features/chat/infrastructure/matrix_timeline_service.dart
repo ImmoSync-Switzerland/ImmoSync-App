@@ -17,27 +17,42 @@ class MatrixTimelineService {
 
   final Map<String, StreamController<List<ChatMessage>>> _controllers = {};
   final Map<String, List<ChatMessage>> _buffers = {};
-  final Map<String, bool> _historyLoaded =
-      {}; // Track which rooms have loaded history
+  // Track which rooms have loaded history.
+  // true = loaded successfully, anything else = not loaded yet.
+  final Map<String, bool> _historyLoaded = {};
+  final Set<String> _historyLoading = <String>{};
+  final Map<String, int> _historyRetryCount = {};
+  final Set<String> _notReadyLoggedForRoom = <String>{};
 
-  Future<bool> _waitForMobileClientReady(
-      {Duration timeout = const Duration(seconds: 6)}) async {
+  Future<bool> _waitForMobileClientReady({required String roomId}) async {
     if (_isRustBridgeSupported) {
       return true;
     }
     final client = MobileMatrixClient.instance;
     if (client.isReady) {
+      _notReadyLoggedForRoom.remove(roomId);
       return true;
     }
+
+    // Mobile can take longer (cold start / encryption keys / initial sync).
+    // Wait up to ~20s using a small step to avoid long UI stalls.
+    const maxWait = Duration(seconds: 20);
+    const step = Duration(milliseconds: 200);
     final sw = Stopwatch()..start();
-    while (sw.elapsed < timeout) {
-      await Future.delayed(const Duration(milliseconds: 150));
+    while (sw.elapsed < maxWait) {
+      await Future.delayed(step);
       if (client.isReady) {
+        _notReadyLoggedForRoom.remove(roomId);
         return true;
       }
     }
-    debugPrint(
-        '[MatrixTimeline] Mobile Matrix client not ready after ${timeout.inMilliseconds}ms - skipping history load');
+
+    // Log once per room to avoid spam.
+    if (_notReadyLoggedForRoom.add(roomId)) {
+      debugPrint(
+        '[MatrixTimeline] Mobile Matrix client not ready after ${maxWait.inMilliseconds}ms - will retry history load',
+      );
+    }
     return false;
   }
 
@@ -56,8 +71,7 @@ class MatrixTimelineService {
     _buffers.putIfAbsent(roomId, () => <ChatMessage>[]);
 
     // Load historical messages if not already loaded
-    if (!_historyLoaded.containsKey(roomId)) {
-      _historyLoaded[roomId] = true;
+    if (_historyLoaded[roomId] != true && !_historyLoading.contains(roomId)) {
       _loadHistoricalMessages(roomId);
     }
 
@@ -71,6 +85,9 @@ class MatrixTimelineService {
   /// Load historical messages from Matrix room
   Future<void> _loadHistoricalMessages(String roomId,
       {bool immediate = false}) async {
+    if (_historyLoading.contains(roomId)) return;
+    _historyLoading.add(roomId);
+
     try {
       debugPrint('[MatrixTimeline] Loading history for room: $roomId');
 
@@ -90,8 +107,21 @@ class MatrixTimelineService {
       } else {
         // Use mobile client
         final mobileClient = MobileMatrixClient.instance;
-        final ready = await _waitForMobileClientReady();
+        final ready = await _waitForMobileClientReady(roomId: roomId);
         if (!ready) {
+          _historyLoaded[roomId] = false;
+          // Retry a few times; initial sync/encryption can be slow.
+          final attempts = (_historyRetryCount[roomId] ?? 0) + 1;
+          _historyRetryCount[roomId] = attempts;
+          if (attempts <= 5) {
+            final delay = Duration(seconds: attempts * 2);
+            scheduleMicrotask(() {
+              Future<void>.delayed(delay, () {
+                if (_historyLoaded[roomId] == true) return;
+                _loadHistoricalMessages(roomId, immediate: true);
+              });
+            });
+          }
           return;
         }
         jsonStr = await mobileClient.getRoomMessages(roomId, 50);
@@ -107,6 +137,7 @@ class MatrixTimelineService {
       if (messages.isEmpty) {
         debugPrint(
             '[MatrixTimeline] No messages found - room might be new or user not synced yet');
+        _historyLoaded[roomId] = true;
         return;
       }
 
@@ -163,9 +194,13 @@ class MatrixTimelineService {
 
       debugPrint(
           '[MatrixTimeline] History loaded successfully for $roomId: ${messages.length} messages');
+      _historyLoaded[roomId] = true;
     } catch (e) {
       debugPrint('[MatrixTimeline] Failed to load history for $roomId: $e');
       // Continue gracefully - new messages will still work via event stream
+      _historyLoaded[roomId] = false;
+    } finally {
+      _historyLoading.remove(roomId);
     }
   }
 

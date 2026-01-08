@@ -57,11 +57,30 @@ import 'package:immosync/features/debug/matrix_test_standalone.dart';
 import 'package:immosync/features/auth/presentation/pages/sign_up_screen.dart';
 import 'package:immosync/features/auth/presentation/pages/splash_screen.dart';
 
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(this._ref) {
+    _sub = _ref.listen<AuthState>(authProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+
+  final Ref _ref;
+  late final ProviderSubscription<AuthState> _sub;
+
+  @override
+  void dispose() {
+    _sub.close();
+    super.dispose();
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final refreshNotifier = _RouterRefreshNotifier(ref);
+  ref.onDispose(refreshNotifier.dispose);
 
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: refreshNotifier,
     routes: [
       GoRoute(
         path: '/splash',
@@ -402,6 +421,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isSplash = state.matchedLocation == '/splash';
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';

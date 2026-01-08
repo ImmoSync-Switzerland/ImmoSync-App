@@ -125,9 +125,9 @@ class TenantMaintenanceRequestsPage extends ConsumerWidget {
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
+            Icons.chevron_left,
             color: colors.textPrimary,
-            size: 20,
+            size: 32,
           ),
           onPressed: () => _handleBackNavigation(context),
         ),

@@ -93,7 +93,7 @@ class PropertyDetailsPage extends ConsumerWidget {
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
                     icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
+                      Icons.chevron_left,
                       color: Colors.white,
                       size: 20,
                     ),

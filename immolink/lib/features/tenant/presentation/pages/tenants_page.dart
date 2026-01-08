@@ -11,6 +11,7 @@ import '../../../chat/domain/models/contact_user.dart';
 import '../../../chat/presentation/providers/contact_providers.dart';
 import '../../../property/domain/models/property.dart';
 import '../../../property/presentation/providers/property_providers.dart';
+import '../../../property/presentation/widgets/email_invite_tenant_dialog.dart';
 
 class TenantsPage extends ConsumerStatefulWidget {
   const TenantsPage({super.key});
@@ -135,9 +136,41 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
       backgroundColor: Colors.transparent,
       floatingActionButton: _AddTenantFab(
         label: l10n.addTenant,
-        onTap: () {
+        onTap: () async {
           HapticFeedback.mediumImpact();
-          context.push('/add-property');
+
+          final propsAsync = propertiesAsync;
+          final properties = propsAsync.asData?.value;
+          if (properties == null) {
+            // Still loading / error state - keep UX minimal.
+            return;
+          }
+
+          if (properties.isEmpty) {
+            // Can't invite without a property.
+            if (!mounted) return;
+            context.push('/add-property');
+            return;
+          }
+
+          String propertyId;
+          if (properties.length == 1) {
+            propertyId = properties.first.id;
+          } else {
+            final selected = await showDialog<String>(
+              context: context,
+              builder: (ctx) => _SelectPropertyDialog(properties: properties),
+            );
+            if (!mounted) return;
+            if (selected == null || selected.isEmpty) return;
+            propertyId = selected;
+          }
+
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => EmailInviteTenantDialog(propertyId: propertyId),
+          );
         },
       ),
       body: Stack(
@@ -258,6 +291,38 @@ class _TenantsPageState extends ConsumerState<TenantsPage> {
   }
 }
 
+class _SelectPropertyDialog extends StatelessWidget {
+  const _SelectPropertyDialog({required this.properties});
+
+  final List<Property> properties;
+
+  String _propertyLabel(Property property) {
+    final street = property.address.street.trim();
+    if (street.isNotEmpty) return street;
+
+    final city = property.address.city.trim();
+    final postal = property.address.postalCode.trim();
+    if (city.isNotEmpty && postal.isNotEmpty) return '$city, $postal';
+    if (city.isNotEmpty) return city;
+    return property.id;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SimpleDialog(
+      title: Text(l10n.pleaseSelectProperty),
+      children: [
+        for (final p in properties)
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(context).pop(p.id),
+            child: Text(_propertyLabel(p)),
+          ),
+      ],
+    );
+  }
+}
+
 class _TenantView {
   _TenantView({
     required this.name,
@@ -288,7 +353,7 @@ class _Header extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onBack,
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
+          icon: const Icon(Icons.chevron_left, color: Colors.white70, size: 32),
         ),
         const SizedBox(width: 8),
         Expanded(

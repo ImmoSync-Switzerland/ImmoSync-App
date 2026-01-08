@@ -41,9 +41,9 @@ class TenantMaintenanceScreen extends ConsumerWidget {
                         context.go('/home');
                       },
                       icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
+                        Icons.chevron_left,
                         color: Colors.white,
-                        size: 20,
+                        size: 32,
                       ),
                     ),
                     const SizedBox(width: 4),

@@ -340,7 +340,7 @@ class _SubscriptionPaymentPageState
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => context.pop(),
-                  icon: const Icon(Icons.arrow_back, size: 18),
+                  icon: const Icon(Icons.chevron_left, size: 32),
                   label: Text(l10n.back),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.textSecondary,

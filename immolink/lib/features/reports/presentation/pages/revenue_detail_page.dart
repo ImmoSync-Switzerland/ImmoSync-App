@@ -326,7 +326,7 @@ class _RevenueDetailPageState extends ConsumerState<RevenueDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Property Breakdown',
+        Text(l10n.propertyBreakdown,
             style: Theme.of(context)
                 .textTheme
                 .titleLarge

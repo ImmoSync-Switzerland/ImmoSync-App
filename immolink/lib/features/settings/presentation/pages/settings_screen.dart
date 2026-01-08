@@ -65,7 +65,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     IconButton(
                       onPressed: () => context.pop(),
                       icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
+                        Icons.chevron_left,
                         color: Colors.white,
                         size: 20,
                       ),
@@ -155,11 +155,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       _SettingsValueRow(
                         title: 'Theme',
                         value: 'Dark Mode',
-                      ),
-                      _DividerLine(),
-                      _SettingsValueRow(
-                        title: 'Dashboard Layout',
-                        value: 'Glass Modern',
                       ),
                       _DividerLine(),
                       _SettingsValueRow(

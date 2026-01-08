@@ -31,7 +31,11 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // Android: White icons
+          statusBarBrightness: Brightness.dark, // iOS: White icons
+        ),
         toolbarHeight: AppSizes.topAppBarHeight,
         titleTextStyle: AppTypography.pageTitle.copyWith(
           color: AppColors.textPrimary,
@@ -39,6 +43,14 @@ class AppTheme {
         iconTheme: const IconThemeData(
           color: AppColors.textPrimary,
           size: AppSizes.iconMedium,
+        ),
+      ),
+
+      // Action icons (Back/Close)
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (context) => const Icon(
+          Icons.chevron_left,
+          size: AppSizes.iconLarge,
         ),
       ),
 
@@ -251,7 +263,11 @@ class AppTheme {
         foregroundColor: AppColorsDark.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // Android: White icons
+          statusBarBrightness: Brightness.dark, // iOS: White icons
+        ),
         toolbarHeight: AppSizes.topAppBarHeight,
         titleTextStyle: AppTypography.pageTitle.copyWith(
           color: AppColorsDark.textPrimary,
@@ -259,6 +275,14 @@ class AppTheme {
         iconTheme: const IconThemeData(
           color: AppColorsDark.textPrimary,
           size: AppSizes.iconMedium,
+        ),
+      ),
+
+      // Action icons (Back/Close)
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (context) => const Icon(
+          Icons.chevron_left,
+          size: AppSizes.iconLarge,
         ),
       ),
 

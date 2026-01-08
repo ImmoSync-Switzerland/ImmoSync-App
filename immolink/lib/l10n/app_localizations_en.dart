@@ -249,6 +249,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get occupied => 'Occupied';
 
   @override
+  String get vacant => 'Vacant';
+
+  @override
   String get maintenance => 'Maintenance';
 
   @override
@@ -493,6 +496,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startConversation => 'Start a conversation with your properties';
+
+  @override
+  String get conversation => 'Conversation';
+
+  @override
+  String get applicant => 'Applicant';
+
+  @override
+  String get from => 'From';
+
+  @override
+  String get sentTo => 'Sent to';
+
+  @override
+  String get noInvitations => 'No invitations';
+
+  @override
+  String get errorLoadingInvitations => 'Error loading invitations';
+
+  @override
+  String applicationFor(String property) {
+    return 'Application for $property';
+  }
 
   @override
   String get newConversation => 'New Conversation';
@@ -2684,6 +2710,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalPaid => 'Total Paid';
 
   @override
+  String get paid => 'Paid';
+
+  @override
   String get totalPayments => 'Total Payments';
 
   @override
@@ -2702,6 +2731,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get thisMonth => 'This Month';
 
   @override
+  String get paymentsOverTimeTitle => 'Payments Over Time';
+
+  @override
+  String get paymentsOverTimeSubtitle => 'Payments over time';
+
+  @override
+  String get revenueTrendsTitle => 'Revenue Trends';
+
+  @override
+  String get revenueTrendsSubtitle => 'Revenue over time';
+
+  @override
+  String get failedToLoadPayments => 'Failed to load payments';
+
+  @override
+  String get failedToLoadProperties => 'Failed to load properties';
+
+  @override
   String get thisQuarter => 'This Quarter';
 
   @override
@@ -2717,7 +2764,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalIncome => 'Total Income';
 
   @override
+  String get income => 'Income';
+
+  @override
   String get paymentSummary => 'Payment Summary';
+
+  @override
+  String get rentedObjects => 'Rented Objects';
+
+  @override
+  String get leases => 'Leases';
 
   @override
   String get dashboardComponentsRequireBrowser =>

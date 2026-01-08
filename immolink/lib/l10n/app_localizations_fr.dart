@@ -250,6 +250,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get occupied => 'Occupé';
 
   @override
+  String get vacant => 'Vacant';
+
+  @override
   String get maintenance => 'Maintenance';
 
   @override
@@ -498,6 +501,30 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get startConversation =>
       'Commencez une conversation avec vos propriétés';
+
+  @override
+  String get conversation => 'Conversation';
+
+  @override
+  String get applicant => 'Candidat';
+
+  @override
+  String get from => 'De';
+
+  @override
+  String get sentTo => 'Envoyé à';
+
+  @override
+  String get noInvitations => 'Aucune invitation';
+
+  @override
+  String get errorLoadingInvitations =>
+      'Erreur lors du chargement des invitations';
+
+  @override
+  String applicationFor(String property) {
+    return 'Candidature pour $property';
+  }
 
   @override
   String get newConversation => 'Nouvelle conversation';
@@ -2750,6 +2777,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get totalPaid => 'Total payé';
 
   @override
+  String get paid => 'Payé';
+
+  @override
   String get totalPayments => 'Paiements totaux';
 
   @override
@@ -2769,6 +2799,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get thisMonth => 'Ce mois-ci';
 
   @override
+  String get paymentsOverTimeTitle => 'Paiements au fil du temps';
+
+  @override
+  String get paymentsOverTimeSubtitle => 'Paiements au fil du temps';
+
+  @override
+  String get revenueTrendsTitle => 'Évolution des revenus';
+
+  @override
+  String get revenueTrendsSubtitle => 'Revenus au fil du temps';
+
+  @override
+  String get failedToLoadPayments => 'Impossible de charger les paiements';
+
+  @override
+  String get failedToLoadProperties => 'Impossible de charger les propriétés';
+
+  @override
   String get thisQuarter => 'Ce trimestre';
 
   @override
@@ -2784,7 +2832,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get totalIncome => 'Revenu total';
 
   @override
+  String get income => 'Revenus';
+
+  @override
   String get paymentSummary => 'Résumé des paiements';
+
+  @override
+  String get rentedObjects => 'Biens loués';
+
+  @override
+  String get leases => 'Baux';
 
   @override
   String get dashboardComponentsRequireBrowser =>

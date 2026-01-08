@@ -127,9 +127,13 @@ class _AutoPaymentSetupPageState extends ConsumerState<AutoPaymentSetupPage> {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light, // Android: White icons
+        statusBarBrightness: Brightness.dark, // iOS: White icons
+      ),
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
+        icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
         onPressed: () {
           HapticFeedback.lightImpact();
           context.pop();

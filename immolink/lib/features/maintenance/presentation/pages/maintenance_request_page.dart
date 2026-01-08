@@ -204,6 +204,9 @@ class _SubmitMaintenanceRequestScreenState
                                             '${property.address.street}, ${property.address.city}',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: _textPrimary,
+                                            ),
                                           ),
                                         ),
                                       )
@@ -249,7 +252,11 @@ class _SubmitMaintenanceRequestScreenState
                                       (category) => DropdownMenuItem<String>(
                                         value: category,
                                         child: Text(
-                                            _categoryLabel(l10n, category)),
+                                          _categoryLabel(l10n, category),
+                                          style: const TextStyle(
+                                            color: _textPrimary,
+                                          ),
+                                        ),
                                       ),
                                     )
                                     .toList(),
@@ -460,26 +467,15 @@ class _BackButtonCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.12),
-            width: 1,
-          ),
-        ),
-        child: const Icon(
-          Icons.arrow_back_ios_new,
-          size: 18,
-          color: _SubmitMaintenanceRequestScreenState._textPrimary,
-        ),
+    return IconButton(
+      onPressed: onTap,
+      icon: const Icon(
+        Icons.chevron_left,
+        size: 32,
+        color: _SubmitMaintenanceRequestScreenState._textPrimary,
       ),
+      splashRadius: 24,
+      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
     );
   }
 }
@@ -580,38 +576,73 @@ class _PremiumDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: initialValue,
-      items: items,
-      onChanged: onChanged,
-      dropdownColor: _SubmitMaintenanceRequestScreenState._fieldBg,
-      iconEnabledColor: _SubmitMaintenanceRequestScreenState._textSecondary,
-      style: const TextStyle(
-          color: _SubmitMaintenanceRequestScreenState._textPrimary),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: _SubmitMaintenanceRequestScreenState._fieldBg,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintText: hintText,
-        hintStyle: const TextStyle(
-          color: _SubmitMaintenanceRequestScreenState._textSecondary,
-          fontWeight: FontWeight.w500,
+    final baseTheme = Theme.of(context);
+    return Theme(
+      data: baseTheme.copyWith(
+        canvasColor: _SubmitMaintenanceRequestScreenState._fieldBg,
+      ),
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(
+          color: _SubmitMaintenanceRequestScreenState._textPrimary,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: _SubmitMaintenanceRequestScreenState._accent
-                .withValues(alpha: 0.55),
-            width: 1.2,
+        child: DropdownButtonFormField<T>(
+          initialValue: initialValue,
+          hint: Text(
+            hintText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _SubmitMaintenanceRequestScreenState._textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          items: items,
+          onChanged: onChanged,
+          isExpanded: true,
+          dropdownColor: _SubmitMaintenanceRequestScreenState._fieldBg,
+          iconEnabledColor: _SubmitMaintenanceRequestScreenState._textSecondary,
+          style: const TextStyle(
+            color: _SubmitMaintenanceRequestScreenState._textPrimary,
+          ),
+          selectedItemBuilder: (context) {
+            return items
+                .map(
+                  (item) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: DefaultTextStyle.merge(
+                      style: const TextStyle(
+                        color:
+                            _SubmitMaintenanceRequestScreenState._textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      child: item.child,
+                    ),
+                  ),
+                )
+                .toList();
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: _SubmitMaintenanceRequestScreenState._fieldBg,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: _SubmitMaintenanceRequestScreenState._accent
+                    .withValues(alpha: 0.55),
+                width: 1.2,
+              ),
+            ),
           ),
         ),
       ),

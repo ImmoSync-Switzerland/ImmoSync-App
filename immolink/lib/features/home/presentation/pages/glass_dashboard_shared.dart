@@ -180,7 +180,7 @@ class _GlassHeader extends StatelessWidget {
       children: [
         if (onBack != null)
           IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 32),
             onPressed: onBack,
           ),
         Text(

@@ -131,8 +131,7 @@ class _TermsOfServicePageState extends ConsumerState<TermsOfServicePage> {
           style: AppTypography.pageTitle.copyWith(color: Colors.white),
         ),
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.white),
+            icon: const Icon(Icons.chevron_left, color: Colors.white),
             onPressed: () => context.pop()),
         actions: [
           IconButton(

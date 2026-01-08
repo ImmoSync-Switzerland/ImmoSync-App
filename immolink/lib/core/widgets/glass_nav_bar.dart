@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:immosync/features/auth/presentation/providers/user_role_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 // import 'package:immosync/core/providers/navigation_provider.dart'; // Nicht mehr zwingend nötig für die UI-Berechnung
 
 /// Die wiederverwendbare Glass-Komponente (UI pur)
@@ -95,7 +96,7 @@ class AppGlassNavBar extends ConsumerWidget {
 
     return GlassNavBar(
       selectedIndex: selectedIndex,
-      items: _navItems(userRole),
+      items: _navItems(context, userRole),
       onDestinationSelected: (index) => _onItemTapped(context, index, userRole),
     );
   }
@@ -124,8 +125,10 @@ class AppGlassNavBar extends ConsumerWidget {
     }
   }
 
-  List<BottomNavigationBarItem> _navItems(String? userRole) {
+  List<BottomNavigationBarItem> _navItems(
+      BuildContext context, String? userRole) {
     final bool isTenant = userRole == 'tenant';
+    final l10n = AppLocalizations.of(context)!;
     return [
       const BottomNavigationBarItem(
         icon: Icon(Icons.dashboard_outlined),
@@ -139,13 +142,13 @@ class AppGlassNavBar extends ConsumerWidget {
         icon: Icon(Icons.chat_bubble_outline),
         label: 'Messages',
       ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.bar_chart_outlined),
-        label: 'Reports',
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.bar_chart_outlined),
+        label: l10n.reports,
       ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.person_outline),
-        label: 'Profile',
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.person_outline),
+        label: l10n.profile,
       ),
     ];
   }

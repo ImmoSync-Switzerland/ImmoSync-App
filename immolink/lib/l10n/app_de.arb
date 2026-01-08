@@ -10,7 +10,7 @@
   "tenants": "Mieter",
   "services": "Dienstleistungen",
   "messages": "Nachrichten",
-  "reports": "Berichte",
+  "reports": "Bericht",
   "profile": "Profil",
   "settings": "Einstellungen",
   "language": "Sprache",
@@ -85,6 +85,7 @@
   "rent": "Miete",
   "available": "Verfügbar",
   "occupied": "Belegt",
+  "vacant": "Leer",
   "maintenance": "Wartung",
   "area": "Fläche",
   "mapNotAvailable": "Karte nicht verfügbar",
@@ -163,6 +164,20 @@
   "noConversationsYet": "Noch keine Unterhaltungen",
   "tryAdjustingSearch": "Versuchen Sie, Ihre Suchbegriffe anzupassen",
   "startConversation": "Beginnen Sie eine Unterhaltung mit Ihren Immobilien",
+  "conversation": "Unterhaltung",
+  "applicant": "Bewerber",
+  "from": "Von",
+  "sentTo": "Gesendet an",
+  "noInvitations": "Keine Einladungen",
+  "errorLoadingInvitations": "Fehler beim Laden der Einladungen",
+  "applicationFor": "Bewerbung für {property}",
+  "@applicationFor": {
+    "placeholders": {
+      "property": {
+        "type": "String"
+      }
+    }
+  },
   "newConversation": "Neue Unterhaltung",
   "propertySelectionMessage": "Immobilienauswahl wird mit Datenbankintegration implementiert",
   "create": "Erstellen",
@@ -989,18 +1004,28 @@
   ,"monthlyRevenue": "Monatliche Einnahmen"
   ,"collected": "Eingezogen"
   ,"totalPaid": "Gesamt bezahlt"
+  ,"paid": "Bezahlt"
   ,"totalPayments": "Gesamtzahlungen"
   ,"totalRequests": "Gesamtanfragen"
   ,"revenueAnalytics": "Umsatzanalysen"
   ,"revenueChartComingSoon": "Umsatzdiagramm folgt"
   ,"thisWeek": "Diese Woche"
   ,"thisMonth": "Diesen Monat"
+  ,"paymentsOverTimeTitle": "Zahlungen im Zeitverlauf"
+  ,"paymentsOverTimeSubtitle": "Zahlungen im Zeitverlauf"
+  ,"revenueTrendsTitle": "Einnahmenentwicklung"
+  ,"revenueTrendsSubtitle": "Einnahmen im Zeitverlauf"
+  ,"failedToLoadPayments": "Zahlungen konnten nicht geladen werden"
+  ,"failedToLoadProperties": "Immobilien konnten nicht geladen werden"
   ,"thisQuarter": "Dieses Quartal"
   ,"thisYear": "Dieses Jahr"
   ,"reportPeriod": "Berichtszeitraum"
   ,"financialSummary": "Finanzübersicht"
   ,"totalIncome": "Gesamte Einnahmen"
+  ,"income": "Einnahmen"
   ,"paymentSummary": "Zahlungsübersicht"
+  ,"rentedObjects": "Vermietete Objekte"
+  ,"leases": "Mietverträge"
   ,"dashboardComponentsRequireBrowser": "Dashboard-Komponenten erfordern einen Webbrowser"
   ,"dashboardAvailableOnWeb": "Dashboard im Web verfügbar"
   ,"visitWebForFullDashboard": "Besuchen Sie die Webversion, um das vollständige {component}-Dashboard zu nutzen"

@@ -65,7 +65,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
     if (currentUser != null) {
       _nameController.text = currentUser.fullName;
       _emailController.text = currentUser.email;
-      // _phoneController.text = currentUser.phone ?? '';
+      _phoneController.text = currentUser.phone ?? '';
     }
 
     _animationController.forward();
@@ -134,7 +134,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       systemOverlayStyle: SystemUiOverlayStyle.light,
       leading: IconButton(
         icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
+          Icons.chevron_left,
           color: Colors.white,
           size: 20,
         ),
@@ -557,7 +557,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
       );
 
       // Update the user provider with new model
-      ref.read(currentUserProvider.notifier).setUserModel(updated);
+      final trimmedPhone = _phoneController.text.trim();
+      final patched = (trimmedPhone.isNotEmpty &&
+              ((updated.phone ?? '').toString().trim().isEmpty))
+          ? updated.copyWith(phone: trimmedPhone)
+          : updated;
+      ref.read(currentUserProvider.notifier).setUserModel(patched);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

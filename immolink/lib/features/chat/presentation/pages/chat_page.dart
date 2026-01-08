@@ -395,7 +395,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                     Navigator.of(context).pop();
                   },
                   icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    Icons.chevron_left,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -483,7 +483,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
       backgroundColor: colors.primaryBackground,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+        icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
         onPressed: () {
           HapticFeedback.lightImpact();
           Navigator.of(context).pop();

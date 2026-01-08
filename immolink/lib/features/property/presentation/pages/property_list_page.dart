@@ -172,7 +172,11 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
     return AppBar(
       backgroundColor: colors.primaryBackground,
       elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light, // Android: White icons
+        statusBarBrightness: Brightness.dark, // iOS: White icons
+      ),
       title: Text(
         l10n.myProperties,
         style: TextStyle(
@@ -185,7 +189,7 @@ class _PropertyListPageState extends ConsumerState<PropertyListPage> {
       ),
       centerTitle: true,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary, size: 20),
+        icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
         onPressed: () {
           HapticFeedback.lightImpact();
           if (context.canPop()) {

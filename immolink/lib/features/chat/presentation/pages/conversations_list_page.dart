@@ -72,7 +72,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           style: AppTypography.pageTitle.copyWith(color: colors.textPrimary),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: colors.textPrimary),
+          icon: Icon(Icons.chevron_left, color: colors.textPrimary, size: 32),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -368,6 +368,7 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
   Widget _buildEmptyState({bool glassMode = false}) {
     final colors = ref.watch(dynamicColorsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     if (glassMode) {
       return Center(
@@ -388,8 +389,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               const SizedBox(height: 20),
               Text(
                 _searchQuery.isNotEmpty
-                    ? 'No conversations found'
-                    : 'No conversations yet',
+                    ? l10n.noConversations
+                    : l10n.noConversationsYet,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
@@ -400,8 +401,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
               const SizedBox(height: 10),
               Text(
                 _searchQuery.isNotEmpty
-                    ? AppLocalizations.of(context)!.searchConversationsHint
-                    : 'Start a conversation with your properties',
+                    ? l10n.tryAdjustingSearch
+                    : l10n.startConversation,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   color: Colors.white.withValues(alpha: 0.85),
@@ -440,8 +441,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           const SizedBox(height: 24),
           Text(
             _searchQuery.isNotEmpty
-                ? 'No conversations found'
-                : 'No conversations yet',
+                ? l10n.noConversations
+                : l10n.noConversationsYet,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -451,8 +452,8 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty
-                ? 'Try adjusting your search terms'
-                : 'Start a conversation with your properties',
+                ? l10n.tryAdjustingSearch
+                : l10n.startConversation,
             style: TextStyle(
               fontSize: 14,
               color: colors.textSecondary,

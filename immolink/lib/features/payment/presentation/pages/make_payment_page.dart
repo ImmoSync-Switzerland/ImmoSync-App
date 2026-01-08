@@ -139,7 +139,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: _textPrimary),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded),
+          icon: const Icon(Icons.chevron_left, size: 32),
           onPressed: () => context.pop(),
         ),
       ),
@@ -758,7 +758,7 @@ class _MakePaymentPageState extends ConsumerState<MakePaymentPage> {
         foregroundColor: _textPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: _textPrimary),
+          icon: const Icon(Icons.chevron_left, color: _textPrimary, size: 32),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

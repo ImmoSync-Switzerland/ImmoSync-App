@@ -5,6 +5,7 @@ import 'package:immosync/core/theme/app_typography.dart';
 import 'package:immosync/core/widgets/glass_nav_bar.dart';
 import 'package:immosync/core/widgets/user_avatar.dart';
 import 'package:immosync/features/auth/presentation/providers/auth_provider.dart';
+import 'package:immosync/l10n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -15,6 +16,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     final name = (user?.fullName.trim().isNotEmpty ?? false)
         ? user!.fullName.trim()
@@ -27,7 +29,7 @@ class ProfileScreen extends ConsumerWidget {
     final avatarRef = user?.profileImageUrl ?? user?.profileImage;
 
     final email = user?.email.trim() ?? '';
-    const phone = '—';
+    final phone = (user?.phone ?? '').toString().trim();
     final address = _formatAddress(user);
 
     return Scaffold(
@@ -51,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Text(
-                      'Profile',
+                      l10n.profile,
                       style: AppTypography.pageTitle.copyWith(
                         color: Colors.white,
                       ),
@@ -74,20 +76,20 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       _InfoRow(
                         icon: Icons.mail_outline_rounded,
-                        label: 'Email',
+                        label: l10n.email,
                         value: email.isNotEmpty ? email : '—',
                         allowEllipsis: true,
                       ),
                       const SizedBox(height: 12),
-                      const _InfoRow(
+                      _InfoRow(
                         icon: Icons.phone_outlined,
-                        label: 'Phone',
-                        value: phone,
+                        label: l10n.phone,
+                        value: phone.isNotEmpty ? phone : '—',
                       ),
                       const SizedBox(height: 12),
                       _InfoRow(
                         icon: Icons.location_on_outlined,
-                        label: 'Address',
+                        label: l10n.address,
                         value: address.isNotEmpty ? address : '—',
                         allowEllipsis: true,
                       ),
@@ -101,25 +103,25 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       _SettingsRow(
                         icon: Icons.lock_outline_rounded,
-                        title: 'Account Security',
+                        title: l10n.changePassword,
                         onTap: () => context.push('/change-password'),
                       ),
                       _DividerLine(),
                       _SettingsRow(
                         icon: Icons.settings_outlined,
-                        title: 'App Settings',
+                        title: l10n.appSettings,
                         onTap: () => context.push('/settings'),
                       ),
                       _DividerLine(),
                       _SettingsRow(
                         icon: Icons.notifications_none_rounded,
-                        title: 'Notifications',
+                        title: l10n.notifications,
                         onTap: () => context.push('/notifications'),
                       ),
                       _DividerLine(),
                       _SettingsRow(
                         icon: Icons.help_outline_rounded,
-                        title: 'Help & Support',
+                        title: l10n.helpCenter,
                         onTap: () => context.push('/help-center'),
                       ),
                     ],
@@ -141,9 +143,9 @@ class ProfileScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text(
-                    'Log Out',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.logout,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.1,
                     ),
@@ -293,7 +295,7 @@ class _HeaderProfileCard extends StatelessWidget {
             child: IconButton(
               onPressed: onEdit,
               icon: const Icon(Icons.edit_outlined, color: Colors.white70),
-              tooltip: 'Edit',
+              tooltip: AppLocalizations.of(context)!.editProfile,
             ),
           ),
         ],

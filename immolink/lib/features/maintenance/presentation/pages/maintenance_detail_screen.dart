@@ -76,7 +76,8 @@ class MaintenanceDetailScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: onBack,
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: const Icon(Icons.chevron_left,
+                            color: Colors.white, size: 32),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         tooltip: AppLocalizations.of(context)!.back,
@@ -337,7 +338,8 @@ class MaintenanceDetailLoadingScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: onBack,
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: const Icon(Icons.chevron_left,
+                            color: Colors.white, size: 32),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         tooltip: AppLocalizations.of(context)!.back,
@@ -387,7 +389,8 @@ class MaintenanceDetailErrorScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: onBack,
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: const Icon(Icons.chevron_left,
+                            color: Colors.white, size: 32),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         tooltip: AppLocalizations.of(context)!.back,

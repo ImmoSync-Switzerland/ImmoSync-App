@@ -78,11 +78,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ),
         title: Text(
           'Notifications',
-          style: AppTypography.pageTitle,
+          style: AppTypography.pageTitle.copyWith(color: Colors.white),
         ),
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(Icons.chevron_left, color: Colors.white, size: 32),
           onPressed: () => context.pop(),
         ),
         actions: [
